@@ -1440,7 +1440,7 @@ struct ProfileView: View {
                         Text("Website")
                             .foregroundColor(.primary)
                         Spacer()
-                        Text("linktr.ee/Kachat_")
+                        Text(verbatim: "home.kachat.app")
                             .foregroundColor(.secondary)
                     }
                     .padding(16)
@@ -1580,7 +1580,7 @@ struct ProfileView: View {
     }
 
     private var websiteURL: URL {
-        URL(string: "https://linktr.ee/Kachat_")!
+        URL(string: "https://home.kachat.app")!
     }
 
     private var supportEmailURL: URL {

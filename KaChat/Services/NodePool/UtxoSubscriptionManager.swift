@@ -123,8 +123,15 @@ final class UtxoSubscriptionManager: ObservableObject {
     /// Tries all capable nodes in pool in sequence, throws if all fail
     func subscribe(addresses: [String], excluding: Set<String> = []) async throws {
         guard !addresses.isEmpty else { return }
-        while let running = subscribeInFlight { _ = try? await running.value }
-        let task = Task { @MainActor in try await self.performSubscribe(addresses: addresses, excluding: excluding) }
+        // Chained, never a wait loop: awaiting a task that has already finished doesn't
+        // suspend, so `while let running = subscribeInFlight` spun on the main thread until the
+        // finished subscribe's owner cleared it - which needs the main thread. Two subscribes
+        // close together (starting a new chat) froze the app.
+        let previous = subscribeInFlight
+        let task = Task { @MainActor in
+            _ = try? await previous?.value
+            try await self.performSubscribe(addresses: addresses, excluding: excluding)
+        }
         subscribeInFlight = task
         defer { if subscribeInFlight == task { subscribeInFlight = nil } }
         try await task.value

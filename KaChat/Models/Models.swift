@@ -2251,7 +2251,8 @@ enum KaspaExplorer: String, Codable, CaseIterable {
         return URL(string: addressBaseURL + encoded)
     }
 
-    static let `default`: KaspaExplorer = .kaspaOrg
+    /// kaspa.stream first: the picker lists it first and a fresh install opens links there.
+    static let `default`: KaspaExplorer = .kaspaStream
 }
 
 enum NotificationMode: String, Codable, CaseIterable {

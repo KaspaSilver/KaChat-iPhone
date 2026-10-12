@@ -1570,3 +1570,20 @@
 "Notifications from this bot resume." = "Benachrichtigungen von diesem Bot kommen wieder.";
 "No notification from this bot." = "Keine Benachrichtigung von diesem Bot.";
 "Removes this chat until you write to the bot again." = "Entfernt diesen Chat, bis du dem Bot wieder schreibst.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "Zahlung anfordern";
+"A link asking for an exact amount, with what it's for." = "Ein Link, der einen genauen Betrag anfordert, mit dem Zweck.";
+"Paid to" = "Zahlung an";
+"The payment lands in your chat with whoever pays, with the memo." = "Die Zahlung landet in deinem Chat mit der zahlenden Person, mit der Notiz.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "An eine neue Adresse von dir. Die Notiz sieht nur, wer zahlt; sie wird nicht mit der Zahlung gesendet.";
+"What it's for (optional)" = "Wofür (optional)";
+"Copy Payment Request" = "Zahlungsanforderung kopieren";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "Wer ihn in KaChat öffnet oder einfügt, bekommt „Kaspa senden“ mit diesen Angaben.";
+"Requested" = "Angefordert";
+"Paid as a chat payment: it shows in your chat with them." = "Als Chat-Zahlung: Sie erscheint in deinem Chat mit der Person.";
+"Paid to their spending address." = "An ihre Ausgabenadresse.";
+"Payment Request" = "Zahlungsanforderung";
+"Payment request: %@ KAS" = "Zahlungsanforderung: %@ KAS";
+"Your payment request." = "Deine Zahlungsanforderung.";
+"Tap to pay." = "Zum Bezahlen tippen.";

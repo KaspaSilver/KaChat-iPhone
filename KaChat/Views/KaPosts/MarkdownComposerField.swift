@@ -21,7 +21,7 @@ struct MarkdownComposerField: UIViewRepresentable {
     var maxHeight: CGFloat? = nil
 
     func makeUIView(context: Context) -> UITextView {
-        let view = UITextView()
+        let view = PaymentRequestAwareTextView()
         view.delegate = context.coordinator
         // Self-sizing: the composer's own ScrollView does the scrolling, and this view reports a
         // height instead of eating the space greedily. `sizeThatFits` turns this back on if a

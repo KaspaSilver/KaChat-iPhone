@@ -7,6 +7,7 @@ Every link the apps hand out is `https://kachat.app/...`:
 | `https://kachat.app/post/<txid>` | KaPosts share sheet (iOS, Android, desktop) | the post's thread |
 | `https://kachat.app/broadcast/<room>` | broadcast room invite | the room |
 | `https://kachat.app/u/<address>` | the share button beside the Profile title, and Share in User Info | that person's User Info screen (name, avatar, profile, Open Chat) |
+| `https://kachat.app/pay/<address>?amount=<KAS>&memo=<text>[&chat=1]` | Chats > + > Request Payment (Copy / Share) | Send Kaspa with the address (locked), amount and memo filled in |
 
 One link, three behaviours:
 
@@ -68,6 +69,16 @@ Environment (`server/.env`):
   KaChat" once they have a `.kachat` name ("Chat with me on KaChat" until then), the bio as
   `og:description` and the avatar as `og:image`. Plus a "Chat on KaChat" button
   (`kachat://profile/<address>`) and the store buttons. An invalid address is a 404 page.
+- `GET /pay/<address>?amount=<KAS>&memo=<text>[&chat=1]` - a payment request: the amount, the
+  memo and the address, with "Pay in KaChat" (`kachat://pay/...`, same query) and the store
+  buttons. `amount` is exact (at most 11 whole digits and 8 decimals, above 0), `memo` is cut to
+  140 characters with control and direction marks removed, and the address checksum is
+  verified; anything else is a 404 page. `chat=1` marks the requester's chatting address: the
+  app then pays it as a chat payment with the memo encrypted inside (a spending address can't
+  read a memo, so there the memo is only shown to the payer). The app's side is
+  `PaymentRequest` in `LinkPreviewService.swift`: pasted into a chat or KaPosts composer, or
+  into Send Kaspa's recipient field, someone else's request opens Send Kaspa (your own pastes
+  as text, so you can send it); tapped in a message it does the same.
 - **People** are shown the way the app shows them (KACHAT_NAMES.md section 7), never from KNS:
   `GET /identity/{address}` on the address's network's indexer gives the `.kachat` label and
   the address's profile record. Its `avatar`, `banner` and `bio` are links to the person's own
@@ -76,13 +87,13 @@ Environment (`server/.env`):
   for the rest). Each account's answer is cached 24 h (1 min when it couldn't be reached) and a
   lookup never holds a page more than 7 s. The name is `<label>.kachat`, else the shortened
   address. No avatar shows the app's empty-avatar glyph.
-- `GET /.well-known/apple-app-site-association` - `applinks` for `/post/*`, `/broadcast/*` and `/u/*`
+- `GET /.well-known/apple-app-site-association` - `applinks` for `/post/*`, `/broadcast/*`, `/u/*` and `/pay/*`
   for every `IOS_APP_IDS` entry. Served as `application/json`, no redirect - exactly what Apple
   requires. The iOS app carries `applinks:kachat.app` (and still `applinks:kachat.duckdns.org`
   for links already out there).
 - `GET /.well-known/assetlinks.json` - the Android equivalent, from `ANDROID_PACKAGE` and
   `ANDROID_SHA256`. The Android app must declare an `autoVerify` intent filter for
-  `https://kachat.app/post/*`, `/broadcast/*` and `/u/*` (and keep the `kachat://` scheme filter).
+  `https://kachat.app/post/*`, `/broadcast/*`, `/u/*` and `/pay/*` (and keep the `kachat://` scheme filter).
 - `GET /download` - 302 to the App Store on iPhone/iPad, Google Play on Android, `DESKTOP_URL`
   elsewhere. Use it anywhere a single "Get KaChat" link is wanted.
 - `GET /`, `/eula.html`, `/og-default.png` - the static site. The preview image for invites

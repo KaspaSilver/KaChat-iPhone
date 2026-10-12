@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "このボットからの通知を再開します。";
 "No notification from this bot." = "このボットからの通知はありません。";
 "Removes this chat until you write to the bot again." = "ボットにもう一度書くまで、このチャットを削除します。";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "支払いをリクエスト";
+"A link asking for an exact amount, with what it's for." = "金額と用途を指定して支払いを依頼するリンク。";
+"Paid to" = "支払先";
+"The payment lands in your chat with whoever pays, with the memo." = "支払いはメモ付きで、支払った人とのチャットに届きます。";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "あなたの新しいアドレスに支払われます。メモは支払う人に表示されますが、支払いと一緒には送られません。";
+"What it's for (optional)" = "用途（任意）";
+"Copy Payment Request" = "支払いリクエストをコピー";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "KaChat で開くか貼り付けると、この内容が入力済みの Kaspa 送金画面が開きます。";
+"Requested" = "リクエスト額";
+"Paid as a chat payment: it shows in your chat with them." = "チャット支払いとして支払われ、相手とのチャットに表示されます。";
+"Paid to their spending address." = "相手の支出アドレスに支払われます。";
+"Payment Request" = "支払いリクエスト";
+"Payment request: %@ KAS" = "支払いリクエスト: %@ KAS";
+"Your payment request." = "あなたの支払いリクエストです。";
+"Tap to pay." = "タップして支払う。";

@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "এই বটের বিজ্ঞপ্তি আবার চালু হয়।";
 "No notification from this bot." = "এই বট থেকে কোনো বিজ্ঞপ্তি নয়।";
 "Removes this chat until you write to the bot again." = "আবার বটকে লেখা পর্যন্ত এই চ্যাট সরিয়ে দেয়।";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "পেমেন্ট অনুরোধ";
+"A link asking for an exact amount, with what it's for." = "একটি নির্দিষ্ট পরিমাণ চাওয়ার লিংক, কীসের জন্য তা সহ।";
+"Paid to" = "যেখানে পেমেন্ট যাবে";
+"The payment lands in your chat with whoever pays, with the memo." = "পেমেন্টটি যে দেবে তার সাথে আপনার চ্যাটে আসবে, মেমোসহ।";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "আপনার একটি নতুন ঠিকানায় পেমেন্ট হবে। মেমো শুধু প্রদানকারী দেখবেন, পেমেন্টের সাথে যাবে না।";
+"What it's for (optional)" = "কীসের জন্য (ঐচ্ছিক)";
+"Copy Payment Request" = "পেমেন্ট অনুরোধ কপি করুন";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "KaChat-এ যে কেউ এটি খুললে বা পেস্ট করলে এই তথ্যসহ Kaspa পাঠানোর স্ক্রিন পাবেন।";
+"Requested" = "অনুরোধকৃত";
+"Paid as a chat payment: it shows in your chat with them." = "চ্যাট পেমেন্ট হিসেবে দেওয়া হবে: তাদের সাথে আপনার চ্যাটে দেখাবে।";
+"Paid to their spending address." = "তাদের স্পেন্ডিং ঠিকানায় দেওয়া হবে।";
+"Payment Request" = "পেমেন্ট অনুরোধ";
+"Payment request: %@ KAS" = "পেমেন্ট অনুরোধ: %@ KAS";
+"Your payment request." = "আপনার পেমেন্ট অনুরোধ।";
+"Tap to pay." = "পেমেন্ট করতে ট্যাপ করুন।";

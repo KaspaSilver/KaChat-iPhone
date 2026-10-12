@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "Bu bottan bildirimler yeniden gelir.";
 "No notification from this bot." = "Bu bottan bildirim gelmez.";
 "Removes this chat until you write to the bot again." = "Bota yeniden yazana kadar bu sohbeti kaldırır.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "Ödeme İste";
+"A link asking for an exact amount, with what it's for." = "Tam bir tutarı, ne için olduğuyla isteyen bir bağlantı.";
+"Paid to" = "Ödenecek adres";
+"The payment lands in your chat with whoever pays, with the memo." = "Ödeme, notla birlikte ödeyen kişiyle sohbetinize düşer.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "Yeni bir adresinize ödenir. Notu ödeyen görür, ancak ödemeyle birlikte gitmez.";
+"What it's for (optional)" = "Ne için (isteğe bağlı)";
+"Copy Payment Request" = "Ödeme İsteğini Kopyala";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "KaChat'te açan veya yapıştıran herkes bu bilgilerle dolu Kaspa Gönder ekranını görür.";
+"Requested" = "İstenen";
+"Paid as a chat payment: it shows in your chat with them." = "Sohbet ödemesi olarak ödenir: onunla sohbetinizde görünür.";
+"Paid to their spending address." = "Harcama adresine ödenir.";
+"Payment Request" = "Ödeme İsteği";
+"Payment request: %@ KAS" = "Ödeme isteği: %@ KAS";
+"Your payment request." = "Sizin ödeme isteğiniz.";
+"Tap to pay." = "Ödemek için dokunun.";

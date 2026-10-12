@@ -1210,6 +1210,7 @@ struct KaChatInternalLinkCardView: View {
         case .kaPost: return "square.and.pencil"          // AppTab.kaposts.icon
         case .publicChatRoom: return "dot.radiowaves.left.and.right" // AppTab.publicChats.icon
         case .profile: return "person.crop.circle"
+        case .paymentRequest: return "arrow.up.circle"
         }
     }
 
@@ -1225,6 +1226,7 @@ struct KaChatInternalLinkCardView: View {
             }
         case .publicChatRoom: return "Public Chat Room"
         case .profile: return "KaChat Profile"
+        case .paymentRequest: return "Payment Request"
         }
     }
 
@@ -1239,6 +1241,8 @@ struct KaChatInternalLinkCardView: View {
                 return domain
             }
             return ContactsManager.shared.displayName(for: address)
+        case .paymentRequest(let request):
+            return "\(request.amountText) \(KaspaUnit.symbol)"
         }
     }
 
@@ -1262,6 +1266,9 @@ struct KaChatInternalLinkCardView: View {
         case .profile(let address):
             let isContact = ContactsManager.shared.contacts.contains { $0.address.lowercased() == address }
             return isContact ? "Tap to open your chat." : "Tap to start a chat on KaChat."
+        case .paymentRequest(let request):
+            let action = request.isOwn ? AppLocalization.string("Your payment request.") : AppLocalization.string("Tap to pay.")
+            return request.memo.isEmpty ? action : "\(request.memo)\n\(action)"
         }
     }
 

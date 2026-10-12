@@ -14,6 +14,7 @@ import Foundation
 /// | KaPosts post     | `kachat://kapost/<txid>`       | `https://kachat.app/post/<txid>`                  |
 /// | Public Chat room | `kachat://broadcast/<channel>` | `https://kachat.app/broadcast/<channel>`          |
 /// | Profile          | `kachat://profile/<address>`   | `https://kachat.app/u/<address>`                  |
+/// | Payment request  | `kachat://pay/<address>?amount=<KAS>&memo=<text>[&chat=1]` | `https://kachat.app/pay/<address>?…` |
 ///
 /// `<channel>` is the NORMALIZED room name with no leading `#` (see `PublicChatChannelName`).
 /// `<address>` is a full Kaspa address; in the universal form a mainnet address may drop its
@@ -27,6 +28,9 @@ enum KaChatInternalLink: Equatable {
     case publicChatRoom(channel: String)
     /// Someone's KaChat profile: opens their User Info (yours too, for your own link).
     case profile(address: String)
+    /// A request to be paid: opens Send Kaspa with the address, amount and memo filled in
+    /// (`PaymentRequest`).
+    case paymentRequest(PaymentRequest)
 
     /// The universal-link host - the only host the app ever writes into a share. With KaChat
     /// installed iOS opens these links in the app; without it, kachat.app shows the post (or
@@ -51,6 +55,7 @@ enum KaChatInternalLink: Equatable {
         case .kaPost(let txId): return "kachat://kapost/\(txId)"
         case .publicChatRoom(let channel): return "kachat://broadcast/\(channel)"
         case .profile(let address): return "kachat://profile/\(address)"
+        case .paymentRequest(let request): return "kachat://pay/\(request.linkTail)"
         }
     }
 
@@ -63,6 +68,8 @@ enum KaChatInternalLink: Equatable {
         case .profile(let address):
             let path = address.hasPrefix("kaspa:") ? String(address.dropFirst("kaspa:".count)) : address
             return "https://\(Self.universalLinkHost)/u/\(path)"
+        case .paymentRequest(let request):
+            return "https://\(Self.universalLinkHost)/pay/\(request.linkTail)"
         }
     }
 
@@ -100,6 +107,7 @@ enum KaChatInternalLink: Equatable {
             case "kapost": return kaPostLink(rawTxId: payload)
             case "broadcast": return publicChatLink(rawChannel: payload)
             case "profile": return profileLink(rawAddress: payload)
+            case "pay": return PaymentRequest(rawAddress: payload, url: url).map { .paymentRequest($0) }
             default: return nil
             }
         case "http", "https":
@@ -110,6 +118,7 @@ enum KaChatInternalLink: Equatable {
             case "post": return kaPostLink(rawTxId: parts[1])
             case "broadcast": return publicChatLink(rawChannel: parts[1])
             case "u": return profileLink(rawAddress: parts[1])
+            case "pay": return PaymentRequest(rawAddress: parts[1], url: url).map { .paymentRequest($0) }
             default: return nil
             }
         default:
@@ -194,7 +203,7 @@ enum KaChatInternalLink: Equatable {
     /// universal form is matched here too so it is claimed as INTERNAL before the generic
     /// preview path can fetch it over the network.
     private static let pattern =
-        #"(?:kachat://(?:kapost|broadcast|profile)/|https?://(?:www\.)?kachat\.(?:app|duckdns\.org)/(?:post|broadcast|u)/)[^\s<>"']+"#
+        #"(?:kachat://(?:kapost|broadcast|profile|pay)/|https?://(?:www\.)?kachat\.(?:app|duckdns\.org)/(?:post|broadcast|u|pay)/)[^\s<>"']+"#
 
     private static let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
 
@@ -249,6 +258,119 @@ enum KaChatInternalLink: Equatable {
         }
         return found
     }
+}
+
+/// A request to be paid, carried in a link (`KaChatInternalLink.paymentRequest`): who to pay, the
+/// exact amount and what it's for. Made in Chats > + > Request Payment; pasting one anywhere in
+/// KaChat, or tapping one, opens Send Kaspa with it filled in.
+///
+/// `https://kachat.app/pay/<address>?amount=<KAS>&memo=<text>&chat=1` (or `kachat://pay/...`):
+/// - the address without `kaspa:` on mainnet (like profile links), with `kaspatest:` on testnet;
+/// - `amount` in KAS, at most 8 decimals, "." as the separator;
+/// - `memo` optional, at most `memoLimit` characters;
+/// - `chat=1` when the address is the requester's chatting address: then the payment goes as a
+///   chat payment, with the memo encrypted to them in it. A spending address can't read a memo,
+///   so there the memo only tells the payer what it is for.
+/// Everything in it is attacker-controlled: the address must be valid on the network the app runs
+/// on, the amount positive and exact, and the memo is cleaned of control and direction marks.
+struct PaymentRequest: Equatable, Identifiable {
+    let address: String
+    let amountSompi: UInt64
+    let memo: String
+    let toChattingAddress: Bool
+    /// Each opening is its own sheet, even for the same request.
+    let id = UUID()
+
+    static let memoLimit = 140
+    private static let unreserved = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
+
+    static func == (lhs: PaymentRequest, rhs: PaymentRequest) -> Bool {
+        lhs.address == rhs.address && lhs.amountSompi == rhs.amountSompi
+            && lhs.memo == rhs.memo && lhs.toChattingAddress == rhs.toChattingAddress
+    }
+
+    init(address: String, amountSompi: UInt64, memo: String, toChattingAddress: Bool) {
+        self.address = address
+        self.amountSompi = amountSompi
+        self.memo = Self.cleanMemo(memo)
+        self.toChattingAddress = toChattingAddress
+    }
+
+    /// From a link's address segment and its query; nil unless every part is valid.
+    init?(rawAddress: String, url: URL) {
+        let raw = rawAddress.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard raw.count <= 100 else { return nil }
+        let full = raw.contains(":") ? raw : "kaspa:" + raw
+        // the request names an address on one network: a payment can't cross networks
+        guard KaspaAddress.isValidOnActiveNetwork(full) else { return nil }
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        func value(_ name: String) -> String? { items.first { $0.name.lowercased() == name }?.value }
+        guard let amountText = value("amount"), amountText.allSatisfy({ $0.isASCII && ($0.isNumber || $0 == ".") }),
+              let sompi = KaspaUnit.sompi(fromUserText: amountText), sompi > 0 else { return nil }
+        self.init(address: full, amountSompi: sompi, memo: value("memo") ?? "", toChattingAddress: value("chat") == "1")
+    }
+
+    /// The first payment request in `text` - a pasted link, or a message holding one.
+    static func found(in text: String) -> PaymentRequest? {
+        guard let match = KaChatInternalLink.match(in: text), case .paymentRequest(let request) = match.link else { return nil }
+        return request
+    }
+
+    /// The amount in KAS, exact: "12.5", "0.00000001".
+    var amountText: String {
+        let whole = amountSompi / 100_000_000
+        let frac = amountSompi % 100_000_000
+        guard frac > 0 else { return String(whole) }
+        var fracText = String(format: "%08llu", frac)
+        while fracText.hasSuffix("0") { fracText.removeLast() }
+        return "\(whole).\(fracText)"
+    }
+
+    /// The link's address segment and query, shared by both forms.
+    var linkTail: String {
+        let path = address.hasPrefix("kaspa:") ? String(address.dropFirst("kaspa:".count)) : address
+        var query = "amount=\(amountText)"
+        // Only unreserved characters stay as they are: "&", "=", "+", "#" and spaces in a memo are
+        // all escaped, so it reads back exactly as written whatever decodes it.
+        if !memo.isEmpty, let encoded = memo.addingPercentEncoding(withAllowedCharacters: Self.unreserved) {
+            query += "&memo=\(encoded)"
+        }
+        if toChattingAddress { query += "&chat=1" }
+        return "\(path)?\(query)"
+    }
+
+    /// The link the Copy button gives out.
+    var shareURLString: String { KaChatInternalLink.paymentRequest(self).universalLinkString }
+
+    /// True when the address is one of this wallet's: your own request pastes as text (to send it
+    /// to someone) instead of opening Send.
+    @MainActor
+    var isOwn: Bool {
+        let target = address.lowercased()
+        if WalletManager.shared.currentWallet?.publicAddress.lowercased() == target { return true }
+        return WalletManager.shared.allSpendingAddresses().contains { $0.lowercased() == target }
+    }
+
+    static func cleanMemo(_ memo: String) -> String {
+        let scalars = memo.unicodeScalars.filter { scalar in
+            let category = scalar.properties.generalCategory
+            if category == .control || category == .format { return false }
+            switch scalar.value {
+            case 0x200B...0x200F, 0x202A...0x202E, 0x2066...0x2069, 0xFEFF: return false
+            default: return true
+            }
+        }
+        let cleaned = String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(cleaned.prefix(memoLimit))
+    }
+}
+
+/// The payment request waiting to be shown: `MainTabView` presents Send Kaspa for it.
+@MainActor
+final class PaymentRequestRouter: ObservableObject {
+    static let shared = PaymentRequestRouter()
+    @Published var pending: PaymentRequest?
+    private init() {}
 }
 
 /// The author and text behind a `kachat://kapost/<txid>` link, so a shared post previews in a

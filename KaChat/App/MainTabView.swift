@@ -235,6 +235,8 @@ struct MainTabView: View {
         // Its own modifier: added to this chain inline, it pushed the body past what the type
         // checker can solve in reasonable time.
         .modifier(OwnAddressSheetPresenter(target: $ownAddressSheet, onRequest: takeOwnAddressRoute))
+        // A payment request tapped or pasted anywhere: Send Kaspa with it filled in.
+        .modifier(PaymentRequestSheetPresenter())
         .onReceive(NotificationCenter.default.publisher(for: .openColdStorage)) { _ in
             // Cold-storage address-activity notification tapped: the Storage tab, or the next
             // best wallet surface when it's hidden.

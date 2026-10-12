@@ -1130,7 +1130,17 @@ enum KaChatLinkRouter {
             openPublicChatRoom(channel: channel)
         case .profile(let address):
             openProfile(address: address)
+        case .paymentRequest(let request):
+            openPaymentRequest(request)
         }
+    }
+
+    /// Someone's payment request: Send Kaspa with it filled in (`MainTabView` presents it). Your
+    /// own request has nothing to pay - its card just says it is yours.
+    @MainActor
+    static func openPaymentRequest(_ request: PaymentRequest) {
+        guard !request.isOwn else { return }
+        PaymentRequestRouter.shared.pending = request
     }
 
     /// Someone's profile link - yours included - opens their User Info, from which Open Chat is

@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "اعلان‌های این ربات دوباره می‌آیند.";
 "No notification from this bot." = "هیچ اعلانی از این ربات نمی‌آید.";
 "Removes this chat until you write to the bot again." = "این گفتگو را تا وقتی دوباره به ربات بنویسید حذف می‌کند.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "درخواست پرداخت";
+"A link asking for an exact amount, with what it's for." = "پیوندی که مبلغی دقیق را با دلیلش درخواست می‌کند.";
+"Paid to" = "پرداخت به";
+"The payment lands in your chat with whoever pays, with the memo." = "پرداخت با یادداشت در گفتگوی شما با پرداخت‌کننده ثبت می‌شود.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "به یک آدرس تازه شما پرداخت می‌شود. پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
+"What it's for (optional)" = "بابت چه (اختیاری)";
+"Copy Payment Request" = "کپی درخواست پرداخت";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "هر کس آن را در KaChat باز یا جای‌گذاری کند، صفحه ارسال Kaspa را با این جزئیات می‌بیند.";
+"Requested" = "درخواست‌شده";
+"Paid as a chat payment: it shows in your chat with them." = "به‌صورت پرداخت در گفتگو: در گفتگوی شما با او نمایش داده می‌شود.";
+"Paid to their spending address." = "به آدرس هزینه او پرداخت می‌شود.";
+"Payment Request" = "درخواست پرداخت";
+"Payment request: %@ KAS" = "درخواست پرداخت: %@ KAS";
+"Your payment request." = "درخواست پرداخت شما.";
+"Tap to pay." = "برای پرداخت ضربه بزنید.";

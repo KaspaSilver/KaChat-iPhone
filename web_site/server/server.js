@@ -653,6 +653,48 @@ function broadcastPage(channel) {
   });
 }
 
+// A payment request (Chats > + > Request Payment in the app): who to pay, the exact amount and
+// what it's for. With the app it opens Send Kaspa filled in; without it, the details and the
+// download. Same rules as the app's PaymentRequest: a valid address, an exact amount, a short memo.
+const AMOUNT = /^(?=.*[1-9])\d{1,11}(\.\d{1,8})?$/;
+
+function payPage(address, amount, memo, chat) {
+  const pathForm = address.startsWith('kaspa:') ? address.slice('kaspa:'.length) : address;
+  let query = `amount=${amount}`;
+  if (memo) query += `&memo=${encodeURIComponent(memo)}`;
+  if (chat) query += '&chat=1';
+  const tail = `${encodeURIComponent(pathForm).replace(/%3A/gi, ':')}?${query}`;
+  const canonical = `${SITE_ORIGIN}/pay/${tail}`;
+  const unit = address.startsWith('kaspatest:') ? 'TKAS' : 'KAS';
+  const what = memo ? `<div class="text">${escapeHTML(memo)}</div>` : '';
+  const body = `
+  <div class="card">
+    <div class="who">
+      <span class="room-ic">&#8593;</span>
+      <div>
+        <div class="name" style="font-size:22px">${escapeHTML(amount)} ${unit}</div>
+        <div class="meta">A payment request on KaChat</div>
+      </div>
+    </div>
+    ${what}
+    <div class="text" style="color:var(--muted);font-size:13px;word-break:break-all">To ${escapeHTML(address)}</div>
+  </div>
+  <div class="cta">
+    <a class="btn btn-fill btn-block" href="kachat://pay/${tail}">Pay in KaChat</a>
+    <p class="hint">Opens Send Kaspa in the app with the amount and the address filled in.</p>
+  </div>
+  ${getKaChat("Don't have KaChat yet? It's free.")}`;
+  return page({
+    title: `Payment request: ${amount} ${unit}`,
+    description: memo ? `${amount} ${unit} for ${memo}` : `A request for ${amount} ${unit} on KaChat.`,
+    image: OG_IMAGE,
+    canonical,
+    appArgument: canonical,
+    body,
+    largeImage: true,
+  });
+}
+
 // A person's page: the link a KaChat user shares from their profile. Unfurls with their .kachat
 // name (once they have one) and the avatar from their profile's social account; with the app it
 // opens their User Info, without it offers the download.
@@ -715,7 +757,7 @@ function notFoundPage(what) {
 
 // ---------------------------------------------------------------- well-known
 function aasa() {
-  const paths = ['/post/*', '/broadcast/*', '/u/*'];
+  const paths = ['/post/*', '/broadcast/*', '/u/*', '/pay/*'];
   return JSON.stringify({
     applinks: { apps: [], details: IOS_APP_IDS.map(appID => ({ appID, paths })) },
     // Also lets the Intents / Share extensions open these links - harmless without them.
@@ -794,6 +836,17 @@ const server = http.createServer(async (req, res) => {
       if (!isKaspaAddress(address)) return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That link isn't a KaChat profile"));
       const identity = await loadIdentityForAddress(address);
       return send(res, 200, 'text/html; charset=utf-8', profilePage(address, identity));
+    }
+
+    if (parts.length === 2 && parts[0] === 'pay') {
+      const raw = parts[1].trim().toLowerCase();
+      const address = raw.includes(':') ? raw : `kaspa:${raw}`;
+      const amount = String(url.searchParams.get('amount') || '');
+      const memo = String(url.searchParams.get('memo') || '').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '').trim().slice(0, 140);
+      if (!isKaspaAddress(address) || !AMOUNT.test(amount)) {
+        return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That link isn't a KaChat payment request"));
+      }
+      return send(res, 200, 'text/html; charset=utf-8', payPage(address, amount, memo, url.searchParams.get('chat') === '1'));
     }
 
     if (url.pathname === '/') return serveStatic(res, 'index.html') || send(res, 200, 'text/plain', 'KaChat');

@@ -41,6 +41,8 @@ struct ChatListView: View {
     @State private var qrScreen: ChatsQRScreen?
     /// "Send Kaspa" in the New sheet: Profile's send from the current spending address.
     @State private var showSpendingSend = false
+    /// Chats > + > Request Payment (`CreatePaymentRequestView`).
+    @State private var showPaymentRequest = false
     private enum ChatsQRScreen: String, Identifiable {
         case fundChatting, receive
         var id: String { rawValue }
@@ -351,6 +353,11 @@ struct ChatListView: View {
                 .environmentObject(contactsManager)
                 .environmentObject(settingsViewModel)
                 .environmentObject(walletManager)
+        }
+        .sheet(isPresented: $showPaymentRequest) {
+            CreatePaymentRequestView()
+                .environmentObject(walletManager)
+                .environmentObject(settingsViewModel)
         }
         .sheet(item: $qrScreen) { screen in
             NavigationStack {
@@ -678,6 +685,9 @@ struct ChatListView: View {
                 CreateTile(title: "Receive Kaspa", hint: "Show a fresh address to get paid.", systemImage: "arrow.down.circle") {
                     closeCreateSheet { qrScreen = .receive }
                 }
+                CreateTile(title: "Request Payment", hint: "A link asking for an exact amount, with what it's for.", systemImage: "doc.text") {
+                    closeCreateSheet { showPaymentRequest = true }
+                }
                 CreateTile(title: "Fund Chatting Address", hint: "Show the QR code to add Kaspa for sending messages.", systemImage: "qrcode") {
                     closeCreateSheet { qrScreen = .fundChatting }
                 }
@@ -782,7 +792,7 @@ struct ChatListView: View {
 
     /// The menu and the room name share this one height, so moving between them is a plain push.
     /// The create forms open at full height; the QR options leave for their own white sheet.
-    static let createSheetHeight: PresentationDetent = .height(380)
+    static let createSheetHeight: PresentationDetent = .height(498)
 
     private func pushCreate(_ route: CreateRoute) {
         createPath.append(route)
@@ -1915,6 +1925,8 @@ struct ConversationRow: View {
                 result = "Public chat room #\(channel)"
             case .profile:
                 result = "Shared a KaChat profile"
+            case .paymentRequest(let request):
+                result = KaspaUnit.label(String(format: AppLocalization.string("Payment request: %@ KAS"), request.amountText))
             }
             Self.previewCache.setObject(result as NSString, forKey: key)
             return result

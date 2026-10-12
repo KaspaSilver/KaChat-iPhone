@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "Notifikasi dari bot ini kembali aktif.";
 "No notification from this bot." = "Tidak ada notifikasi dari bot ini.";
 "Removes this chat until you write to the bot again." = "Menghapus obrolan ini sampai Anda menulis ke bot lagi.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "Minta Pembayaran";
+"A link asking for an exact amount, with what it's for." = "Tautan yang meminta jumlah pasti, beserta keperluannya.";
+"Paid to" = "Dibayar ke";
+"The payment lands in your chat with whoever pays, with the memo." = "Pembayaran masuk ke obrolan Anda dengan pembayar, beserta catatannya.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "Dibayar ke alamat baru milik Anda. Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
+"What it's for (optional)" = "Untuk apa (opsional)";
+"Copy Payment Request" = "Salin Permintaan Pembayaran";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "Siapa pun yang membuka atau menempelkannya di KaChat mendapat layar Kirim Kaspa yang sudah terisi.";
+"Requested" = "Diminta";
+"Paid as a chat payment: it shows in your chat with them." = "Dibayar sebagai pembayaran obrolan: muncul di obrolan Anda dengan mereka.";
+"Paid to their spending address." = "Dibayar ke alamat belanja mereka.";
+"Payment Request" = "Permintaan Pembayaran";
+"Payment request: %@ KAS" = "Permintaan pembayaran: %@ KAS";
+"Your payment request." = "Permintaan pembayaran Anda.";
+"Tap to pay." = "Ketuk untuk membayar.";

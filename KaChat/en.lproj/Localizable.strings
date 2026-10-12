@@ -1623,3 +1623,20 @@
 "Notifications from this bot resume." = "Notifications from this bot resume.";
 "No notification from this bot." = "No notification from this bot.";
 "Removes this chat until you write to the bot again." = "Removes this chat until you write to the bot again.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "Request Payment";
+"A link asking for an exact amount, with what it's for." = "A link asking for an exact amount, with what it's for.";
+"Paid to" = "Paid to";
+"The payment lands in your chat with whoever pays, with the memo." = "The payment lands in your chat with whoever pays, with the memo.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment.";
+"What it's for (optional)" = "What it's for (optional)";
+"Copy Payment Request" = "Copy Payment Request";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in.";
+"Requested" = "Requested";
+"Paid as a chat payment: it shows in your chat with them." = "Paid as a chat payment: it shows in your chat with them.";
+"Paid to their spending address." = "Paid to their spending address.";
+"Payment Request" = "Payment Request";
+"Payment request: %@ KAS" = "Payment request: %@ KAS";
+"Your payment request." = "Your payment request.";
+"Tap to pay." = "Tap to pay.";

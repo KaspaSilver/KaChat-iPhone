@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "Thông báo từ bot này hoạt động lại.";
 "No notification from this bot." = "Không có thông báo từ bot này.";
 "Removes this chat until you write to the bot again." = "Xóa cuộc trò chuyện này cho đến khi bạn viết lại cho bot.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "Yêu cầu thanh toán";
+"A link asking for an exact amount, with what it's for." = "Một liên kết yêu cầu số tiền chính xác, kèm mục đích.";
+"Paid to" = "Trả cho";
+"The payment lands in your chat with whoever pays, with the memo." = "Khoản thanh toán kèm ghi chú sẽ vào cuộc trò chuyện của bạn với người trả.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "Trả vào một địa chỉ mới của bạn. Người trả thấy ghi chú, nhưng ghi chú không đi kèm khoản thanh toán.";
+"What it's for (optional)" = "Để làm gì (tùy chọn)";
+"Copy Payment Request" = "Sao chép yêu cầu thanh toán";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "Ai mở hoặc dán nó trong KaChat sẽ thấy màn hình Gửi Kaspa đã điền sẵn.";
+"Requested" = "Yêu cầu";
+"Paid as a chat payment: it shows in your chat with them." = "Trả dưới dạng thanh toán trong trò chuyện: hiện trong cuộc trò chuyện của bạn với họ.";
+"Paid to their spending address." = "Trả vào địa chỉ chi tiêu của họ.";
+"Payment Request" = "Yêu cầu thanh toán";
+"Payment request: %@ KAS" = "Yêu cầu thanh toán: %@ KAS";
+"Your payment request." = "Yêu cầu thanh toán của bạn.";
+"Tap to pay." = "Nhấn để thanh toán.";

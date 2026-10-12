@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "ההתראות מהבוט הזה חוזרות.";
 "No notification from this bot." = "אין התראות מהבוט הזה.";
 "Removes this chat until you write to the bot again." = "מסיר את הצ׳אט הזה עד שתכתבו לבוט שוב.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "בקשת תשלום";
+"A link asking for an exact amount, with what it's for." = "קישור שמבקש סכום מדויק, עם מטרתו.";
+"Paid to" = "משולם אל";
+"The payment lands in your chat with whoever pays, with the memo." = "התשלום מגיע לצ׳אט שלך עם המשלם, עם ההערה.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "משולם לכתובת חדשה שלך. המשלם רואה את ההערה, אבל היא לא נשלחת עם התשלום.";
+"What it's for (optional)" = "בשביל מה (אופציונלי)";
+"Copy Payment Request" = "העתקת בקשת התשלום";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "מי שפותח או מדביק אותה ב-KaChat מקבל את מסך שליחת Kaspa עם הפרטים האלה.";
+"Requested" = "מבוקש";
+"Paid as a chat payment: it shows in your chat with them." = "משולם כתשלום בצ׳אט: מופיע בצ׳אט שלך איתם.";
+"Paid to their spending address." = "משולם לכתובת ההוצאה שלהם.";
+"Payment Request" = "בקשת תשלום";
+"Payment request: %@ KAS" = "בקשת תשלום: %@ KAS";
+"Your payment request." = "בקשת התשלום שלך.";
+"Tap to pay." = "הקישו לתשלום.";

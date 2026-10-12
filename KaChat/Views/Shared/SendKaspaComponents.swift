@@ -232,6 +232,8 @@ struct KaspaAmountEntry: View {
     var sanitize: (String) -> String = KaspaUnit.sanitizeAmountInput
     var isEstimatingMax = false
     var maxEnabled = true
+    /// False leaves Max out (asking for an amount, not sending one: Request Payment).
+    var showsMax = true
     /// Puts the cursor in the amount when the screen appears (the amount is the first thing to type).
     var focusOnAppear = false
     let onMax: () -> Void
@@ -291,6 +293,7 @@ struct KaspaAmountEntry: View {
                     .accessibilityLabel(Text("Switch between Kaspa and your currency"))
                 }
 
+                if showsMax {
                 Button(action: onMax) {
                     Group {
                         if isEstimatingMax {
@@ -308,6 +311,7 @@ struct KaspaAmountEntry: View {
                 .buttonStyle(.plain)
                 .disabled(!maxEnabled || isEstimatingMax)
                 .opacity(maxEnabled ? 1 : 0.5)
+                }
             }
         }
         .onAppear {

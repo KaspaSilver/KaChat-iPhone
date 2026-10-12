@@ -4748,7 +4748,13 @@ struct WithdrawKaspaView: View {
     var isCompoundMode: Bool = false
     /// Pre-fills the recipient (Address Book > Send KAS); it stays editable.
     var prefillAddress: String? = nil
+    /// Someone's payment request (a tapped or pasted link): its address is locked in, its amount
+    /// and memo filled in. A request pasted into the recipient field does the same.
+    var paymentRequest: PaymentRequest? = nil
     var onComplete: (() -> Void)? = nil
+
+    /// The request this send pays, if any (`paymentRequest`, or one pasted in).
+    @State private var activeRequest: PaymentRequest?
 
     @EnvironmentObject var chatService: ChatService
     @EnvironmentObject var contactsManager: ContactsManager
@@ -4836,7 +4842,7 @@ struct WithdrawKaspaView: View {
                 VStack(spacing: 18) {
                     SendRecipientCard(
                         input: $addressInput,
-                        lockedAddress: isCompoundMode ? fromAddress : nil,
+                        lockedAddress: isCompoundMode ? fromAddress : activeRequest?.address,
                         isResolving: isResolvingKNS,
                         resolvedAddress: resolvedAddress,
                         resolvedName: resolvedDomain,
@@ -4847,6 +4853,10 @@ struct WithdrawKaspaView: View {
                         selectedTLD: selectedTLD,
                         onSelectResolution: selectResolution
                     )
+
+                    if let activeRequest {
+                        PaymentRequestSummary(request: activeRequest)
+                    }
 
                     KaspaAmountEntry(
                         fiatAmountState: fiatAmountState,
@@ -4897,7 +4907,7 @@ struct WithdrawKaspaView: View {
                 customExtraFeeSompi = nil
                 isEditingFee = false
             }
-            .navigationTitle(isCompoundMode ? "Compound UTXOs" : "Send Kaspa")
+            .navigationTitle(isCompoundMode ? "Compound UTXOs" : (activeRequest != nil ? "Payment Request" : "Send Kaspa"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -4949,6 +4959,8 @@ struct WithdrawKaspaView: View {
                     addressInput = fromAddress
                     isValidAddress = true
                     setMaxAmount()
+                } else if let paymentRequest, activeRequest == nil {
+                    apply(paymentRequest)
                 } else if let prefillAddress, addressInput.isEmpty {
                     addressInput = prefillAddress
                 }
@@ -4972,6 +4984,12 @@ struct WithdrawKaspaView: View {
             return
         }
 
+        // A payment request pasted in fills in everything it carries.
+        if !isCompoundMode, let request = PaymentRequest.found(in: trimmed) {
+            apply(request)
+            return
+        }
+
         if trimmed.hasPrefix("kaspa:") || trimmed.hasPrefix("kaspatest:") {
             // the other network's address is the same key on another chain: refused
             isValidAddress = KaspaAddress.isValidOnActiveNetwork(trimmed)
@@ -4984,6 +5002,16 @@ struct WithdrawKaspaView: View {
         } else {
             isValidAddress = false
         }
+    }
+
+    /// Fills in a payment request: the address (locked), the exact amount and the memo.
+    private func apply(_ request: PaymentRequest) {
+        activeRequest = request
+        addressInput = request.address
+        isValidAddress = KaspaAddress.isValidOnActiveNetwork(request.address)
+        // the exact amount is what's sent; the field shows it in whichever unit it is in
+        amountInput = request.amountText
+        _ = fiatAmountState.setMaxKas(Double(request.amountSompi) / 100_000_000.0, priceInCurrency: portfolioViewModel.currentPriceUsd)
     }
 
     /// Use one service's answer (the priority one, or a pick from "Other domains").
@@ -5081,9 +5109,22 @@ struct WithdrawKaspaView: View {
         errorMessage = nil
         let recipient = effectiveAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         let tipSompi = extraFeeSompi
+        let request = activeRequest
         Task {
             do {
-                let txId = try await chatService.sendWithdrawal(toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                let txId: String
+                if let request, request.toChattingAddress, request.address.lowercased() == recipient.lowercased(),
+                   let contact = (try? contactsManager.addContact(address: recipient, alias: "", isAutoAdded: true))
+                    ?? contactsManager.getContact(byAddress: recipient) {
+                    // A chatting address: a chat payment, the memo encrypted to them inside it -
+                    // it lands in your chat with them like any payment from the chat.
+                    txId = try await chatService.sendPayment(
+                        to: contact, amountSompi: amountSompi, note: request.memo,
+                        extraFeeSompi: tipSompi, manualUtxos: manualUtxos
+                    ) ?? ""
+                } else {
+                    txId = try await chatService.sendWithdrawal(toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                }
                 await MainActor.run {
                     isSending = false
                     sentTransaction = SentTransaction(

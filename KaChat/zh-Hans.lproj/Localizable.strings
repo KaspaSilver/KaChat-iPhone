@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "恢复此机器人的通知。";
 "No notification from this bot." = "不接收此机器人的通知。";
 "Removes this chat until you write to the bot again." = "删除此聊天，直到你再次给机器人发消息。";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "请求付款";
+"A link asking for an exact amount, with what it's for." = "一个按确切金额请求付款的链接，并注明用途。";
+"Paid to" = "付款至";
+"The payment lands in your chat with whoever pays, with the memo." = "付款会附带备注，出现在你与付款人的聊天中。";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "付到你的一个新地址。付款人能看到备注，但备注不会随付款发送。";
+"What it's for (optional)" = "用途（可选）";
+"Copy Payment Request" = "复制付款请求";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "任何人在 KaChat 中打开或粘贴它，都会看到已填好这些信息的发送 Kaspa 界面。";
+"Requested" = "请求金额";
+"Paid as a chat payment: it shows in your chat with them." = "以聊天付款方式支付：会显示在你与对方的聊天中。";
+"Paid to their spending address." = "付到对方的支出地址。";
+"Payment Request" = "付款请求";
+"Payment request: %@ KAS" = "付款请求：%@ KAS";
+"Your payment request." = "你的付款请求。";
+"Tap to pay." = "点按付款。";

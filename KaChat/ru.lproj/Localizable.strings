@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "Уведомления от этого бота возобновятся.";
 "No notification from this bot." = "Никаких уведомлений от этого бота.";
 "Removes this chat until you write to the bot again." = "Удаляет этот чат, пока вы снова не напишете боту.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "Запросить оплату";
+"A link asking for an exact amount, with what it's for." = "Ссылка с запросом точной суммы и назначением.";
+"Paid to" = "Оплата на";
+"The payment lands in your chat with whoever pays, with the memo." = "Платёж с заметкой придёт в ваш чат с плательщиком.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "Оплата на ваш новый адрес. Заметку увидит плательщик, но с платежом она не отправится.";
+"What it's for (optional)" = "За что (необязательно)";
+"Copy Payment Request" = "Скопировать запрос на оплату";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "Любой, кто откроет или вставит её в KaChat, увидит «Отправить Kaspa» с этими данными.";
+"Requested" = "Запрошено";
+"Paid as a chat payment: it shows in your chat with them." = "Оплачивается как платёж в чате: появится в вашем чате с ним.";
+"Paid to their spending address." = "Оплачивается на его адрес для расходов.";
+"Payment Request" = "Запрос на оплату";
+"Payment request: %@ KAS" = "Запрос на оплату: %@ KAS";
+"Your payment request." = "Ваш запрос на оплату.";
+"Tap to pay." = "Нажмите, чтобы оплатить.";

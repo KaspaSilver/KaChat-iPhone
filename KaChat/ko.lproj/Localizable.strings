@@ -1622,3 +1622,20 @@
 "Notifications from this bot resume." = "이 봇의 알림이 다시 옵니다.";
 "No notification from this bot." = "이 봇의 알림을 받지 않습니다.";
 "Removes this chat until you write to the bot again." = "봇에게 다시 쓸 때까지 이 채팅을 삭제합니다.";
+
+/* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
+"Request Payment" = "결제 요청";
+"A link asking for an exact amount, with what it's for." = "정확한 금액과 용도를 담아 결제를 요청하는 링크.";
+"Paid to" = "받는 주소";
+"The payment lands in your chat with whoever pays, with the memo." = "결제는 메모와 함께 결제한 사람과의 채팅에 도착합니다.";
+"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "내 새 주소로 결제됩니다. 메모는 결제하는 사람에게만 보이고 결제와 함께 전송되지 않습니다.";
+"What it's for (optional)" = "용도 (선택)";
+"Copy Payment Request" = "결제 요청 복사";
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "KaChat에서 열거나 붙여 넣으면 이 내용이 채워진 Kaspa 보내기 화면이 열립니다.";
+"Requested" = "요청 금액";
+"Paid as a chat payment: it shows in your chat with them." = "채팅 결제로 보내져 그 사람과의 채팅에 표시됩니다.";
+"Paid to their spending address." = "상대의 지출 주소로 보냅니다.";
+"Payment Request" = "결제 요청";
+"Payment request: %@ KAS" = "결제 요청: %@ KAS";
+"Your payment request." = "내 결제 요청입니다.";
+"Tap to pay." = "탭하여 결제.";

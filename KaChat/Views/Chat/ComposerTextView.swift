@@ -12,6 +12,10 @@ final class ComposerUITextView: UITextView {
            onPasteImageData?(data) == true {
             return
         }
+        // Someone's payment request opens Send Kaspa instead of landing in the message.
+        if PaymentRequestPaste.openIfRequest(UIPasteboard.general.string) {
+            return
+        }
 
         super.paste(sender)
     }

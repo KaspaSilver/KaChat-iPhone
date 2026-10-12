@@ -660,7 +660,19 @@ extension ChatService {
             let addressList = Array(addressesToSubscribe)
             try await nodePool.subscribeUtxosChanged(addresses: addressList)
 
-            // Add notification handler for UTXO changes
+            // A run cancelled while it waited (polling stopped, push took over) or one for a wallet
+            // that is no longer current must not put a handler back.
+            guard !Task.isCancelled, WalletManager.shared.currentWallet?.publicAddress == wallet.publicAddress else {
+                AppLog.log("[ChatService] setupUtxoSubscription: superseded while subscribing; no handler added")
+                return
+            }
+
+            // Add notification handler for UTXO changes. Two setups overlapping across the await
+            // above would each add one - every batch processed twice - so whatever another run
+            // registered in the meantime goes first.
+            if let token = utxoSubscriptionToken {
+                nodePool.removeNotificationHandler(token)
+            }
             utxoSubscriptionToken = nodePool.addNotificationHandler { [weak self] notification, payload in
                 guard let self = self, notification == .utxosChanged else { return }
                 self.handleUtxoChangeNotification(payload: payload)

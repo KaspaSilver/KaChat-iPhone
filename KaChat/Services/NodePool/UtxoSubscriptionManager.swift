@@ -121,7 +121,10 @@ final class UtxoSubscriptionManager: ObservableObject {
 
     /// Subscribe to UTXO changes for addresses
     /// Tries all capable nodes in pool in sequence, throws if all fail
-    func subscribe(addresses: [String], excluding: Set<String> = []) async throws {
+    /// `reuseConnection`: when only addresses are being added on the node already serving the
+    /// subscription, send the wider list on the live connection instead of tearing it down
+    /// (callers that mean to change nodes - failover, epoch change, reconnects - leave it off).
+    func subscribe(addresses: [String], excluding: Set<String> = [], reuseConnection: Bool = false) async throws {
         guard !addresses.isEmpty else { return }
         // Chained, never a wait loop: awaiting a task that has already finished doesn't
         // suspend, so `while let running = subscribeInFlight` spun on the main thread until the
@@ -130,11 +133,39 @@ final class UtxoSubscriptionManager: ObservableObject {
         let previous = subscribeInFlight
         let task = Task { @MainActor in
             _ = try? await previous?.value
+            try Task.checkCancellation()
+            if reuseConnection, await self.widenLiveSubscription(to: addresses, excluding: excluding) { return }
             try await self.performSubscribe(addresses: addresses, excluding: excluding)
         }
         subscribeInFlight = task
         defer { if subscribeInFlight == task { subscribeInFlight = nil } }
         try await task.value
+    }
+
+    /// Adds addresses on the subscription that is up: the new list goes out on the primary's own
+    /// connection. The full path disconnects that connection first - and it is the pooled one
+    /// every other request to the node shares, so starting a chat failed whatever was in flight,
+    /// paid a TLS reconnect and dropped utxosChanged for the gap. Only for a superset: dropping
+    /// addresses goes the full way. False when it didn't apply or the node refused.
+    private func widenLiveSubscription(to addresses: [String], excluding: Set<String>) async -> Bool {
+        guard state == .subscribed, let conn = primaryConnection, let endpoint = primaryEndpoint,
+              !excluding.contains(endpoint.key),
+              Set(addresses).isSuperset(of: subscribedAddresses),
+              await conn.isConnected else { return false }
+        let previous = subscribedAddresses
+        subscribedAddresses = addresses
+        let generation = await conn.connectionGeneration
+        do {
+            try await sendNotifyUtxosChanged(on: conn)
+        } catch {
+            AppLog.log("[UtxoSub] Widening on %@ failed (%@); resubscribing", endpoint.key, error.localizedDescription)
+            subscribedAddresses = previous
+            return false
+        }
+        // a stream that flipped meanwhile is re-armed by the health check, as after a subscribe
+        if primaryConnectionGeneration == nil { primaryConnectionGeneration = generation }
+        AppLog.log("[UtxoSub] Subscription widened to %d addresses on %@", addresses.count, endpoint.key)
+        return true
     }
 
     private func performSubscribe(addresses: [String], excluding: Set<String>) async throws {
@@ -166,6 +197,11 @@ final class UtxoSubscriptionManager: ObservableObject {
         // Try each node in sequence until one succeeds
         var lastError: Error?
         for (index, nodeRecord) in availableNodes.enumerated() {
+            // unsubscribed meanwhile: stop here rather than subscribe again
+            if Task.isCancelled {
+                state = .disconnected
+                throw CancellationError()
+            }
             let endpoint = nodeRecord.endpoint
 
             AppLog.log("[UtxoSub] Attempt %d/%d: trying %@", index + 1, availableNodes.count, endpoint.key)
@@ -247,6 +283,8 @@ final class UtxoSubscriptionManager: ObservableObject {
     func unsubscribe() {
         healthCheckTask?.cancel()
         healthCheckTask = nil
+        // a subscribe still queued or running must not re-subscribe after this
+        subscribeInFlight?.cancel()
 
         // Remove notification handlers from connections
         if let conn = primaryConnection, let handlerId = primaryHandlerId {

@@ -892,12 +892,13 @@ final class NodePoolService: ObservableObject {
 
     // MARK: - Subscriptions
 
-    /// Subscribe to UTXO changes
+    /// Subscribe to UTXO changes. Adding addresses reuses the subscription that is up
+    /// (`UtxoSubscriptionManager.subscribe(reuseConnection:)`).
     func subscribeUtxosChanged(addresses: [String]) async throws {
         guard let manager = subscriptionManager else {
             throw KasiaError.networkError("Subscription manager not initialized")
         }
-        try await manager.subscribe(addresses: addresses)
+        try await manager.subscribe(addresses: addresses, reuseConnection: true)
     }
 
     /// Unsubscribe from UTXO changes

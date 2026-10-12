@@ -43,6 +43,10 @@ final class KachatNamesRegistry: ObservableObject {
 
     private var cacheNetwork: String?
     private var ownProfiles: [String: OwnProfile] = [:]
+    /// Addresses with no saved own-profile file. `ownProfile(for:)` runs for every name and
+    /// avatar drawn - nearly always someone else's address - and each miss was a failing file
+    /// read (plus a directory create and a hash) on the main thread, on every redraw.
+    private var ownProfileMisses: Set<String> = []
 
     /// `.kachat` identities by lowercased address, for the app's display rules (names, avatars,
     /// banners, bios everywhere - see `cachedIdentity(for:)`). Kept on disk too
@@ -107,6 +111,7 @@ final class KachatNamesRegistry: ObservableObject {
         chainState = nil
         cacheNetwork = nil
         ownProfiles = [:]
+        ownProfileMisses = []
         lastError = nil
         refreshedAt = nil
         revision += 1
@@ -688,7 +693,11 @@ final class KachatNamesRegistry: ObservableObject {
     func ownProfile(for address: String) -> OwnProfile? {
         let address = address.lowercased()
         if let p = ownProfiles[address] { return p }
-        guard let data = Self.readFile(Self.profileFile(address), network: Self.profileNetwork(address)), let p = try? JSONDecoder().decode(OwnProfile.self, from: data) else { return nil }
+        guard !ownProfileMisses.contains(address) else { return nil }
+        guard let data = Self.readFile(Self.profileFile(address), network: Self.profileNetwork(address)), let p = try? JSONDecoder().decode(OwnProfile.self, from: data) else {
+            ownProfileMisses.insert(address)
+            return nil
+        }
         ownProfiles[address] = p
         return p
     }
@@ -699,6 +708,7 @@ final class KachatNamesRegistry: ObservableObject {
 
     private func storeOwnProfile(_ record: OwnProfile) {
         ownProfiles[record.address] = record
+        ownProfileMisses.remove(record.address)
         if let data = try? JSONEncoder().encode(record) {
             Self.writeFile(Self.profileFile(record.address), data, network: Self.profileNetwork(record.address))
         }

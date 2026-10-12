@@ -69,7 +69,7 @@ struct KachatMarketView: View {
     @State private var nameRoute: KachatNameRoute?
     /// Mainnet before its public opening shows the countdown instead of search and the pages;
     /// flips by itself when the moment comes (`KachatNamesService.publicLaunchMs`).
-    @State private var publiclyOpen = KachatNamesService.isPubliclyOpen()
+    @State private var publiclyOpen = KachatNamesService.isPubliclyOpenKnown
 
     var body: some View {
         NavigationStack {
@@ -111,12 +111,14 @@ struct KachatMarketView: View {
             .task { await live.start() }
             // the countdown ends while the screen is open: the marketplace opens without a relaunch
             .task(id: KachatNamesService.networkName) {
-                publiclyOpen = KachatNamesService.isPubliclyOpen()
+                // on the network's clock (XP-020); closed until a node has said what time it is
+                publiclyOpen = await KachatNamesService.isPubliclyOpen()
                 while !publiclyOpen, let opens = KachatNamesService.publicLaunchMs {
-                    let left = max(0, opens - KachatNames.nowMs())
+                    let now = KachatNamesService.networkNowMs() ?? KachatNames.nowMs()
+                    let left = max(0, opens - now)
                     try? await Task.sleep(nanoseconds: UInt64(min(left, 60_000) + 50) * 1_000_000)
                     if Task.isCancelled { return }
-                    publiclyOpen = KachatNamesService.isPubliclyOpen()
+                    publiclyOpen = await KachatNamesService.isPubliclyOpen()
                 }
             }
             .onReceive(KachatNamesRegistry.shared.$revision.dropFirst()) { _ in
@@ -959,7 +961,9 @@ private struct KachatLaunchCountdown: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            let left = max(0, Int(Double(opensMs) / 1000 - context.date.timeIntervalSince1970))
+            // the network's time when known, so a changed device date doesn't move it (XP-020)
+            let nowSeconds = KachatNamesService.networkNowMs().map { Double($0) / 1000 } ?? context.date.timeIntervalSince1970
+            let left = max(0, Int(Double(opensMs) / 1000 - nowSeconds))
             VStack(spacing: 14) {
                 Text("Names open in")
                     .font(.headline)

@@ -156,9 +156,10 @@ final class KachatNamesActions: ObservableObject {
     /// days (testnet's 24-hour periods, or a renewal that opens tomorrow).
     /// Registry v5 refuses `register` until the migration deadline; checked against the wall clock
     /// with the 3-minute margin `registerNow` takes off it.
-    nonisolated static func requireRegistrationOpen(_ m: KachatNames.Manifest) throws {
-        // mainnet's countdown: nobody claims a name in the app before the public opening
-        if let opens = KachatNamesService.publicLaunchMs, KachatNames.nowMs() < opens {
+    static func requireRegistrationOpen(_ m: KachatNames.Manifest) async throws {
+        // mainnet's countdown, on the network's clock (XP-020): nobody claims a name in the app
+        // before the public opening, whatever the device's date says
+        if let opens = KachatNamesService.publicLaunchMs, !(await KachatNamesService.isPubliclyOpen()) {
             throw ActionError.notPublicYet(opensMs: opens)
         }
         guard let deadline = m.params.migration?.deadlineMs,
@@ -905,7 +906,7 @@ final class KachatNamesActions: ObservableObject {
     func quote(name: String, years: Int64, gap: KachatNames.GapInfo, feeTier: WithdrawFeeTier = .normal) async throws -> Quote {
         let s = try signer()
         let m = try await registry.prepare()
-        try Self.requireRegistrationOpen(m)
+        try await Self.requireRegistrationOpen(m)
         let (b, env, wallet) = try await context(s, feerate: await feerate(for: feeTier))
         let salt = try KachatNamesService.newSalt()
         let spendable = wallet.reduce(UInt64(0)) { $0 + $1.entry.amount }
@@ -947,7 +948,7 @@ final class KachatNamesActions: ObservableObject {
         let name = KachatNames.Codec.normalize(raw)
         try KachatNames.Codec.validate(name)
         // never a commit that couldn't be registered: v5 opens register at its migration deadline
-        try Self.requireRegistrationOpen(try await registry.prepare())
+        try await Self.requireRegistrationOpen(try await registry.prepare())
         loadPending(for: s.address)
         await registry.refresh()
         var lapsed: KachatNames.NameInfo?
@@ -1251,7 +1252,7 @@ final class KachatNamesActions: ObservableObject {
             let m = try await registry.prepare()
             // A commit isn't bound to a registry: one sent before a migration registers on the
             // new registry once its deadline passes. Until then it waits, saying why.
-            do { try Self.requireRegistrationOpen(m) } catch {
+            do { try await Self.requireRegistrationOpen(m) } catch {
                 set(p) { $0.lastError = error.localizedDescription }
                 return
             }

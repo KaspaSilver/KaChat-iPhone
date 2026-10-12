@@ -91,9 +91,51 @@ final class KachatNamesService: ObservableObject {
         networkName == "mainnet" ? mainnetPublicLaunchMs : nil
     }
 
-    nonisolated static func isPubliclyOpen(nowMs: Int64 = KachatNames.nowMs()) -> Bool {
-        publicLaunchMs.map { nowMs >= $0 } ?? true
+    // MARK: The network's clock (XP-020)
+    //
+    // The countdown is decided on the network's time, not the device's: with the device clock, a
+    // date set to Oct 16 opened search and registration in the app days early (the registration
+    // itself is valid - its lock time comes from chain time). The node's past median time is read
+    // at most once a minute and carried forward on the device's uptime, which a changed date
+    // doesn't move. With no node answer yet the countdown stays closed.
+
+    private static var networkClock: (chainMs: Int64, uptime: TimeInterval)?
+
+    /// The network's time now, from the last node answer; nil until a node has answered.
+    static func networkNowMs() -> Int64? {
+        guard let clock = networkClock else { return nil }
+        return clock.chainMs + Int64((ProcessInfo.processInfo.systemUptime - clock.uptime) * 1000)
     }
+
+    /// Asks a node for its time when the last answer is over a minute old.
+    @discardableResult
+    static func refreshNetworkClock() async -> Int64? {
+        if let clock = networkClock, ProcessInfo.processInfo.systemUptime - clock.uptime < 60 { return networkNowMs() }
+        if let dag = try? await NodePoolService.shared.currentDagPoint(), dag.pastMedianTimeMs > 0 {
+            networkClock = (Int64(dag.pastMedianTimeMs), ProcessInfo.processInfo.systemUptime)
+        }
+        return networkNowMs()
+    }
+
+    /// Whether this network's names are open to everyone in the app, on the network's clock.
+    static func isPubliclyOpen() async -> Bool {
+        guard let opens = publicLaunchMs else { return true }
+        if UserDefaults.standard.bool(forKey: openedKey) { return true }
+        guard let now = await refreshNetworkClock() else { return false }
+        if now >= opens { UserDefaults.standard.set(true, forKey: openedKey) }
+        return now >= opens
+    }
+
+    /// The same from the last known network time, without asking a node (a view's first draw).
+    /// Once the network has passed the opening it stays open - its clock only moves forward - so
+    /// that is remembered, and the marketplace doesn't flash the countdown on later visits.
+    static var isPubliclyOpenKnown: Bool {
+        guard let opens = publicLaunchMs else { return true }
+        if UserDefaults.standard.bool(forKey: openedKey) { return true }
+        return (networkNowMs() ?? 0) >= opens
+    }
+
+    private static var openedKey: String { "kachat_names_public_opened.\(networkName)" }
 
     /// The manifest network name of the network the app runs on.
     nonisolated static var networkName: String { AppSettings.load().networkType == .mainnet ? "mainnet" : "testnet-10" }

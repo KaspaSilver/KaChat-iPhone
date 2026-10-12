@@ -401,11 +401,30 @@ struct PaymentRequest: Equatable, Identifiable {
 
     /// True when the address is one of this wallet's: your own request pastes as text (to send it
     /// to someone) instead of opening Send.
+    ///
+    /// Cheap enough for a view body (the request card asks on every draw): one you signed is yours
+    /// at once, and the wallet's addresses are worked out once per account and address count -
+    /// listing the spending addresses reads the seed and derives each of them, which on every
+    /// redraw made a chat holding a request crawl.
     @MainActor
     var isOwn: Bool {
-        let target = address.lowercased()
-        if WalletManager.shared.currentWallet?.publicAddress.lowercased() == target { return true }
-        return WalletManager.shared.allSpendingAddresses().contains { $0.lowercased() == target }
+        let wallet = WalletManager.shared.currentWallet?.publicAddress.lowercased()
+        if let creator, creator.lowercased() == wallet { return true }
+        return Self.ownAddresses().contains(address.lowercased())
+    }
+
+    @MainActor private static var ownAddressCache: (key: String, addresses: Set<String>)?
+
+    @MainActor
+    private static func ownAddresses() -> Set<String> {
+        let manager = WalletManager.shared
+        guard let wallet = manager.currentWallet?.publicAddress.lowercased() else { return [] }
+        let key = "\(wallet)|\(manager.maxSpendingAddressIndex)"
+        if let cached = ownAddressCache, cached.key == key { return cached.addresses }
+        var addresses: Set<String> = [wallet]
+        addresses.formUnion(manager.allSpendingAddresses().map { $0.lowercased() })
+        ownAddressCache = (key, addresses)
+        return addresses
     }
 
     static func cleanMemo(_ memo: String) -> String {

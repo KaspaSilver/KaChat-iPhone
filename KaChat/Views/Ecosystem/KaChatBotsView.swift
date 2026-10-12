@@ -45,8 +45,13 @@ struct KaChatBot: Identifiable, Equatable {
 
     private static let addresses = Set(all.map { $0.address.lowercased() })
 
-    /// True for a bot's address. Bot chats live in Kaspa Hub > KaChat Bots only: the chat list
-    /// leaves them out (their notifications still come, and open the chat).
+    static func bot(for address: String) -> KaChatBot? {
+        let key = address.lowercased()
+        return all.first { $0.address.lowercased() == key }
+    }
+
+    /// True for a bot's address. Bot chats never sit in the chat list: they are circles in the
+    /// row above it (with groups and rooms), once you have written to the bot.
     static func isBot(_ address: String) -> Bool {
         addresses.contains(address.lowercased())
     }
@@ -60,8 +65,7 @@ struct KaChatBot: Identifiable, Equatable {
 }
 
 /// Kaspa Hub > KaChat Bots: one card per bot; tapping a card opens (or starts) the chat with it.
-/// The only way into a bot chat - the chat list doesn't show them - so each card carries the
-/// chat's unread count.
+/// Each card carries the chat's unread count too (the chat's circle above the chat list does).
 struct KaChatBotsView: View {
     @ObservedObject private var chatService = ChatService.shared
 
@@ -163,10 +167,13 @@ private struct KaChatBotCard: View {
 
     /// Opens (or starts) the 1:1 chat, the way the Address Book does. Starting it accepts it, so
     /// the bot's replies land in the chat, not in Message Requests; the bot's name is the
-    /// contact's name until the person renames it.
+    /// contact's name until the person renames it. A chat deleted before starts again: the
+    /// deletion's block on the bot's messages is lifted, but what came before the deletion stays
+    /// deleted (`clearDeletionTombstone` keeps it as the history floor).
     private func open() {
         guard bot.unavailableReason == nil else { return }
         let contacts = ContactsManager.shared
+        contacts.clearDeletionTombstone(bot.address)
         var contact = contacts.getOrCreateContact(address: bot.address)
         if contact.alias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || contact.isAutoAdded {
             contact.alias = bot.name

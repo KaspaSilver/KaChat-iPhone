@@ -40,6 +40,8 @@ final class KachatNamesRegistry: ObservableObject {
     @Published private(set) var refreshedAt: Date?
     /// Bumped whenever registry data may have changed, so screens reload.
     @Published private(set) var revision = 0
+    /// When `refresh` last bumped `revision` (see `refresh(announce:)`).
+    private var revisionBumpedAt = Date.distantPast
 
     private var cacheNetwork: String?
     private var ownProfiles: [String: OwnProfile] = [:]
@@ -151,20 +153,33 @@ final class KachatNamesRegistry: ObservableObject {
     /// Walks the chain forward (no indexer) or just marks fresh data (indexer). Safe to call often.
     /// Every refresh re-checks the source, so an indexer that fell behind is dropped and one that
     /// caught up is used again.
-    func refresh() async {
+    ///
+    /// `announce: false` (the automatic `refreshIfStale`) bumps `revision` - which reloads every
+    /// screen keyed on it and re-checks identities - only when something may have changed: the
+    /// walk applied a transaction, the source changed, the last refresh had failed, or the last
+    /// bump is five minutes old (an indexer can't say whether anything changed). Pull to refresh
+    /// and read-your-writes always announce.
+    func refresh(announce: Bool = true) async {
         guard KachatNamesService.isLaunched else { return }
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
         let previousError = lastError
+        let previousSource = source
         do {
             let m = try await prepare(forceSourceCheck: true)
+            var walkedChanges = false
             if source == .chain {
-                try await walk(m)
+                walkedChanges = try await walk(m)
             }
             lastError = nil
             refreshedAt = Date()
-            revision += 1
+            let quiet = !announce && !walkedChanges && source == previousSource && previousError == nil
+                && Date().timeIntervalSince(revisionBumpedAt) < 300
+            if !quiet {
+                revision += 1
+                revisionBumpedAt = Date()
+            }
             // what changed for this wallet's names and offers, into the Profile bell
             Task { await KachatNamesNotifier.shared.check() }
         } catch {
@@ -211,10 +226,12 @@ final class KachatNamesRegistry: ObservableObject {
     /// `refresh()` unless the last one is younger than `maxAge` seconds (lookups from typed names).
     func refreshIfStale(maxAge: TimeInterval = 60) async {
         if let at = refreshedAt, Date().timeIntervalSince(at) < maxAge { return }
-        await refresh()
+        await refresh(announce: false)
     }
 
-    private func walk(_ m: KachatNames.Manifest) async throws {
+    /// True when the walk applied a transaction (or started over from the genesis).
+    @discardableResult
+    private func walk(_ m: KachatNames.Manifest) async throws -> Bool {
         var state = chainState ?? .atGenesis(m)
         var report = try await walkOnce(&state, m)
         // An inconsistent result (a stale UTXO, or gaps and names that don't tile the key
@@ -232,8 +249,10 @@ final class KachatNamesRegistry: ObservableObject {
         if !report.unresolved.isEmpty {
             AppLog.log("[KachatNames] %d spent registry UTXO(s) wait for the REST API to index their spend", report.unresolved.count)
         }
+        let changed = !report.applied.isEmpty || chainState == nil
         chainState = state
         Self.saveCache(state)
+        return changed
     }
 
     private func walkOnce(_ state: inout KachatNames.RegistryState, _ m: KachatNames.Manifest) async throws -> KachatNames.RegistryState.WalkReport {

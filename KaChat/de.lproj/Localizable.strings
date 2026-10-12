@@ -1564,3 +1564,9 @@
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
 "%lld unread" = "%lld ungelesen";
+
+/* Chats: a bot chat's circle half sheet */
+"Clears the unread badge on this chat." = "Entfernt das Ungelesen-Abzeichen dieses Chats.";
+"Notifications from this bot resume." = "Benachrichtigungen von diesem Bot kommen wieder.";
+"No notification from this bot." = "Keine Benachrichtigung von diesem Bot.";
+"Removes this chat until you write to the bot again." = "Entfernt diesen Chat, bis du dem Bot wieder schreibst.";

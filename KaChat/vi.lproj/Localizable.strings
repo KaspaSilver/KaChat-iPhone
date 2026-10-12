@@ -1616,3 +1616,9 @@
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
 "%lld unread" = "%lld chưa đọc";
+
+/* Chats: a bot chat's circle half sheet */
+"Clears the unread badge on this chat." = "Xóa huy hiệu chưa đọc của cuộc trò chuyện này.";
+"Notifications from this bot resume." = "Thông báo từ bot này hoạt động lại.";
+"No notification from this bot." = "Không có thông báo từ bot này.";
+"Removes this chat until you write to the bot again." = "Xóa cuộc trò chuyện này cho đến khi bạn viết lại cho bot.";

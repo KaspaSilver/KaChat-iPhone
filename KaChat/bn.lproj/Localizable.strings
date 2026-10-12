@@ -1616,3 +1616,9 @@
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
 "%lld unread" = "%lld অপঠিত";
+
+/* Chats: a bot chat's circle half sheet */
+"Clears the unread badge on this chat." = "এই চ্যাটের অপঠিত ব্যাজ মুছে দেয়।";
+"Notifications from this bot resume." = "এই বটের বিজ্ঞপ্তি আবার চালু হয়।";
+"No notification from this bot." = "এই বট থেকে কোনো বিজ্ঞপ্তি নয়।";
+"Removes this chat until you write to the bot again." = "আবার বটকে লেখা পর্যন্ত এই চ্যাট সরিয়ে দেয়।";

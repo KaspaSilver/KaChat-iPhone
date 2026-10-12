@@ -1616,3 +1616,9 @@
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
 "%lld unread" = "읽지 않음 %lld개";
+
+/* Chats: a bot chat's circle half sheet */
+"Clears the unread badge on this chat." = "이 채팅의 읽지 않음 배지를 지웁니다.";
+"Notifications from this bot resume." = "이 봇의 알림이 다시 옵니다.";
+"No notification from this bot." = "이 봇의 알림을 받지 않습니다.";
+"Removes this chat until you write to the bot again." = "봇에게 다시 쓸 때까지 이 채팅을 삭제합니다.";

@@ -22,6 +22,10 @@ enum GroupMentionCodec {
     }
 
     static func decodeForDisplay(_ text: String, members: [GroupMember], resolveDisplayName: (String) -> String) -> String {
+        // Every mention is "@kaspa:..." / "@kaspatest:...". The rows read this ten-odd times per
+        // draw, often for a photo or voice note's base64: one scan, not a name lookup and a full
+        // replace per member.
+        guard text.contains("@kaspa") else { return text }
         var result = text
         for member in members {
             let name = resolveDisplayName(member.address)
@@ -2432,7 +2436,8 @@ private struct GroupMessageBubbleRow: View {
     var onEdit: (() -> Void)? = nil
 
     @EnvironmentObject var settingsViewModel: SettingsViewModel
-    @EnvironmentObject var groupChatService: GroupChatService
+    // No `groupChatService` here: nothing in the row reads it, and observing it redrew every
+    // visible row on each of the service's updates.
     @EnvironmentObject var contactsManager: ContactsManager
     @ObservedObject private var knsService = KNSService.shared
     /// Long-pressing a link surfaces this instead of the bubble's message sheet (the link
@@ -2523,7 +2528,7 @@ private struct GroupMessageBubbleRow: View {
         }
         var attributed = AttributedString(display)
         // Keep any plain URLs tappable too.
-        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
+        if let detector = SharedDetectors.link {
             let nsText = display as NSString
             for match in detector.matches(in: display, options: [], range: NSRange(location: 0, length: nsText.length)) {
                 guard let url = match.url, let sr = Range(match.range, in: display),

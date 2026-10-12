@@ -3785,6 +3785,12 @@ extension ChatService {
         updateChatRequests { $0.accepted.formUnion(preexisting) }
     }
 
+    /// How many chats wait in Message Requests - the chat list's row reads this on every draw,
+    /// so it counts without building and sorting the list.
+    var messageRequestCount: Int {
+        conversations.lazy.filter { self.isMessageRequest($0) }.count
+    }
+
     /// Message Requests, newest first.
     var messageRequests: [Conversation] {
         conversations

@@ -961,7 +961,7 @@ struct ChatListView: View {
         }
 
         let showsRequestsRow = searchText.isEmpty && editMode != .active
-        let requestCount = showsRequestsRow ? chatService.messageRequests.count : 0
+        let requestCount = showsRequestsRow ? chatService.messageRequestCount : 0
         return List(selection: $selectedContactIDs) {
             // Group chats and public rooms, as circles under the search bar - swipe sideways for
             // all of them. Tap opens, hold pins to the front, Select mode selects them too.

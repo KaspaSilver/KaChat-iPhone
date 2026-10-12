@@ -53,7 +53,12 @@ final class KachatNamesRegistry: ObservableObject {
         var revision: Int
         var at: Date
     }
-    @Published private var identities: [String: CachedIdentity] = KachatNamesRegistry.loadIdentities()
+    /// Not `@Published`: a re-check that finds the same identity only stamps it, and stamping
+    /// must not redraw every avatar and name on screen. `objectWillChange` is sent by hand when
+    /// an identity really changes.
+    private var identities: [String: CachedIdentity] = KachatNamesRegistry.loadIdentities()
+    /// One disk write for a burst of identity changes (a screen full of avatars landing at once).
+    private var identitiesPersistScheduled = false
     private var identityLookups: Set<String> = []
     /// When an address's lookup last failed: it isn't asked again for five minutes, so a view
     /// body that reads `cachedIdentity` can't turn an unreachable indexer into a request loop.
@@ -595,7 +600,13 @@ final class KachatNamesRegistry: ObservableObject {
         let key = address.lowercased()
         guard NetworkType(address: key) != nil, NetworkType.isOnActiveNetwork(key) else { return nil }
         let entry = identities[key]
-        let stale = entry.map { $0.revision != revision || Date().timeIntervalSince($0.at) > 300 } ?? true
+        // Five minutes old, or older than a minute once the registry changed: every refresh
+        // bumps `revision`, and re-asking for every address on screen after each one cost a
+        // request per avatar and redrew the whole list as each answer came back.
+        let stale = entry.map {
+            let age = Date().timeIntervalSince($0.at)
+            return age > 300 || ($0.revision != revision && age > 60)
+        } ?? true
         let missedRecently = identityMisses[key].map { Date().timeIntervalSince($0) < 300 } ?? false
         if stale, !missedRecently, !identityLookups.contains(key) {
             identityLookups.insert(key)
@@ -609,6 +620,7 @@ final class KachatNamesRegistry: ObservableObject {
                 }
                 self.identityMisses[key] = nil
                 if self.identities[key]?.identity != found {
+                    self.objectWillChange.send()
                     self.identities[key] = CachedIdentity(identity: found, revision: self.revision, at: Date())
                     self.persistIdentities()
                     ContactsManager.shared.objectWillChange.send()
@@ -640,17 +652,30 @@ final class KachatNamesRegistry: ObservableObject {
     }
 
     private func persistIdentities() {
+        guard !identitiesPersistScheduled else { return }
+        identitiesPersistScheduled = true
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard let self else { return }
+            self.identitiesPersistScheduled = false
+            self.writeIdentities()
+        }
+    }
+
+    private func writeIdentities() {
         var keep = identities
         if keep.count > Self.identitiesKeep {
             for (k, _) in keep.sorted(by: { $0.value.at < $1.value.at }).prefix(keep.count - Self.identitiesKeep) { keep[k] = nil }
         }
-        if let data = try? JSONEncoder().encode(keep) { KachatProfileCache.write(Self.identitiesFile, data) }
+        guard let data = try? JSONEncoder().encode(keep) else { return }
+        Task.detached(priority: .utility) { KachatProfileCache.write(Self.identitiesFile, data) }
     }
 
     /// Settings > Storage > Cache > Profiles: forgets every cached identity (on disk too). Views
     /// re-fetch them as they need them. This device's own saved profile record is not cache and
     /// stays.
     func clearProfileCache() {
+        objectWillChange.send()
         identities = [:]
         identityMisses = [:]
         identityLookups = []
@@ -862,8 +887,19 @@ final class KachatSocialImageResolver: ObservableObject {
     /// mobile page escapes it); GitHub's API wants a User-Agent.
     private static let browserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
 
-    @Published private var entries: [String: Entry] = [:]
+    /// Not `@Published`: a re-check that finds the same profile only stamps `checkedAt`, and
+    /// that must not redraw every avatar on screen. `objectWillChange` is sent by hand when a
+    /// profile really changes.
+    private var entries: [String: Entry] = [:]
     private var inFlight: [String: Task<Lookup, Never>] = [:]
+    /// Links a view body already started a lookup for: `profile(for:)` runs on every redraw of
+    /// every avatar, and must start one lookup, not one per redraw.
+    private var requested: Set<String> = []
+    /// When a link's platform last couldn't be reached: not asked again for ten minutes, so an
+    /// unreachable platform isn't hit again on every redraw.
+    private var unreachableAt: [String: Date] = [:]
+    private static let unreachableRetry: TimeInterval = 600
+    private var persistScheduled = false
 
     private init() {
         if let data = KachatProfileCache.read(Self.cacheFile),
@@ -889,7 +925,10 @@ final class KachatSocialImageResolver: ObservableObject {
     /// Settings > Storage > Cache > Profiles: forgets every looked-up avatar, banner and bio;
     /// they are looked up again when next shown.
     func clearAll() {
+        objectWillChange.send()
         entries = [:]
+        requested = []
+        unreachableAt = [:]
         inFlight.values.forEach { $0.cancel() }
         inFlight = [:]
         KachatProfileCache.remove(Self.cacheFile)
@@ -899,9 +938,16 @@ final class KachatSocialImageResolver: ObservableObject {
     /// Views read this in `body`; the published cache re-renders them when the lookup lands.
     func profile(for link: String?) -> KachatNames.SocialProfile? {
         guard let link, let source = KachatNames.SocialSource(link: link, for: .avatar) else { return nil }
-        let entry = entries[source.link]
-        if entry == nil || Date().timeIntervalSince(entry!.checkedAt) > Self.freshFor {
-            Task { _ = await self.resolve(source) }
+        let key = source.link
+        let entry = entries[key]
+        let stale = entry.map { Date().timeIntervalSince($0.checkedAt) > Self.freshFor } ?? true
+        let unreachableRecently = unreachableAt[key].map { Date().timeIntervalSince($0) < Self.unreachableRetry } ?? false
+        if stale, !unreachableRecently, inFlight[key] == nil, !requested.contains(key) {
+            requested.insert(key)
+            Task {
+                _ = await self.resolve(source, maxAge: Self.freshFor)
+                self.requested.remove(key)
+            }
         }
         return entry?.profile
     }
@@ -942,8 +988,11 @@ final class KachatSocialImageResolver: ObservableObject {
                        outcome == nil ? "unreachable" : "answered", Date().timeIntervalSince(started))
             guard let self else { return .unreachable(nil) }
             guard let answered = outcome else {
+                self.unreachableAt[key] = Date()
                 return .unreachable(self.entries[key]?.profile) // keep the last answer
             }
+            self.unreachableAt[key] = nil
+            if self.entries[key]?.profile != answered { self.objectWillChange.send() }
             self.entries[key] = Entry(profile: answered, checkedAt: Date())
             self.persist()
             return .answered(answered)
@@ -968,14 +1017,26 @@ final class KachatSocialImageResolver: ObservableObject {
         }
     }
 
+    /// One disk write for a burst of answers, off the main thread.
     private func persist() {
+        guard !persistScheduled else { return }
+        persistScheduled = true
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard let self else { return }
+            self.persistScheduled = false
+            self.writeEntries()
+        }
+    }
+
+    private func writeEntries() {
         if entries.count > Self.maxEntries {
             let oldest = entries.sorted { $0.value.checkedAt < $1.value.checkedAt }.prefix(entries.count - Self.maxEntries)
             for (k, _) in oldest { entries[k] = nil }
         }
-        if let data = try? JSONEncoder().encode(entries) {
-            KachatProfileCache.write(Self.cacheFile, data)
-        }
+        guard let data = try? JSONEncoder().encode(entries) else { return }
+        let file = Self.cacheFile
+        Task.detached(priority: .utility) { KachatProfileCache.write(file, data) }
     }
 
     /// The platform's answer (possibly empty: taken down, account gone), or nil when it

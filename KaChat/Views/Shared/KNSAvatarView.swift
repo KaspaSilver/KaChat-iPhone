@@ -62,13 +62,18 @@ struct KNSAvatarView: View {
     }
 
     var body: some View {
+        let descriptor = KNSProfileImageDescriptor.from(raw: effectiveAvatarURLString)
+        // already decoded in memory: shown on this very frame, no glyph flash while the task runs
+        let memoryImage = descriptor.flatMap {
+            KNSProfileImageCache.memoryImage(for: $0, maxPixelSize: KNSProfileImageCache.thumbnailPixelSize(forPointSize: size))
+        }
         Group {
             if let resolved = overrideImage {
                 Image(uiImage: resolved)
                     .resizable()
                     .scaledToFill()
-            } else if let loadedImage {
-                Image(uiImage: loadedImage)
+            } else if let shown = memoryImage ?? loadedImage {
+                Image(uiImage: shown)
                     .resizable()
                     .scaledToFill()
             } else if let backupPhoto = backupPhotoImage {
@@ -80,7 +85,7 @@ struct KNSAvatarView: View {
             } else {
                 fallbackAvatar
                     .overlay {
-                        if isLoading, KNSProfileImageDescriptor.from(raw: effectiveAvatarURLString) != nil {
+                        if isLoading, descriptor != nil {
                             ProgressView()
                                 .scaleEffect(0.8)
                         }
@@ -90,7 +95,7 @@ struct KNSAvatarView: View {
         .frame(width: size, height: size)
         .clipShape(Circle())
         .accessibilityHidden(true)
-        .task(id: KNSProfileImageDescriptor.from(raw: effectiveAvatarURLString)?.cacheIdentity) {
+        .task(id: descriptor?.cacheIdentity) {
             await loadAvatarIfNeeded()
         }
     }
@@ -396,11 +401,25 @@ private struct KNSProfileImageDescriptor {
         "x-amz-signedheaders"
     ]
 
+    private final class Box: NSObject {
+        let value: KNSProfileImageDescriptor?
+        init(_ value: KNSProfileImageDescriptor?) { self.value = value }
+    }
+
+    /// Every avatar asks on every redraw, and building one parses the URL and hashes it: the
+    /// answer per raw string is kept.
+    private static let parsed: NSCache<NSString, Box> = {
+        let cache = NSCache<NSString, Box>()
+        cache.countLimit = 1_024
+        return cache
+    }()
+
     static func from(raw: String?) -> KNSProfileImageDescriptor? {
-        guard let requestURL = KNSProfileLinkBuilder.websiteURL(from: raw) else {
-            return nil
-        }
-        return from(url: requestURL)
+        guard let raw, !raw.isEmpty else { return nil }
+        if let hit = parsed.object(forKey: raw as NSString) { return hit.value }
+        let descriptor = KNSProfileLinkBuilder.websiteURL(from: raw).flatMap { from(url: $0) }
+        parsed.setObject(Box(descriptor), forKey: raw as NSString)
+        return descriptor
     }
 
     static func from(url: URL) -> KNSProfileImageDescriptor? {
@@ -462,8 +481,29 @@ enum KNSProfileImageCacheControl {
     }
 }
 
+/// The decoded avatars in memory, outside the actor: `NSCache` is thread-safe, and a view
+/// reads it synchronously on its first render (`KNSProfileImageCache.memoryImage`), so a row
+/// that scrolls back in shows its avatar at once instead of the glyph for a frame.
+private enum KNSProfileImageMemory {
+    static let cache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.totalCostLimit = 48 * 1024 * 1024
+        cache.countLimit = 256
+        return cache
+    }()
+
+    static func key(for identity: String, maxPixelSize: Int?) -> NSString {
+        (identity + (maxPixelSize.map { "|thumb\($0)" } ?? "")) as NSString
+    }
+}
+
 private actor KNSProfileImageCache {
     static let shared = KNSProfileImageCache()
+
+    /// The decoded image already in memory, synchronously - nil when it has to be loaded.
+    nonisolated static func memoryImage(for descriptor: KNSProfileImageDescriptor, maxPixelSize: Int?) -> UIImage? {
+        KNSProfileImageMemory.cache.object(forKey: KNSProfileImageMemory.key(for: descriptor.cacheIdentity, maxPixelSize: maxPixelSize))
+    }
 
     /// See `KNSProfileImageCacheControl.resetAfterExternalPurge`.
     func resetAfterExternalPurge() {
@@ -504,7 +544,9 @@ private actor KNSProfileImageCache {
     private let session: URLSession
     private let imageDirectoryURL: URL
     private let manifestURL: URL
-    private let memoryCache = NSCache<NSString, UIImage>()
+    private var memoryCache: NSCache<NSString, UIImage> { KNSProfileImageMemory.cache }
+    /// Identities being revalidated in the background (one HEAD each, not one per row).
+    private var revalidating: Set<String> = []
     private let manifestEncoder = JSONEncoder()
     private let manifestDecoder = JSONDecoder()
     private let revalidationInterval: TimeInterval = 12 * 60 * 60
@@ -550,8 +592,6 @@ private actor KNSProfileImageCache {
             ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         imageDirectoryURL = base.appendingPathComponent("KNSProfileImages", isDirectory: true)
         manifestURL = imageDirectoryURL.appendingPathComponent("manifest_v1.json")
-        memoryCache.totalCostLimit = 48 * 1024 * 1024
-        memoryCache.countLimit = 256
     }
 
     /// `maxPixelSize` selects a decode variant, not a different file: the bytes on disk are
@@ -565,18 +605,17 @@ private actor KNSProfileImageCache {
         await loadManifestIfNeeded()
 
         if let entry = manifest[descriptor.cacheIdentity],
-           let diskImage = imageFromDisk(fileName: entry.fileName, maxPixelSize: maxPixelSize) {
+           let diskImage = await decodeFromDisk(fileName: entry.fileName, maxPixelSize: maxPixelSize) {
             memoryCache.setObject(diskImage, forKey: key, cost: Self.cacheCost(for: diskImage))
             touchAccess(identity: descriptor.cacheIdentity)
 
-            if shouldRevalidate(entry: entry, descriptor: descriptor) {
-                if let refreshed = await revalidate(
-                    entry: entry,
-                    descriptor: descriptor,
-                    cachedImage: diskImage,
-                    maxPixelSize: maxPixelSize
-                ) {
-                    return refreshed
+            // The picture on disk shows now; checking whether it changed happens behind it. The
+            // row used to wait for that request (up to 12 s) before showing anything, every 12 h.
+            if shouldRevalidate(entry: entry, descriptor: descriptor),
+               revalidating.insert(descriptor.cacheIdentity).inserted {
+                Task {
+                    _ = await self.revalidate(entry: entry, descriptor: descriptor, cachedImage: diskImage, maxPixelSize: maxPixelSize)
+                    self.finishedRevalidating(descriptor.cacheIdentity)
                 }
                 return diskImage
             }
@@ -595,9 +634,8 @@ private actor KNSProfileImageCache {
     }
 
     private func memoryKey(for identity: String, maxPixelSize: Int?) -> NSString {
-        let suffix = maxPixelSize.map { "|thumb\($0)" } ?? ""
-        knownVariantSuffixes.insert(suffix)
-        return (identity + suffix) as NSString
+        knownVariantSuffixes.insert(maxPixelSize.map { "|thumb\($0)" } ?? "")
+        return KNSProfileImageMemory.key(for: identity, maxPixelSize: maxPixelSize)
     }
 
     private func removeMemoryVariants(for identity: String) {
@@ -928,7 +966,17 @@ private actor KNSProfileImageCache {
         }
     }
 
-    private func imageFromDisk(fileName: String, maxPixelSize: Int?) -> UIImage? {
+    private func finishedRevalidating(_ identity: String) {
+        revalidating.remove(identity)
+    }
+
+    /// Reads and decodes off the actor (a nonisolated async function runs on the shared pool),
+    /// so a screen of avatars decodes side by side instead of one after another.
+    private nonisolated func decodeFromDisk(fileName: String, maxPixelSize: Int?) async -> UIImage? {
+        imageFromDisk(fileName: fileName, maxPixelSize: maxPixelSize)
+    }
+
+    private nonisolated func imageFromDisk(fileName: String, maxPixelSize: Int?) -> UIImage? {
         let fileURL = imageDirectoryURL.appendingPathComponent(fileName, isDirectory: false)
         guard let data = try? Data(contentsOf: fileURL),
               let image = Self.decodeImage(data, maxPixelSize: maxPixelSize) else {

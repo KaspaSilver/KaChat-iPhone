@@ -373,15 +373,31 @@ actor GRPCStreamConnection {
     /// Connection timeout in seconds
     private let connectionTimeout: TimeInterval = 3.0
 
-    /// Connect to the endpoint with timeout
+    /// The connect running now, which a second caller joins.
+    private var connectingTask: Task<Void, Error>?
+
+    /// Connect to the endpoint with timeout. A caller arriving while a connect is under way waits
+    /// for it: on a warm foreground the reconnect sweep and the UTXO subscription resume hit the
+    /// same node together, and the second used to fail with "Connection in progress" - moving
+    /// the subscription to a worse node, or into its retry backoff.
     func connect() async throws {
+        if state == .connected { return }
+        if state == .connecting, let running = connectingTask {
+            try await running.value
+            return
+        }
         guard state == .disconnected else {
-            if state == .connected { return }
             throw KasiaError.networkError("Connection in progress")
         }
 
         state = .connecting
+        let task = Task { try await self.connectWithTimeout() }
+        connectingTask = task
+        defer { if connectingTask == task { connectingTask = nil } }
+        try await task.value
+    }
 
+    private func connectWithTimeout() async throws {
         // Use a task with timeout for the connection
         do {
             try await withThrowingTaskGroup(of: Void.self) { group in

@@ -1432,6 +1432,7 @@ extension ChatService {
             let request = Self.timedRequest(url)
 
             for attempt in 1...maxAttempts {
+                if Task.isCancelled { return }
                 if await state.checkResolved() { return }
 
                 do {
@@ -1491,25 +1492,30 @@ extension ChatService {
             }
         }
 
-        // Wait for REST API to complete with a result or timeout
-        let timeout: UInt64 = 12_000_000_000  // 12 seconds max
-        let startTime = DispatchTime.now()
-
-        while true {
-            if let result = await state.getResult() {
-                restTask.cancel()
-                return result
+        // The REST polling's own end (a result, or every attempt spent) raced against a 12 s cap.
+        // This used to be a loop waking the main actor every 50 ms for the full 12 s - and with
+        // no pause at all once the caller was cancelled (a cancelled sleep returns at once) -
+        // and it kept waiting after the polling had already given up.
+        let timeout: UInt64 = 12_000_000_000
+        let result: TransactionResolveInfo? = await withTaskGroup(of: TransactionResolveInfo?.self) { group in
+            group.addTask {
+                await restTask.value
+                return await state.getResult()
             }
-
-            let elapsed = DispatchTime.now().uptimeNanoseconds - startTime.uptimeNanoseconds
-            if elapsed > timeout {
-                AppLog.log("[ChatService] Transaction resolution timeout for %@", String(txId.prefix(12)))
-                restTask.cancel()
+            group.addTask {
+                try? await Task.sleep(nanoseconds: timeout)
                 return nil
             }
-
-            try? await Task.sleep(nanoseconds: 50_000_000)  // Check every 50ms
+            let first = await group.next() ?? nil
+            // the group waits for both children: the polling has to stop for it to return
+            restTask.cancel()
+            group.cancelAll()
+            return first
         }
+        if result == nil {
+            AppLog.log("[ChatService] Transaction resolution timeout for %@", String(txId.prefix(12)))
+        }
+        return result
     }
 
     func fetchKaspaFullTransaction(

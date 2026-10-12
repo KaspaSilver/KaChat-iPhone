@@ -1639,3 +1639,9 @@
 "Payment request: %@ KAS" = "Solicitação de pagamento: %@ KAS";
 "Your payment request." = "Sua solicitação de pagamento.";
 "Tap to pay." = "Toque para pagar.";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Quem abrir ou colar no KaChat recebe Enviar Kaspa preenchido e vê que foi criado pelo seu endereço de conversa (assinado com a chave dele).";
+"Requested by" = "Solicitado por";
+"Signed by their chatting address. The payment goes to the address above." = "Assinado pelo endereço de conversa da pessoa. O pagamento vai para o endereço acima.";
+"Not signed: who made this request can't be confirmed." = "Sem assinatura: não é possível confirmar quem criou esta solicitação.";

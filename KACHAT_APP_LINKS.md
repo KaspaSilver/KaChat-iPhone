@@ -7,7 +7,7 @@ Every link the apps hand out is `https://kachat.app/...`:
 | `https://kachat.app/post/<txid>` | KaPosts share sheet (iOS, Android, desktop) | the post's thread |
 | `https://kachat.app/broadcast/<room>` | broadcast room invite | the room |
 | `https://kachat.app/u/<address>` | the share button beside the Profile title, and Share in User Info | that person's User Info screen (name, avatar, profile, Open Chat) |
-| `https://kachat.app/pay/<address>?amount=<KAS>&memo=<text>[&chat=1]` | Chats > + > Request Payment (Copy / Share) | Send Kaspa with the address (locked), amount and memo filled in |
+| `https://kachat.app/pay/<address>?amount=<KAS>&memo=<text>[&chat=1]&by=<address>&sig=<hex>` | Chats > + > Request Payment (Copy / Share) | Send Kaspa with the address (locked), amount and memo filled in, and who asked |
 
 One link, three behaviours:
 
@@ -75,7 +75,13 @@ Environment (`server/.env`):
   140 characters with control and direction marks removed, and the address checksum is
   verified; anything else is a 404 page. `chat=1` marks the requester's chatting address: the
   app then pays it as a chat payment with the memo encrypted inside (a spending address can't
-  read a memo, so there the memo is only shown to the payer). The app's side is
+  read a memo, so there the memo is only shown to the payer). `by` + `sig` name the maker: their
+  chatting address (which has an identity, where a spending address has none) and its Schnorr
+  signature over SHA-256 of `kachat-payment-request:v1`, the address, the amount in sompi, the
+  memo, `1`/`0` for chat and the maker's address, one per line. The app shows "Requested by"
+  with their name and picture only when the signature checks out, refuses a link whose
+  signature doesn't, and warns "Not signed" when there is none. The page shows `by` as it is
+  (it doesn't check signatures) and passes both on to the app. The app's side is
   `PaymentRequest` in `LinkPreviewService.swift`: pasted into a chat or KaPosts composer, or
   into Send Kaspa's recipient field, someone else's request opens Send Kaspa (your own pastes
   as text, so you can send it); tapped in a message it does the same.

@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 // MARK: - Internal KaChat links
 
@@ -14,7 +15,7 @@ import Foundation
 /// | KaPosts post     | `kachat://kapost/<txid>`       | `https://kachat.app/post/<txid>`                  |
 /// | Public Chat room | `kachat://broadcast/<channel>` | `https://kachat.app/broadcast/<channel>`          |
 /// | Profile          | `kachat://profile/<address>`   | `https://kachat.app/u/<address>`                  |
-/// | Payment request  | `kachat://pay/<address>?amount=<KAS>&memo=<text>[&chat=1]` | `https://kachat.app/pay/<address>?…` |
+/// | Payment request  | `kachat://pay/<address>?amount=<KAS>&memo=<text>[&chat=1]&by=<address>&sig=<hex>` | `https://kachat.app/pay/<address>?…` |
 ///
 /// `<channel>` is the NORMALIZED room name with no leading `#` (see `PublicChatChannelName`).
 /// `<address>` is a full Kaspa address; in the universal form a mainnet address may drop its
@@ -271,6 +272,12 @@ enum KaChatInternalLink: Equatable {
 /// - `chat=1` when the address is the requester's chatting address: then the payment goes as a
 ///   chat payment, with the memo encrypted to them in it. A spending address can't read a memo,
 ///   so there the memo only tells the payer what it is for.
+/// - `by` + `sig`: who made it - the maker's chatting address, which has an identity (a
+///   `.kachat` name, a profile) where a spending address has none - and a Schnorr signature by
+///   that address's key over everything above (`signingDigest`). A request is shown as "from"
+///   someone only when the signature checks out; a link whose signature doesn't is refused
+///   outright, since that is a link someone changed. Requests without them (none are made that
+///   way) show no maker.
 /// Everything in it is attacker-controlled: the address must be valid on the network the app runs
 /// on, the amount positive and exact, and the memo is cleaned of control and direction marks.
 struct PaymentRequest: Equatable, Identifiable {
@@ -278,6 +285,10 @@ struct PaymentRequest: Equatable, Identifiable {
     let amountSompi: UInt64
     let memo: String
     let toChattingAddress: Bool
+    /// The chatting address that signed the request - verified, or nil.
+    let creator: String?
+    /// The creator's Schnorr signature over `signingDigest(creator:)`.
+    let signature: Data?
     /// Each opening is its own sheet, even for the same request.
     let id = UUID()
 
@@ -287,13 +298,40 @@ struct PaymentRequest: Equatable, Identifiable {
     static func == (lhs: PaymentRequest, rhs: PaymentRequest) -> Bool {
         lhs.address == rhs.address && lhs.amountSompi == rhs.amountSompi
             && lhs.memo == rhs.memo && lhs.toChattingAddress == rhs.toChattingAddress
+            && lhs.creator == rhs.creator && lhs.signature == rhs.signature
     }
 
-    init(address: String, amountSompi: UInt64, memo: String, toChattingAddress: Bool) {
+    init(address: String, amountSompi: UInt64, memo: String, toChattingAddress: Bool,
+         creator: String? = nil, signature: Data? = nil) {
         self.address = address
         self.amountSompi = amountSompi
         self.memo = Self.cleanMemo(memo)
         self.toChattingAddress = toChattingAddress
+        self.creator = creator
+        self.signature = signature
+    }
+
+    /// What the maker signs: every field of the request and the maker's own address, under a
+    /// domain tag so the signature can't be passed off as anything else. SHA-256 of
+    /// "kachat-payment-request:v1" and the fields, one per line: address, amount in sompi, memo,
+    /// "1"/"0" for chat, creator.
+    func signingDigest(creator: String) -> Data {
+        let text = ["kachat-payment-request:v1", address.lowercased(), String(amountSompi), memo,
+                    toChattingAddress ? "1" : "0", creator.lowercased()].joined(separator: "\n")
+        return Data(SHA256.hash(data: Data(text.utf8)))
+    }
+
+    /// This request signed by `creator` (the wallet's chatting address) with its key.
+    func signed(by creator: String, privateKey: Data) -> PaymentRequest? {
+        guard let signature = try? GroupCipher.sign(signingDigest(creator: creator), privateKey: privateKey) else { return nil }
+        return PaymentRequest(address: address, amountSompi: amountSompi, memo: memo,
+                              toChattingAddress: toChattingAddress, creator: creator.lowercased(), signature: signature)
+    }
+
+    /// True when `signature` is `creator`'s over this request.
+    static func verify(_ signature: Data, creator: String, request: PaymentRequest) -> Bool {
+        guard let key = KaspaAddress.publicKey(from: creator), key.count == 32 else { return false }
+        return GroupCipher.verify(signature, message: request.signingDigest(creator: creator), xOnlyPublicKey: key)
     }
 
     /// From a link's address segment and its query; nil unless every part is valid.
@@ -307,7 +345,22 @@ struct PaymentRequest: Equatable, Identifiable {
         func value(_ name: String) -> String? { items.first { $0.name.lowercased() == name }?.value }
         guard let amountText = value("amount"), amountText.allSatisfy({ $0.isASCII && ($0.isNumber || $0 == ".") }),
               let sompi = KaspaUnit.sompi(fromUserText: amountText), sompi > 0 else { return nil }
-        self.init(address: full, amountSompi: sompi, memo: value("memo") ?? "", toChattingAddress: value("chat") == "1")
+        let unsigned = PaymentRequest(address: full, amountSompi: sompi, memo: value("memo") ?? "", toChattingAddress: value("chat") == "1")
+        switch (value("by"), value("sig")) {
+        case (nil, nil):
+            self = unsigned
+        case let (by?, sig?):
+            let rawBy = by.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let creator = rawBy.contains(":") ? rawBy : "kaspa:" + rawBy
+            // a maker is shown only when the signature is theirs; one that isn't is a changed link
+            guard rawBy.count <= 100, KaspaAddress.isValidOnActiveNetwork(creator),
+                  let signature = Data(hexString: sig), signature.count == 64,
+                  Self.verify(signature, creator: creator, request: unsigned) else { return nil }
+            self.init(address: full, amountSompi: sompi, memo: unsigned.memo, toChattingAddress: unsigned.toChattingAddress,
+                      creator: creator, signature: signature)
+        default:
+            return nil
+        }
     }
 
     /// The first payment request in `text` - a pasted link, or a message holding one.
@@ -336,6 +389,10 @@ struct PaymentRequest: Equatable, Identifiable {
             query += "&memo=\(encoded)"
         }
         if toChattingAddress { query += "&chat=1" }
+        if let creator, let signature {
+            let by = creator.hasPrefix("kaspa:") ? String(creator.dropFirst("kaspa:".count)) : creator
+            query += "&by=\(by)&sig=\(signature.hexString)"
+        }
         return "\(path)?\(query)"
     }
 

@@ -1639,3 +1639,9 @@
 "Payment request: %@ KAS" = "결제 요청: %@ KAS";
 "Your payment request." = "내 결제 요청입니다.";
 "Tap to pay." = "탭하여 결제.";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "KaChat에서 열거나 붙여 넣으면 내용이 채워진 Kaspa 보내기 화면이 열리고, 내 채팅 주소가 만든 요청(그 키로 서명됨)임을 확인할 수 있습니다.";
+"Requested by" = "요청한 사람";
+"Signed by their chatting address. The payment goes to the address above." = "상대의 채팅 주소로 서명되었습니다. 결제는 위 주소로 갑니다.";
+"Not signed: who made this request can't be confirmed." = "서명 없음: 이 요청을 만든 사람을 확인할 수 없습니다.";

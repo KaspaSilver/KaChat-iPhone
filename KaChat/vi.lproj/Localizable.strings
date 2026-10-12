@@ -1639,3 +1639,9 @@
 "Payment request: %@ KAS" = "Yêu cầu thanh toán: %@ KAS";
 "Your payment request." = "Yêu cầu thanh toán của bạn.";
 "Tap to pay." = "Nhấn để thanh toán.";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Ai mở hoặc dán nó trong KaChat sẽ thấy màn hình Gửi Kaspa đã điền sẵn, và thấy nó được tạo từ địa chỉ trò chuyện của bạn (ký bằng khóa của địa chỉ đó).";
+"Requested by" = "Người yêu cầu";
+"Signed by their chatting address. The payment goes to the address above." = "Được ký bằng địa chỉ trò chuyện của họ. Khoản thanh toán đi tới địa chỉ ở trên.";
+"Not signed: who made this request can't be confirmed." = "Chưa ký: không thể xác nhận ai đã tạo yêu cầu này.";

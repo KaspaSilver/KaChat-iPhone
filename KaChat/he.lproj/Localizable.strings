@@ -1639,3 +1639,9 @@
 "Payment request: %@ KAS" = "בקשת תשלום: %@ KAS";
 "Your payment request." = "בקשת התשלום שלך.";
 "Tap to pay." = "הקישו לתשלום.";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "מי שפותח או מדביק אותה ב-KaChat מקבל את מסך שליחת Kaspa ממולא, ורואה שהיא נוצרה מכתובת הצ׳אט שלך (חתומה במפתח שלה).";
+"Requested by" = "התבקש על ידי";
+"Signed by their chatting address. The payment goes to the address above." = "חתום על ידי כתובת הצ׳אט שלהם. התשלום הולך לכתובת שלמעלה.";
+"Not signed: who made this request can't be confirmed." = "לא חתום: לא ניתן לאשר מי יצר את הבקשה.";

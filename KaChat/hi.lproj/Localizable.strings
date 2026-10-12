@@ -1639,3 +1639,9 @@
 "Payment request: %@ KAS" = "भुगतान अनुरोध: %@ KAS";
 "Your payment request." = "आपका भुगतान अनुरोध।";
 "Tap to pay." = "भुगतान के लिए टैप करें।";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "KaChat में इसे खोलने या पेस्ट करने वाले को भरी हुई Kaspa भेजें स्क्रीन मिलेगी, और दिखेगा कि यह आपके चैटिंग पते से बना है (उसकी कुंजी से हस्ताक्षरित)।";
+"Requested by" = "अनुरोधकर्ता";
+"Signed by their chatting address. The payment goes to the address above." = "उनके चैटिंग पते से हस्ताक्षरित। भुगतान ऊपर वाले पते पर जाएगा।";
+"Not signed: who made this request can't be confirmed." = "हस्ताक्षरित नहीं: यह अनुरोध किसने बनाया, इसकी पुष्टि नहीं हो सकती।";

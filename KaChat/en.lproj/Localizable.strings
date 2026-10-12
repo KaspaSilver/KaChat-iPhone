@@ -1640,3 +1640,9 @@
 "Payment request: %@ KAS" = "Payment request: %@ KAS";
 "Your payment request." = "Your payment request.";
 "Tap to pay." = "Tap to pay.";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key).";
+"Requested by" = "Requested by";
+"Signed by their chatting address. The payment goes to the address above." = "Signed by their chatting address. The payment goes to the address above.";
+"Not signed: who made this request can't be confirmed." = "Not signed: who made this request can't be confirmed.";

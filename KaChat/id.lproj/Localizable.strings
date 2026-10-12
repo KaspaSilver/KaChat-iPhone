@@ -1639,3 +1639,9 @@
 "Payment request: %@ KAS" = "Permintaan pembayaran: %@ KAS";
 "Your payment request." = "Permintaan pembayaran Anda.";
 "Tap to pay." = "Ketuk untuk membayar.";
+
+/* Payment requests: who made it (signed by their chatting address) */
+"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Siapa pun yang membuka atau menempelkannya di KaChat mendapat Kirim Kaspa yang sudah terisi, dan melihat bahwa itu dibuat dari alamat obrolan Anda (ditandatangani dengan kuncinya).";
+"Requested by" = "Diminta oleh";
+"Signed by their chatting address. The payment goes to the address above." = "Ditandatangani oleh alamat obrolan mereka. Pembayaran masuk ke alamat di atas.";
+"Not signed: who made this request can't be confirmed." = "Tidak ditandatangani: pembuat permintaan ini tidak bisa dipastikan.";

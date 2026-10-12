@@ -29,9 +29,15 @@ struct CreatePaymentRequestView: View {
         }
     }
 
+    /// The request, signed by your chatting address: whoever pays sees it is from you - your
+    /// name and picture - even when it asks to be paid to a spending address, which has none.
     private var request: PaymentRequest? {
         guard let address, let sompi = KaspaUnit.sompi(fromUserText: amountInput), sompi > 0 else { return nil }
-        return PaymentRequest(address: address, amountSompi: sompi, memo: memo, toChattingAddress: destination == .chatting)
+        let unsigned = PaymentRequest(address: address, amountSompi: sompi, memo: memo, toChattingAddress: destination == .chatting)
+        // an account whose key isn't on this phone can still ask; the payer is told it's unsigned
+        guard let creator = walletManager.currentWallet?.publicAddress,
+              let key = WalletManager.shared.getPrivateKey() else { return unsigned }
+        return unsigned.signed(by: creator, privateKey: key) ?? unsigned
     }
 
     var body: some View {
@@ -101,7 +107,7 @@ struct CreatePaymentRequestView: View {
                         }
                     }
 
-                    Text("Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in.")
+                    Text("Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key).")
                         .font(.footnote)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -183,6 +189,25 @@ struct PaymentRequestSummary: View {
                  : "Paid to their spending address.")
                 .font(.caption)
                 .foregroundColor(.secondary)
+
+            Divider().padding(.vertical, 4)
+
+            if let creator = request.creator {
+                // Who made it - checked against the signature in the link when it was opened.
+                Label("Requested by", systemImage: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.green)
+                AddressResolutionCard(address: creator)
+                if creator.lowercased() != request.address.lowercased() {
+                    Text("Signed by their chatting address. The payment goes to the address above.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                Label("Not signed: who made this request can't be confirmed.", systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundColor(.orange)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)

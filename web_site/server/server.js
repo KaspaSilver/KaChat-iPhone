@@ -658,11 +658,12 @@ function broadcastPage(channel) {
 // download. Same rules as the app's PaymentRequest: a valid address, an exact amount, a short memo.
 const AMOUNT = /^(?=.*[1-9])\d{1,11}(\.\d{1,8})?$/;
 
-function payPage(address, amount, memo, chat) {
+function payPage(address, amount, memo, chat, by, sig) {
   const pathForm = address.startsWith('kaspa:') ? address.slice('kaspa:'.length) : address;
   let query = `amount=${amount}`;
   if (memo) query += `&memo=${encodeURIComponent(memo)}`;
   if (chat) query += '&chat=1';
+  if (by && sig) query += `&by=${encodeURIComponent(by.startsWith('kaspa:') ? by.slice('kaspa:'.length) : by).replace(/%3A/gi, ':')}&sig=${sig}`;
   const tail = `${encodeURIComponent(pathForm).replace(/%3A/gi, ':')}?${query}`;
   const canonical = `${SITE_ORIGIN}/pay/${tail}`;
   const unit = address.startsWith('kaspatest:') ? 'TKAS' : 'KAS';
@@ -678,6 +679,7 @@ function payPage(address, amount, memo, chat) {
     </div>
     ${what}
     <div class="text" style="color:var(--muted);font-size:13px;word-break:break-all">To ${escapeHTML(address)}</div>
+    ${by ? `<div class="text" style="color:var(--muted);font-size:13px;word-break:break-all">Requested by ${escapeHTML(by)} (KaChat checks its signature when you open it)</div>` : ''}
   </div>
   <div class="cta">
     <a class="btn btn-fill btn-block" href="kachat://pay/${tail}">Pay in KaChat</a>
@@ -843,10 +845,13 @@ const server = http.createServer(async (req, res) => {
       const address = raw.includes(':') ? raw : `kaspa:${raw}`;
       const amount = String(url.searchParams.get('amount') || '');
       const memo = String(url.searchParams.get('memo') || '').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '').trim().slice(0, 140);
-      if (!isKaspaAddress(address) || !AMOUNT.test(amount)) {
+      const rawBy = String(url.searchParams.get('by') || '').trim().toLowerCase();
+      const by = rawBy ? (rawBy.includes(':') ? rawBy : `kaspa:${rawBy}`) : '';
+      const sig = String(url.searchParams.get('sig') || '').toLowerCase();
+      if (!isKaspaAddress(address) || !AMOUNT.test(amount) || (by && (!isKaspaAddress(by) || !/^[0-9a-f]{128}$/.test(sig)))) {
         return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That link isn't a KaChat payment request"));
       }
-      return send(res, 200, 'text/html; charset=utf-8', payPage(address, amount, memo, url.searchParams.get('chat') === '1'));
+      return send(res, 200, 'text/html; charset=utf-8', payPage(address, amount, memo, url.searchParams.get('chat') === '1', by, by ? sig : ''));
     }
 
     if (url.pathname === '/') return serveStatic(res, 'index.html') || send(res, 200, 'text/plain', 'KaChat');

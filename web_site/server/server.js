@@ -18,6 +18,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const PORT = Number(process.env.PORT || 8080);
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || 'https://kachat.app').replace(/\/$/, '');
@@ -153,6 +154,73 @@ function kaspaAddress(pubkeyHex, hrp = 'kaspa') {
   const checksum = [];
   for (let i = 0; i < 8; i++) checksum.push(Number((poly >> BigInt(5 * (7 - i))) & 31n));
   return hrp + ':' + [...values, ...checksum].map(v => CHARSET[v]).join('');
+}
+
+/** A version-0 (Schnorr) address's 32-byte x-only public key, or null. */
+function addressPublicKey(address) {
+  if (!isKaspaAddress(address)) return null;
+  const data = address.split(':')[1];
+  const values = [...data.slice(0, -8)].map(c => CHARSET.indexOf(c));
+  const bytes = convertBits(values, 5, 8, false);
+  if (!bytes || bytes.length !== 33 || bytes[0] !== 0) return null;
+  return Buffer.from(bytes.slice(1));
+}
+
+// ---------------------------------------------------------------- BIP340 Schnorr (verify only)
+// A payment request is signed by its maker's chatting key (the app's PaymentRequest.signed). The
+// page checks that signature before it names the maker, so "Requested by" can't be faked by
+// editing the link. Plain BigInt secp256k1 - Node's crypto has no BIP340 - verify only, no secrets.
+const SECP_P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn;
+const SECP_N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+const SECP_G = [0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,
+  0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n];
+const mod = (a, m = SECP_P) => { const r = a % m; return r >= 0n ? r : r + m; };
+function modPow(b, e, m = SECP_P) {
+  let r = 1n; b = mod(b, m);
+  for (; e > 0n; e >>= 1n) { if (e & 1n) r = (r * b) % m; b = (b * b) % m; }
+  return r;
+}
+const modInv = (a) => modPow(a, SECP_P - 2n);
+function pointAdd(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  if (a[0] === b[0] && mod(a[1] + b[1]) === 0n) return null;
+  const l = a[0] === b[0] && a[1] === b[1]
+    ? mod(3n * a[0] * a[0] * modInv(2n * a[1]))
+    : mod((b[1] - a[1]) * modInv(b[0] - a[0]));
+  const x = mod(l * l - a[0] - b[0]);
+  return [x, mod(l * (a[0] - x) - a[1])];
+}
+function pointMul(pt, k) {
+  let r = null;
+  for (let add = pt; k > 0n; k >>= 1n) { if (k & 1n) r = pointAdd(r, add); add = pointAdd(add, add); }
+  return r;
+}
+const bigOf = (buf) => BigInt('0x' + (Buffer.from(buf).toString('hex') || '0'));
+const bytes32 = (n) => Buffer.from(n.toString(16).padStart(64, '0'), 'hex');
+function taggedHash(tag, ...parts) {
+  const t = crypto.createHash('sha256').update(tag).digest();
+  return crypto.createHash('sha256').update(Buffer.concat([t, t, ...parts])).digest();
+}
+/** BIP340: `sig` (64 bytes) over `msg` (32 bytes) by x-only `pub` (32 bytes). */
+function schnorrVerify(sig, msg, pub) {
+  try {
+    if (sig.length !== 64 || msg.length !== 32 || pub.length !== 32) return false;
+    const x = bigOf(pub);
+    if (x >= SECP_P) return false;
+    const c = mod(x * x * x + 7n);
+    let y = modPow(c, (SECP_P + 1n) / 4n);
+    if (mod(y * y) !== c) return false;
+    if (y & 1n) y = SECP_P - y;
+    const r = bigOf(sig.subarray(0, 32));
+    const s = bigOf(sig.subarray(32));
+    if (r >= SECP_P || s >= SECP_N) return false;
+    const e = mod(bigOf(taggedHash('BIP0340/challenge', sig.subarray(0, 32), pub, msg)), SECP_N);
+    const R = pointAdd(pointMul(SECP_G, s), pointMul([x, y], SECP_N - e));
+    return Boolean(R) && (R[1] & 1n) === 0n && R[0] === r;
+  } catch (_) {
+    return false;
+  }
 }
 
 // ---------------------------------------------------------------- posts
@@ -538,6 +606,9 @@ const STYLE = `
   .linkrow .ic svg { width:15px; height:15px; fill:#fff; }
   .linkrow span { flex:1; overflow-wrap:anywhere; }
   .linkrow .chev { width:8px; height:13px; color:#636366; flex:none; }
+  /* payment request people */
+  .pay-person { margin-top: 14px; padding-top: 12px; border-top: .5px solid var(--sep); }
+  .pay-person-label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; color: var(--muted); margin-bottom: 8px; }
   /* room */
   .room-ic { width:52px; height:52px; border-radius:13px; background:var(--teal); color:#fff; display:grid; place-items:center;
              font-size:28px; font-weight:700; flex:none; }
@@ -658,7 +729,49 @@ function broadcastPage(channel) {
 // download. Same rules as the app's PaymentRequest: a valid address, an exact amount, a short memo.
 const AMOUNT = /^(?=.*[1-9])\d{1,11}(\.\d{1,8})?$/;
 
-function payPage(address, amount, memo, chat, by, sig) {
+/** "1234567.5" -> "1,234,567.5": the amount as people read it (the link keeps the plain form). */
+function amountText(amount) {
+  const [whole, frac] = String(amount).split('.');
+  const grouped = whole.replace(/^0+(?=\d)/, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return frac ? `${grouped}.${frac}` : grouped;
+}
+
+/** The exact sompi of a valid AMOUNT string ("12.5" -> 1250000000). */
+function amountSompi(amount) {
+  const [whole, frac = ''] = String(amount).split('.');
+  return BigInt(whole) * 100_000_000n + BigInt((frac + '00000000').slice(0, 8));
+}
+
+/** Whether `sig` is `by`'s signature over the request (the app's PaymentRequest.signingDigest:
+ *  SHA-256 of "kachat-payment-request:v1", the address, the amount in sompi, the memo, "1"/"0" for
+ *  chat and the maker, one per line; addresses lowercased with their prefix). */
+function paymentRequestSigned({ address, amount, memo, chat, by, sig }) {
+  const pub = addressPublicKey(by);
+  if (!pub || !/^[0-9a-f]{128}$/.test(sig)) return false;
+  const text = ['kachat-payment-request:v1', address.toLowerCase(), amountSompi(amount).toString(), memo,
+    chat ? '1' : '0', by.toLowerCase()].join('\n');
+  const digest = crypto.createHash('sha256').update(text, 'utf8').digest();
+  return schnorrVerify(Buffer.from(sig, 'hex'), digest, pub);
+}
+
+/** One person row (avatar, name, address) for the payment page. */
+function personRowHTML(label, identity) {
+  return `
+    <div class="pay-person">
+      <span class="pay-person-label">${escapeHTML(label)}</span>
+      <div class="who">
+        ${avatarHTML(identity)}
+        <div style="min-width:0">
+          <div class="name">${escapeHTML(displayName(identity))}</div>
+          <div class="meta" style="word-break:break-all">${escapeHTML(identity.address)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/** `payee` is who gets paid (always shown: the address the money goes to, with its .kachat name and
+ *  avatar). `requester` is the maker, shown only once their signature checked out. */
+function payPage(address, amount, memo, chat, by, sig, payee, requester) {
   const pathForm = address.startsWith('kaspa:') ? address.slice('kaspa:'.length) : address;
   let query = `amount=${amount}`;
   if (memo) query += `&memo=${encodeURIComponent(memo)}`;
@@ -667,33 +780,41 @@ function payPage(address, amount, memo, chat, by, sig) {
   const tail = `${encodeURIComponent(pathForm).replace(/%3A/gi, ':')}?${query}`;
   const canonical = `${SITE_ORIGIN}/pay/${tail}`;
   const unit = address.startsWith('kaspatest:') ? 'TKAS' : 'KAS';
+  const shown = `${amountText(amount)} ${unit}`;
   const what = memo ? `<div class="text">${escapeHTML(memo)}</div>` : '';
+  // The maker is the one asking; when they ask to be paid at an address of their own (a spending
+  // address) the payee row says who it is for, and both rows show only when they differ.
+  const requesterRow = requester && requester.address !== payee.address ? personRowHTML('Requested by', requester) : '';
+  const unsigned = !by ? `<p class="meta" style="margin-top:10px">Not signed: KaChat can't say who made this request.</p>` : '';
   const body = `
   <div class="card">
     <div class="who">
       <span class="room-ic">&#8593;</span>
       <div>
-        <div class="name" style="font-size:22px">${escapeHTML(amount)} ${unit}</div>
+        <div class="name" style="font-size:24px">${escapeHTML(shown)}</div>
         <div class="meta">A payment request on KaChat</div>
       </div>
     </div>
     ${what}
-    <div class="text" style="color:var(--muted);font-size:13px;word-break:break-all">To ${escapeHTML(address)}</div>
-    ${by ? `<div class="text" style="color:var(--muted);font-size:13px;word-break:break-all">Requested by ${escapeHTML(by)} (KaChat checks its signature when you open it)</div>` : ''}
+    ${personRowHTML('Pay to', payee)}
+    ${requesterRow}
+    ${unsigned}
   </div>
   <div class="cta">
     <a class="btn btn-fill btn-block" href="kachat://pay/${tail}">Pay in KaChat</a>
     <p class="hint">Opens Send Kaspa in the app with the amount and the address filled in.</p>
   </div>
   ${getKaChat("Don't have KaChat yet? It's free.")}`;
+  // The preview names who gets paid once they have a name, and shows their picture.
+  const named = payee.name ? ` to ${payee.name}` : '';
   return page({
-    title: `Payment request: ${amount} ${unit}`,
-    description: memo ? `${amount} ${unit} for ${memo}` : `A request for ${amount} ${unit} on KaChat.`,
-    image: OG_IMAGE,
+    title: `Payment request: ${shown}${named}`,
+    description: memo ? `${shown} for ${memo}` : `A request for ${shown} on KaChat.`,
+    image: payee.avatar || (requester && requester.avatar) || OG_IMAGE,
     canonical,
     appArgument: canonical,
     body,
-    largeImage: true,
+    largeImage: !(payee.avatar || (requester && requester.avatar)),
   });
 }
 
@@ -851,7 +972,17 @@ const server = http.createServer(async (req, res) => {
       if (!isKaspaAddress(address) || !AMOUNT.test(amount) || (by && (!isKaspaAddress(by) || !/^[0-9a-f]{128}$/.test(sig)))) {
         return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That link isn't a KaChat payment request"));
       }
-      return send(res, 200, 'text/html; charset=utf-8', payPage(address, amount, memo, url.searchParams.get('chat') === '1', by, by ? sig : ''));
+      const chat = url.searchParams.get('chat') === '1';
+      // A signature that doesn't check out (an edited amount, address or memo) is refused, as the
+      // app refuses it; a signed one names its maker.
+      if (by && !paymentRequestSigned({ address, amount, memo, chat, by, sig })) {
+        return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That payment request was changed after it was made"));
+      }
+      const [payee, requester] = await Promise.all([
+        loadIdentityForAddress(address),
+        by ? loadIdentityForAddress(by) : Promise.resolve(null),
+      ]);
+      return send(res, 200, 'text/html; charset=utf-8', payPage(address, amount, memo, chat, by, by ? sig : '', payee, requester));
     }
 
     if (url.pathname === '/') return serveStatic(res, 'index.html') || send(res, 200, 'text/plain', 'KaChat');

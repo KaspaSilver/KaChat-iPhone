@@ -1021,7 +1021,7 @@ private struct PortfolioTransactionEditor: View {
                     HStack {
                         Text("Quantity")
                         Spacer()
-                        TextField("0.00", text: $quantityText)
+                        TextField("0.00", text: $quantityText.groupedAmount)
                             .keyboardType(.decimalPad)
                             .numericKeyboardDoneButton()
                             .multilineTextAlignment(.trailing)

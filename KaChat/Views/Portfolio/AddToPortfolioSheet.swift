@@ -181,7 +181,7 @@ struct AddToPortfolioSheet: View {
 
             Section("Amount and price") {
                 LabeledContent("Amount") {
-                    TextField("0", text: $amountText)
+                    TextField("0", text: $amountText.groupedAmount)
                         .keyboardType(.decimalPad)
                         .numericKeyboardDoneButton()
                         .multilineTextAlignment(.trailing)
@@ -189,7 +189,7 @@ struct AddToPortfolioSheet: View {
                 LabeledContent("Price per KAS") {
                     HStack(spacing: 6) {
                         if isLookingUpPrice { ProgressView().controlSize(.mini) }
-                        TextField("0", text: $priceText)
+                        TextField("0", text: $priceText.groupedAmount)
                             .keyboardType(.decimalPad)
                             .numericKeyboardDoneButton()
                             .multilineTextAlignment(.trailing)

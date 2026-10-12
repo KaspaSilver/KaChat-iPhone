@@ -2797,7 +2797,7 @@ struct KachatLiveOfferSheet: View {
                 footer: KaspaUnit.text("Your KAS stays locked on chain until the owner accepts or declines, you withdraw the offer, or it expires - then anyone can send it back to you.")
             ) {
                 HStack {
-                    TextField("0", text: $amountText)
+                    TextField("0", text: $amountText.groupedAmount)
                         .keyboardType(.decimalPad)
                         .onChange(of: amountText) { v in
                             let clean = KaspaUnit.sanitizeAmountInput(v)
@@ -3008,7 +3008,7 @@ struct KachatListSheet: View {
         ) {
             KachatInputCard(title: "Price") {
                 HStack {
-                    TextField("0", text: $priceText)
+                    TextField("0", text: $priceText.groupedAmount)
                         .keyboardType(.decimalPad)
                         .onChange(of: priceText) { v in
                             let clean = KaspaUnit.sanitizeAmountInput(v)

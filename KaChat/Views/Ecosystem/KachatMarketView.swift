@@ -766,7 +766,7 @@ struct KachatOfferSheet: View {
 
                 Section {
                     HStack {
-                        TextField("0", text: $amount)
+                        TextField("0", text: $amount.groupedAmount)
                             .keyboardType(.decimalPad)
                             .font(.title3.weight(.semibold))
                         Text(verbatim: KaspaUnit.symbol)

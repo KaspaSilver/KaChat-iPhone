@@ -501,7 +501,7 @@ private actor KNSProfileImageCache {
     static let shared = KNSProfileImageCache()
 
     /// The decoded image already in memory, synchronously - nil when it has to be loaded.
-    nonisolated static func memoryImage(for descriptor: KNSProfileImageDescriptor, maxPixelSize: Int?) -> UIImage? {
+    static func memoryImage(for descriptor: KNSProfileImageDescriptor, maxPixelSize: Int?) -> UIImage? {
         KNSProfileImageMemory.cache.object(forKey: KNSProfileImageMemory.key(for: descriptor.cacheIdentity, maxPixelSize: maxPixelSize))
     }
 

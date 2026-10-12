@@ -1208,7 +1208,8 @@ struct ChatListView: View {
 
     private func refreshFilteredConversations() {
         let settings = settingsViewModel.settings
-        let sourceConversations = chatService.conversations
+        // Bot chats are reached from Kaspa Hub > KaChat Bots only, never the chat list.
+        let sourceConversations = chatService.conversations.filter { !KaChatBot.isBot($0.contact.address) }
 
         if searchText.isEmpty {
             filteredConversationsCache = sourceConversations

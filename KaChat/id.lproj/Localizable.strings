@@ -1613,3 +1613,6 @@
 /* Kaspa Hub > KaChat Bots: Price Bot */
 "Price Bot" = "Bot Harga";
 "Alerts when KAS crosses your price, big moves and a daily summary." = "Peringatan saat KAS melewati harga Anda, pergerakan besar, dan ringkasan harian.";
+
+/* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
+"%lld unread" = "%lld belum dibaca";

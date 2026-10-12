@@ -1614,3 +1614,6 @@
 /* Kaspa Hub > KaChat Bots: Price Bot */
 "Price Bot" = "Price Bot";
 "Alerts when KAS crosses your price, big moves and a daily summary." = "Alerts when KAS crosses your price, big moves and a daily summary.";
+
+/* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
+"%lld unread" = "%lld unread";

@@ -43,6 +43,14 @@ struct KaChatBot: Identifiable, Equatable {
         ),
     ]
 
+    private static let addresses = Set(all.map { $0.address.lowercased() })
+
+    /// True for a bot's address. Bot chats live in Kaspa Hub > KaChat Bots only: the chat list
+    /// leaves them out (their notifications still come, and open the chat).
+    static func isBot(_ address: String) -> Bool {
+        addresses.contains(address.lowercased())
+    }
+
     /// Why the bot can't be messaged from here, or nil when it can.
     var unavailableReason: String? {
         guard !address.isEmpty else { return String(localized: "Coming soon.") }
@@ -52,13 +60,17 @@ struct KaChatBot: Identifiable, Equatable {
 }
 
 /// Kaspa Hub > KaChat Bots: one card per bot; tapping a card opens (or starts) the chat with it.
+/// The only way into a bot chat - the chat list doesn't show them - so each card carries the
+/// chat's unread count.
 struct KaChatBotsView: View {
+    @ObservedObject private var chatService = ChatService.shared
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
                     ForEach(KaChatBot.all) { bot in
-                        KaChatBotCard(bot: bot)
+                        KaChatBotCard(bot: bot, unread: unread(bot))
                     }
                     Text("Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee.")
                         .font(.footnote)
@@ -85,8 +97,17 @@ struct KaChatBotsView: View {
     }
 }
 
+extension KaChatBotsView {
+    fileprivate func unread(_ bot: KaChatBot) -> Int {
+        guard !bot.address.isEmpty else { return 0 }
+        let key = bot.address.lowercased()
+        return chatService.conversations.first { $0.contact.address.lowercased() == key }?.unreadCount ?? 0
+    }
+}
+
 private struct KaChatBotCard: View {
     let bot: KaChatBot
+    var unread: Int = 0
 
     var body: some View {
         let unavailable = bot.unavailableReason
@@ -111,6 +132,15 @@ private struct KaChatBotCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
+                if unread > 0 {
+                    Text(unread > 99 ? "99+" : "\(unread)")
+                        .font(.caption.weight(.bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.red))
+                        .accessibilityLabel(Text("\(unread) unread"))
+                }
                 if unavailable == nil {
                     Image(systemName: "chevron.right")
                         .font(.footnote.weight(.semibold))

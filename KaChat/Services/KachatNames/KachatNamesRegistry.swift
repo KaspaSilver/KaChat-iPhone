@@ -793,7 +793,7 @@ final class KachatNamesRegistry: ObservableObject {
 
     // MARK: - HTTP
 
-    private static let session: URLSession = {
+    private nonisolated static let session: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 25
@@ -801,7 +801,8 @@ final class KachatNamesRegistry: ObservableObject {
         return URLSession(configuration: config)
     }()
 
-    private static func get<T: Decodable>(_ base: String, _ path: String) async throws -> T {
+    /// Off the main actor: listings, history and activity answers decode on the shared pool.
+    private nonisolated static func get<T: Decodable>(_ base: String, _ path: String) async throws -> T {
         guard let url = URL(string: base + path) else { throw KachatNames.Failure("bad indexer URL") }
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")

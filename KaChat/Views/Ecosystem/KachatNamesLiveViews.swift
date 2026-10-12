@@ -61,32 +61,53 @@ enum KachatLive {
     /// or "4:09" (hours, minutes, seconds).
     static func countdown(_ ms: Int64) -> String {
         let seconds = Double(max(ms, 0)) / 1000
-        let f = DateComponentsFormatter()
-        var calendar = Calendar.current
-        calendar.locale = AppLocalization.locale
-        f.calendar = calendar
+        let f: DateComponentsFormatter
         if seconds >= 86_400 {
-            f.allowedUnits = [.day, .hour]
-            f.unitsStyle = .abbreviated
-            f.maximumUnitCount = 2
+            f = componentsFormatter("countdown-days") {
+                $0.allowedUnits = [.day, .hour]
+                $0.unitsStyle = .abbreviated
+                $0.maximumUnitCount = 2
+            }
         } else {
-            f.allowedUnits = seconds >= 3600 ? [.hour, .minute, .second] : [.minute, .second]
-            f.unitsStyle = .positional
-            f.zeroFormattingBehavior = .pad
+            let hours = seconds >= 3600
+            f = componentsFormatter(hours ? "countdown-hms" : "countdown-ms") {
+                $0.allowedUnits = hours ? [.hour, .minute, .second] : [.minute, .second]
+                $0.unitsStyle = .positional
+                $0.zeroFormattingBehavior = .pad
+            }
         }
         return f.string(from: seconds) ?? ""
     }
 
     static func duration(_ ms: Int64) -> String {
-        let f = DateComponentsFormatter()
         let seconds = Double(ms) / 1000
-        f.allowedUnits = seconds >= 86_400 ? [.day] : (seconds >= 3600 ? [.hour, .minute] : [.minute])
-        f.unitsStyle = .abbreviated
-        f.maximumUnitCount = 2
-        var calendar = Calendar.current
-        calendar.locale = AppLocalization.locale
-        f.calendar = calendar
+        let units: NSCalendar.Unit = seconds >= 86_400 ? [.day] : (seconds >= 3600 ? [.hour, .minute] : [.minute])
+        let f = componentsFormatter("duration-\(units.rawValue)") {
+            $0.allowedUnits = units
+            $0.unitsStyle = .abbreviated
+            $0.maximumUnitCount = 2
+        }
         return f.string(from: seconds) ?? ""
+    }
+
+    /// One formatter per style and language, not one per call: the Expired page ticks every
+    /// tile's countdown once a second.
+    private static var componentsFormatters: [String: DateComponentsFormatter] = [:]
+    private static let componentsFormattersLock = NSLock()
+
+    private static func componentsFormatter(_ style: String, _ configure: (DateComponentsFormatter) -> Void) -> DateComponentsFormatter {
+        let locale = AppLocalization.locale
+        let key = style + "|" + locale.identifier
+        componentsFormattersLock.lock()
+        defer { componentsFormattersLock.unlock() }
+        if let known = componentsFormatters[key] { return known }
+        let f = DateComponentsFormatter()
+        var calendar = Calendar.current
+        calendar.locale = locale
+        f.calendar = calendar
+        configure(f)
+        componentsFormatters[key] = f
+        return f
     }
 
     /// `count` periods: "1 year" / "2 years", or on a short clock "10 min" / "20 min".

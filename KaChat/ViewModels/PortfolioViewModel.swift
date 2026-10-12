@@ -1606,15 +1606,32 @@ final class PortfolioViewModel: ObservableObject {
     static func computeValueHistory(transactions: [PortfolioTransaction], priceHistory: [PricePoint]) -> [PricePoint] {
         guard !priceHistory.isEmpty else { return [] }
         let sortedTx = transactions.sorted { $0.timestamp < $1.timestamp }
-        return priceHistory.map { point in
-            var holdingsSompi: Int64 = 0
-            for tx in sortedTx {
-                if tx.timestamp > point.timestamp { break }
-                switch tx.type {
-                case .buy: holdingsSompi += tx.amountSompi
-                case .sell: holdingsSompi -= tx.amountSompi
-                case .transfer: break
+        func delta(_ tx: PortfolioTransaction) -> Int64 {
+            switch tx.type {
+            case .buy: return tx.amountSompi
+            case .sell: return -tx.amountSompi
+            case .transfer: return 0
+            }
+        }
+        // Price points in time order (the usual case): one running pass over the ledger instead
+        // of replaying it from the start for every point - points x transactions on every redraw.
+        let ascending = zip(priceHistory, priceHistory.dropFirst()).allSatisfy { $0.timestamp <= $1.timestamp }
+        guard ascending else {
+            return priceHistory.map { point in
+                var holdingsSompi: Int64 = 0
+                for tx in sortedTx {
+                    if tx.timestamp > point.timestamp { break }
+                    holdingsSompi += delta(tx)
                 }
+                return PricePoint(timestamp: point.timestamp, value: Double(holdingsSompi) / 100_000_000.0 * point.value)
+            }
+        }
+        var holdingsSompi: Int64 = 0
+        var next = 0
+        return priceHistory.map { point in
+            while next < sortedTx.count, sortedTx[next].timestamp <= point.timestamp {
+                holdingsSompi += delta(sortedTx[next])
+                next += 1
             }
             let holdingsKas = Double(holdingsSompi) / 100_000_000.0
             return PricePoint(timestamp: point.timestamp, value: holdingsKas * point.value)

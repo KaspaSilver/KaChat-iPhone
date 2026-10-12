@@ -820,13 +820,28 @@ enum PortfolioFormat {
     /// What every amount reads as while Portfolio's eye button is on.
     static let masked = "••••••"
 
+    /// Looked up once per currency: rows and the chart header ask for it on every redraw.
     static func currencySymbol(for currency: AppCurrency) -> String {
         if currency == .bitcoin { return "₿" }
+        if let known = symbols[currency.code] { return known }
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
         formatter.currencyCode = currency.code
-        return formatter.currencySymbol ?? currency.code
+        let symbol = formatter.currencySymbol ?? currency.code
+        symbols[currency.code] = symbol
+        return symbol
     }
+
+    private static var symbols: [String: String] = [:]
+
+    private static let twoDecimals: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        formatter.usesGroupingSeparator = true
+        return formatter
+    }()
 
     static func price(_ value: Double, currency: AppCurrency) -> String {
         if currency == .bitcoin { return bitcoin(value) }
@@ -879,12 +894,7 @@ enum PortfolioFormat {
     static func currency(_ value: Double, _ currency: AppCurrency) -> String {
         if currency == .bitcoin { return bitcoin(value) }
         let sign = value < 0 ? "-" : ""
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        formatter.usesGroupingSeparator = true
-        let magnitude = formatter.string(from: NSNumber(value: abs(value))) ?? String(format: "%.2f", abs(value))
+        let magnitude = twoDecimals.string(from: NSNumber(value: abs(value))) ?? String(format: "%.2f", abs(value))
         return sign + currencySymbol(for: currency) + magnitude
     }
 

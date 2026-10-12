@@ -607,21 +607,39 @@ struct PortfolioTransactionsView<Header: View>: View {
     /// Manual build via a plain symbol prefix rather than `.formatted(.currency(code:))` - the
     /// latter is Foundation's ISO-4217-driven `FormatStyle`, whose behavior for a non-ISO-4217
     /// code like `.bitcoin`'s "BTC" isn't something to rely on sight-unseen.
+    ///
+    /// The formatters are built once (per currency for the symbol), not twice per row per redraw.
     private func formatCurrency(_ value: Double) -> String {
         let sign = value < 0 ? "-" : ""
-        let symbol = settingsViewModel.settings.currency == .bitcoin ? "₿" : {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .currency
-            formatter.currencyCode = settingsViewModel.settings.currency.code
-            return formatter.currencySymbol ?? settingsViewModel.settings.currency.code
-        }()
-        let decimalFormatter = NumberFormatter()
-        decimalFormatter.numberStyle = .decimal
-        decimalFormatter.minimumFractionDigits = 2
-        decimalFormatter.maximumFractionDigits = 2
-        decimalFormatter.usesGroupingSeparator = true
-        let magnitude = decimalFormatter.string(from: NSNumber(value: abs(value))) ?? String(format: "%.2f", abs(value))
+        let code = settingsViewModel.settings.currency.code
+        let symbol = settingsViewModel.settings.currency == .bitcoin ? "₿" : PortfolioRowFormatters.currencySymbol(for: code)
+        let magnitude = PortfolioRowFormatters.twoDecimals.string(from: NSNumber(value: abs(value))) ?? String(format: "%.2f", abs(value))
         return sign + symbol + magnitude
+    }
+}
+
+/// `PortfolioTransactionsView`'s formatters, outside it because a generic type can't hold
+/// static stored properties.
+private enum PortfolioRowFormatters {
+    static let twoDecimals: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        formatter.usesGroupingSeparator = true
+        return formatter
+    }()
+
+    private static var symbols: [String: String] = [:]
+
+    static func currencySymbol(for code: String) -> String {
+        if let known = symbols[code] { return known }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = code
+        let symbol = formatter.currencySymbol ?? code
+        symbols[code] = symbol
+        return symbol
     }
 }
 

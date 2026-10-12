@@ -19,7 +19,9 @@ final class UtxoSubscriptionManager: ObservableObject {
     @Published private(set) var state: SubscriptionState = .disconnected
     @Published private(set) var primaryEndpoint: Endpoint?
     @Published private(set) var standbyEndpoint: Endpoint?
-    @Published private(set) var lastNotificationAt: Date?
+    /// Not `@Published`: every notification sets it - block-added ones about ten times a second
+    /// on mainnet - and nothing observes it.
+    private(set) var lastNotificationAt: Date?
     /// The last moment the primary subscription was verified alive: a successful subscribe, or
     /// a keepalive ping answered. Consumers that back the subscription up (the foreground
     /// contact sweep) stand down while this is recent and step in when it goes stale.

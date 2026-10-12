@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "בקשת התשלום שלך. הקישו לצפייה.";
 "Paid to your chatting address" = "משולם לכתובת הצ׳אט שלך";
 "Paid to your spending address" = "משולם לכתובת ההוצאה שלך";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "בקשו מאיש הקשר הזה סכום מדויק, עם מטרתו.";
+"Send Payment Request" = "שליחת בקשת תשלום";

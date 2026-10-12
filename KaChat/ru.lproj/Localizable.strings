@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "Ваш запрос на оплату. Нажмите, чтобы открыть.";
 "Paid to your chatting address" = "Оплата на ваш адрес для чатов";
 "Paid to your spending address" = "Оплата на ваш адрес для расходов";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "Попросите у этого контакта точную сумму с назначением.";
+"Send Payment Request" = "Отправить запрос на оплату";

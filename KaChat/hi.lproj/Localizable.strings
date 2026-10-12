@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "आपका भुगतान अनुरोध। देखने के लिए टैप करें।";
 "Paid to your chatting address" = "आपके चैटिंग पते पर भुगतान";
 "Paid to your spending address" = "आपके खर्च वाले पते पर भुगतान";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "इस संपर्क से कारण के साथ सटीक राशि माँगें।";
+"Send Payment Request" = "भुगतान अनुरोध भेजें";

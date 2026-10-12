@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "내 결제 요청입니다. 탭하여 보기.";
 "Paid to your chatting address" = "내 채팅 주소로 결제";
 "Paid to your spending address" = "내 지출 주소로 결제";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "이 연락처에 용도와 함께 정확한 금액을 요청합니다.";
+"Send Payment Request" = "결제 요청 보내기";

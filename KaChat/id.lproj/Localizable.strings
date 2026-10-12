@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "Permintaan pembayaran Anda. Ketuk untuk melihat.";
 "Paid to your chatting address" = "Dibayar ke alamat obrolan Anda";
 "Paid to your spending address" = "Dibayar ke alamat belanja Anda";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "Minta kontak ini jumlah pasti, beserta keperluannya.";
+"Send Payment Request" = "Kirim Permintaan Pembayaran";

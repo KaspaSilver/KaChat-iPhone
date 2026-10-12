@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "Tu solicitud de pago. Toca para verla.";
 "Paid to your chatting address" = "Se paga a tu dirección de chat";
 "Paid to your spending address" = "Se paga a tu dirección de gasto";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "Pide a este contacto una cantidad exacta, con el motivo.";
+"Send Payment Request" = "Enviar solicitud de pago";

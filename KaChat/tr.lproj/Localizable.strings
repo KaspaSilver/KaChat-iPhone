@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "Ödeme isteğiniz. Görmek için dokunun.";
 "Paid to your chatting address" = "Sohbet adresinize ödenir";
 "Paid to your spending address" = "Harcama adresinize ödenir";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "Bu kişiden ne için olduğuyla birlikte tam bir tutar isteyin.";
+"Send Payment Request" = "Ödeme İsteği Gönder";

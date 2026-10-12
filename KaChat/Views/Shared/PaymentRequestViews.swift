@@ -5,8 +5,12 @@ import UIKit
 
 /// Makes a payment request link: to your chatting or spending address, an exact amount and what
 /// it's for. Copy (or share) the link and send it anywhere; in KaChat it opens Send Kaspa filled
-/// in (`PaymentRequest`, `KaChatInternalLink.paymentRequest`).
+/// in (`PaymentRequest`, `KaChatInternalLink.paymentRequest`). Made from a 1:1 chat's + sheet
+/// (`recipient`), it is for that person: the button sends it into the chat instead.
 struct CreatePaymentRequestView: View {
+    /// The contact it is for (a 1:1 chat): Send Payment Request sends it to them.
+    var recipient: Contact? = nil
+
     enum Destination: Hashable {
         case chatting, spending
     }
@@ -21,6 +25,8 @@ struct CreatePaymentRequestView: View {
     @State private var amountInput = ""
     @State private var memo = ""
     @State private var copied = false
+    @State private var isSending = false
+    @State private var sendError: String?
 
     private var address: String? {
         switch destination {
@@ -92,18 +98,35 @@ struct CreatePaymentRequestView: View {
                             .foregroundColor(.secondary)
                     }
 
-                    SendActionButton(
-                        title: copied ? "Copied" : "Copy Payment Request",
-                        isBusy: false,
-                        isEnabled: request != nil,
-                        requiresSlide: false,
-                        action: copy
-                    )
+                    if let recipient {
+                        if let sendError {
+                            Text(sendError)
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                                .multilineTextAlignment(.center)
+                        }
+                        SendActionButton(
+                            title: "Send Payment Request",
+                            isBusy: isSending,
+                            isEnabled: request != nil && !isSending,
+                            requiresSlide: false
+                        ) {
+                            send(to: recipient)
+                        }
+                    } else {
+                        SendActionButton(
+                            title: copied ? "Copied" : "Copy Payment Request",
+                            isBusy: false,
+                            isEnabled: request != nil,
+                            requiresSlide: false,
+                            action: copy
+                        )
 
-                    if let request, let url = URL(string: request.shareURLString) {
-                        ShareLink(item: url) {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                                .font(.subheadline.weight(.semibold))
+                        if let request, let url = URL(string: request.shareURLString) {
+                            ShareLink(item: url) {
+                                Label("Share", systemImage: "square.and.arrow.up")
+                                    .font(.subheadline.weight(.semibold))
+                            }
                         }
                     }
 
@@ -130,6 +153,24 @@ struct CreatePaymentRequestView: View {
                     spendingAddress = fresh
                     ReceiveAddressWarmCache.address = fresh
                 }
+            }
+        }
+    }
+
+    /// Sends the request into the chat as a message: it shows there as a Payment Request card,
+    /// which they tap to pay.
+    private func send(to contact: Contact) {
+        guard let request else { return }
+        isSending = true
+        sendError = nil
+        Task {
+            do {
+                try await ChatService.shared.sendMessage(to: contact, content: request.shareURLString, feeOverride: nil)
+                Haptics.success()
+                dismiss()
+            } catch {
+                isSending = false
+                sendError = UserFacingError.message(for: error)
             }
         }
     }

@@ -317,6 +317,8 @@ struct ChatDetailView: View {
     @State private var nextcloudPhotoRequested = false
     @State private var nextcloudVoiceRequested = false
     @State private var showNextcloudPicker = false
+    /// + > Request Payment: a payment request made for this contact and sent into this chat.
+    @State private var showPaymentRequestSheet = false
     /// With a Nextcloud server linked, the "+" sheet's Camera / Photo / Voice Message rows ask
     /// on chain or via Nextcloud, and File appears.
     @ObservedObject private var nextcloudService = NextcloudService.shared
@@ -2161,6 +2163,11 @@ struct ChatDetailView: View {
                 stageNextcloudLink(url, file: file)
             }
         }
+        .sheet(isPresented: $showPaymentRequestSheet) {
+            CreatePaymentRequestView(recipient: contact)
+                .environmentObject(WalletManager.shared)
+                .environmentObject(settingsViewModel)
+        }
         .onChange(of: photoPickerItem) { newItem in
             guard let newItem else { return }
             Task {
@@ -2339,6 +2346,14 @@ struct ChatDetailView: View {
                     }
                 }
                 ActionSheetRow(
+                    title: "Request Payment",
+                    subtitle: "Ask this contact for an exact amount, with what it's for.",
+                    systemImage: "doc.text"
+                ) {
+                    showComposerPlusSheet = false
+                    DispatchQueue.main.async { showPaymentRequestSheet = true }
+                }
+                ActionSheetRow(
                     title: "Play Chess",
                     subtitle: "Invite this contact to a game on chain.",
                     systemImage: "checkerboard.rectangle"
@@ -2373,9 +2388,9 @@ struct ChatDetailView: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// Fits the tiles: pay, camera, photo, voice, chess, plus file and a handshake when they apply.
+    /// Fits the tiles: pay, camera, photo, voice, request, chess, plus file and a handshake when they apply.
     private var composerPlusSheetHeight: CGFloat {
-        var tiles = 5
+        var tiles = 6
         if nextcloudService.isConnected { tiles += 1 }
         if canSendRequestToCommunicate && !inboxSupported { tiles += 1 }
         return ActionSheetTileMetrics.sheetHeight(tiles: tiles)

@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "あなたの支払いリクエストです。タップして表示。";
 "Paid to your chatting address" = "あなたのチャットアドレスに支払われます";
 "Paid to your spending address" = "あなたの支出アドレスに支払われます";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "この連絡先に、用途を添えて金額を指定した支払いを依頼します。";
+"Send Payment Request" = "支払いリクエストを送信";

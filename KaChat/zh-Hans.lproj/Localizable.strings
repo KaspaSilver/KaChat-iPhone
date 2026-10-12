@@ -1651,3 +1651,7 @@
 "Your payment request. Tap to view." = "你的付款请求。点按查看。";
 "Paid to your chatting address" = "付到你的聊天地址";
 "Paid to your spending address" = "付到你的支出地址";
+
+/* Payment requests from a 1:1 chat's + sheet */
+"Ask this contact for an exact amount, with what it's for." = "向此联系人请求确切金额，并注明用途。";
+"Send Payment Request" = "发送付款请求";

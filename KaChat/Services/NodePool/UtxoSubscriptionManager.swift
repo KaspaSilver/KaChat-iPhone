@@ -654,8 +654,27 @@ final class UtxoSubscriptionManager: ObservableObject {
 
         // Immediate failover on first failure
         if primaryFailures >= maxPrimaryFailures {
-            await performFailover()
+            await failoverInQueue()
         }
+    }
+
+    /// The failover, in line with subscribes (`subscribeInFlight`): one running beside a
+    /// subscribe both called `subscribeOn`, leaking a handler (every batch twice) and writing
+    /// the failover's endpoints over the fresh subscription. Once its turn comes it runs only if
+    /// nothing replaced the failing primary meanwhile and the subscription is still wanted.
+    private func failoverInQueue() async {
+        let failing = primaryEndpoint
+        let previous = subscribeInFlight
+        let task = Task { @MainActor in
+            _ = try? await previous?.value
+            try Task.checkCancellation()
+            guard self.state != .disconnected, !self.subscribedAddresses.isEmpty,
+                  self.primaryEndpoint == failing, self.primaryFailures >= self.maxPrimaryFailures else { return }
+            await self.performFailover()
+        }
+        subscribeInFlight = task
+        defer { if subscribeInFlight == task { subscribeInFlight = nil } }
+        _ = try? await task.value
     }
 
     private func performFailover() async {

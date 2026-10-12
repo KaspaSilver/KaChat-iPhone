@@ -1655,3 +1655,6 @@
 /* Payment requests from a 1:1 chat's + sheet */
 "Ask this contact for an exact amount, with what it's for." = "Minta kontak ini jumlah pasti, beserta keperluannya.";
 "Send Payment Request" = "Kirim Permintaan Pembayaran";
+
+/* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
+"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "KAS Anda tersebar di banyak koin kecil. Saat Anda menggeser, KaChat lebih dulu menggabungkannya menjadi satu (transaksi terpisah dengan biaya kecilnya sendiri), lalu mengirim ini.";

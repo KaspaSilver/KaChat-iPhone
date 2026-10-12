@@ -1691,6 +1691,9 @@ struct KachatTxSheet<Inputs: View>: View {
     @State private var plan: KachatNames.Plan?
     /// The fee rate `plan` was built at: the send uses exactly this (IOS-061).
     @State private var planFeerate: Double?
+    /// The plan assumes the small coins combined first (`planWithRate`); the combine is sent only
+    /// after the slide and Face ID.
+    @State private var combinesCoins = false
     @State private var planError: String?
     @State private var building = false
     @State private var sending = false
@@ -1793,6 +1796,15 @@ struct KachatTxSheet<Inputs: View>: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                if combinesCoins, plan != nil, txId == nil {
+                    Label {
+                        Text("Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this.")
+                    } icon: { Image(systemName: "square.stack.3d.up") }
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
                 if txId == nil {
                     // The slide is the confirmation: no second prompt, even for the destructive ones
                     // (their warning is the red card above).
@@ -1841,6 +1853,7 @@ struct KachatTxSheet<Inputs: View>: View {
     private func rebuild() async {
         plan = nil
         planError = nil
+        combinesCoins = false
         guard let operation else { return }
         building = true
         try? await Task.sleep(nanoseconds: 300_000_000)
@@ -1852,6 +1865,7 @@ struct KachatTxSheet<Inputs: View>: View {
             guard !Task.isCancelled else { return }
             plan = built.plan
             planFeerate = built.feerate
+            combinesCoins = built.combinesCoins
         } catch {
             // Cancelled (the choice changed): not an error to show, and the new build owns the
             // sheet. Showing it left "Swift.CancellationError" and a disabled button.

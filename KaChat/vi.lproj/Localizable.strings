@@ -1655,3 +1655,6 @@
 /* Payment requests from a 1:1 chat's + sheet */
 "Ask this contact for an exact amount, with what it's for." = "Yêu cầu người này một số tiền chính xác, kèm mục đích.";
 "Send Payment Request" = "Gửi yêu cầu thanh toán";
+
+/* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
+"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "KAS của bạn nằm trong nhiều đồng nhỏ. Khi bạn trượt, KaChat sẽ gộp chúng thành một trước (một giao dịch riêng với phí nhỏ), rồi gửi giao dịch này.";

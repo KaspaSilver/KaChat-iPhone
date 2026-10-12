@@ -1655,3 +1655,6 @@
 /* Payment requests from a 1:1 chat's + sheet */
 "Ask this contact for an exact amount, with what it's for." = "이 연락처에 용도와 함께 정확한 금액을 요청합니다.";
 "Send Payment Request" = "결제 요청 보내기";
+
+/* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
+"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "KAS가 작은 코인 여러 개로 나뉘어 있습니다. 밀면 KaChat이 먼저 하나로 합친 뒤(소액 수수료가 드는 별도 거래) 이것을 보냅니다.";

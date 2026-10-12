@@ -466,15 +466,18 @@ final class KachatNamesActions: ObservableObject {
 
     /// The plan and the fee rate it was built at - the rate `perform(exactFeerate:)` then sends at,
     /// so the fee sent is the fee shown (IOS-061).
-    func planWithRate(_ op: Operation, fee: FeeChoice? = nil) async throws -> (plan: KachatNames.Plan, feerate: Double) {
+    ///
+    /// A preview never sends anything (IOS-075). When the KAS is there but in more small coins
+    /// than the transaction can take, it is planned as if they were already combined, and
+    /// `combinesCoins` says so: the combine itself is sent by `perform`, after the slide and
+    /// Face ID / passcode.
+    func planWithRate(_ op: Operation, fee: FeeChoice? = nil) async throws -> (plan: KachatNames.Plan, feerate: Double, combinesCoins: Bool) {
         let s = try signer(for: op)
         let rate = try await feerate(for: fee, op: op, s: s)
         do {
-            return (try await build(op, s, feerate: rate).plan, rate)
+            return (try await build(op, s, feerate: rate).plan, rate, false)
         } catch let error where Self.isTooManyCoins(error) {
-            // the KAS is there, in too many small coins: combined into one first
-            try await combineCoins(s)
-            return (try await build(op, s, feerate: rate).plan, rate)
+            return (try await build(op, s, feerate: rate, previewCombined: true).plan, rate, true)
         }
     }
 
@@ -482,9 +485,25 @@ final class KachatNamesActions: ObservableObject {
 
     /// A name transaction takes at most a few funding inputs (`KachatNames.maxInputsFeeEntry`
     /// all in), so a wallet holding enough KAS in many small coins couldn't pay: "insufficient
-    /// funds ... at most N funding inputs fit".
+    /// funds ... at most N funding inputs fit". The builder says that only when the spendable KAS
+    /// would cover the transaction (IOS-075): a wallet that is simply short never combines.
     nonisolated static func isTooManyCoins(_ error: Error) -> Bool {
         (error as? KachatNames.Failure)?.message.contains("funding inputs fit") == true
+    }
+
+    /// The wallet as it will be once `combineCoins` ran: its largest coins (as many as a send
+    /// takes) as one coin, less room for that send's fee. Only ever planned against, for a
+    /// preview - never signed or sent.
+    static func combinedPreviewWallet(_ wallet: [KachatNames.Utxo]) -> [KachatNames.Utxo] {
+        let sorted = wallet.sorted { $0.entry.amount > $1.entry.amount }
+        let merged = sorted.prefix(KasiaTransactionBuilder.maxInputsPerTransaction)
+        guard merged.count > 1, var entry = merged.first?.entry else { return wallet }
+        let total = merged.reduce(UInt64(0)) { $0 + $1.entry.amount }
+        let feeRoom: UInt64 = 5_000_000
+        guard total > feeRoom else { return wallet }
+        entry.amount = total - feeRoom
+        let standIn = KachatNames.Utxo(outpoint: KachatNames.Outpoint(txid: Data(repeating: 0xcc, count: 32), index: 0), entry: entry)
+        return [standIn] + sorted.dropFirst(merged.count)
     }
 
     /// Combines the wallet's coins into one: a plain send of up to `maxInputsPerTransaction`
@@ -520,9 +539,10 @@ final class KachatNamesActions: ObservableObject {
         return txId
     }
 
-    private func build(_ op: Operation, _ s: Signer, feerate rate: Double? = nil) async throws -> (plan: KachatNames.Plan, env: KachatNames.Env) {
+    private func build(_ op: Operation, _ s: Signer, feerate rate: Double? = nil, previewCombined: Bool = false) async throws -> (plan: KachatNames.Plan, env: KachatNames.Env) {
         let m = try await registry.prepare()
-        let (b, env, wallet) = try await context(s, feerate: rate)
+        let (b, env, live) = try await context(s, feerate: rate)
+        let wallet = previewCombined ? Self.combinedPreviewWallet(live) : live
         let plan: KachatNames.Plan
         switch op {
         case .extend(let n, let years):

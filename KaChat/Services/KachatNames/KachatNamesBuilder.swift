@@ -355,7 +355,9 @@ extension KachatNames {
                     have = picked.reduce(UInt64(0)) { $0 + $1.entry.amount }
                     if fixedIn + have < required {
                         let all = wallet.filter { !used.contains($0.outpoint) }.reduce(UInt64(0)) { $0 + $1.entry.amount }
-                        let bound = slots < wallet.count ? " (at most \(slots) funding inputs fit)" : ""
+                        // "funding inputs fit" only when the KAS is there but the slots can't take it:
+                        // combining coins can fix that, and nothing else (IOS-075)
+                        let bound = slots < wallet.count && fixedIn + all >= required ? " (at most \(slots) funding inputs fit)" : ""
                         throw Failure(
                             "\(d.op): insufficient funds: need \(kas(required - fixedIn)) more (outputs \(kas(fixedOut)) + price "
                                 + "\(kas(d.priceFee)) + network fee ~\(kas(est))), \(kas(all)) spendable\(bound)"

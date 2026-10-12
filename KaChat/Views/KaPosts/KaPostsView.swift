@@ -700,9 +700,16 @@ struct KaPostsView: View {
             if let myAddress = WalletManager.shared.currentWallet?.publicAddress {
                 followStore.removeIfPresent(myAddress)
             }
-            // Restore the local follow set from the on-chain graph (survives reinstalls).
-            followStore.syncFromChain()
-            await loadFeed()
+            // Coming back to the tab keeps the pages already scrolled in (a reset threw them
+            // away, and the reader's place with them): page one is re-pulled only when nothing is
+            // loaded or it has gone stale, otherwise just the newer posts are looked for.
+            if remotePosts.isEmpty || !FeedLoadGates.isFresh(loadGates.feedLoadedAt) {
+                // Restore the local follow set from the on-chain graph (survives reinstalls).
+                followStore.syncFromChain()
+                await loadFeed()
+            } else {
+                await checkForNewPosts()
+            }
             scheduledStore.reloadForCurrentWallet()
             await scheduledStore.sendDueLocally()
             await scheduledStore.refreshFromServer()
@@ -5091,9 +5098,10 @@ private struct KaPostPollCard: View {
 // MARK: - Post cell
 
 private struct KaPostCellView: View {
-    /// `.kachat` names, banners and bios (`KachatLive.identityName` and friends) land on their own.
-    @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
-    @ObservedObject private var kachatSocialImages = KachatSocialImageResolver.shared
+    // Not observing the names registry or the social pictures: the list that builds the cells
+    // observes them and passes the names in (`displayName`, `quotedDisplayName`), and the avatar
+    // views observe on their own. A cell observing them too was redrawn - `.equatable()` can't
+    // stop an update from the cell's own observed objects - on every name or picture landing.
     let post: KaPostsView.DraftPost
     let displayName: String
     let avatarURLString: String?

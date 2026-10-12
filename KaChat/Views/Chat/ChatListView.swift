@@ -2311,11 +2311,13 @@ private struct ChatCirclesStrip: View {
             Color.clear.frame(height: 1)
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 14) {
+                // A plain HStack: it measures every circle, so the row is as tall as its tallest.
+                HStack(alignment: .top, spacing: 14) {
                     ForEach(items) { item in
                         circle(item)
                     }
                 }
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
             }
@@ -2437,14 +2439,15 @@ private struct ChatCirclesStrip: View {
                                 .offset(x: -2, y: 2)
                         }
                     }
-                // The whole name: a long one carries on underneath rather than being cut off. The
-                // row is top-aligned, so the circles stay level whatever each name's height.
+                // The whole name: a long one carries on underneath (up to three lines) rather than
+                // being cut off. Every name reserves the three lines, so the row has one known
+                // height: sized from the names, the lazy row inside the list measured too short
+                // and the chat list cut the second and third lines off.
                 Text(verbatim: title(of: item))
                     .font(.caption2)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(3, reservesSpace: true)
                     .frame(width: 68, alignment: .top)
             }
         }

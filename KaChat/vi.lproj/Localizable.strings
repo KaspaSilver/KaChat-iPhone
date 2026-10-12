@@ -1609,3 +1609,7 @@
 "Bots run on mainnet only." = "Bot chỉ chạy trên mainnet.";
 "Opens a chat with this bot." = "Mở cuộc trò chuyện với bot này.";
 "Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "Tin nhắn gửi bot là tin nhắn KaChat mã hóa thông thường, nên mỗi tin tốn phí mạng thông thường.";
+
+/* Kaspa Hub > KaChat Bots: Price Bot */
+"Price Bot" = "Bot giá";
+"Alerts when KAS crosses your price, big moves and a daily summary." = "Cảnh báo khi KAS vượt mức giá của bạn, biến động lớn và bản tóm tắt hằng ngày.";

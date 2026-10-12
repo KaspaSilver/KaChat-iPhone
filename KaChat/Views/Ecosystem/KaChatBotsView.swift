@@ -11,7 +11,7 @@ struct KaChatBot: Identifiable, Equatable {
     /// The bot's mainnet address. Bots run on mainnet only.
     let address: String
 
-    /// The three bots Kaspa Hub > KaChat Bots lists, in this order.
+    /// The bots Kaspa Hub > KaChat Bots lists, in this order.
     static let all: [KaChatBot] = [
         KaChatBot(
             id: "block-rewards",
@@ -25,6 +25,13 @@ struct KaChatBot: Identifiable, Equatable {
             name: String(localized: "Wallet Tracker"),
             summary: String(localized: "Tells you when a watched address receives or sends KAS."),
             systemImage: "wallet.pass",
+            address: ""
+        ),
+        KaChatBot(
+            id: "price",
+            name: String(localized: "Price Bot"),
+            summary: String(localized: "Alerts when KAS crosses your price, big moves and a daily summary."),
+            systemImage: "chart.line.uptrend.xyaxis",
             address: ""
         ),
         KaChatBot(

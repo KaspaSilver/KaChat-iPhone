@@ -1609,3 +1609,7 @@
 "Bots run on mainnet only." = "机器人仅在主网运行。";
 "Opens a chat with this bot." = "打开与此机器人的聊天。";
 "Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "发给机器人的消息是普通的加密 KaChat 消息，因此每条都需支付常规网络费用。";
+
+/* Kaspa Hub > KaChat Bots: Price Bot */
+"Price Bot" = "价格机器人";
+"Alerts when KAS crosses your price, big moves and a daily summary." = "当 KAS 突破你设定的价格、出现大幅波动时提醒你，并每日汇总。";

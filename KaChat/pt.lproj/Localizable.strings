@@ -1609,3 +1609,7 @@
 "Bots run on mainnet only." = "Os bots funcionam apenas na mainnet.";
 "Opens a chat with this bot." = "Abre uma conversa com este bot.";
 "Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "Mensagens para um bot são mensagens criptografadas comuns do KaChat, então cada uma custa a taxa de rede habitual.";
+
+/* Kaspa Hub > KaChat Bots: Price Bot */
+"Price Bot" = "Bot de preço";
+"Alerts when KAS crosses your price, big moves and a daily summary." = "Alertas quando o KAS cruza seu preço, grandes movimentos e um resumo diário.";

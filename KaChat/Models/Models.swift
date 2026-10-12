@@ -1977,8 +1977,8 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     /// Address Book (2026-10-08) - Kaspa Hub > Address Book: saved Kaspa addresses with names,
     /// per wallet, kept in KaChat (it replaced syncing with the phone's Contacts).
     case addressBook
-    /// KaChat Bots (5.2.1) - Kaspa Hub > KaChat Bots: Block Reward Tracker, Wallet Tracker and
-    /// Kaspa Answers; tapping one opens a chat with it (`KaChatBotsView`).
+    /// KaChat Bots (5.2.1) - Kaspa Hub > KaChat Bots: Block Reward Tracker, Wallet Tracker,
+    /// Price Bot and Kaspa Answers; tapping one opens a chat with it (`KaChatBotsView`).
     case kachatBots
     /// The container the other feature tabs live in when they are not in the dock themselves -
     /// see `ecosystemSections(from:)`. Displayed as "Kaspa Hub"; the case name and its raw

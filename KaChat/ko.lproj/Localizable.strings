@@ -1609,3 +1609,7 @@
 "Bots run on mainnet only." = "봇은 메인넷에서만 작동합니다.";
 "Opens a chat with this bot." = "이 봇과의 채팅을 엽니다.";
 "Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "봇에게 보내는 메시지는 일반 암호화 KaChat 메시지라서 매번 일반 네트워크 수수료가 듭니다.";
+
+/* Kaspa Hub > KaChat Bots: Price Bot */
+"Price Bot" = "가격 봇";
+"Alerts when KAS crosses your price, big moves and a daily summary." = "KAS가 정한 가격을 넘을 때, 큰 변동, 일일 요약을 알려 줍니다.";

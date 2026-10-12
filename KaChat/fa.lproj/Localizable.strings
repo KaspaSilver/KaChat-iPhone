@@ -1645,3 +1645,9 @@
 "Requested by" = "درخواست‌کننده";
 "Signed by their chatting address. The payment goes to the address above." = "با آدرس گفتگوی او امضا شده است. پرداخت به آدرس بالا می‌رود.";
 "Not signed: who made this request can't be confirmed." = "امضا نشده: سازنده این درخواست قابل تأیید نیست.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "درخواست پرداخت شما";
+"Your payment request. Tap to view." = "درخواست پرداخت شما. برای دیدن ضربه بزنید.";
+"Paid to your chatting address" = "به آدرس گفتگوی شما پرداخت می‌شود";
+"Paid to your spending address" = "به آدرس هزینه شما پرداخت می‌شود";

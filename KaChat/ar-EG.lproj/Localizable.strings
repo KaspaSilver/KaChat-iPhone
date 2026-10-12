@@ -1645,3 +1645,9 @@
 "Requested by" = "مطلوب من";
 "Signed by their chatting address. The payment goes to the address above." = "موقّع من عنوان الدردشة الخاص به. تذهب الدفعة إلى العنوان أعلاه.";
 "Not signed: who made this request can't be confirmed." = "غير موقّع: لا يمكن التأكد ممن أنشأ هذا الطلب.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "طلب الدفع الخاص بك";
+"Your payment request. Tap to view." = "طلب الدفع الخاص بك. اضغط للعرض.";
+"Paid to your chatting address" = "يُدفع إلى عنوان الدردشة الخاص بك";
+"Paid to your spending address" = "يُدفع إلى عنوان الإنفاق الخاص بك";

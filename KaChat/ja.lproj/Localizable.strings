@@ -1645,3 +1645,9 @@
 "Requested by" = "リクエスト元";
 "Signed by their chatting address. The payment goes to the address above." = "相手のチャットアドレスで署名されています。支払いは上のアドレスに送られます。";
 "Not signed: who made this request can't be confirmed." = "署名なし：このリクエストの作成者を確認できません。";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "あなたの支払いリクエスト";
+"Your payment request. Tap to view." = "あなたの支払いリクエストです。タップして表示。";
+"Paid to your chatting address" = "あなたのチャットアドレスに支払われます";
+"Paid to your spending address" = "あなたの支出アドレスに支払われます";

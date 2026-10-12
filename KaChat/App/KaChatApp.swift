@@ -1135,11 +1135,11 @@ enum KaChatLinkRouter {
         }
     }
 
-    /// Someone's payment request: Send Kaspa with it filled in (`MainTabView` presents it). Your
-    /// own request has nothing to pay - its card just says it is yours.
+    /// A payment request: someone else's opens Send Kaspa with it filled in, your own shows it
+    /// (amount, memo, the address it pays into) with its link to copy or share again
+    /// (`PaymentRequestSheetPresenter`, in `MainTabView`).
     @MainActor
     static func openPaymentRequest(_ request: PaymentRequest) {
-        guard !request.isOwn else { return }
         PaymentRequestRouter.shared.pending = request
     }
 

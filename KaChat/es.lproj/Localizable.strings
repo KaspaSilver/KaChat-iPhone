@@ -1645,3 +1645,9 @@
 "Requested by" = "Solicitado por";
 "Signed by their chatting address. The payment goes to the address above." = "Firmado por su dirección de chat. El pago va a la dirección de arriba.";
 "Not signed: who made this request can't be confirmed." = "Sin firma: no se puede confirmar quién creó esta solicitud.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "Tu solicitud de pago";
+"Your payment request. Tap to view." = "Tu solicitud de pago. Toca para verla.";
+"Paid to your chatting address" = "Se paga a tu dirección de chat";
+"Paid to your spending address" = "Se paga a tu dirección de gasto";

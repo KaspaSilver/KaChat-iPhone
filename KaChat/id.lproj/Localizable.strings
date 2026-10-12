@@ -1645,3 +1645,9 @@
 "Requested by" = "Diminta oleh";
 "Signed by their chatting address. The payment goes to the address above." = "Ditandatangani oleh alamat obrolan mereka. Pembayaran masuk ke alamat di atas.";
 "Not signed: who made this request can't be confirmed." = "Tidak ditandatangani: pembuat permintaan ini tidak bisa dipastikan.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "Permintaan Pembayaran Anda";
+"Your payment request. Tap to view." = "Permintaan pembayaran Anda. Ketuk untuk melihat.";
+"Paid to your chatting address" = "Dibayar ke alamat obrolan Anda";
+"Paid to your spending address" = "Dibayar ke alamat belanja Anda";

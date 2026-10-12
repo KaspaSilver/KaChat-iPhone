@@ -1645,3 +1645,9 @@
 "Requested by" = "अनुरोधकर्ता";
 "Signed by their chatting address. The payment goes to the address above." = "उनके चैटिंग पते से हस्ताक्षरित। भुगतान ऊपर वाले पते पर जाएगा।";
 "Not signed: who made this request can't be confirmed." = "हस्ताक्षरित नहीं: यह अनुरोध किसने बनाया, इसकी पुष्टि नहीं हो सकती।";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "आपका भुगतान अनुरोध";
+"Your payment request. Tap to view." = "आपका भुगतान अनुरोध। देखने के लिए टैप करें।";
+"Paid to your chatting address" = "आपके चैटिंग पते पर भुगतान";
+"Paid to your spending address" = "आपके खर्च वाले पते पर भुगतान";

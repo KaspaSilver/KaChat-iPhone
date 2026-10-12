@@ -1267,7 +1267,7 @@ struct KaChatInternalLinkCardView: View {
             let isContact = ContactsManager.shared.contacts.contains { $0.address.lowercased() == address }
             return isContact ? "Tap to open your chat." : "Tap to start a chat on KaChat."
         case .paymentRequest(let request):
-            let action = request.isOwn ? AppLocalization.string("Your payment request.") : AppLocalization.string("Tap to pay.")
+            let action = request.isOwn ? AppLocalization.string("Your payment request. Tap to view.") : AppLocalization.string("Tap to pay.")
             var lines: [String] = []
             if !request.memo.isEmpty { lines.append(request.memo) }
             // the maker, as the signature in the link proves - their name, not the payment address

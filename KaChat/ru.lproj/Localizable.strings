@@ -1645,3 +1645,9 @@
 "Requested by" = "Запрошено";
 "Signed by their chatting address. The payment goes to the address above." = "Подписано его адресом для чатов. Платёж уйдёт на адрес выше.";
 "Not signed: who made this request can't be confirmed." = "Без подписи: нельзя подтвердить, кто создал этот запрос.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "Ваш запрос на оплату";
+"Your payment request. Tap to view." = "Ваш запрос на оплату. Нажмите, чтобы открыть.";
+"Paid to your chatting address" = "Оплата на ваш адрес для чатов";
+"Paid to your spending address" = "Оплата на ваш адрес для расходов";

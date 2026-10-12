@@ -1645,3 +1645,9 @@
 "Requested by" = "请求方";
 "Signed by their chatting address. The payment goes to the address above." = "由对方的聊天地址签名。付款将发送到上面的地址。";
 "Not signed: who made this request can't be confirmed." = "未签名：无法确认是谁创建了此请求。";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "你的付款请求";
+"Your payment request. Tap to view." = "你的付款请求。点按查看。";
+"Paid to your chatting address" = "付到你的聊天地址";
+"Paid to your spending address" = "付到你的支出地址";

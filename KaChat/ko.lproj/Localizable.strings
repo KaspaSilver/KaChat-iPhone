@@ -1645,3 +1645,9 @@
 "Requested by" = "요청한 사람";
 "Signed by their chatting address. The payment goes to the address above." = "상대의 채팅 주소로 서명되었습니다. 결제는 위 주소로 갑니다.";
 "Not signed: who made this request can't be confirmed." = "서명 없음: 이 요청을 만든 사람을 확인할 수 없습니다.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "내 결제 요청";
+"Your payment request. Tap to view." = "내 결제 요청입니다. 탭하여 보기.";
+"Paid to your chatting address" = "내 채팅 주소로 결제";
+"Paid to your spending address" = "내 지출 주소로 결제";

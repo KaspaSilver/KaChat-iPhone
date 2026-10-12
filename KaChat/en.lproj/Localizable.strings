@@ -1646,3 +1646,9 @@
 "Requested by" = "Requested by";
 "Signed by their chatting address. The payment goes to the address above." = "Signed by their chatting address. The payment goes to the address above.";
 "Not signed: who made this request can't be confirmed." = "Not signed: who made this request can't be confirmed.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "Your Payment Request";
+"Your payment request. Tap to view." = "Your payment request. Tap to view.";
+"Paid to your chatting address" = "Paid to your chatting address";
+"Paid to your spending address" = "Paid to your spending address";

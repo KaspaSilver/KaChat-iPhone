@@ -1645,3 +1645,9 @@
 "Requested by" = "Người yêu cầu";
 "Signed by their chatting address. The payment goes to the address above." = "Được ký bằng địa chỉ trò chuyện của họ. Khoản thanh toán đi tới địa chỉ ở trên.";
 "Not signed: who made this request can't be confirmed." = "Chưa ký: không thể xác nhận ai đã tạo yêu cầu này.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "Yêu cầu thanh toán của bạn";
+"Your payment request. Tap to view." = "Yêu cầu thanh toán của bạn. Nhấn để xem.";
+"Paid to your chatting address" = "Trả vào địa chỉ trò chuyện của bạn";
+"Paid to your spending address" = "Trả vào địa chỉ chi tiêu của bạn";

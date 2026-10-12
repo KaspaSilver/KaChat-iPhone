@@ -1645,3 +1645,9 @@
 "Requested by" = "İsteyen";
 "Signed by their chatting address. The payment goes to the address above." = "Sohbet adresiyle imzalandı. Ödeme yukarıdaki adrese gider.";
 "Not signed: who made this request can't be confirmed." = "İmzasız: bu isteği kimin oluşturduğu doğrulanamaz.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "Ödeme İsteğiniz";
+"Your payment request. Tap to view." = "Ödeme isteğiniz. Görmek için dokunun.";
+"Paid to your chatting address" = "Sohbet adresinize ödenir";
+"Paid to your spending address" = "Harcama adresinize ödenir";

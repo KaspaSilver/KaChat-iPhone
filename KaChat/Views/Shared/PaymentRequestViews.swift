@@ -218,6 +218,76 @@ struct PaymentRequestSummary: View {
     }
 }
 
+/// One of your own payment requests, tapped in a chat: what it asks for and where it pays into,
+/// with its link to copy or share again. Nothing to pay - it's yours.
+struct OwnPaymentRequestView: View {
+    let request: PaymentRequest
+    @Environment(\.dismiss) private var dismiss
+    @State private var copied = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 18) {
+                    VStack(spacing: 6) {
+                        Text(verbatim: "\(request.amountText) \(KaspaUnit.symbol)")
+                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .multilineTextAlignment(.center)
+                        if !request.memo.isEmpty {
+                            Text(verbatim: request.memo)
+                                .font(.body)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(.top, 8)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(request.toChattingAddress ? "Paid to your chatting address" : "Paid to your spending address")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.accentColor)
+                            .textCase(.uppercase)
+                        AddressResolutionCard(address: request.address)
+                        Text(request.toChattingAddress
+                             ? "The payment lands in your chat with whoever pays, with the memo."
+                             : "Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                    }
+
+                    SendActionButton(
+                        title: copied ? "Copied" : "Copy Payment Request",
+                        isBusy: false,
+                        isEnabled: true,
+                        requiresSlide: false
+                    ) {
+                        UIPasteboard.general.string = request.shareURLString
+                        Haptics.success()
+                        copied = true
+                    }
+
+                    if let url = URL(string: request.shareURLString) {
+                        ShareLink(item: url) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
+            }
+            .navigationTitle("Your Payment Request")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+}
+
 /// Presents Send Kaspa for the payment request waiting in `PaymentRequestRouter` - a tapped
 /// request card, a pasted link, a link opened from outside the app.
 struct PaymentRequestSheetPresenter: ViewModifier {
@@ -227,7 +297,10 @@ struct PaymentRequestSheetPresenter: ViewModifier {
     func body(content: Content) -> some View {
         content
             .sheet(item: $router.pending) { request in
-                if let wallet = WalletManager.shared.currentWallet {
+                if request.isOwn {
+                    OwnPaymentRequestView(request: request)
+                        .environmentObject(settingsViewModel)
+                } else if let wallet = WalletManager.shared.currentWallet {
                     WithdrawKaspaView(
                         fromAddress: wallet.publicAddress,
                         availableBalanceSompi: wallet.balanceSompi,

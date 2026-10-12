@@ -1645,3 +1645,9 @@
 "Requested by" = "অনুরোধকারী";
 "Signed by their chatting address. The payment goes to the address above." = "তাদের চ্যাটিং ঠিকানা দিয়ে স্বাক্ষরিত। পেমেন্ট উপরের ঠিকানায় যাবে।";
 "Not signed: who made this request can't be confirmed." = "স্বাক্ষরিত নয়: কে এই অনুরোধ তৈরি করেছে তা নিশ্চিত করা যায় না।";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "আপনার পেমেন্ট অনুরোধ";
+"Your payment request. Tap to view." = "আপনার পেমেন্ট অনুরোধ। দেখতে ট্যাপ করুন।";
+"Paid to your chatting address" = "আপনার চ্যাটিং ঠিকানায় দেওয়া হবে";
+"Paid to your spending address" = "আপনার স্পেন্ডিং ঠিকানায় দেওয়া হবে";

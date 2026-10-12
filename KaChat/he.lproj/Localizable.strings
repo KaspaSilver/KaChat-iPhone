@@ -1645,3 +1645,9 @@
 "Requested by" = "התבקש על ידי";
 "Signed by their chatting address. The payment goes to the address above." = "חתום על ידי כתובת הצ׳אט שלהם. התשלום הולך לכתובת שלמעלה.";
 "Not signed: who made this request can't be confirmed." = "לא חתום: לא ניתן לאשר מי יצר את הבקשה.";
+
+/* Payment requests: viewing your own */
+"Your Payment Request" = "בקשת התשלום שלך";
+"Your payment request. Tap to view." = "בקשת התשלום שלך. הקישו לצפייה.";
+"Paid to your chatting address" = "משולם לכתובת הצ׳אט שלך";
+"Paid to your spending address" = "משולם לכתובת ההוצאה שלך";

@@ -2437,11 +2437,15 @@ private struct ChatCirclesStrip: View {
                                 .offset(x: -2, y: 2)
                         }
                     }
+                // The whole name: a long one carries on underneath rather than being cut off. The
+                // row is top-aligned, so the circles stay level whatever each name's height.
                 Text(verbatim: title(of: item))
                     .font(.caption2)
                     .foregroundColor(.primary)
-                    .lineLimit(1)
-                    .frame(width: 68)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: 68, alignment: .top)
             }
         }
         .buttonStyle(.plain)

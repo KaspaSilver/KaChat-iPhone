@@ -419,8 +419,17 @@ final class KachatHubModel: ObservableObject {
             return
         }
         KachatNamesActions.shared.resume()
+        // Coming back to the screen: the pages are loaded, so only a stale registry is refreshed
+        // (the screen reloads on its revision). A full refresh and reload ran on every appear.
+        if loaded, loadError == nil {
+            await registry.refreshIfStale()
+            return
+        }
+        // A refresh that moved `revision` already reloads through the screen's revision
+        // observer; reloading here as well ran the seven requests twice, side by side.
+        let before = registry.revision
         await registry.refresh()
-        await reload()
+        if registry.revision == before { await reload() }
     }
 
     func refresh() async {
@@ -3809,13 +3818,18 @@ final class KachatExpiredNamesModel: ObservableObject {
             expired = []
             return
         }
-        dismissed = Set(UserDefaults.standard.stringArray(forKey: storeKey) ?? [])
+        let stored = Set(UserDefaults.standard.stringArray(forKey: storeKey) ?? [])
+        if stored != dismissed { dismissed = stored }
         let registry = KachatNamesRegistry.shared
-        await registry.refreshIfStale()
+        // Profile's own loads use five minutes too: a shorter window here refreshed in between
+        // and restarted every task on the Profile screen keyed on the registry's revision.
+        await registry.refreshIfStale(maxAge: 300)
         let grace = registry.graceMs
         let now = KachatNames.nowMs()
         let owned = (try? await registry.names(owner: me, includeInactive: true)) ?? []
-        expired = owned.filter { $0.status(graceMs: grace, nowMs: now) == .grace }.sorted { $0.expiresAt < $1.expiresAt }
+        let inGrace = owned.filter { $0.status(graceMs: grace, nowMs: now) == .grace }.sorted { $0.expiresAt < $1.expiresAt }
+        // assigned only on a change: each assignment redraws the whole Profile scroll
+        if inGrace != expired { expired = inGrace }
     }
 
     func dismissAll() {

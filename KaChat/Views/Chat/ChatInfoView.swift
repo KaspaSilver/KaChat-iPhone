@@ -74,14 +74,29 @@ struct ChatInfoView: View {
     /// nil hides the "Chess Stats" row entirely - only shown once this contact has actually played
     /// at least one chess game (an always-visible "0W - 0L" on every contact who's never played
     /// would just be clutter). See `ChessGameService.record`.
-    private var chessRecord: (wins: Int, losses: Int)? {
+    /// Counted once per change of the conversation (`chessRecordKey`), not in `body`: it parses
+    /// every message, and this screen redraws on each ChatService update.
+    @State private var chessRecord: ChessRecordValue?
+
+    struct ChessRecordValue: Equatable {
+        let wins: Int
+        let losses: Int
+    }
+
+    private var chessRecordKey: String {
+        let all = messages
+        return "\(all.count)|\(all.last?.txId ?? "")"
+    }
+
+    private func computeChessRecord() -> ChessRecordValue? {
         guard let myAddress = walletManager.currentWallet?.publicAddress else { return nil }
         let hasChessHistory = messages.contains {
             if case .invite = ChessCodec.parseAny(MessageReplyCodec.unwrappedText($0.content)) { return true }
             return false
         }
         guard hasChessHistory else { return nil }
-        return ChessGameService.record(in: messages, myAddress: myAddress, contactAddress: contact.address)
+        let record = ChessGameService.record(in: messages, myAddress: myAddress, contactAddress: contact.address)
+        return ChessRecordValue(wins: record.wins, losses: record.losses)
     }
 
     private var knsInfo: KNSAddressInfo? {
@@ -478,6 +493,10 @@ struct ChatInfoView: View {
                 messageReceived = stats.received
             }
             .task(id: kachatRegistry.revision) { await loadKachatIdentity() }
+            .task(id: chessRecordKey) {
+                let record = computeChessRecord()
+                if record != chessRecord { chessRecord = record }
+            }
         }
     }
 

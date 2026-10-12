@@ -20,6 +20,8 @@ struct ProfileView: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
 
     @State private var editedAlias = ""
+    /// When `onAppear` last ran its balance / receive-address requests (at most every 30 s).
+    @State private var appearRefreshedAt: Date?
     @State private var aliasSaveTask: Task<Void, Never>?
     @State private var qrImage: UIImage?
     @State private var toastMessage: String?
@@ -366,11 +368,16 @@ struct ProfileView: View {
                         self.qrImage = image
                     }
                 }
-                Task { _ = try? await walletManager.refreshBalance() }
-                Task { await loadSpendingAddressBalance() }
                 if let spendingAddress = walletManager.currentSpendingAddress() {
                     ProfileQRCodeCache.preload(address: spendingAddress, completion: nil)
                 }
+                // The network part at most every 30 s: switching tabs back and forth started four
+                // requests each time. Arriving funds still refresh at once (`ownAddressUtxoActivity`
+                // below), and pull to refresh is always there.
+                if let at = appearRefreshedAt, Date().timeIntervalSince(at) < 30 { return }
+                appearRefreshedAt = Date()
+                Task { _ = try? await walletManager.refreshBalance() }
+                Task { await loadSpendingAddressBalance() }
                 // Resolve the Receive QR's address NOW, not when the button is tapped. The
                 // freshness check is a network round trip, so doing it on tap meant a spinner
                 // between pressing Receive Kaspa and seeing a code. Warmed here it is almost

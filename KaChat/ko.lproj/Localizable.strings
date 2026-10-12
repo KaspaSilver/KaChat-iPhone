@@ -1595,3 +1595,17 @@
 "Seconds" = "초";
 "Then anyone can search and claim a .kachat name here." = "그 후 누구나 여기서 .kachat 이름을 검색하고 받을 수 있습니다.";
 ".kachat names open to everyone on %@." = ".kachat 이름이 %@에 모두에게 열립니다.";
+
+/* Kaspa Hub > KaChat Bots */
+"KaChat Bots" = "KaChat 봇";
+"Bots" = "봇";
+"Block Reward Tracker" = "블록 보상 추적기";
+"A message for every block reward paid to your mining address." = "채굴 주소로 지급되는 블록 보상마다 메시지를 보냅니다.";
+"Wallet Tracker" = "지갑 추적기";
+"Tells you when a watched address receives or sends KAS." = "지켜보는 주소가 KAS를 받거나 보내면 알려 줍니다.";
+"Kaspa Answers" = "Kaspa 답변";
+"Ask anything related to Kaspa." = "Kaspa에 관한 무엇이든 물어보세요.";
+"Coming soon." = "곧 제공됩니다.";
+"Bots run on mainnet only." = "봇은 메인넷에서만 작동합니다.";
+"Opens a chat with this bot." = "이 봇과의 채팅을 엽니다.";
+"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "봇에게 보내는 메시지는 일반 암호화 KaChat 메시지라서 매번 일반 네트워크 수수료가 듭니다.";

@@ -322,6 +322,8 @@ struct MainTabView: View {
             KaChatStatsView()
         case .addressBook:
             AddressBookView()
+        case .kachatBots:
+            KaChatBotsView()
         case .apps:
             NavigationStack {
                 ProfileAppsView()

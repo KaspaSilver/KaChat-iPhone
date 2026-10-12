@@ -1595,3 +1595,17 @@
 "Seconds" = "Giây";
 "Then anyone can search and claim a .kachat name here." = "Sau đó ai cũng có thể tìm và nhận tên .kachat tại đây.";
 ".kachat names open to everyone on %@." = "Tên .kachat mở cho mọi người vào %@.";
+
+/* Kaspa Hub > KaChat Bots */
+"KaChat Bots" = "Bot KaChat";
+"Bots" = "Bot";
+"Block Reward Tracker" = "Theo dõi phần thưởng khối";
+"A message for every block reward paid to your mining address." = "Một tin nhắn cho mỗi phần thưởng khối trả về địa chỉ đào của bạn.";
+"Wallet Tracker" = "Theo dõi ví";
+"Tells you when a watched address receives or sends KAS." = "Báo cho bạn khi một địa chỉ đang theo dõi nhận hoặc gửi KAS.";
+"Kaspa Answers" = "Giải đáp Kaspa";
+"Ask anything related to Kaspa." = "Hỏi bất cứ điều gì về Kaspa.";
+"Coming soon." = "Sắp ra mắt.";
+"Bots run on mainnet only." = "Bot chỉ chạy trên mainnet.";
+"Opens a chat with this bot." = "Mở cuộc trò chuyện với bot này.";
+"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "Tin nhắn gửi bot là tin nhắn KaChat mã hóa thông thường, nên mỗi tin tốn phí mạng thông thường.";

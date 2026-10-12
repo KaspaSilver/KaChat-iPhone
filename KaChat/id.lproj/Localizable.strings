@@ -1595,3 +1595,17 @@
 "Seconds" = "Detik";
 "Then anyone can search and claim a .kachat name here." = "Setelah itu siapa pun bisa mencari dan mengklaim nama .kachat di sini.";
 ".kachat names open to everyone on %@." = "Nama .kachat dibuka untuk semua orang pada %@.";
+
+/* Kaspa Hub > KaChat Bots */
+"KaChat Bots" = "Bot KaChat";
+"Bots" = "Bot";
+"Block Reward Tracker" = "Pelacak Hadiah Blok";
+"A message for every block reward paid to your mining address." = "Pesan untuk setiap hadiah blok yang dibayar ke alamat penambangan Anda.";
+"Wallet Tracker" = "Pelacak Dompet";
+"Tells you when a watched address receives or sends KAS." = "Memberi tahu saat alamat yang dipantau menerima atau mengirim KAS.";
+"Kaspa Answers" = "Jawaban Kaspa";
+"Ask anything related to Kaspa." = "Tanyakan apa saja tentang Kaspa.";
+"Coming soon." = "Segera hadir.";
+"Bots run on mainnet only." = "Bot hanya berjalan di mainnet.";
+"Opens a chat with this bot." = "Membuka obrolan dengan bot ini.";
+"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "Pesan ke bot adalah pesan KaChat terenkripsi biasa, jadi setiap pesan dikenai biaya jaringan biasa.";

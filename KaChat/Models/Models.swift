@@ -1977,6 +1977,9 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     /// Address Book (2026-10-08) - Kaspa Hub > Address Book: saved Kaspa addresses with names,
     /// per wallet, kept in KaChat (it replaced syncing with the phone's Contacts).
     case addressBook
+    /// KaChat Bots (5.2.1) - Kaspa Hub > KaChat Bots: Block Reward Tracker, Wallet Tracker and
+    /// Kaspa Answers; tapping one opens a chat with it (`KaChatBotsView`).
+    case kachatBots
     /// The container the other feature tabs live in when they are not in the dock themselves -
     /// see `ecosystemSections(from:)`. Displayed as "Kaspa Hub"; the case name and its raw
     /// value stay `ecosystem` because the raw value is PERSISTED in `tabOrder`, so renaming it
@@ -2006,6 +2009,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .kachatNames: return ".kachat"
         case .kachatStats: return "Stats"
         case .addressBook: return "Address Book"
+        case .kachatBots: return "Bots"
         case .ecosystem: return "Kaspa Hub"
         case .more: return "More"
         }
@@ -2027,6 +2031,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .kachatNames: return "at"
         case .kachatStats: return "chart.bar.xaxis"
         case .addressBook: return "book.closed"
+        case .kachatBots: return "cpu"
         // Kaspa Hub wears the Kaspa mark itself, not an SF Symbol - see `usesKaspaLogo`.
         case .ecosystem: return "circle.hexagongrid"
         case .more: return "plus.circle"
@@ -2046,6 +2051,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .apps: return "Kaspa Websites"
         case .chess: return "Chess Online"
         case .kachatStats: return "KaChat Stats"
+        case .kachatBots: return "KaChat Bots"
         // ChangeNOW's own capitalization, matching how the app already names it everywhere else
         // (swap transaction rows, the settings section).
         case .swap: return "ChangeNOW Swap"
@@ -2068,6 +2074,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .kachatNames: return 12
         case .kachatStats: return 13
         case .addressBook: return 14
+        case .kachatBots: return 15
         case .ecosystem: return 10
         }
     }
@@ -2084,20 +2091,20 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     static let pinnedToDock: [AppTab] = [.ecosystem, .profile]
 
     /// Tabs the user can place. Excludes the Hub (pinned) and the retired "+ More".
-    static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .kachatStats, .addressBook]
+    static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .kachatStats, .addressBook, .kachatBots]
 
     /// Ecosystem takes the dock slot Swap used to hold, so a default install shows exactly the
     /// five the dock can fit - Portfolio, Storage, Chats, Ecosystem, Profile - with Swap, KaPosts,
     /// Public Chats and the websites list still ENABLED but living inside Ecosystem rather than
     /// competing for a dock slot.
-    static let defaultOrder: [AppTab] = [.coldStorage, .portfolio, .chats, .ecosystem, .profile, .addressBook, .kachatNames, .kachatStats, .swap, .kaposts, .publicChats, .apps, .chess]
+    static let defaultOrder: [AppTab] = [.coldStorage, .portfolio, .chats, .ecosystem, .profile, .addressBook, .kachatNames, .kachatStats, .kachatBots, .swap, .kaposts, .publicChats, .apps, .chess]
 
     /// What a fresh install starts with: the three that were asked for, in that order, plus the
     /// two that fill the dock to its cap. Everything else starts in Kaspa Hub.
     static let defaultDock: [AppTab] = [.coldStorage, .portfolio, .chats, .ecosystem, .profile]
 
     /// The rest, in the order the Hub grid shows them until the user rearranges it.
-    static let defaultHub: [AppTab] = [.addressBook, .kachatNames, .kachatStats, .kaposts, .swap, .apps]
+    static let defaultHub: [AppTab] = [.addressBook, .kachatNames, .kachatStats, .kachatBots, .kaposts, .swap, .apps]
 
     /// Slots the user can actually fill: the cap minus the pinned tabs.
     static var assignableDockSlots: Int { maxDockItems - pinnedToDock.count }
@@ -2151,6 +2158,8 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .kachatStats: return true
         // Your own saved addresses; nothing in it to keep from Simple Mode.
         case .addressBook: return true
+        // Ordinary chats with the bots; nothing in it to keep from Simple Mode.
+        case .kachatBots: return true
         case .ecosystem: return !settings.hideEcosystemTab
         // "+ More" is retired from the dock entirely (Customize Dock lives in Settings now) -
         // hard-hidden regardless of what an old saved blob says.

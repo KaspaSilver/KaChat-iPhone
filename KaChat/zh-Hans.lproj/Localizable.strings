@@ -1595,3 +1595,17 @@
 "Seconds" = "秒";
 "Then anyone can search and claim a .kachat name here." = "届时任何人都可以在这里搜索并认领 .kachat 名称。";
 ".kachat names open to everyone on %@." = ".kachat 名称将于 %@ 向所有人开放。";
+
+/* Kaspa Hub > KaChat Bots */
+"KaChat Bots" = "KaChat 机器人";
+"Bots" = "机器人";
+"Block Reward Tracker" = "区块奖励追踪";
+"A message for every block reward paid to your mining address." = "每当有区块奖励支付到你的挖矿地址，就发一条消息。";
+"Wallet Tracker" = "钱包追踪";
+"Tells you when a watched address receives or sends KAS." = "当关注的地址收到或发送 KAS 时通知你。";
+"Kaspa Answers" = "Kaspa 问答";
+"Ask anything related to Kaspa." = "任何关于 Kaspa 的问题都可以问。";
+"Coming soon." = "即将推出。";
+"Bots run on mainnet only." = "机器人仅在主网运行。";
+"Opens a chat with this bot." = "打开与此机器人的聊天。";
+"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "发给机器人的消息是普通的加密 KaChat 消息，因此每条都需支付常规网络费用。";

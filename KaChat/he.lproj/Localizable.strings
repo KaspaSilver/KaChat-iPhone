@@ -1595,3 +1595,17 @@
 "Seconds" = "שניות";
 "Then anyone can search and claim a .kachat name here." = "אחר כך כל אחד יוכל לחפש ולתבוע כאן שם .kachat.";
 ".kachat names open to everyone on %@." = "שמות .kachat ייפתחו לכולם ב-%@.";
+
+/* Kaspa Hub > KaChat Bots */
+"KaChat Bots" = "בוטים של KaChat";
+"Bots" = "בוטים";
+"Block Reward Tracker" = "מעקב תגמולי בלוקים";
+"A message for every block reward paid to your mining address." = "הודעה על כל תגמול בלוק שמשולם לכתובת הכרייה שלך.";
+"Wallet Tracker" = "מעקב ארנק";
+"Tells you when a watched address receives or sends KAS." = "מודיע כשכתובת במעקב מקבלת או שולחת KAS.";
+"Kaspa Answers" = "תשובות Kaspa";
+"Ask anything related to Kaspa." = "שאלו כל דבר שקשור ל-Kaspa.";
+"Coming soon." = "בקרוב.";
+"Bots run on mainnet only." = "הבוטים פועלים רק ברשת הראשית.";
+"Opens a chat with this bot." = "פותח צ׳אט עם הבוט הזה.";
+"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "הודעות לבוט הן הודעות KaChat מוצפנות רגילות, כך שכל אחת עולה את עמלת הרשת הרגילה.";

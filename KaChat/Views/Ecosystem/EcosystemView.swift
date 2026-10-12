@@ -97,6 +97,8 @@ struct EcosystemView: View {
             KaChatStatsView()
         case .addressBook:
             AddressBookView()
+        case .kachatBots:
+            KaChatBotsView()
         case .apps:
             NavigationStack {
                 // ProfileAppsView sets its own title; only the shared header items are added.

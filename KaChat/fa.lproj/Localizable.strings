@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "آدرس‌های هزینه";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "استفاده‌شده";
+"Unused" = "استفاده‌نشده";
+"Checking" = "در حال بررسی";

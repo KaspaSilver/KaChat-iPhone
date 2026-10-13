@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Địa chỉ chi tiêu";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Đã dùng";
+"Unused" = "Chưa dùng";
+"Checking" = "Đang kiểm tra";

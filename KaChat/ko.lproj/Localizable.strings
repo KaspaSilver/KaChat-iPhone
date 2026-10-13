@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "지출 주소";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "사용됨";
+"Unused" = "미사용";
+"Checking" = "확인 중";

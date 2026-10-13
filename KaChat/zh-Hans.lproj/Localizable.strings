@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "支出地址";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "已使用";
+"Unused" = "未使用";
+"Checking" = "正在检查";

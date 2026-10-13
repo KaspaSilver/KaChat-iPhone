@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Адреса для расходов";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Использован";
+"Unused" = "Не использован";
+"Checking" = "Проверка";

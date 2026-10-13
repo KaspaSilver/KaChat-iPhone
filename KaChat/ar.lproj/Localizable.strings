@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "عناوين الإنفاق";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "مستخدم";
+"Unused" = "غير مستخدم";
+"Checking" = "جارٍ التحقق";

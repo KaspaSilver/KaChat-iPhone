@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Harcama Adresleri";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Kullanıldı";
+"Unused" = "Kullanılmadı";
+"Checking" = "Kontrol ediliyor";

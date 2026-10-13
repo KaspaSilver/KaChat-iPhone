@@ -280,12 +280,16 @@ struct CreatePaymentRequestView: View {
 
 /// Choose an Address: which of your addresses a payment request asks to be paid to - your
 /// chatting address, then your spending addresses (the ones Manage Addresses shows, plus hidden
-/// ones holding Kaspa), each with its name and balance.
+/// ones holding Kaspa), each with its name, balance and whether it was ever used (the same check
+/// as Manage Addresses: a balance means used, else the cached answer, else a history lookup).
 struct PaymentRequestAddressPicker: View {
     let selected: String?
     let onPick: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var entries: [SpendingAddressEntry]?
+    /// Used / unused per address; missing while its lookup is out (or failed: "Checking", never
+    /// a possibly-wrong "Unused").
+    @State private var used: [String: Bool] = [:]
 
     var body: some View {
         NavigationStack {
@@ -319,9 +323,67 @@ struct PaymentRequestAddressPicker: View {
         .presentationDragIndicator(.visible)
         .task {
             let all = await WalletManager.shared.getSpendingAddressList()
-            entries = all
+            let shown = all
                 .filter { !$0.hidden || $0.balanceSompi > 0 }
                 .sorted { $0.index < $1.index }
+            entries = shown
+            await checkUsed(shown)
+        }
+    }
+
+    private func checkUsed(_ shown: [SpendingAddressEntry]) async {
+        let chat = ChatService.shared
+        var all: [(address: String, balance: UInt64)] = shown.map { ($0.address, $0.balanceSompi) }
+        if let wallet = WalletManager.shared.currentWallet {
+            all.insert((wallet.publicAddress, wallet.balanceSompi ?? 0), at: 0)
+        }
+        var toProbe: [String] = []
+        for item in all {
+            if item.balance > 0 {
+                used[item.address] = true
+            } else if let cached = chat.cachedSpendingAddressUsedState(item.address) {
+                used[item.address] = cached
+            } else {
+                toProbe.append(item.address)
+            }
+        }
+        // a few at a time, like Manage Addresses (a burst gets rate-limited)
+        var pending = toProbe.makeIterator()
+        await withTaskGroup(of: (String, Bool?).self) { group in
+            for _ in 0..<8 {
+                guard let address = pending.next() else { break }
+                group.addTask { (address, await chat.spendingAddressUsedState(address)) }
+            }
+            while let (address, answer) = await group.next() {
+                if let answer { used[address] = answer }
+                if let next = pending.next() {
+                    group.addTask { (next, await chat.spendingAddressUsedState(next)) }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func usedTag(_ address: String) -> some View {
+        switch used[address] {
+        case true?:
+            Text("Used")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.secondary.opacity(0.15)))
+        case false?:
+            Text("Unused")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(.green)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.green.opacity(0.15)))
+        case nil:
+            Text("Checking")
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(.secondary)
         }
     }
 
@@ -335,6 +397,7 @@ struct PaymentRequestAddressPicker: View {
                     HStack(spacing: 6) {
                         Text(verbatim: title)
                             .font(.subheadline.weight(.semibold))
+                        usedTag(address)
                         if let badge {
                             Text(verbatim: badge)
                                 .font(.caption2.weight(.bold))

@@ -1679,3 +1679,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Spending Addresses";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Used";
+"Unused" = "Unused";
+"Checking" = "Checking";

@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Alamat Belanja";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Terpakai";
+"Unused" = "Belum dipakai";
+"Checking" = "Memeriksa";

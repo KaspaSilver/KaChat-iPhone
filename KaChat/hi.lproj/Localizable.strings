@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "खर्च वाले पते";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "इस्तेमाल हुआ";
+"Unused" = "इस्तेमाल नहीं हुआ";
+"Checking" = "जाँच हो रही है";

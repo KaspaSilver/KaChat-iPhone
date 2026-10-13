@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Endereços de gastos";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Usado";
+"Unused" = "Não usado";
+"Checking" = "Verificando";

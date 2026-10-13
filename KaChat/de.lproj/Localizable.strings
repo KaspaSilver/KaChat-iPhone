@@ -1626,3 +1626,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "Ausgabenadressen";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "Benutzt";
+"Unused" = "Unbenutzt";
+"Checking" = "Wird geprüft";

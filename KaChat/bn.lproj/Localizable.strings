@@ -1678,3 +1678,8 @@
 
 /* Request Payment > Choose an Address: section title */
 "Spending Addresses" = "স্পেন্ডিং ঠিকানা";
+
+/* Request Payment > Choose an Address: whether an address was ever used */
+"Used" = "ব্যবহৃত";
+"Unused" = "অব্যবহৃত";
+"Checking" = "যাচাই হচ্ছে";

@@ -903,16 +903,11 @@ struct AddressDomainsTab: View {
 
     private func card(_ tld: NameServiceTLD) -> some View {
         HStack(spacing: 14) {
-            Group {
-                if tld == .kachat {
-                    KachatTabIcon.view(side: 30)
-                } else {
-                    Image(systemName: "globe")
-                        .font(.scaled(size: 22, weight: .semibold))
-                        .foregroundColor(.accentColor)
-                }
-            }
-            .frame(width: 48, height: 48)
+            // the same globe on every card: the suffix beside it says which service it is
+            Image(systemName: "globe")
+                .font(.scaled(size: 22, weight: .semibold))
+                .foregroundColor(.accentColor)
+                .frame(width: 48, height: 48)
             .background(Circle().fill(Color.accentColor.opacity(0.15)))
 
             VStack(alignment: .leading, spacing: 3) {

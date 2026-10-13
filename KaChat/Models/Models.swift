@@ -291,6 +291,14 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
     /// Matches Android's `KaspaAddress.shortDisplay`: "prefix:xxxx....xxxx" — shown wherever a
     /// contact has no alias/KNS domain set yet, instead of the old (and much less legible)
     /// last-8-raw-characters fallback.
+    /// True for a bare `.kas` domain ("bob.kas"): since 5.2 never anyone's name in the app (a
+    /// person is the name you gave them, their .kachat name or their address). Names like that
+    /// came from KNS - set by old builds or by other platforms - not from the person.
+    static func isKasDomainName(_ name: String) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return trimmed.count > 4 && trimmed.hasSuffix(".kas") && !trimmed.contains(where: \.isWhitespace)
+    }
+
     static func generateDefaultAlias(from address: String) -> String {
         let parts = address.split(separator: ":", maxSplits: 1)
         guard parts.count == 2 else { return address }

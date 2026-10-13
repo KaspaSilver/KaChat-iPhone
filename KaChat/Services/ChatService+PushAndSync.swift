@@ -292,7 +292,10 @@ extension ChatService {
                 importedOutgoingWithContentTxIds.insert(message.txId)
             }
 
-            let importedAlias = archivedConversation.contactAlias?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            // A .kas domain is nobody's name since 5.2: a backup still carrying one (an older build
+            // or another platform wrote it) never puts it back - a name removed here stays removed.
+            let archivedAlias = archivedConversation.contactAlias?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let importedAlias = Contact.isKasDomainName(archivedAlias) ? "" : archivedAlias
             let contact = contactsManager.getOrCreateContact(address: contactAddress, alias: importedAlias)
             if !importedAlias.isEmpty {
                 let autoAlias = Contact.generateDefaultAlias(from: contactAddress)

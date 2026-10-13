@@ -322,7 +322,7 @@ final class ContactsManager: ObservableObject {
                 AppLog.log("[ContactsManager] Removed %d contacts that belong to the other network",
                       migrated.count - onNetwork.count)
             }
-            contacts = sortContacts(clearKasDomainAliasesOnce(onNetwork, contactsKey: contactsKey))
+            contacts = sortContacts(clearKasDomainAliases(onNetwork, contactsKey: contactsKey))
             return
         }
 
@@ -388,15 +388,14 @@ final class ContactsManager: ObservableObject {
     /// its address like everyone without a .kachat name (`KNSService.showsDomainNamesAsIdentity`).
     /// A name linked from the Contacts app is left alone. Flagged per account rather than
     /// re-checked every launch, so a .kas-looking name typed after the update stays.
-    private func clearKasDomainAliasesOnce(_ input: [Contact], contactsKey: String) -> [Contact] {
+    /// Every load, not once: a `.kas` name can come back later - restored from a Nextcloud backup
+    /// another platform wrote, or by an older build - and it must not stay (a removed one kept
+    /// reappearing). The person is then shown by their .kachat name or address until named.
+    private func clearKasDomainAliases(_ input: [Contact], contactsKey: String) -> [Contact] {
         guard !KNSService.showsDomainNamesAsIdentity else { return input }
-        let flagKey = "kachat_kas_alias_reset_v1.\(contactsKey)"
-        guard !userDefaults.bool(forKey: flagKey) else { return input }
         var didClear = false
         let cleared = input.map { contact -> Contact in
-            let alias = contact.alias.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            guard alias.count > 4, alias.hasSuffix(".kas"),
-                  !alias.contains(where: \.isWhitespace) else {
+            guard Contact.isKasDomainName(contact.alias) else {
                 return contact
             }
             var updated = contact
@@ -409,7 +408,6 @@ final class ContactsManager: ObservableObject {
             // The notification extension names senders from its own copy - refresh it too.
             scheduleSharedSync()
         }
-        userDefaults.set(true, forKey: flagKey)
         return cleared
     }
 

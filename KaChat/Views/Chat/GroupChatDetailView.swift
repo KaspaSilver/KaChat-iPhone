@@ -1494,7 +1494,7 @@ struct GroupChatDetailView: View {
                     dismissThen { openChat(with: address) }
                 }
                 ActionSheetRow(
-                    title: "Pay in Kaspa",
+                    title: "Send Kaspa",
                     subtitle: "Open your chat with them in payment mode.",
                     systemImage: "k.circle",
                     customIcon: Image("KaspaLogo")

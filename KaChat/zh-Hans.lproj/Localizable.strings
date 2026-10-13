@@ -1686,3 +1686,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "从你的任一地址发送 Kaspa。";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "你的地址";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "你的消息身份。消息和 .kachat 名称从这里支付，除非你选择其他地址，每次发送都从这里发出。";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "你用于收发 Kaspa 的其他地址。在任意发送的「发送自」中选择一个，或在「管理地址」中新建。";
+"Hide All" = "全部隐藏";
+"Hide All Addresses?" = "隐藏所有地址？";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "「管理地址」将重新开始，只保留你的聊天地址。不会丢失任何东西：可在此恢复任意地址，其 Kaspa 仍计入总额。";

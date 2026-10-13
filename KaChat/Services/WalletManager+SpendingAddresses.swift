@@ -381,6 +381,7 @@ extension WalletManager {
         // Rule 1: the pointer from last time, if it is still untouched.
         if let index = receiveAddressIndex, let address = spendingAddress(at: index) {
             if await ChatService.shared.spendingAddressUsedState(address) != true {
+                showIfHidden(index)
                 return address
             }
         }
@@ -388,6 +389,7 @@ extension WalletManager {
         if let current = currentSpendingAddress(),
            await ChatService.shared.spendingAddressUsedState(current) != true {
             receiveAddressIndex = currentSpendingAddressIndex
+            showIfHidden(currentSpendingAddressIndex)
             return current
         }
         // Rule 3: a slot that has never been revealed, funded or offered.
@@ -395,6 +397,14 @@ extension WalletManager {
         guard let address = spendingAddress(at: index) else { return currentSpendingAddress() }
         receiveAddressIndex = index
         return address
+    }
+
+    /// An address handed out to receive into is back on the Manage Addresses list, even when the
+    /// person had hidden it (Hide All): money is about to land there.
+    private func showIfHidden(_ index: Int) {
+        var hidden = hiddenSpendingIndices
+        guard hidden.remove(index) != nil else { return }
+        hiddenSpendingIndices = hidden
     }
 
     /// Reveals a specific index from the Address Visibility pager, extending the chain when the
@@ -491,16 +501,11 @@ extension WalletManager {
         return (0...maxSpendingAddressIndex).compactMap { spendingAddress(at: $0, changeKey: changeKey) }
     }
 
-    /// Hides a spending address from the main Manage Addresses list. Refused (returns false)
-    /// for the current spending index or one with a nonzero balance - re-enforced here
-    /// regardless of what the UI already checked.
+    /// Hides (or shows) a spending address in Manage Addresses. Any address can be hidden -
+    /// funded ones too: the person can start the list over from nothing (Address Visibility >
+    /// Hide All). Nothing is lost: Profile's Manage Addresses total still counts hidden
+    /// addresses, and Address Visibility brings any back.
     func setSpendingAddressHidden(index: Int, hidden: Bool) async -> Bool {
-        guard index != currentSpendingAddressIndex else { return false }
-        if hidden, let address = spendingAddress(at: index) {
-            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
-            let balance = utxos.reduce(UInt64(0)) { $0 + $1.amount }
-            guard balance == 0 else { return false }
-        }
         var current = hiddenSpendingIndices
         if hidden {
             current.insert(index)
@@ -509,6 +514,12 @@ extension WalletManager {
         }
         hiddenSpendingIndices = current
         return true
+    }
+
+    /// Hides every revealed spending address at once (Address Visibility > Hide All): Manage
+    /// Addresses then starts empty under the chatting address.
+    func hideAllSpendingAddresses() {
+        hiddenSpendingIndices = Set(0...max(0, maxSpendingAddressIndex))
     }
 
     /// Read-only snapshot of the hidden set, so Manage Addresses can apply bulk

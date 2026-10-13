@@ -804,7 +804,7 @@ struct WelcomeGuideView: View {
         VStack(spacing: 0) {
             centeringScroll {
                 VStack(spacing: 20) {
-                    Text("Chatting vs. Spending Address")
+                    Text("Your Addresses")
                         .font(.title2.weight(.bold))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
@@ -820,13 +820,13 @@ struct WelcomeGuideView: View {
                             icon: "bubble.left.and.bubble.right.fill",
                             title: "Chatting Address",
                             address: chattingAddress,
-                            caption: "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend."
+                            caption: "Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address."
                         )
                         addressMockRow(
                             icon: "dollarsign.circle.fill",
                             title: "Spending Address",
                             address: walletManager.currentSpendingAddress() ?? "",
-                            caption: "Where you send and receive Kaspa you intend to use for everything else."
+                            caption: "More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses."
                         )
                     }
                     .padding(.horizontal, 24)

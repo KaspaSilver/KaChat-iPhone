@@ -1686,3 +1686,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "Invia Kaspa da uno qualsiasi dei tuoi indirizzi.";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "I tuoi indirizzi";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "La tua identità di messaggistica. Messaggi e nome .kachat si pagano da qui, e ogni invio parte da qui a meno che tu non scelga un altro indirizzo.";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Altri tuoi indirizzi per inviare e ricevere Kaspa. Scegline uno sotto «Da» in qualsiasi invio, o creane uno nuovo in Gestisci indirizzi.";
+"Hide All" = "Nascondi tutti";
+"Hide All Addresses?" = "Nascondere tutti gli indirizzi?";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "Gestisci indirizzi riparte solo con il tuo indirizzo di chat. Non si perde nulla: riporta qui qualsiasi indirizzo, e i suoi Kaspa restano nel totale.";

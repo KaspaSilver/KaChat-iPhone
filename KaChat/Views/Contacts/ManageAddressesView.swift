@@ -67,22 +67,9 @@ struct ManageAddressesView: View {
         entries.filter { $0.hidden }.count
     }
 
-    /// Addresses that have a balance OR contain a KNS domain first (funded first, newest index
-    /// first), then fresh/unused addresses - so a freshly generated address (highest index,
-    /// unfunded) lands right under the last active address rather than mixed in with them.
+    /// The spending addresses in number order, #0 first.
     private var sortedEntries: [SpendingAddressEntry] {
-        let rest = visibleEntries
-            .sorted { lhs, rhs in
-                if (lhs.balanceSompi > 0) != (rhs.balanceSompi > 0) {
-                    return lhs.balanceSompi > 0
-                }
-                return lhs.index > rhs.index
-            }
-        // Stable partition: domain-holding rows rank with the funded group, but relative order
-        // inside each group stays exactly what the comparator above produced.
-        let active = rest.filter { $0.balanceSompi > 0 || domainOwningAddresses.contains($0.address) }
-        let fresh = rest.filter { $0.balanceSompi == 0 && !domainOwningAddresses.contains($0.address) }
-        return active + fresh
+        visibleEntries.sorted { $0.index < $1.index }
     }
 
     var body: some View {
@@ -378,9 +365,10 @@ struct ManageAddressesView: View {
         .background(glassBackground(cornerRadius: 18))
     }
 
-    /// Everything this account holds: the chatting address and the visible spending addresses.
+    /// Everything this account holds: the chatting address and every spending address, hidden
+    /// ones too - the same total as Profile's Manage Addresses card.
     private var totalBalanceSompi: UInt64 {
-        (walletManager.currentWallet?.balanceSompi ?? 0) + entries.filter { !$0.hidden }.reduce(0) { $0 + $1.balanceSompi }
+        (walletManager.currentWallet?.balanceSompi ?? 0) + entries.reduce(0) { $0 + $1.balanceSompi }
     }
 
     /// Total, then the actions button - directly under it rather than pinned to the bottom of
@@ -525,16 +513,13 @@ struct ManageAddressesView: View {
 
     /// Rows vary by address, so the detent has to as well - see `addressRowActionsSheet`.
     private func rowActionsSheetHeight(_ entry: SpendingAddressEntry) -> CGFloat {
-        let isPrimary = entry.index == primaryIndex
-        var rows = 3
-        if !isPrimary && entry.balanceSompi == 0 { rows += 1 }
+        let rows = 4
         return CGFloat(120 + rows * 62)
     }
 
     /// The half sheet behind one address row's ellipsis, replacing the menu that was there.
     private func addressRowActionsSheet(_ entry: SpendingAddressEntry) -> some View {
-        let isPrimary = entry.index == primaryIndex
-        return VStack(spacing: 12) {
+        VStack(spacing: 12) {
             VStack(spacing: 2) {
                 Text(entry.label?.isEmpty == false ? entry.label! : "Address \(entry.index)")
                     .font(.headline)
@@ -575,18 +560,15 @@ struct ManageAddressesView: View {
                 DispatchQueue.main.async { qrTarget = entry }
             }
             // Hide straight from the row - same effect as unchecking it in Address Visibility,
-            // without opening that screen. Never a funded address (setSpendingAddressHidden
-            // re-enforces it), nor the wallet's current receive index.
-            if !isPrimary && entry.balanceSompi == 0 {
-                ActionSheetRow(
-                    title: "Hide Address",
-                    subtitle: "Removes it from this list. Re-enable it in Address Visibility.",
-                    systemImage: "eye.slash",
-                    tint: .orange
-                ) {
-                    addressActionsTarget = nil
-                    hideAddress(entry)
-                }
+            // without opening that screen. Any address, funded too: it comes back from there.
+            ActionSheetRow(
+                title: "Hide Address",
+                subtitle: "Removes it from this list. Re-enable it in Address Visibility.",
+                systemImage: "eye.slash",
+                tint: .orange
+            ) {
+                addressActionsTarget = nil
+                hideAddress(entry)
             }
 
             Spacer(minLength: 0)
@@ -2371,7 +2353,7 @@ private struct SpendingAddressVisibilityView: View {
     /// labeled "Chat privacy address" - so the user sees the full picture, but they can't be
     /// unchecked while the offer is live. They still stay out of the MAIN Addresses list (the
     /// Chat Privacy tab owns them); this is checklist-only visibility.
-    @State private var reservedAddresses: Set<String> = []
+    @State private var showHideAllConfirm = false
     /// Lazily-filled history results for zero-balance addresses (address -> ever used).
     @State private var usedByAddress: [String: Bool] = [:]
     /// Pager: 50 addresses per page, endless - pages past the revealed set derive future
@@ -2416,7 +2398,16 @@ private struct SpendingAddressVisibilityView: View {
             }
             .navigationTitle("Address Visibility")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Hide All Addresses?", isPresented: $showHideAllConfirm) {
+                Button("Hide All", role: .destructive) { hideAll() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total.")
+            }
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Hide All") { showHideAllConfirm = true }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                         .fontWeight(.semibold)
@@ -2431,7 +2422,7 @@ private struct SpendingAddressVisibilityView: View {
     /// Recomputes the current page's rows: revealed indices come from the loaded entries;
     /// anything beyond derives its address through ONE shared change-key derivation
     /// (`spendingAddresses(inRange:)` - single seed decrypt for the whole page). Unrevealed
-    /// rows render unchecked; active payment-pool reservations render checked-and-locked.
+    /// rows render unchecked.
     private func rebuildPage() {
         let byIndex = Dictionary(uniqueKeysWithValues: entries.map { ($0.index, $0) })
         let start = page * pageSize
@@ -2479,18 +2470,9 @@ private struct SpendingAddressVisibilityView: View {
 
     private func row(_ entry: SpendingAddressEntry) -> some View {
         let funded = entry.balanceSompi > 0
-        // Live primary check - the pointer can rotate (post-send) while this sheet is open,
-        // and the lock must follow the authoritative index, not the row's snapshotted flag.
-        let isPrimary = entry.index == walletManager.currentSpendingAddressIndex
-        // Active payment-pool reservations show here CHECKED and inert: always visible (the
-        // offer lifecycle owns them, and they're force-unhidden anyway), never uncheckable
-        // (toggle() guards them), labeled so the user knows why.
-        let isReserved = reservedAddresses.contains(entry.address)
-        let visible = !entry.hidden || isReserved
-        // Funded/reserved rows lock only while they are VISIBLE - the rule stops them being
-        // hidden, not shown. A funded row that is currently hidden must stay tappable, or there
-        // is no way back.
-        let locked = isPrimary || ((funded || isReserved) && visible)
+        // Every row toggles both ways - funded ones too (Hide All starts the list over).
+        let visible = !entry.hidden
+        let locked = false
         return HStack(spacing: 10) {
             Image(systemName: visible ? "checkmark.circle.fill" : "circle")
                 .font(.scaled(size: 20))
@@ -2501,16 +2483,6 @@ private struct SpendingAddressVisibilityView: View {
                     Text("#\(entry.index)")
                         .font(.subheadline.weight(.bold))
                         .monospacedDigit()
-                    if isPrimary {
-                        Text("Primary")
-                            .font(.caption2.weight(.bold))
-                            .foregroundColor(.accentColor)
-                    }
-                    if isReserved {
-                        Text("Chat privacy address")
-                            .font(.caption2.weight(.bold))
-                            .foregroundColor(.accentColor)
-                    }
                     if let label = entry.label, !label.trimmingCharacters(in: .whitespaces).isEmpty {
                         Text(label)
                             .font(.caption)
@@ -2565,19 +2537,13 @@ private struct SpendingAddressVisibilityView: View {
         }
     }
 
+    /// Every revealed address hidden: the list starts from nothing.
+    private func hideAll() {
+        walletManager.hideAllSpendingAddresses()
+        entries = entries.map { var e = $0; e.hidden = true; return e }
+    }
+
     private func toggle(_ entry: SpendingAddressEntry) {
-        // The primary never toggles either way, against the LIVE index (the pointer can rotate
-        // while this sheet is open).
-        guard entry.index != walletManager.currentSpendingAddressIndex else { return }
-        // Funded and reserved rows are locked against HIDING only, which is what the rule is
-        // actually for. Applying it in both directions meant a funded address that was already
-        // hidden could never be brought back - the balance that makes it worth seeing was the
-        // very thing preventing it. `setSpendingAddressHidden` has always guarded only the hide
-        // direction; this now matches it.
-        let isHiding = !entry.hidden
-        if isHiding {
-            guard entry.balanceSompi == 0, !reservedAddresses.contains(entry.address) else { return }
-        }
         Task {
             let revealedMax = entries.map(\.index).max() ?? -1
             if entry.index > revealedMax {

@@ -1686,3 +1686,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "Kirim Kaspa dari alamat Anda yang mana pun.";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "Alamat Anda";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "Identitas pesan Anda. Pesan dan nama .kachat Anda dibayar dari sini, dan setiap pengiriman dimulai dari sini kecuali Anda memilih alamat lain.";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Alamat lain milik Anda untuk mengirim dan menerima Kaspa. Pilih salah satu di «Dari» pada pengiriman apa pun, atau buat yang baru di Kelola Alamat.";
+"Hide All" = "Sembunyikan Semua";
+"Hide All Addresses?" = "Sembunyikan semua alamat?";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "Kelola Alamat dimulai ulang hanya dengan alamat obrolan Anda. Tidak ada yang hilang: tampilkan lagi alamat mana pun di sini, dan Kaspa-nya tetap dihitung dalam total Anda.";

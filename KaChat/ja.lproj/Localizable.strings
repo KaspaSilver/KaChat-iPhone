@@ -1686,3 +1686,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "どのアドレスからでも Kaspa を送れます。";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "あなたのアドレス";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "あなたのメッセージ用 ID です。メッセージと .kachat 名はここから支払われ、別のアドレスを選ばない限り送金はここから行われます。";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Kaspa の送受信に使える他のアドレスです。送金時の「送信元」で選ぶか、アドレス管理で新しく作成できます。";
+"Hide All" = "すべて非表示";
+"Hide All Addresses?" = "すべてのアドレスを非表示にしますか？";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "アドレス管理はチャットアドレスだけから始まります。何も失われません。ここから任意のアドレスを戻せ、その Kaspa は合計に含まれたままです。";

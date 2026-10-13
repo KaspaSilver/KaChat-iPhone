@@ -1686,3 +1686,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "Gửi Kaspa từ bất kỳ địa chỉ nào của bạn.";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "Địa chỉ của bạn";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "Danh tính nhắn tin của bạn. Tin nhắn và tên .kachat được trả từ đây, và mọi lần gửi đều bắt đầu từ đây trừ khi bạn chọn địa chỉ khác.";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Các địa chỉ khác của bạn để gửi và nhận Kaspa. Chọn một trong mục «Từ» khi gửi, hoặc tạo mới trong Quản lý địa chỉ.";
+"Hide All" = "Ẩn tất cả";
+"Hide All Addresses?" = "Ẩn tất cả địa chỉ?";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "Quản lý địa chỉ bắt đầu lại chỉ với địa chỉ trò chuyện của bạn. Không mất gì: đưa bất kỳ địa chỉ nào trở lại tại đây, và Kaspa của nó vẫn được tính vào tổng.";

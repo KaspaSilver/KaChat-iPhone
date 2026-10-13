@@ -1686,3 +1686,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "আপনার যেকোনো ঠিকানা থেকে Kaspa পাঠান।";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "আপনার ঠিকানাগুলো";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "আপনার মেসেজিং পরিচয়। বার্তা ও আপনার .kachat নাম এখান থেকে পরিশোধ হয়, আর অন্য ঠিকানা না বাছলে প্রতিটি পাঠানো এখান থেকেই শুরু হয়।";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Kaspa পাঠানো ও গ্রহণের জন্য আপনার আরও ঠিকানা। যেকোনো পাঠানোয় «থেকে»-তে একটি বাছুন, বা ঠিকানা ব্যবস্থাপনায় নতুন তৈরি করুন।";
+"Hide All" = "সব লুকান";
+"Hide All Addresses?" = "সব ঠিকানা লুকাবেন?";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "ঠিকানা ব্যবস্থাপনা শুধু আপনার চ্যাটিং ঠিকানা দিয়ে নতুন করে শুরু হবে। কিছুই হারাবে না: এখান থেকে যেকোনো ঠিকানা ফিরিয়ে আনুন, আর এর Kaspa আপনার মোটে গণনা হতে থাকবে।";

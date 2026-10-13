@@ -1634,3 +1634,11 @@
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
 "Send Kaspa from any of your addresses." = "Sende Kaspa von einer deiner Adressen.";
+
+/* Address Visibility: Hide All; setup guide: Your Addresses */
+"Your Addresses" = "Deine Adressen";
+"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "Deine Messaging-Identität. Nachrichten und dein .kachat-Name werden von ihr bezahlt, und jede Sendung startet hier, außer du wählst eine andere Adresse.";
+"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Weitere Adressen von dir zum Senden und Empfangen von Kaspa. Wähle eine unter „Von“ bei jeder Sendung oder erstelle eine neue in „Adressen verwalten“.";
+"Hide All" = "Alle ausblenden";
+"Hide All Addresses?" = "Alle Adressen ausblenden?";
+"Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "„Adressen verwalten“ beginnt neu, nur mit deiner Chat-Adresse. Nichts geht verloren: Hol jede Adresse hier zurück; ihr Kaspa zählt weiter zu deinem Gesamtbetrag.";

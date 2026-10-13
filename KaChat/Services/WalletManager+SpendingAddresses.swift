@@ -318,6 +318,10 @@ extension WalletManager {
     /// stop working). When no hidden unused index remains, the chain extends by one past the
     /// all-time max, which is always safe. A probe failure (used-ness unknown) skips that
     /// index rather than recycling it. Returns the chosen index.
+    ///
+    /// Side-effect free: nothing is un-hidden or revealed here - the caller reveals the index
+    /// (`revealSpendingAddress(at:)`) only when the address is really handed out. Past the
+    /// revealed range it answers the next index without extending the chain.
     func lowestUnusedSpendingAddress() async -> Int {
         let entries = await getSpendingAddressList().sorted { $0.index < $1.index }
         for entry in entries {
@@ -328,14 +332,10 @@ extension WalletManager {
             // extending the chain below is always safe, recycling an unknown one is not.
             let usedState = await ChatService.shared.spendingAddressUsedState(entry.address)
             if usedState == false {
-                _ = await setSpendingAddressHidden(index: entry.index, hidden: false)
                 return entry.index
             }
         }
-        await generateNextSpendingAddress()
-        let newIndex = maxSpendingAddressIndex
-        _ = await setSpendingAddressHidden(index: newIndex, hidden: false)
-        return newIndex
+        return maxSpendingAddressIndex + 1
     }
 
     /// Which index the Receive QR is currently handing out. Persisted per wallet, and entirely
@@ -377,34 +377,33 @@ extension WalletManager {
     /// Returns nil only when the keychain cannot derive an address at all. A probe that FAILS
     /// (used-ness unknown) keeps the current answer rather than rotating on a guess: rotating
     /// every time the network hiccups is how an address list fills with empty slots.
-    func freshReceiveAddress() async -> String? {
+    ///
+    /// `revealing`: the address is being shown (Receive Kaspa's QR is open), so it goes on the
+    /// Manage Addresses list - extending the chain to it if needed, so its payment is watched.
+    /// Without it (Profile warming the QR ahead of the tap) nothing about the list changes: an
+    /// address appearing after Hide All with nobody having done anything was exactly that.
+    func freshReceiveAddress(revealing: Bool = false) async -> String? {
+        let chosen: (index: Int, address: String)
         // Rule 1: the pointer from last time, if it is still untouched.
-        if let index = receiveAddressIndex, let address = spendingAddress(at: index) {
-            if await ChatService.shared.spendingAddressUsedState(address) != true {
-                showIfHidden(index)
-                return address
-            }
-        }
-        // Rule 2: the primary, while it has seen nothing.
-        if let current = currentSpendingAddress(),
-           await ChatService.shared.spendingAddressUsedState(current) != true {
+        if let index = receiveAddressIndex, let address = spendingAddress(at: index),
+           await ChatService.shared.spendingAddressUsedState(address) != true {
+            chosen = (index, address)
+        } else if let current = currentSpendingAddress(),
+                  await ChatService.shared.spendingAddressUsedState(current) != true {
+            // Rule 2: the primary, while it has seen nothing.
             receiveAddressIndex = currentSpendingAddressIndex
-            showIfHidden(currentSpendingAddressIndex)
-            return current
+            chosen = (currentSpendingAddressIndex, current)
+        } else {
+            // Rule 3: the lowest slot never used.
+            let index = await lowestUnusedSpendingAddress()
+            guard let address = spendingAddress(at: index) else { return currentSpendingAddress() }
+            receiveAddressIndex = index
+            chosen = (index, address)
         }
-        // Rule 3: a slot that has never been revealed, funded or offered.
-        let index = await lowestUnusedSpendingAddress()
-        guard let address = spendingAddress(at: index) else { return currentSpendingAddress() }
-        receiveAddressIndex = index
-        return address
-    }
-
-    /// An address handed out to receive into is back on the Manage Addresses list, even when the
-    /// person had hidden it (Hide All): money is about to land there.
-    private func showIfHidden(_ index: Int) {
-        var hidden = hiddenSpendingIndices
-        guard hidden.remove(index) != nil else { return }
-        hiddenSpendingIndices = hidden
+        if revealing {
+            await revealSpendingAddress(at: chosen.index)
+        }
+        return chosen.address
     }
 
     /// Reveals a specific index from the Address Visibility pager, extending the chain when the

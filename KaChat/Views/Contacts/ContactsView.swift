@@ -1158,7 +1158,8 @@ struct ProfileView: View {
                     address = warmed
                     resolving = false
                 }
-                let resolved = await walletManager.freshReceiveAddress()
+                // shown now: it goes on the Manage Addresses list (and is watched for payments)
+                let resolved = await walletManager.freshReceiveAddress(revealing: true)
                 // Only swap if the warmed answer went stale between warming and opening. A QR is
                 // scanned the instant it appears, so it must not change under a pointed camera
                 // for any lesser reason.

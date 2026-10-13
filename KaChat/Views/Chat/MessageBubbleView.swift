@@ -574,7 +574,7 @@ struct MessageBubbleView: View {
 
     private func replyQuoteView(_ reply: MessageReplyContent) -> some View {
         VStack(alignment: message.isOutgoing ? .trailing : .leading, spacing: 2) {
-            Text(replySenderDisplayName ?? String(reply.replyToSender.suffix(10)))
+            Text(replySenderDisplayName ?? Contact.generateDefaultAlias(from: reply.replyToSender))
                 .font(.caption2)
                 .fontWeight(.semibold)
                 .foregroundColor(.accentColor)

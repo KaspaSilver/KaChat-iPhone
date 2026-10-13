@@ -1415,7 +1415,7 @@ extension ChatService {
     /// `extensionContext.intent` to pre-select the contact.
     private func donateSendMessageIntent(for contact: Contact) {
         let trimmedAlias = contact.alias.trimmingCharacters(in: .whitespacesAndNewlines)
-        let displayName = trimmedAlias.isEmpty ? String(contact.address.suffix(8)) : trimmedAlias
+        let displayName = trimmedAlias.isEmpty ? Contact.generateDefaultAlias(from: contact.address) : trimmedAlias
 
         let recipient = INPerson(
             personHandle: INPersonHandle(value: contact.address, type: .unknown),

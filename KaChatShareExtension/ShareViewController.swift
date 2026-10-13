@@ -24,7 +24,17 @@ private struct ShareContact: Identifiable, Hashable {
 
     var displayName: String {
         let trimmed = alias.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? String(address.suffix(8)) : trimmed
+        return trimmed.isEmpty ? Self.shortForm(address) : trimmed
+    }
+
+    /// "kaspa:xxxx....xxxx" - the app's one short form for an address with no name
+    /// (`Contact.generateDefaultAlias` in the main app).
+    static func shortForm(_ address: String) -> String {
+        let parts = address.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2 else { return address }
+        let body = parts[1]
+        guard body.count > 12 else { return address }
+        return "\(parts[0]):\(body.prefix(4))....\(body.suffix(4))"
     }
 
     var shortAddress: String {

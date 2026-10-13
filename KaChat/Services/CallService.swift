@@ -1346,6 +1346,6 @@ final class CallService: ObservableObject {
         if !KachatNamesService.isEnabled, let domain = KNSService.shared.profileCache[address]?.domainName, !domain.isEmpty {
             return domain
         }
-        return "KaChat \(address.suffix(6))"
+        return Contact.generateDefaultAlias(from: address)
     }
 }

@@ -317,6 +317,6 @@ struct KaPostsSearchView: View {
            !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return KaPostsView.displayKasName(domain)
         }
-        return String(address.suffix(8))
+        return Contact.generateDefaultAlias(from: address)
     }
 }

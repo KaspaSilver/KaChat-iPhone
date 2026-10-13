@@ -913,7 +913,7 @@ final class GroupChatService: ObservableObject {
            let displayName = member.displayName, !displayName.isEmpty {
             return displayName
         }
-        return String(address.suffix(10))
+        return Contact.generateDefaultAlias(from: address)
     }
 
     // MARK: - Wallet lifecycle

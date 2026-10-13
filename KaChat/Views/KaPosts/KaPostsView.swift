@@ -1809,7 +1809,7 @@ struct KaPostsView: View {
            !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return Self.displayKasName(domain)
         }
-        return String(address.suffix(10))
+        return Contact.generateDefaultAlias(from: address)
     }
 
     /// A name as it is SHOWN: a KNS domain keeps its ".kas" everywhere in the app (the suffix
@@ -5942,7 +5942,7 @@ private struct KaPostCellView: View {
            !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return KaPostsView.displayKasName(domain)
         }
-        return String(address.suffix(10))
+        return Contact.generateDefaultAlias(from: address)
     }
 
     private func quotedEmbedCard(_ quoted: KaPostsView.DraftPost.QuotedRef) -> some View {
@@ -7871,7 +7871,7 @@ struct KaPostEngagementView: View {
            !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return KaPostsView.displayKasName(domain)
         }
-        return String(address.suffix(10))
+        return Contact.generateDefaultAlias(from: address)
     }
 
     /// Actor lists come from the KaChat indexer fork's get-post-engagement - works for ANY
@@ -8161,7 +8161,7 @@ struct KaPostsFollowListView: View {
            !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return KaPostsView.displayKasName(domain)
         }
-        return String(address.suffix(10))
+        return Contact.generateDefaultAlias(from: address)
     }
 
     private func load() async {
@@ -8500,7 +8500,7 @@ struct KaPostsNotificationsView: View {
            !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return KaPostsView.displayKasName(domain)
         }
-        return String(address.suffix(10))
+        return Contact.generateDefaultAlias(from: address)
     }
 
     /// Pull-to-refresh / first load: back to page one with the end-reached state cleared.

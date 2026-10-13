@@ -1664,3 +1664,6 @@
 "1 domain" = "1 dominio";
 "%lld domains" = "%lld domini";
 "Couldn't load" = "Impossibile caricare";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Pagato a un tuo indirizzo nuovissimo, solo per questa richiesta. La nota la vede chi paga, ma non viaggia con il pagamento.";

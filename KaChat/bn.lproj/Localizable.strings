@@ -1664,3 +1664,6 @@
 "1 domain" = "১টি ডোমেইন";
 "%lld domains" = "%lldটি ডোমেইন";
 "Couldn't load" = "লোড করা যায়নি";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "আপনার একদম নতুন একটি ঠিকানায় পেমেন্ট হবে, শুধু এই অনুরোধের জন্য। মেমো প্রদানকারী দেখবেন, কিন্তু পেমেন্টের সাথে যাবে না।";

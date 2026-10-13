@@ -1664,3 +1664,6 @@
 "1 domain" = "도메인 1개";
 "%lld domains" = "도메인 %lld개";
 "Couldn't load" = "불러올 수 없음";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "이 요청에만 쓰이는 완전히 새로운 내 주소로 결제됩니다. 메모는 결제하는 사람에게만 보이고 결제와 함께 전송되지 않습니다.";

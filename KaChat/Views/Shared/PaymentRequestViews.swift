@@ -20,8 +20,11 @@ struct CreatePaymentRequestView: View {
     @StateObject private var fiatAmountState = KaspaFiatAmountState()
 
     @State private var destination: Destination = .chatting
-    /// A fresh receive address of the spending chain, as Receive Kaspa shows.
-    @State private var spendingAddress: String? = ReceiveAddressWarmCache.address
+    /// A spending address that has never been revealed, used or handed out - reserved for this
+    /// request when Spending Address is picked (once per screen: Copy, Share and Send all reuse
+    /// it), so no two requests ever share an address and a payment can't mix with another.
+    @State private var spendingAddress: String?
+    @State private var reservingSpending = false
     @State private var amountInput = ""
     @State private var memo = ""
     @State private var copied = false
@@ -51,11 +54,10 @@ struct CreatePaymentRequestView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     VStack(alignment: .leading, spacing: 10) {
-                        Picker("Paid to", selection: $destination) {
-                            Text("Chatting Address").tag(Destination.chatting)
-                            Text("Spending Address").tag(Destination.spending)
+                        HStack(spacing: 10) {
+                            destinationPill("Chatting Address", .chatting)
+                            destinationPill("Spending Address", .spending)
                         }
-                        .pickerStyle(.segmented)
 
                         if let address {
                             AddressResolutionCard(address: address)
@@ -66,7 +68,7 @@ struct CreatePaymentRequestView: View {
 
                         Text(destination == .chatting
                              ? "The payment lands in your chat with whoever pays, with the memo."
-                             : "Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment.")
+                             : "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment.")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
@@ -148,12 +150,41 @@ struct CreatePaymentRequestView: View {
                 }
             }
             .onChange(of: request) { _ in copied = false }
-            .task {
-                if let fresh = await walletManager.freshReceiveAddress() {
-                    spendingAddress = fresh
-                    ReceiveAddressWarmCache.address = fresh
-                }
+            .onChange(of: destination) { picked in
+                if picked == .spending { reserveSpendingAddress() }
             }
+        }
+    }
+
+    /// A pill like the amount's currency switch: the chosen one filled in.
+    private func destinationPill(_ title: LocalizedStringKey, _ value: Destination) -> some View {
+        let selected = destination == value
+        return Button {
+            Haptics.impact(.light)
+            destination = value
+        } label: {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(selected ? .black : .primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule().fill(selected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.regularMaterial))
+                )
+                .overlay(Capsule().stroke(Color.accentColor.opacity(selected ? 0 : 0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private func reserveSpendingAddress() {
+        guard spendingAddress == nil, !reservingSpending else { return }
+        reservingSpending = true
+        Task {
+            spendingAddress = await walletManager.reserveFreshSpendingAddresses(count: 1).first?.address
+            reservingSpending = false
+            // watched from now on, so its payment shows the moment it lands
+            ChatService.shared.checkAndResubscribeIfNeeded()
         }
     }
 
@@ -291,7 +322,7 @@ struct OwnPaymentRequestView: View {
                         AddressResolutionCard(address: request.address)
                         Text(request.toChattingAddress
                              ? "The payment lands in your chat with whoever pays, with the memo."
-                             : "Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment.")
+                             : "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment.")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }

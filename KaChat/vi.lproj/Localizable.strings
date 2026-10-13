@@ -1664,3 +1664,6 @@
 "1 domain" = "1 tên miền";
 "%lld domains" = "%lld tên miền";
 "Couldn't load" = "Không thể tải";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Trả vào một địa chỉ hoàn toàn mới của bạn, chỉ dùng cho yêu cầu này. Người trả thấy ghi chú, nhưng ghi chú không đi kèm khoản thanh toán.";

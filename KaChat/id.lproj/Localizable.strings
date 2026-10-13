@@ -1664,3 +1664,6 @@
 "1 domain" = "1 domain";
 "%lld domains" = "%lld domain";
 "Couldn't load" = "Tidak bisa dimuat";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Dibayar ke alamat Anda yang benar-benar baru, hanya untuk permintaan ini. Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";

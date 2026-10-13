@@ -1664,3 +1664,6 @@
 "1 domain" = "1 个域名";
 "%lld domains" = "%lld 个域名";
 "Couldn't load" = "无法加载";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "付到你的一个全新地址，仅用于此请求。付款人能看到备注，但备注不会随付款发送。";

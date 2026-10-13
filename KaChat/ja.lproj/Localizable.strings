@@ -1664,3 +1664,6 @@
 "1 domain" = "1 件のドメイン";
 "%lld domains" = "%lld 件のドメイン";
 "Couldn't load" = "読み込めませんでした";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "このリクエスト専用の、まったく新しいあなたのアドレスに支払われます。メモは支払う人に表示されますが、支払いと一緒には送られません。";

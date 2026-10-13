@@ -1612,3 +1612,6 @@
 "1 domain" = "1 Domain";
 "%lld domains" = "%lld Domains";
 "Couldn't load" = "Konnte nicht geladen werden";
+
+/* Request Payment: a spending-address request gets its own brand-new address */
+"Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "An eine ganz neue Adresse von dir, nur für diese Anforderung. Die Notiz sieht, wer zahlt; sie wird nicht mit der Zahlung gesendet.";

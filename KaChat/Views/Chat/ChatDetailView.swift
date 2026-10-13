@@ -2332,7 +2332,7 @@ struct ChatDetailView: View {
             ActionSheetTiles {
                 // Pay first: the Kaspa logo left the input bubble, so this is the way into payment mode.
                 ActionSheetRow(
-                    title: "Pay in Kaspa",
+                    title: "Send Kaspa",
                     subtitle: "Send Kaspa to this contact.",
                     systemImage: "k.circle",
                     customIcon: Image("KaspaLogo")

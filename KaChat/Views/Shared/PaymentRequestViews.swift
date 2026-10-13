@@ -27,6 +27,9 @@ struct CreatePaymentRequestView: View {
     /// when it's copied, shared or sent, so opening the screen and cancelling uses none up. Once
     /// per screen: Copy, Share and Send all reuse it, so no two requests share an address.
     @State private var freshAddress: String?
+    /// The next brand-new address, shown before it's reserved: the one `reserveFreshSpendingAddresses`
+    /// hands out next (the slot after the last revealed one).
+    @State private var nextFreshAddress: String?
     @State private var chosenAddress: String?
     @State private var showAddressPicker = false
     @State private var amountInput = ""
@@ -70,12 +73,12 @@ struct CreatePaymentRequestView: View {
 
                         switch destination {
                         case .fresh:
-                            if let freshAddress {
-                                AddressResolutionCard(address: freshAddress)
+                            if let address = freshAddress ?? nextFreshAddress {
+                                AddressResolutionCard(address: address)
+                            } else {
+                                HStack { Spacer(); ProgressView(); Spacer() }
+                                    .padding(.vertical, 18)
                             }
-                            Text("Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment.")
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
                         case .chosen:
                             if let chosenAddress {
                                 AddressResolutionCard(address: chosenAddress)
@@ -172,6 +175,11 @@ struct CreatePaymentRequestView: View {
             .onChange(of: memo) { _ in copied = false }
             .onChange(of: destination) { _ in copied = false }
             .onChange(of: chosenAddress) { _ in copied = false }
+            .task {
+                // derived, not reserved: opening the screen and cancelling uses no address up
+                let manager = WalletManager.shared
+                nextFreshAddress = manager.spendingAddress(at: manager.maxSpendingAddressIndex + 1)
+            }
             .sheet(isPresented: $showAddressPicker) {
                 PaymentRequestAddressPicker(selected: chosenAddress) { address in
                     chosenAddress = address

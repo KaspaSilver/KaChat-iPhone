@@ -12,7 +12,37 @@ import YbridOpus
 /// keeps its own instance) since both need to drive the real scroll view directly during a
 /// keyboard-focus transition, where `ScrollViewProxy.scrollTo` alone doesn't reliably land.
 final class ScrollViewReference {
-    weak var scrollView: UIScrollView?
+    weak var scrollView: UIScrollView? {
+        didSet {
+            guard scrollView !== oldValue else { return }
+            observeContentSize()
+        }
+    }
+
+    private var contentSizeObservation: NSKeyValueObservation?
+
+    /// Keeps a chat pinned to its bottom while the content under it grows - a long message still
+    /// laying out, a link preview or a photo arriving a moment after its row. Without it the row
+    /// grew while the arrival's scroll animation was in flight: the animation landed short, then
+    /// the list was shoved up in steps. Only when the reader was at the bottom just before the
+    /// growth and isn't touching the list; anyone reading history above is never moved.
+    private func observeContentSize() {
+        contentSizeObservation = scrollView?.observe(\.contentSize, options: [.old, .new]) { scrollView, change in
+            guard let old = change.oldValue, let new = change.newValue, new.height > old.height else { return }
+            DispatchQueue.main.async {
+                guard !scrollView.isTracking, !scrollView.isDragging, !scrollView.isDecelerating else { return }
+                let insetBottom = scrollView.adjustedContentInset.bottom
+                let visibleBottom = scrollView.contentOffset.y + scrollView.bounds.height - insetBottom
+                // measured against the size BEFORE the growth: was the reader at the end then?
+                guard old.height - visibleBottom <= 24 else { return }
+                let minOffsetY = -scrollView.adjustedContentInset.top
+                let maxOffsetY = max(minOffsetY, scrollView.contentSize.height - scrollView.bounds.height + insetBottom)
+                if maxOffsetY - scrollView.contentOffset.y > 0.5 {
+                    scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x, y: maxOffsetY), animated: false)
+                }
+            }
+        }
+    }
 }
 
 struct ChatDetailView: View {

@@ -868,6 +868,155 @@ private struct KachatComingSoonPill: View {
 /// The ".kachat" tab of every screen that shows an address's history - Manage Addresses,
 /// Cold Storage and the chatting address: the .kachat names that address holds. It replaced the
 /// KNS Domains tab (5.2), and is empty until .kachat names launch.
+/// The Domains tab of an address screen (the chatting address, a spending address, a KasSigner
+/// address): one card per name service - .kachat, .k, .kaspa, .kas - each with how many names
+/// this address holds there; tap one to see them. Every service is asked at once, for this
+/// address only (Your Domains' own lists are left alone).
+struct AddressDomainsTab: View {
+    let address: String
+
+    /// nil while that service's answer is on the way; a failed lookup is `failed`.
+    @State private var counts: [NameServiceTLD: Int] = [:]
+    @State private var names: [NameServiceTLD: [String]] = [:]
+    @State private var failed: Set<NameServiceTLD> = []
+
+    /// The order the cards are listed in.
+    static let order: [NameServiceTLD] = [.kachat, .k, .kaspa, .kas]
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(Self.order, id: \.self) { tld in
+                    NavigationLink {
+                        destination(tld)
+                    } label: {
+                        card(tld)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding()
+        }
+        .refreshable { await load() }
+        .task(id: address) { await load() }
+    }
+
+    private func card(_ tld: NameServiceTLD) -> some View {
+        HStack(spacing: 14) {
+            Group {
+                if tld == .kachat {
+                    KachatTabIcon.view(side: 30)
+                } else {
+                    Image(systemName: "globe")
+                        .font(.scaled(size: 22, weight: .semibold))
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .frame(width: 48, height: 48)
+            .background(Circle().fill(Color.accentColor.opacity(0.15)))
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: tld.suffix)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text(verbatim: tld.serviceName)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            Spacer(minLength: 0)
+            countLabel(tld)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundColor(.secondary)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    @ViewBuilder
+    private func countLabel(_ tld: NameServiceTLD) -> some View {
+        if let count = counts[tld] {
+            Text(verbatim: "\(count)")
+                .font(.subheadline.weight(.bold))
+                .foregroundColor(count > 0 ? .black : .secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Capsule().fill(count > 0 ? Color.accentColor : Color.secondary.opacity(0.15)))
+                .accessibilityLabel(Text(count == 1 ? "1 domain" : "\(count) domains"))
+        } else if failed.contains(tld) {
+            Image(systemName: "exclamationmark.triangle")
+                .foregroundColor(.orange)
+                .accessibilityLabel(Text("Couldn't load"))
+        } else {
+            ProgressView().controlSize(.small)
+        }
+    }
+
+    @ViewBuilder
+    private func destination(_ tld: NameServiceTLD) -> some View {
+        if tld == .kachat {
+            // the .kachat cards and their detail screens, as before
+            KachatAddressDomainsList(address: address)
+                .navigationTitle(".kachat")
+                .navigationBarTitleDisplayMode(.inline)
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    let list = names[tld] ?? []
+                    if list.isEmpty {
+                        Text(failed.contains(tld)
+                             ? "Couldn't reach \(tld.serviceName). Pull down to try again."
+                             : "No \(tld.suffix) names on this address.")
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
+                    } else {
+                        ForEach(list, id: \.self) { name in
+                            DomainNameCardView(title: name)
+                        }
+                    }
+                }
+                .padding()
+            }
+            .refreshable { await load() }
+            .navigationTitle(Text(verbatim: tld.suffix))
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    /// Every service at once, for this address.
+    private func load() async {
+        let address = address.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let network = AppSettings.load().networkType
+        async let kachat = NameServicesClient.shared.kachatNames(of: [address])
+        async let services = NameServicesClient.shared.ownedNamesByService(of: address)
+        async let kns = KNSService.shared.fetchInfo(for: address, network: network)
+
+        let kachatNames = (await kachat)[address] ?? []
+        set(.kachat, kachatNames.map(\.display))
+
+        let byService = await services
+        for tld in [NameServiceTLD.k, .kaspa] {
+            if let list = byService[tld] { set(tld, list.map(\.display)) } else { failed.insert(tld) }
+        }
+
+        if let info = await kns {
+            set(.kas, info.allDomains.map(\.fullName))
+        } else {
+            failed.insert(.kas)
+        }
+    }
+
+    private func set(_ tld: NameServiceTLD, _ list: [String]) {
+        names[tld] = list
+        counts[tld] = list.count
+        failed.remove(tld)
+    }
+}
+
 struct KachatAddressDomainsList: View {
     /// The address whose names to show. On testnet (live registry) the list is that address's
     /// own .kachat names; nil, or mainnet, shows the "coming" note.

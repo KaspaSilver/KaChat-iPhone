@@ -1658,3 +1658,9 @@
 
 /* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
 "Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "KAS'ınız çok sayıda küçük koinde. Kaydırdığınızda KaChat önce onları tek koinde birleştirir (kendi küçük ücreti olan ayrı bir işlem), sonra bunu gönderir.";
+
+/* An address's Domains tab: one card per name service */
+"No %@ names on this address." = "Bu adreste %@ adı yok.";
+"1 domain" = "1 alan adı";
+"%lld domains" = "%lld alan adı";
+"Couldn't load" = "Yüklenemedi";

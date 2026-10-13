@@ -3908,7 +3908,7 @@ struct ChattingAddressManageView: View {
     private enum Tab: String, CaseIterable {
         case transactions = "History"
         case utxos = "UTXOs"
-        case kachatDomains = ".kachat"
+        case kachatDomains = "Domains"
     }
 
     @State private var selectedTab: Tab = .transactions
@@ -3941,7 +3941,7 @@ struct ChattingAddressManageView: View {
         "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)"
     }
 
-    /// Plain names - History, UTXOs, .kachat - the way the user asked for them.
+    /// Plain names - History, UTXOs, Domains - the way the user asked for them.
     private func tabLabel(_ tab: Tab) -> String {
         tab.rawValue
     }
@@ -3990,7 +3990,7 @@ struct ChattingAddressManageView: View {
             case .utxos:
                 utxosList
             case .kachatDomains:
-                KachatAddressDomainsList(address: address)
+                AddressDomainsTab(address: address)
             }
         }
         .navigationTitle("Chatting Address")

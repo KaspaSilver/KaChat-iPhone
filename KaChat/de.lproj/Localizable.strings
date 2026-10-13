@@ -1606,3 +1606,9 @@
 
 /* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
 "Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "Dein KAS liegt in vielen kleinen Münzen. Beim Schieben fasst KaChat sie zuerst zu einer zusammen (eine eigene Transaktion mit kleiner Gebühr) und sendet dann diese.";
+
+/* An address's Domains tab: one card per name service */
+"No %@ names on this address." = "Keine %@-Namen auf dieser Adresse.";
+"1 domain" = "1 Domain";
+"%lld domains" = "%lld Domains";
+"Couldn't load" = "Konnte nicht geladen werden";

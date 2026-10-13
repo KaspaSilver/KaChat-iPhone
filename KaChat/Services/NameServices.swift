@@ -255,6 +255,21 @@ final class NameServicesClient: ObservableObject {
         return (k ?? []) + (kaspa ?? [])
     }
 
+    /// `address`'s names on .k and .kaspa by service, for one address's Domains tab - it leaves
+    /// `owned` alone. A service whose lookup failed is missing from the result.
+    func ownedNamesByService(of address: String) async -> [NameServiceTLD: [OwnedServiceName]] {
+        let address = address.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !address.isEmpty else { return [:] }
+        let network = AppSettings.load().networkType
+        async let dotk = fetchDotk(address: address, network: network)
+        async let kaspaNames = fetchKaspaNames(address: address, network: network)
+        let (k, kaspa) = await (dotk, kaspaNames)
+        var result: [NameServiceTLD: [OwnedServiceName]] = [:]
+        if let k { result[.k] = k }
+        if let kaspa { result[.kaspa] = kaspa }
+        return result
+    }
+
     /// The .kachat names each of `addresses` holds (active or in grace), where the registry is
     /// live; empty elsewhere. Kept apart from `ownedNames(of:)` because .kachat comes first
     /// wherever names are listed.

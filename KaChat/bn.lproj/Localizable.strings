@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "আপনার একদম নতুন একটি ঠিকানায় পেমেন্ট হবে, শুধু এই অনুরোধের জন্য। মেমো প্রদানকারী দেখবেন, কিন্তু পেমেন্টের সাথে যাবে না।";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "নতুন ঠিকানা";
+"Choose an Address" = "একটি ঠিকানা বাছুন";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "আপনার একদম নতুন একটি ঠিকানায় পেমেন্ট হবে, আগে কখনো ব্যবহার হয়নি এবং শুধু এই অনুরোধের জন্য। অনুরোধ কপি, শেয়ার বা পাঠালে এটি তৈরি হয়। মেমো প্রদানকারী দেখবেন, কিন্তু পেমেন্টের সাথে যাবে না।";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "মেমো প্রদানকারী দেখবেন, কিন্তু পেমেন্টের সাথে যাবে না।";
+"Pick which of your addresses gets paid." = "আপনার কোন ঠিকানায় পেমেন্ট হবে তা বাছুন।";
+"Couldn't make a new address. Please try again." = "নতুন ঠিকানা তৈরি করা যায়নি। আবার চেষ্টা করুন।";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "স্পেন্ডিং ঠিকানা";

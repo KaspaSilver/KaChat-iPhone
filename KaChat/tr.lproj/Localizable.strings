@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Yalnızca bu istek için kullanılan yepyeni bir adresinize ödenir. Notu ödeyen görür, ancak ödemeyle birlikte gitmez.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "Yeni Adres";
+"Choose an Address" = "Bir Adres Seç";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Daha önce hiç kullanılmamış, yalnızca bu istek için yepyeni bir adresinize ödenir. İsteği kopyaladığınızda, paylaştığınızda veya gönderdiğinizde oluşturulur. Notu ödeyen görür, ancak ödemeyle birlikte gitmez.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "Notu ödeyen görür, ancak ödemeyle birlikte gitmez.";
+"Pick which of your addresses gets paid." = "Ödemenin hangi adresinize yapılacağını seçin.";
+"Couldn't make a new address. Please try again." = "Yeni adres oluşturulamadı. Tekrar deneyin.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "Harcama Adresleri";

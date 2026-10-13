@@ -12,41 +12,45 @@ struct CreatePaymentRequestView: View {
     var recipient: Contact? = nil
 
     enum Destination: Hashable {
-        case chatting, spending
+        /// A brand-new spending address, never revealed, used or handed out.
+        case fresh
+        /// One of your addresses, picked from the list: the chatting address or a spending one.
+        case chosen
     }
 
     @EnvironmentObject private var walletManager: WalletManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var fiatAmountState = KaspaFiatAmountState()
 
-    @State private var destination: Destination = .chatting
-    /// A spending address that has never been revealed, used or handed out - reserved for this
-    /// request when Spending Address is picked (once per screen: Copy, Share and Send all reuse
-    /// it), so no two requests ever share an address and a payment can't mix with another.
-    @State private var spendingAddress: String?
-    @State private var reservingSpending = false
+    @State private var destination: Destination = .fresh
+    /// The brand-new address reserved for this request (`reserveFreshSpendingAddresses`) - only
+    /// when it's copied, shared or sent, so opening the screen and cancelling uses none up. Once
+    /// per screen: Copy, Share and Send all reuse it, so no two requests share an address.
+    @State private var freshAddress: String?
+    @State private var chosenAddress: String?
+    @State private var showAddressPicker = false
     @State private var amountInput = ""
     @State private var memo = ""
     @State private var copied = false
-    @State private var isSending = false
+    @State private var isWorking = false
     @State private var sendError: String?
+    @State private var shareItem: ShareURL?
 
-    private var address: String? {
-        switch destination {
-        case .chatting: return walletManager.currentWallet?.publicAddress
-        case .spending: return spendingAddress
-        }
+    private struct ShareURL: Identifiable {
+        let url: URL
+        var id: String { url.absoluteString }
     }
 
-    /// The request, signed by your chatting address: whoever pays sees it is from you - your
-    /// name and picture - even when it asks to be paid to a spending address, which has none.
-    private var request: PaymentRequest? {
-        guard let address, let sompi = KaspaUnit.sompi(fromUserText: amountInput), sompi > 0 else { return nil }
-        let unsigned = PaymentRequest(address: address, amountSompi: sompi, memo: memo, toChattingAddress: destination == .chatting)
-        // an account whose key isn't on this phone can still ask; the payer is told it's unsigned
-        guard let creator = walletManager.currentWallet?.publicAddress,
-              let key = WalletManager.shared.getPrivateKey() else { return unsigned }
-        return unsigned.signed(by: creator, privateKey: key) ?? unsigned
+    private var chattingAddress: String? { walletManager.currentWallet?.publicAddress }
+
+    private var amountSompi: UInt64? {
+        guard let sompi = KaspaUnit.sompi(fromUserText: amountInput), sompi > 0 else { return nil }
+        return sompi
+    }
+
+    /// Ready to hand out: an amount, and an address (or a fresh one to be made).
+    private var canMake: Bool {
+        amountSompi != nil && (destination == .fresh || chosenAddress != nil)
     }
 
     var body: some View {
@@ -55,22 +59,37 @@ struct CreatePaymentRequestView: View {
                 VStack(spacing: 18) {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(spacing: 10) {
-                            destinationPill("Chatting Address", .chatting)
-                            destinationPill("Spending Address", .spending)
+                            destinationPill("Fresh Address", selected: destination == .fresh) {
+                                destination = .fresh
+                            }
+                            destinationPill("Choose an Address", selected: destination == .chosen) {
+                                destination = .chosen
+                                showAddressPicker = true
+                            }
                         }
 
-                        if let address {
-                            AddressResolutionCard(address: address)
-                        } else {
-                            HStack { Spacer(); ProgressView(); Spacer() }
-                                .padding(.vertical, 18)
+                        switch destination {
+                        case .fresh:
+                            if let freshAddress {
+                                AddressResolutionCard(address: freshAddress)
+                            }
+                            Text("Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        case .chosen:
+                            if let chosenAddress {
+                                AddressResolutionCard(address: chosenAddress)
+                                Text(chosenAddress == chattingAddress
+                                     ? "The payment lands in your chat with whoever pays, with the memo."
+                                     : "The memo shows to whoever pays, but doesn't travel with the payment.")
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("Pick which of your addresses gets paid.")
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                            }
                         }
-
-                        Text(destination == .chatting
-                             ? "The payment lands in your chat with whoever pays, with the memo."
-                             : "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment.")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
                     }
 
                     KaspaAmountEntry(
@@ -100,17 +119,18 @@ struct CreatePaymentRequestView: View {
                             .foregroundColor(.secondary)
                     }
 
+                    if let sendError {
+                        Text(sendError)
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                    }
+
                     if let recipient {
-                        if let sendError {
-                            Text(sendError)
-                                .font(.footnote)
-                                .foregroundColor(.red)
-                                .multilineTextAlignment(.center)
-                        }
                         SendActionButton(
                             title: "Send Payment Request",
-                            isBusy: isSending,
-                            isEnabled: request != nil && !isSending,
+                            isBusy: isWorking,
+                            isEnabled: canMake && !isWorking,
                             requiresSlide: false
                         ) {
                             send(to: recipient)
@@ -118,18 +138,17 @@ struct CreatePaymentRequestView: View {
                     } else {
                         SendActionButton(
                             title: copied ? "Copied" : "Copy Payment Request",
-                            isBusy: false,
-                            isEnabled: request != nil,
+                            isBusy: isWorking,
+                            isEnabled: canMake && !isWorking,
                             requiresSlide: false,
                             action: copy
                         )
 
-                        if let request, let url = URL(string: request.shareURLString) {
-                            ShareLink(item: url) {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                                    .font(.subheadline.weight(.semibold))
-                            }
+                        Button(action: share) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                                .font(.subheadline.weight(.semibold))
                         }
+                        .disabled(!canMake || isWorking)
                     }
 
                     Text("Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key).")
@@ -149,25 +168,35 @@ struct CreatePaymentRequestView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .onChange(of: request) { _ in copied = false }
-            .onChange(of: destination) { picked in
-                if picked == .spending { reserveSpendingAddress() }
+            .onChange(of: amountInput) { _ in copied = false }
+            .onChange(of: memo) { _ in copied = false }
+            .onChange(of: destination) { _ in copied = false }
+            .onChange(of: chosenAddress) { _ in copied = false }
+            .sheet(isPresented: $showAddressPicker) {
+                PaymentRequestAddressPicker(selected: chosenAddress) { address in
+                    chosenAddress = address
+                }
+            }
+            .sheet(item: $shareItem) { item in
+                PaymentRequestShareSheet(url: item.url)
             }
         }
     }
 
     /// A pill like the amount's currency switch: the chosen one filled in.
-    private func destinationPill(_ title: LocalizedStringKey, _ value: Destination) -> some View {
-        let selected = destination == value
-        return Button {
+    private func destinationPill(_ title: LocalizedStringKey, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button {
             Haptics.impact(.light)
-            destination = value
+            action()
         } label: {
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundColor(selected ? .black : .primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
+                .padding(.horizontal, 6)
                 .background(
                     Capsule().fill(selected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.regularMaterial))
                 )
@@ -177,41 +206,173 @@ struct CreatePaymentRequestView: View {
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    private func reserveSpendingAddress() {
-        guard spendingAddress == nil, !reservingSpending else { return }
-        reservingSpending = true
-        Task {
-            spendingAddress = await walletManager.reserveFreshSpendingAddresses(count: 1).first?.address
-            reservingSpending = false
-            // watched from now on, so its payment shows the moment it lands
-            ChatService.shared.checkAndResubscribeIfNeeded()
+    /// The request to hand out, signed by your chatting address (whoever pays sees it's from you,
+    /// even when it's paid to a spending address, which has no identity). A fresh address is
+    /// reserved here, the first time it's needed.
+    private func makeRequest() async -> PaymentRequest? {
+        guard let sompi = amountSompi else { return nil }
+        let address: String
+        switch destination {
+        case .fresh:
+            if let freshAddress {
+                address = freshAddress
+            } else {
+                guard let reserved = await walletManager.reserveFreshSpendingAddresses(count: 1).first?.address else {
+                    sendError = AppLocalization.string("Couldn't make a new address. Please try again.")
+                    return nil
+                }
+                freshAddress = reserved
+                address = reserved
+                // watched from now on, so its payment shows the moment it lands
+                ChatService.shared.checkAndResubscribeIfNeeded()
+            }
+        case .chosen:
+            guard let chosenAddress else { return nil }
+            address = chosenAddress
         }
+        let unsigned = PaymentRequest(address: address, amountSompi: sompi, memo: memo,
+                                      toChattingAddress: address == chattingAddress)
+        // an account whose key isn't on this phone can still ask; the payer is told it's unsigned
+        guard let creator = chattingAddress, let key = WalletManager.shared.getPrivateKey() else { return unsigned }
+        return unsigned.signed(by: creator, privateKey: key) ?? unsigned
     }
 
     /// Sends the request into the chat as a message: it shows there as a Payment Request card,
     /// which they tap to pay.
     private func send(to contact: Contact) {
-        guard let request else { return }
-        isSending = true
+        isWorking = true
         sendError = nil
         Task {
+            guard let request = await makeRequest() else { isWorking = false; return }
             do {
                 try await ChatService.shared.sendMessage(to: contact, content: request.shareURLString, feeOverride: nil)
                 Haptics.success()
                 dismiss()
             } catch {
-                isSending = false
+                isWorking = false
                 sendError = UserFacingError.message(for: error)
             }
         }
     }
 
     private func copy() {
-        guard let request else { return }
-        UIPasteboard.general.string = request.shareURLString
-        Haptics.success()
-        copied = true
+        isWorking = true
+        sendError = nil
+        Task {
+            defer { isWorking = false }
+            guard let request = await makeRequest() else { return }
+            UIPasteboard.general.string = request.shareURLString
+            Haptics.success()
+            copied = true
+        }
     }
+
+    private func share() {
+        isWorking = true
+        sendError = nil
+        Task {
+            defer { isWorking = false }
+            guard let request = await makeRequest(), let url = URL(string: request.shareURLString) else { return }
+            shareItem = ShareURL(url: url)
+        }
+    }
+}
+
+/// Choose an Address: which of your addresses a payment request asks to be paid to - your
+/// chatting address, then your spending addresses (the ones Manage Addresses shows, plus hidden
+/// ones holding Kaspa), each with its name and balance.
+struct PaymentRequestAddressPicker: View {
+    let selected: String?
+    let onPick: (String) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var entries: [SpendingAddressEntry]?
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if let chatting = WalletManager.shared.currentWallet {
+                    Section("Chatting Address") {
+                        row(title: AppLocalization.string("Chatting Address"), address: chatting.publicAddress,
+                            balance: chatting.balanceSompi, badge: nil)
+                    }
+                }
+                Section("Spending Addresses") {
+                    if let entries {
+                        ForEach(entries) { entry in
+                            row(title: entry.displayLabel, address: entry.address, balance: entry.balanceSompi,
+                                badge: entry.isCurrent ? AppLocalization.string("Primary") : nil)
+                        }
+                    } else {
+                        HStack { Spacer(); ProgressView(); Spacer() }
+                    }
+                }
+            }
+            .navigationTitle("Choose an Address")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .task {
+            let all = await WalletManager.shared.getSpendingAddressList()
+            entries = all
+                .filter { !$0.hidden || $0.balanceSompi > 0 }
+                .sorted { $0.index < $1.index }
+        }
+    }
+
+    private func row(title: String, address: String, balance: UInt64?, badge: String?) -> some View {
+        Button {
+            onPick(address)
+            dismiss()
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(verbatim: title)
+                            .font(.subheadline.weight(.semibold))
+                        if let badge {
+                            Text(verbatim: badge)
+                                .font(.caption2.weight(.bold))
+                                .foregroundColor(.accentColor)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(Color.accentColor.opacity(0.15)))
+                        }
+                    }
+                    Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                        .font(.caption.monospaced())
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                if let balance {
+                    Text(verbatim: "\(KaspaUnit.plain(balance)) \(KaspaUnit.symbol)")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundColor(balance > 0 ? .primary : .secondary)
+                }
+                if address == selected {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct PaymentRequestShareSheet: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 // MARK: - Paying one

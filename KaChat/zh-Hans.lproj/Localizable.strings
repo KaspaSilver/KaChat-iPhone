@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "付到你的一个全新地址，仅用于此请求。付款人能看到备注，但备注不会随付款发送。";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "新地址";
+"Choose an Address" = "选择地址";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "付到你的一个全新地址，从未使用过，仅用于此请求。在你复制、分享或发送请求时创建。付款人能看到备注，但备注不会随付款发送。";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "付款人能看到备注，但备注不会随付款发送。";
+"Pick which of your addresses gets paid." = "选择用你的哪个地址收款。";
+"Couldn't make a new address. Please try again." = "无法创建新地址，请重试。";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "支出地址";

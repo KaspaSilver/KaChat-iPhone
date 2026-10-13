@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "このリクエスト専用の、まったく新しいあなたのアドレスに支払われます。メモは支払う人に表示されますが、支払いと一緒には送られません。";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "新しいアドレス";
+"Choose an Address" = "アドレスを選ぶ";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "一度も使われていない、このリクエスト専用のまったく新しいあなたのアドレスに支払われます。リクエストをコピー・共有・送信したときに作成されます。メモは支払う人に表示されますが、支払いと一緒には送られません。";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "メモは支払う人に表示されますが、支払いと一緒には送られません。";
+"Pick which of your addresses gets paid." = "どのアドレスで受け取るか選んでください。";
+"Couldn't make a new address. Please try again." = "新しいアドレスを作成できませんでした。もう一度お試しください。";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "支出アドレス";

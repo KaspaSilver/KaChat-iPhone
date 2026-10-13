@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "이 요청에만 쓰이는 완전히 새로운 내 주소로 결제됩니다. 메모는 결제하는 사람에게만 보이고 결제와 함께 전송되지 않습니다.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "새 주소";
+"Choose an Address" = "주소 선택";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "한 번도 쓰지 않은, 이 요청에만 쓰는 완전히 새로운 내 주소로 결제됩니다. 요청을 복사·공유·보낼 때 만들어집니다. 메모는 결제하는 사람에게만 보이고 결제와 함께 전송되지 않습니다.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "메모는 결제하는 사람에게만 보이고 결제와 함께 전송되지 않습니다.";
+"Pick which of your addresses gets paid." = "어느 주소로 받을지 선택하세요.";
+"Couldn't make a new address. Please try again." = "새 주소를 만들 수 없습니다. 다시 시도하세요.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "지출 주소";

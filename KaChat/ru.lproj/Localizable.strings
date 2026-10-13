@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Оплата на совершенно новый ваш адрес, только для этого запроса. Заметку увидит плательщик, но с платежом она не отправится.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "Новый адрес";
+"Choose an Address" = "Выбрать адрес";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Оплата на совершенно новый ваш адрес, ни разу не использованный и только для этого запроса. Он создаётся, когда вы копируете, отправляете или делитесь запросом. Заметку увидит плательщик, но с платежом она не отправится.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "Заметку увидит плательщик, но с платежом она не отправится.";
+"Pick which of your addresses gets paid." = "Выберите, на какой из ваших адресов придёт оплата.";
+"Couldn't make a new address. Please try again." = "Не удалось создать новый адрес. Попробуйте ещё раз.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "Адреса для расходов";

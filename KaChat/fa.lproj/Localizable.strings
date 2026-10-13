@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "به یک آدرس کاملاً تازه شما پرداخت می‌شود که فقط برای همین درخواست است. پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "آدرس تازه";
+"Choose an Address" = "انتخاب آدرس";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "به یک آدرس کاملاً تازه شما پرداخت می‌شود که پیش‌تر استفاده نشده و فقط برای همین درخواست است. هنگام کپی، اشتراک یا ارسال درخواست ساخته می‌شود. پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
+"Pick which of your addresses gets paid." = "انتخاب کنید کدام آدرس شما پرداخت را دریافت کند.";
+"Couldn't make a new address. Please try again." = "ساخت آدرس تازه ممکن نشد. دوباره تلاش کنید.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "آدرس‌های هزینه";

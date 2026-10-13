@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "आपके बिल्कुल नए पते पर भुगतान होगा, केवल इसी अनुरोध के लिए। नोट भुगतान करने वाले को दिखेगा, पर भुगतान के साथ नहीं जाएगा।";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "नया पता";
+"Choose an Address" = "एक पता चुनें";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "आपके बिल्कुल नए पते पर भुगतान होगा, जो पहले कभी इस्तेमाल नहीं हुआ और केवल इसी अनुरोध के लिए है। अनुरोध कॉपी, शेयर या भेजने पर यह बनता है। नोट भुगतान करने वाले को दिखेगा, पर भुगतान के साथ नहीं जाएगा।";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "नोट भुगतान करने वाले को दिखेगा, पर भुगतान के साथ नहीं जाएगा।";
+"Pick which of your addresses gets paid." = "चुनें कि आपके किस पते पर भुगतान हो।";
+"Couldn't make a new address. Please try again." = "नया पता नहीं बन सका। फिर से कोशिश करें।";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "खर्च वाले पते";

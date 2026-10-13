@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Trả vào một địa chỉ hoàn toàn mới của bạn, chỉ dùng cho yêu cầu này. Người trả thấy ghi chú, nhưng ghi chú không đi kèm khoản thanh toán.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "Địa chỉ mới";
+"Choose an Address" = "Chọn địa chỉ";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Trả vào một địa chỉ hoàn toàn mới của bạn, chưa từng dùng và chỉ cho yêu cầu này. Địa chỉ được tạo khi bạn sao chép, chia sẻ hoặc gửi yêu cầu. Người trả thấy ghi chú, nhưng ghi chú không đi kèm khoản thanh toán.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "Người trả thấy ghi chú, nhưng ghi chú không đi kèm khoản thanh toán.";
+"Pick which of your addresses gets paid." = "Chọn địa chỉ nào của bạn sẽ nhận thanh toán.";
+"Couldn't make a new address. Please try again." = "Không thể tạo địa chỉ mới. Hãy thử lại.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "Địa chỉ chi tiêu";

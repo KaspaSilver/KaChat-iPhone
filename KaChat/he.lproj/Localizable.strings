@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "משולם לכתובת חדשה לגמרי שלך, לבקשה הזו בלבד. המשלם רואה את ההערה, אבל היא לא נשלחת עם התשלום.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "כתובת חדשה";
+"Choose an Address" = "בחירת כתובת";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "משולם לכתובת חדשה לגמרי שלך, שמעולם לא שימשה, לבקשה הזו בלבד. היא נוצרת כשמעתיקים, משתפים או שולחים את הבקשה. המשלם רואה את ההערה, אבל היא לא נשלחת עם התשלום.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "המשלם רואה את ההערה, אבל היא לא נשלחת עם התשלום.";
+"Pick which of your addresses gets paid." = "בחרו לאיזו מהכתובות שלכם ישולם.";
+"Couldn't make a new address. Please try again." = "לא ניתן ליצור כתובת חדשה. נסו שוב.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "כתובות הוצאה";

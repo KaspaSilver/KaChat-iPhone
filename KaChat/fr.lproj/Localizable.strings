@@ -1668,3 +1668,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Payé à une toute nouvelle adresse à vous, pour cette demande uniquement. La note s’affiche pour qui paie, mais ne part pas avec le paiement.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "Nouvelle adresse";
+"Choose an Address" = "Choisir une adresse";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Payé à une toute nouvelle adresse à vous, jamais utilisée et réservée à cette demande. Elle est créée quand vous copiez, partagez ou envoyez la demande. La note s’affiche pour qui paie, mais ne part pas avec le paiement.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "La note s’affiche pour qui paie, mais ne part pas avec le paiement.";
+"Pick which of your addresses gets paid." = "Choisissez laquelle de vos adresses est payée.";
+"Couldn't make a new address. Please try again." = "Impossible de créer une nouvelle adresse. Réessayez.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "Adresses de dépense";

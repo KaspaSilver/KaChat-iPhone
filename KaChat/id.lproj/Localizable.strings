@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Dibayar ke alamat Anda yang benar-benar baru, hanya untuk permintaan ini. Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "Alamat Baru";
+"Choose an Address" = "Pilih Alamat";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Dibayar ke alamat Anda yang benar-benar baru, belum pernah dipakai dan hanya untuk permintaan ini. Dibuat saat Anda menyalin, membagikan, atau mengirim permintaan. Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
+"Pick which of your addresses gets paid." = "Pilih alamat Anda mana yang dibayar.";
+"Couldn't make a new address. Please try again." = "Tidak bisa membuat alamat baru. Coba lagi.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "Alamat Belanja";

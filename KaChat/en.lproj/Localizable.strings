@@ -1668,3 +1668,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "Fresh Address";
+"Choose an Address" = "Choose an Address";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "The memo shows to whoever pays, but doesn't travel with the payment.";
+"Pick which of your addresses gets paid." = "Pick which of your addresses gets paid.";
+"Couldn't make a new address. Please try again." = "Couldn't make a new address. Please try again.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "Spending Addresses";

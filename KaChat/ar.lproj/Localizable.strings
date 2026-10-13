@@ -1667,3 +1667,14 @@
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "تُدفع إلى عنوان جديد تمامًا لك، يُستخدم لهذا الطلب فقط. تظهر الملاحظة لمن يدفع، لكنها لا تُرسل مع الدفعة.";
+
+/* Request Payment: Fresh Address / Choose an Address */
+"Fresh Address" = "عنوان جديد";
+"Choose an Address" = "اختر عنوانًا";
+"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "تُدفع إلى عنوان جديد تمامًا لك، لم يُستخدم من قبل ويُستخدم لهذا الطلب فقط. يُنشأ عند نسخ الطلب أو مشاركته أو إرساله. تظهر الملاحظة لمن يدفع، لكنها لا تُرسل مع الدفعة.";
+"The memo shows to whoever pays, but doesn't travel with the payment." = "تظهر الملاحظة لمن يدفع، لكنها لا تُرسل مع الدفعة.";
+"Pick which of your addresses gets paid." = "اختر أي عنوان من عناوينك يُدفع إليه.";
+"Couldn't make a new address. Please try again." = "تعذّر إنشاء عنوان جديد. حاول مرة أخرى.";
+
+/* Request Payment > Choose an Address: section title */
+"Spending Addresses" = "عناوين الإنفاق";

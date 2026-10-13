@@ -3026,13 +3026,8 @@ extension ChatService {
             return
         }
 
-        // Fresh-address payment pool envelopes (addr_pool / addr_pool_request / payment_notice)
-        // are likewise never chat bubbles - same interception pattern as reactions above. A
-        // payment_notice DOES produce a payment bubble, but the handler constructs that bubble
-        // itself and re-enters this function with plain payment content. See
-        // `ChatService+PaymentPools.swift` and MESSAGING.md ("Fresh-Address Payment Pools").
-        if let poolEnvelope = PaymentPoolCodec.parse(message.content) {
-            handlePaymentPoolEnvelope(poolEnvelope, message: message, contactAddress: contactAddress)
+        // The retired payment-pool envelopes another client may still send: never bubbles.
+        if isRetiredPaymentPoolEnvelope(message.content) {
             return
         }
 

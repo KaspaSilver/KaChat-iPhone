@@ -41,11 +41,6 @@ struct SettingsView: View {
     @State private var showChatHistoryImporter = false
     @State private var isPreparingChatHistoryExport = false
 
-    /// Mirrors the ACTIVE ACCOUNT's per-wallet Chats Privacy flag (fresh-address payment
-    /// pools) - seeded from storage when the Chats page appears, written through on change.
-    /// Per-account, not part of the global AppSettings blob: see
-    /// `AppSettings.chatsPrivacyEnabled(for:)`.
-    @State private var chatsPrivacyEnabled = true
     @AppStorage(MessageStore.dpiCorruptionWarningKey) private var dpiWarningActive = false
     @AppStorage(MessageStore.dpiCorruptionWarningEndpointKey) private var dpiWarningEndpoint = ""
     @AppStorage(MessageStore.dpiCorruptionWarningDateKey) private var dpiWarningDate: Double = 0
@@ -635,19 +630,8 @@ fileprivate func settingsCategoryRow<Destination: View>(
 /// blob / device Keychain - nothing here needs an active account, which is exactly why Child
 /// Mode is reachable from the accounts list (a parent can manage it without unlocking anything).
 struct SecuritySettingsPage: View {
-    /// Shared with the setup wizard's Chat Payment Privacy step (`WelcomeGuideView`) so the
-    /// toggle and the wizard describe the same setting the same way.
-    static let chatsPrivacyOnDescription = "Anytime you receive Kaspa KaChat will do its best make sure the Kaspa goes to a fresh address not tied to your chatting identity. Sending Kaspa KaChat will always make sure it comes out of your primary spend address which is never associated with your chatting identity."
-    static let chatsPrivacyOffDescription = "All Kaspa will flow in and out of your chatting address"
-
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @ObservedObject private var walletManager = WalletManager.shared
-    /// Per-ACCOUNT Chats Payment Privacy. Seeded on appear from the active account - and hidden
-    /// entirely when there is not one, which is the case on the accounts screen's App Settings.
-    /// Every other row on this page is app-wide; this one is not, so with no account signed in
-    /// there is nothing for it to be the setting OF. It was rendering the default there and
-    /// writing to whichever account happened to be active next.
-    @State private var chatsPrivacyEnabled = true
 
     /// A biometric lock that could be switched off without passing the lock is not a lock -
     /// anyone holding an unlocked phone could have turned all three off and then read the seed
@@ -710,28 +694,9 @@ struct SecuritySettingsPage: View {
                     }
                 }
             }
-
-            if walletManager.currentWallet != nil {
-            Section {
-                Toggle("Chats Payment Privacy", isOn: $chatsPrivacyEnabled)
-                    .onChange(of: chatsPrivacyEnabled) { newValue in
-                        AppSettings.setChatsPrivacyEnabledForActiveAccount(newValue)
-                        // OFF actively revokes our shared pools at every contact holding one
-                        // (their next payment falls back to our chatting address immediately);
-                        // ON lets the lazy per-contact offers re-fire. See
-                        // ChatService+PaymentPools.handleChatsPrivacyToggleChanged.
-                        ChatService.shared.handleChatsPrivacyToggleChanged(enabled: newValue)
-                    }
-            } footer: {
-                Text("On: \(Self.chatsPrivacyOnDescription)\n\nOff: \(Self.chatsPrivacyOffDescription)\n\nThis setting belongs to this account alone - your other accounts keep their own.")
-            }
-            }
         }
         .navigationTitle("Security")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            chatsPrivacyEnabled = AppSettings.chatsPrivacyEnabledForActiveAccount()
-        }
     }
 }
 

@@ -1683,3 +1683,6 @@
 "Used" = "已使用";
 "Unused" = "未使用";
 "Checking" = "正在检查";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "从你的任一地址发送 Kaspa。";

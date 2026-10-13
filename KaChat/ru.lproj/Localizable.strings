@@ -1683,3 +1683,6 @@
 "Used" = "Использован";
 "Unused" = "Не использован";
 "Checking" = "Проверка";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "Отправляйте Kaspa с любого из ваших адресов.";

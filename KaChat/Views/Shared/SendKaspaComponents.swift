@@ -600,3 +600,263 @@ struct SendActionButton: View {
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { offset = 0 }
     }
 }
+
+// MARK: - From (which of your addresses a send comes out of)
+
+/// Where a send comes from: the chatting address (every send screen's default), or one of the
+/// spending addresses picked under Choose an Address.
+enum SendSource: Equatable, Hashable {
+    case chatting
+    case spending(index: Int, address: String, label: String)
+
+    var spendingIndex: Int? {
+        if case .spending(let index, _, _) = self { return index }
+        return nil
+    }
+
+    @MainActor
+    var address: String? {
+        switch self {
+        case .chatting: return WalletManager.shared.currentWallet?.publicAddress
+        case .spending(_, let address, _): return address
+        }
+    }
+}
+
+/// A pill to pick one of a few choices, like the amount's currency switch: the chosen one
+/// filled in teal. Send screens' From, Request Payment's address.
+struct SelectablePill: View {
+    let title: LocalizedStringKey
+    let selected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.impact(.light)
+            action()
+        } label: {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(selected ? .black : .primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 6)
+                .background(
+                    Capsule().fill(selected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.regularMaterial))
+                )
+                .overlay(Capsule().stroke(Color.accentColor.opacity(selected ? 0 : 0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+/// The From section every send screen starts with, so it is always plain which address the
+/// Kaspa leaves from: Chatting Address (the default) or Choose an Address (any of your
+/// addresses, each marked used or unused), and the chosen address with its balance.
+struct SendFromSection: View {
+    @Binding var source: SendSource
+    /// The chosen address's balance, loaded here (nil while it loads) - the screen's Available.
+    @Binding var availableSompi: UInt64?
+    @State private var showPicker = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("From")
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+            HStack(spacing: 10) {
+                SelectablePill(title: "Chatting Address", selected: source == .chatting) {
+                    source = .chatting
+                }
+                SelectablePill(title: "Choose an Address", selected: source != .chatting) {
+                    showPicker = true
+                }
+            }
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(verbatim: title)
+                        .font(.subheadline.weight(.semibold))
+                    if let address = source.address {
+                        Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                            .font(.caption.monospaced())
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Spacer()
+                if let availableSompi {
+                    Text(verbatim: "\(KaspaUnit.plain(availableSompi)) \(KaspaUnit.symbol)")
+                        .font(.subheadline.monospacedDigit().weight(.semibold))
+                } else {
+                    ProgressView().controlSize(.small)
+                }
+            }
+            .padding(12)
+            .background(sendKaspaGlass(cornerRadius: 14))
+        }
+        .sheet(isPresented: $showPicker) {
+            OwnAddressPicker(title: "Send From", selected: source.address) { picked in
+                source = picked
+            }
+        }
+        .task(id: source) {
+            availableSompi = nil
+            guard let address = source.address else { return }
+            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
+            guard !Task.isCancelled else { return }
+            availableSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
+        }
+    }
+
+    private var title: String {
+        switch source {
+        case .chatting: return AppLocalization.string("Chatting Address")
+        case .spending(_, _, let label): return label
+        }
+    }
+}
+
+/// Your addresses to pick from - the chatting address, then the spending addresses (the ones
+/// Manage Addresses shows, plus hidden ones holding Kaspa) - each with its name, balance and
+/// whether it was ever used (a balance means used, else the cached answer, else a history
+/// lookup, eight at a time; "Checking" until answered, never a possibly-wrong "Unused").
+/// A send's Choose an Address, and Request Payment's.
+struct OwnAddressPicker: View {
+    let title: LocalizedStringKey
+    let selected: String?
+    let onPick: (SendSource) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var entries: [SpendingAddressEntry]?
+    @State private var used: [String: Bool] = [:]
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if let chatting = WalletManager.shared.currentWallet {
+                    Section("Chatting Address") {
+                        row(title: AppLocalization.string("Chatting Address"), address: chatting.publicAddress,
+                            balance: chatting.balanceSompi) { .chatting }
+                    }
+                }
+                Section("Spending Addresses") {
+                    if let entries {
+                        ForEach(entries) { entry in
+                            row(title: entry.displayLabel, address: entry.address, balance: entry.balanceSompi) {
+                                .spending(index: entry.index, address: entry.address, label: entry.displayLabel)
+                            }
+                        }
+                    } else {
+                        HStack { Spacer(); ProgressView(); Spacer() }
+                    }
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .task {
+            let all = await WalletManager.shared.getSpendingAddressList()
+            let shown = all
+                .filter { !$0.hidden || $0.balanceSompi > 0 }
+                .sorted { $0.index < $1.index }
+            entries = shown
+            await checkUsed(shown)
+        }
+    }
+
+    private func checkUsed(_ shown: [SpendingAddressEntry]) async {
+        let chat = ChatService.shared
+        var all: [(address: String, balance: UInt64)] = shown.map { ($0.address, $0.balanceSompi) }
+        if let wallet = WalletManager.shared.currentWallet {
+            all.insert((wallet.publicAddress, wallet.balanceSompi ?? 0), at: 0)
+        }
+        var toProbe: [String] = []
+        for item in all {
+            if item.balance > 0 {
+                used[item.address] = true
+            } else if let cached = chat.cachedSpendingAddressUsedState(item.address) {
+                used[item.address] = cached
+            } else {
+                toProbe.append(item.address)
+            }
+        }
+        var pending = toProbe.makeIterator()
+        await withTaskGroup(of: (String, Bool?).self) { group in
+            for _ in 0..<8 {
+                guard let address = pending.next() else { break }
+                group.addTask { (address, await chat.spendingAddressUsedState(address)) }
+            }
+            while let (address, answer) = await group.next() {
+                if let answer { used[address] = answer }
+                if let next = pending.next() {
+                    group.addTask { (next, await chat.spendingAddressUsedState(next)) }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func usedTag(_ address: String) -> some View {
+        switch used[address] {
+        case true?:
+            Text("Used")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.secondary.opacity(0.15)))
+        case false?:
+            Text("Unused")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(.green)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Capsule().fill(Color.green.opacity(0.15)))
+        case nil:
+            Text("Checking")
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func row(title: String, address: String, balance: UInt64?, source: @escaping () -> SendSource) -> some View {
+        Button {
+            onPick(source())
+            dismiss()
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(verbatim: title)
+                            .font(.subheadline.weight(.semibold))
+                        usedTag(address)
+                    }
+                    Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                        .font(.caption.monospaced())
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                if let balance {
+                    Text(verbatim: "\(KaspaUnit.plain(balance)) \(KaspaUnit.symbol)")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundColor(balance > 0 ? .primary : .secondary)
+                }
+                if address == selected {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}

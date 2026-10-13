@@ -1683,3 +1683,6 @@
 "Used" = "Terpakai";
 "Unused" = "Belum dipakai";
 "Checking" = "Memeriksa";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "Kirim Kaspa dari alamat Anda yang mana pun.";

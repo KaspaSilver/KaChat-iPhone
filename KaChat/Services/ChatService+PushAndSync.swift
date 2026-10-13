@@ -632,12 +632,8 @@ extension ChatService {
             let nodePool = NodePoolService.shared
             AppLog.log("[ChatService] setupUtxoSubscription: RPC connected=%@", nodePool.isConnected ? "true" : "false")
 
-            // Collect all addresses to subscribe: our wallet + active contacts + spending-chain
-            // addresses reserved-and-offered as fresh payment-pool receive addresses (payments to
-            // those arrive on otherwise-unwatched addresses and would go unnoticed until a manual
-            // balance refresh - see ChatService+PaymentPools.swift). Pool addresses fall through
-            // the UTXO classifier's "unknown address" case, so watching them never creates
-            // bubbles; the payment_notice envelope does that.
+            // Collect all addresses to subscribe: our wallet + active contacts + our own spending
+            // and cold-storage addresses.
             var addressesToSubscribe = Set<String>()
             addressesToSubscribe.insert(wallet.publicAddress)
 
@@ -646,11 +642,8 @@ extension ChatService {
             for contact in contacts {
                 addressesToSubscribe.insert(contact.address)
             }
-            for poolAddress in PaymentPoolStore.shared.allOfferedReservationAddresses(wallet: wallet.publicAddress) {
-                addressesToSubscribe.insert(poolAddress)
-            }
             // Own-address receive notifications: also watch every revealed spending-chain
-            // address and all cold-storage (watch-only) addresses. Like pool addresses these
+            // address and all cold-storage (watch-only) addresses. These
             // fall through the classifier's chat cases - AddressActivityNotifier turns their
             // receives into wallet notifications, never chat bubbles (and their appearance
             // among `removed` entries is the self-send fast path).
@@ -824,7 +817,7 @@ extension ChatService {
         guard let wallet = WalletManager.shared.currentWallet else { return }
 
         // Rebuild subscription with all active addresses including the new one (and, as in
-        // setupUtxoSubscription, the offered payment-pool reservation addresses).
+        // setupUtxoSubscription).
         var addressesToSubscribe = Set<String>()
         addressesToSubscribe.insert(wallet.publicAddress)
 
@@ -833,9 +826,6 @@ extension ChatService {
             addressesToSubscribe.insert(address)
         }
         addressesToSubscribe.insert(contactAddress)
-        for poolAddress in PaymentPoolStore.shared.allOfferedReservationAddresses(wallet: wallet.publicAddress) {
-            addressesToSubscribe.insert(poolAddress)
-        }
         for ownAddress in AddressActivityNotifier.shared.watchedOwnAddresses() {
             addressesToSubscribe.insert(ownAddress)
         }
@@ -876,16 +866,13 @@ extension ChatService {
         guard let wallet = WalletManager.shared.currentWallet else { return }
 
         // Calculate current active address set. Must mirror setupUtxoSubscription's full set
-        // (contacts + offered pool addresses + own spending/cold addresses) - comparing a
+        // (contacts + own spending/cold addresses) - comparing a
         // partial set against lastSubscribedAddresses would read as "changed" on every call
         // and thrash resubscription.
         var addressesToSubscribe = Set<String>()
         addressesToSubscribe.insert(wallet.publicAddress)
         for contact in activeContacts {
             addressesToSubscribe.insert(contact.address)
-        }
-        for poolAddress in PaymentPoolStore.shared.allOfferedReservationAddresses(wallet: wallet.publicAddress) {
-            addressesToSubscribe.insert(poolAddress)
         }
         for ownAddress in AddressActivityNotifier.shared.watchedOwnAddresses() {
             addressesToSubscribe.insert(ownAddress)

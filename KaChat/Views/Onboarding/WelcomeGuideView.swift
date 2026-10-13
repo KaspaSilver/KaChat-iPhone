@@ -86,10 +86,8 @@ struct WelcomeGuideView: View {
         case funding
         case nodeConnection
         case addressExplainer
+        /// The guide's final step.
         case chatting
-        /// Per-account Chats Payment Privacy (fresh-address payment pools) - placed directly
-        /// after the starting-a-conversation step, and the guide's final step.
-        case paymentPrivacy
     }
 
     private enum NodeChoice: Equatable {
@@ -105,9 +103,6 @@ struct WelcomeGuideView: View {
 
     @State private var step: Step = .welcome
     @State private var userTypeChoice: UserTypeChoice = .adult
-    /// Chats Payment Privacy selection (per-account, default ON). Seeded from the active
-    /// account's stored value on appear so a replay shows and edits the real setting.
-    @State private var paymentPrivacyChoice = true
     @State private var childPasswordInput = ""
     @State private var childPasswordConfirm = ""
     @State private var childSetupError: String?
@@ -162,9 +157,6 @@ struct WelcomeGuideView: View {
             if startAtUserType, isOnboardingRun {
                 step = .userType
             }
-            if let address = walletManager.currentWallet?.publicAddress {
-                paymentPrivacyChoice = AppSettings.chatsPrivacyEnabled(for: address)
-            }
             nodeChoice = currentNodeChoiceFromSettings()
             ownNodeInput = settingsViewModel.settings.trustedNodeAddress == AppSettings.defaultTrustedNodeAddress
                 ? "" : settingsViewModel.settings.trustedNodeAddress
@@ -215,12 +207,9 @@ struct WelcomeGuideView: View {
                 icon: "bubble.left.and.bubble.right.fill",
                 title: "Starting a Conversation",
                 body: "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too.",
-                buttonTitle: "Next",
+                buttonTitle: "Finish",
                 extra: { EmptyView() }
-            ) { step = .paymentPrivacy }
-
-        case .paymentPrivacy:
-            paymentPrivacyStep
+            ) { finishGuide() }
         }
     }
 
@@ -489,104 +478,13 @@ struct WelcomeGuideView: View {
         Self.markUserTypeChosen()
     }
 
-    // MARK: - Chat Payment Privacy step
-
-    /// Per-account Chats Payment Privacy (fresh-address payment pools - see
-    /// `AppSettings.chatsPrivacyEnabled(for:)`, default ON, same setting as the Settings >
-    /// Chats toggle). Selection writes through immediately via the EXPLICIT-address variant
-    /// against the freshly created wallet: the active-account convenience resolves through the
-    /// app-group `activeDockAddress()` lookup, and this guide runs right after wallet creation
-    /// where relying on that sync's timing would be fragile. On replay the step simply shows
-    /// and edits the account's current value.
-    private var paymentPrivacyStep: some View {
-        VStack(spacing: 0) {
-            centeringScroll {
-                VStack(spacing: 16) {
-                    Image(systemName: "eye.slash.circle")
-                        .font(.scaled(size: 56))
-                        .foregroundColor(.accentColor)
-                    Text("Chat Payment Privacy")
-                        .font(.title2.weight(.bold))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                    Text("How would you like to send and receive payments in chats?")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-
-                    VStack(spacing: 10) {
-                        paymentPrivacyRow(
-                            enabled: true,
-                            title: "On",
-                            badge: "Recommended",
-                            subtitle: SecuritySettingsPage.chatsPrivacyOnDescription
-                        )
-                        paymentPrivacyRow(
-                            enabled: false,
-                            title: "Off",
-                            badge: nil,
-                            subtitle: SecuritySettingsPage.chatsPrivacyOffDescription
-                        )
-                    }
-                    .padding(.horizontal, 24)
-                }
-                .padding(.vertical, 24)
-            }
-            guideBottomBar(title: "Finish") {
-                applyPaymentPrivacyChoice()
-                // The guide is done: the one-shot import marker (funding step's "Change
-                // Chatting Address" option) has served its purpose, and a completed onboarding
-                // run must not re-present on the next launch.
-                walletManager.justImportedWallet = false
-                Self.clearOnboardingRunPending()
-                onFinished()
-            }
-        }
-    }
-
-    private func paymentPrivacyRow(enabled: Bool, title: String, badge: String?, subtitle: String) -> some View {
-        Button {
-            paymentPrivacyChoice = enabled
-            applyPaymentPrivacyChoice()
-        } label: {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: paymentPrivacyChoice == enabled ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(paymentPrivacyChoice == enabled ? .accentColor : .secondary)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(LocalizedStringKey(title))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundColor(.primary)
-                        if let badge {
-                            Text(LocalizedStringKey(badge))
-                                .font(.caption2.weight(.bold))
-                                .foregroundColor(.accentColor)
-                        }
-                    }
-                    Text(LocalizedStringKey(subtitle))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.leading)
-                }
-                Spacer()
-            }
-            .padding(12)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// Writes the selection to the per-account store. Explicit address deliberately (see
-    /// `paymentPrivacyStep` docs); falls back to the active-account convenience only if no
-    /// wallet is somehow loaded.
-    private func applyPaymentPrivacyChoice() {
-        if let address = walletManager.currentWallet?.publicAddress {
-            AppSettings.setChatsPrivacyEnabled(paymentPrivacyChoice, for: address)
-        } else {
-            AppSettings.setChatsPrivacyEnabledForActiveAccount(paymentPrivacyChoice)
-        }
+    /// The guide is done: the one-shot import marker (funding step's "Change Chatting Address"
+    /// option) has served its purpose, and a completed onboarding run must not re-present on the
+    /// next launch.
+    private func finishGuide() {
+        walletManager.justImportedWallet = false
+        Self.clearOnboardingRunPending()
+        onFinished()
     }
 
     // MARK: - Language step

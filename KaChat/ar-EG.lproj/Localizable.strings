@@ -1683,3 +1683,6 @@
 "Used" = "مستخدم";
 "Unused" = "غير مستخدم";
 "Checking" = "جارٍ التحقق";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "أرسل Kaspa من أي عنوان من عناوينك.";

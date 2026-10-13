@@ -50,7 +50,6 @@ struct ProfileView: View {
     @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
     @State private var showMoreProfileInfo = false
-    @State private var showWithdrawSheet = false
     @State private var spendingAddressBalanceSompi: UInt64?
     @State private var isLoadingSpendingBalance = false
     /// Every revealed spending address together, not just the primary. The row above shows what
@@ -59,7 +58,6 @@ struct ProfileView: View {
     @State private var spendingTotalSompi: UInt64?
     /// The pending coalesced refresh - see `scheduleBalanceRefresh`.
     @State private var balanceRefreshTask: Task<Void, Never>?
-    @State private var showSpendingAddressWithdraw = false
     @State private var showAvatarPreview = false
     @State private var showKNSEditor = false
     @State private var showCreateKNSProfileFlow = false
@@ -303,31 +301,12 @@ struct ProfileView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showWithdrawSheet) {
-                if let wallet = walletManager.currentWallet {
-                    WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi)
-                }
-            }
             // Donate goes straight to Send with KaChat's pinned donation address filled in - an
             // address, not a name anyone could register (IOS-067) - no chat opened
             .sheet(isPresented: $showDonateSheet) {
                 if let wallet = walletManager.currentWallet {
                     WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi,
                                       prefillAddress: Self.donationAddress)
-                }
-            }
-            .sheet(isPresented: $showSpendingAddressWithdraw) {
-                if let address = walletManager.currentSpendingAddress() {
-                    SpendingAddressWithdrawView(
-                        entry: SpendingAddressEntry(
-                            index: walletManager.currentSpendingAddressIndex,
-                            address: address,
-                            balanceSompi: spendingAddressBalanceSompi ?? 0,
-                            isCurrent: true
-                        )
-                    ) {
-                        Task { await loadSpendingAddressBalance() }
-                    }
                 }
             }
             .fullScreenCover(isPresented: $showAvatarPreview) {
@@ -1203,120 +1182,58 @@ struct ProfileView: View {
             .background(Circle().fill(Color.accentColor))
     }
 
-    // MARK: - Address action rows (Chatting Address / Spending Address)
+    // MARK: - Manage Addresses card
 
-    /// Two single-line rows, one per address role, sitting directly on the screen background
-    /// (no card) - same treatment as the big QR buttons above them. Each shows the role title
-    /// and balance on the left and three large icon-only buttons on the right: Copy, Send,
-    /// Manage. Replaces the old expanding dropdowns that hid the same three actions behind a
-    /// chevron tap.
+    /// One card for every address of this account - it opens Manage Addresses, which lists them
+    /// all, the chatting address first. Which address a send comes from is picked on the send
+    /// screen (From), so Profile no longer splits Chatting from Spending or has a "primary".
     private func addressDropdownsSection(_ wallet: Wallet) -> some View {
         VStack(spacing: 20) {
             // Testnet only: free TN10 coins for the chatting address, from the official faucet.
             if AppSettings.load().networkType == .testnet {
                 TestnetFaucetClaimButton(address: wallet.publicAddress)
             }
-            addressActionRow(
-                title: "Chatting",
-                address: wallet.publicAddress,
-                balanceText: wallet.balanceSompi.map { "\(formatKaspaExact($0)) \(KaspaUnit.symbol)" },
-                onSend: { showWithdrawSheet = true }
-            ) {
-                ChattingAddressManageView(address: wallet.publicAddress)
-            }
-            addressActionRow(
-                title: "Spending",
-                address: walletManager.currentSpendingAddress(),
-                balanceText: spendingAddressBalanceSompi.map { "\(formatKaspaExact($0)) \(KaspaUnit.symbol)" },
-                totalText: spendingTotalText,
-                isLoadingBalance: isLoadingSpendingBalance,
-                onSend: { showSpendingAddressWithdraw = true }
-            ) {
+            NavigationLink {
                 ManageAddressesView()
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "list.bullet.rectangle")
+                        .font(.scaled(size: 22, weight: .medium))
+                        .foregroundColor(.accentColor)
+                        .frame(width: 48, height: 48)
+                        .background(Circle().fill(.regularMaterial))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Manage Addresses")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.primary)
+                        if let total = accountTotalSompi(wallet) {
+                            Text(verbatim: "\(formatKaspaExact(total)) \(KaspaUnit.symbol)")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(.accentColor)
+                        } else {
+                            ProgressView()
+                                .scaleEffect(0.6, anchor: .leading)
+                                .frame(height: 14, alignment: .leading)
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(glassBackground(cornerRadius: 18))
+                .contentShape(RoundedRectangle(cornerRadius: 18))
             }
+            .buttonStyle(.plain)
         }
     }
 
-    /// One address row: role title + balance on the left, three large icon-only circles on
-    /// the right (Copy, Send, Manage - the icons alone carry the meaning; VoiceOver reads the
-    /// accessibility labels). No shortened address, no card background - the row sits on the
-    /// screen background like the QR buttons. `address` is optional because the current
-    /// spending address can be momentarily unresolvable while the keychain unlocks; in that
-    /// state a small "Address unlocking..." note shows and the Copy and Send actions are
-    /// inert guards rather than the wrong address.
-    private func addressActionRow<Destination: View>(
-        title: String,
-        address: String?,
-        balanceText: String?,
-        /// Optional second line under the balance. Used by the Spending row for the whole-account
-        /// total; the Chatting row has one address, so there is no total to distinguish.
-        totalText: String? = nil,
-        isLoadingBalance: Bool = false,
-        onSend: @escaping () -> Void,
-        @ViewBuilder manageDestination: @escaping () -> Destination
-    ) -> some View {
-        // Two buttons instead of three now, so the row centers as one cluster instead of
-        // splitting to the screen edges.
-        HStack(spacing: 24) {
-            // The title + balance block IS the copy affordance: tapping it copies the
-            // address, replacing the old dedicated Copy button.
-            Button {
-                guard let address else { return }
-                UIPasteboard.general.string = address
-                Haptics.success()
-                showToast(address.addressCopiedToastText)
-            } label: {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                    if address == nil {
-                        Text("Address unlocking...")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    if isLoadingBalance {
-                        ProgressView()
-                            .scaleEffect(0.6, anchor: .leading)
-                            .frame(height: 14, alignment: .leading)
-                    } else if let balanceText {
-                        Text(balanceText)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.accentColor)
-                            .lineLimit(1)
-                        if let totalText {
-                            Text(totalText)
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                }
-                // Fixed width so the Send/Manage buttons land in the same column on both
-                // cards regardless of title and balance text width.
-                .frame(width: 140, alignment: .leading)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Copy \(title) address"))
-            addressRowIconButton(icon: "arrow.up.circle.fill", label: "Send") {
-                guard address != nil else { return }
-                onSend()
-            }
-            NavigationLink {
-                manageDestination()
-            } label: {
-                addressRowIconLabel(icon: "gearshape", label: "Manage")
-            }
-            .buttonStyle(.plain)
-        }
-        .frame(maxWidth: .infinity, alignment: .center)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(glassBackground(cornerRadius: 18))
+    /// Everything this account holds: the chatting address and every spending address.
+    private func accountTotalSompi(_ wallet: Wallet) -> UInt64? {
+        guard let spending = spendingTotalSompi else { return nil }
+        return (wallet.balanceSompi ?? 0) + spending
     }
 
     private func addressRowIconButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
@@ -1336,17 +1253,6 @@ struct ProfileView: View {
             .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
             .contentShape(Circle())
             .accessibilityLabel(Text(label))
-    }
-
-    /// The whole-account total, shown whenever it is known.
-    ///
-    /// Deliberately NOT hidden when it matches the balance above it. On a wallet whose funds all
-    /// sit on the current address the two ARE the same number, and hiding the line then is
-    /// exactly when its absence is most confusing - it reads as the feature being missing rather
-    /// than as "nothing else to add".
-    private var spendingTotalText: String? {
-        guard let total = spendingTotalSompi else { return nil }
-        return "Total: \(formatKaspaExact(total)) \(KaspaUnit.symbol)"
     }
 
     /// Coalesces balance refreshes triggered by own-address activity.
@@ -4755,6 +4661,10 @@ struct WithdrawKaspaView: View {
 
     /// The request this send pays, if any (`paymentRequest`, or one pasted in).
     @State private var activeRequest: PaymentRequest?
+    /// Where the Kaspa leaves from (the From section): the chatting address by default.
+    @State private var source: SendSource = .chatting
+    /// The From address's balance, loaded by `SendFromSection`.
+    @State private var sourceBalanceSompi: UInt64?
 
     @EnvironmentObject var chatService: ChatService
     @EnvironmentObject var contactsManager: ContactsManager
@@ -4833,13 +4743,17 @@ struct WithdrawKaspaView: View {
     /// multiplier of the already-fetched base fee, no extra network round-trip needed).
     private var feeEstimationKey: String {
         let manualKey = manualUtxos?.map { "\($0.outpoint.transactionId):\($0.outpoint.index)" }.sorted().joined(separator: ",") ?? ""
-        return "\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)"
+        return "\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(source.spendingIndex ?? -1)"
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 18) {
+                    if !isCompoundMode {
+                        SendFromSection(source: $source, availableSompi: $sourceBalanceSompi)
+                    }
+
                     SendRecipientCard(
                         input: $addressInput,
                         lockedAddress: isCompoundMode ? fromAddress : activeRequest?.address,
@@ -4867,7 +4781,8 @@ struct WithdrawKaspaView: View {
                     )
                     .padding(.top, 8)
 
-                    if let availableBalanceSompi {
+                    // Compound UTXOs has no From (it merges this one address); the balance shows here.
+                    if isCompoundMode, let availableBalanceSompi {
                         SendInfoPill { KaspaUnit.text("Available: %@ KAS", trimmedKas(availableBalanceSompi)) }
                     }
 
@@ -4903,6 +4818,8 @@ struct WithdrawKaspaView: View {
             }
             // The recipient card only shows the lookup; this screen runs it.
             .onChange(of: addressInput) { handleInputChange($0) }
+            // coins picked on one address can't pay from another
+            .onChange(of: source) { _ in manualUtxos = nil }
             .onChange(of: feeTier) { _ in
                 customExtraFeeSompi = nil
                 isEditingFee = false
@@ -4921,7 +4838,7 @@ struct WithdrawKaspaView: View {
                 }
             }
             .sheet(isPresented: $showCoinControl) {
-                CoinControlView(fromAddress: fromAddress, initialSelection: manualUtxos) { selection in
+                CoinControlView(fromAddress: isCompoundMode ? fromAddress : (source.address ?? fromAddress), initialSelection: manualUtxos) { selection in
                     manualUtxos = selection
                 }
             }
@@ -4945,7 +4862,12 @@ struct WithdrawKaspaView: View {
                 try? await Task.sleep(nanoseconds: 400_000_000)
                 guard !Task.isCancelled else { return }
                 do {
-                    let fee = try await chatService.estimateWithdrawalFee(toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos)
+                    let fee: UInt64
+                    if let index = source.spendingIndex {
+                        fee = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos)
+                    } else {
+                        fee = try await chatService.estimateWithdrawalFee(toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos)
+                    }
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = fee
                 } catch {
@@ -5071,9 +4993,15 @@ struct WithdrawKaspaView: View {
         errorMessage = nil
         let recipient = effectiveAddress
         let tipSompi = extraFeeSompi
+        let spendingIndex = isCompoundMode ? nil : source.spendingIndex
         Task {
             do {
-                let maxSompi = try await chatService.estimateMaxWithdrawalAmount(toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                let maxSompi: UInt64
+                if let index = spendingIndex {
+                    maxSompi = try await chatService.estimateMaxSpendingAddressAmount(index: index, toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                } else {
+                    maxSompi = try await chatService.estimateMaxWithdrawalAmount(toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                }
                 await MainActor.run {
                     amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: portfolioViewModel.currentPriceUsd)
                     isEstimatingMax = false
@@ -5110,6 +5038,7 @@ struct WithdrawKaspaView: View {
         let recipient = effectiveAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         let tipSompi = extraFeeSompi
         let request = activeRequest
+        let spendingIndex = source.spendingIndex
         Task {
             do {
                 let txId: String
@@ -5120,8 +5049,10 @@ struct WithdrawKaspaView: View {
                     // it lands in your chat with them like any payment from the chat.
                     txId = try await chatService.sendPayment(
                         to: contact, amountSompi: amountSompi, note: request.memo,
-                        extraFeeSompi: tipSompi, manualUtxos: manualUtxos
+                        extraFeeSompi: tipSompi, sourceSpendingIndex: spendingIndex, manualUtxos: manualUtxos
                     ) ?? ""
+                } else if let spendingIndex {
+                    txId = try await chatService.sendFromSpendingAddress(index: spendingIndex, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                 } else {
                     txId = try await chatService.sendWithdrawal(toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                 }

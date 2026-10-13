@@ -320,26 +320,15 @@ extension WalletManager {
     /// index rather than recycling it. Returns the chosen index.
     func lowestUnusedSpendingAddress() async -> Int {
         let entries = await getSpendingAddressList().sorted { $0.index < $1.index }
-        // Only ACTIVE live-pool offers are excluded from recycling: a reverted reservation
-        // (revoked, superseded, or funded-and-swept) that the user has since hidden is a
-        // legitimate recycle candidate again.
-        let reserved: Set<String> = {
-            guard let wallet = currentWallet else { return [] }
-            return Set(PaymentPoolStore.shared.activeOfferedReservationAddresses(wallet: wallet.publicAddress))
-        }()
         for entry in entries {
             guard entry.hidden else { continue } // already visible - the user has it; move on
             if entry.isCurrent { continue }
             if entry.balanceSompi > 0 { continue }
-            if reserved.contains(entry.address) { continue }
             // Recycle only on a CONFIRMED-unused probe; nil (probe failed) skips the index -
             // extending the chain below is always safe, recycling an unknown one is not.
             let usedState = await ChatService.shared.spendingAddressUsedState(entry.address)
             if usedState == false {
                 _ = await setSpendingAddressHidden(index: entry.index, hidden: false)
-                if let wallet = currentWallet {
-                    PaymentPoolStore.shared.markReclaimed(address: entry.address, wallet: wallet.publicAddress)
-                }
                 return entry.index
             }
         }
@@ -424,14 +413,12 @@ extension WalletManager {
         _ = await setSpendingAddressHidden(index: index, hidden: false)
     }
 
-    /// Reveals and returns `count` brand-new spending-chain slots in one step - used by the
-    /// fresh-address payment pool feature (`ChatService+PaymentPools`) to reserve addresses to
-    /// offer a contact. Indices start strictly past `maxSpendingAddressIndex`, and the max is
+    /// Reveals and returns `count` brand-new spending-chain slots in one step - used by Request
+    /// Payment's Fresh Address. Indices start strictly past `maxSpendingAddressIndex`, and the max is
     /// bumped to cover them before returning, so: (a) they have never been revealed, funded, or
     /// offered before, and (b) no later payment-change address or reservation can ever land on
     /// the same index (`sendPaymentInternal`'s fresh change index and this both always start at
-    /// max+1). The addresses stay listed in Manage Addresses like any other revealed slot - the
-    /// per-contact reservation itself lives in `PaymentPoolStore`, not here.
+    /// max+1). The addresses stay listed in Manage Addresses like any other revealed slot.
     ///
     /// Returns an empty array (reserving nothing, bumping nothing) if derivation fails.
     func reserveFreshSpendingAddresses(count: Int) async -> [(index: Int, address: String)] {
@@ -505,18 +492,11 @@ extension WalletManager {
     }
 
     /// Hides a spending address from the main Manage Addresses list. Refused (returns false)
-    /// for the current primary address, one with a nonzero balance, or one ACTIVELY offered to
-    /// a contact in a live payment pool (those stay visible so the user always sees which
-    /// addresses are held ready for contacts to pay into) - re-enforced here server-side
-    /// regardless of what the UI already checked. A reservation that reverted (revoked,
-    /// superseded, or funded-and-swept) is a normal address again and hides fine.
+    /// for the current spending index or one with a nonzero balance - re-enforced here
+    /// regardless of what the UI already checked.
     func setSpendingAddressHidden(index: Int, hidden: Bool) async -> Bool {
         guard index != currentSpendingAddressIndex else { return false }
         if hidden, let address = spendingAddress(at: index) {
-            if let walletAddress = currentWallet?.publicAddress,
-               PaymentPoolStore.shared.activeOfferedReservationAddresses(wallet: walletAddress).contains(address) {
-                return false
-            }
             let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
             let balance = utxos.reduce(UInt64(0)) { $0 + $1.amount }
             guard balance == 0 else { return false }
@@ -536,43 +516,6 @@ extension WalletManager {
     /// (before the full balance/used reload finishes).
     func hiddenSpendingIndexSet() -> Set<Int> {
         hiddenSpendingIndices
-    }
-
-    /// Removes payment-pool reservation indices from the hidden set, bypassing the async
-    /// balance path (unhiding needs no network guard). Reservations are born VISIBLE - fresh
-    /// indices start past the all-time max and were never hidden - so for new offers this is a
-    /// no-op; it matters for reservations recorded under the old born-hidden design (before
-    /// the product change that surfaces them in Manage Addresses) that get (re-)offered now.
-    func unhideReservedIndices(_ indices: [Int]) {
-        var current = hiddenSpendingIndices
-        let before = current.count
-        for index in indices { current.remove(index) }
-        guard current.count != before else { return }
-        hiddenSpendingIndices = current
-    }
-
-    /// One-shot repair for the old born-hidden payment-pool design: any address in an ACTIVE
-    /// live pool that is still sitting in the hidden set becomes visible, so users with
-    /// outstanding pools see them in Manage Addresses without re-offering. Deliberately scoped
-    /// to the active set - a reservation that already reverted (revoked, superseded, funded)
-    /// is a normal address and stays however the user left it. Cheap set intersection - safe
-    /// to call on every Manage Addresses load and on wallet load.
-    func unhideOfferedReservationsIfNeeded() {
-        guard let walletAddress = currentWallet?.publicAddress else { return }
-        let offered = PaymentPoolStore.shared.activeOfferedReservationAddresses(wallet: walletAddress)
-        guard !offered.isEmpty else { return }
-        var hidden = hiddenSpendingIndices
-        var unhidden = 0
-        for address in offered {
-            if let index = PaymentPoolStore.shared.reservationIndex(for: address, wallet: walletAddress),
-               hidden.contains(index) {
-                hidden.remove(index)
-                unhidden += 1
-            }
-        }
-        guard unhidden > 0 else { return }
-        hiddenSpendingIndices = hidden
-        AppLog.log("[WalletManager] Un-hid %d offered payment-pool addresses (legacy born-hidden migration)", unhidden)
     }
 
     func setSpendingAddressLabel(index: Int, label: String) {
@@ -805,49 +748,7 @@ extension WalletManager {
             await updateSpendingBounds(maxIndex: lastMatchIndex)
         }
 
-        await releaseFundedReservations()
         return matchCount
-    }
-
-    /// Retires any Chats Payment Privacy reservation that has actually been paid into.
-    ///
-    /// A reservation normally leaves the active set the moment funding is detected - but that
-    /// detection is a live signal: a `payment_notice` from the contact, or the UTXO watch seeing
-    /// the deposit while this app is running. Neither reaches a device that was not there when it
-    /// happened, which is exactly what a second device running the same seed is. That device goes
-    /// on believing the address is an unfunded offer: it stays on the Chat Privacy tab, stays
-    /// locked out of the main list, and its balance sits somewhere the user cannot see.
-    ///
-    /// So a scan asks the chain directly, for every active reservation, whatever index it sits
-    /// at - the gap-limit walk above can stop before reaching one. Money on an address ends its
-    /// life as an offer regardless of what any device was told.
-    private func releaseFundedReservations() async {
-        guard let walletAddress = currentWallet?.publicAddress else { return }
-        let store = PaymentPoolStore.shared
-        let reserved = store.activeOfferedReservationAddresses(wallet: walletAddress)
-        guard !reserved.isEmpty else { return }
-
-        // One lookup for the lot rather than one per address.
-        let utxos = (try? await NodePoolService.shared.getUtxosByAddresses(reserved)) ?? []
-        guard !utxos.isEmpty else { return }
-        let fundedAddresses = Set(utxos.filter { $0.amount > 0 }.map(\.address))
-
-        var fundedReservationAddresses: Set<String> = []
-        for address in reserved where fundedAddresses.contains(address) {
-            guard let contact = store.reservationContact(for: address, wallet: walletAddress) else { continue }
-            store.markReservationFunded(address, for: contact, wallet: walletAddress)
-            fundedReservationAddresses.insert(address)
-        }
-        guard !fundedReservationAddresses.isEmpty else { return }
-
-        // A funded address belongs on the main list, so it must not stay hidden either. Derived
-        // over the revealed range rather than asking per address - there is no address-to-index
-        // lookup, and this range is already cached.
-        let derived = spendingAddresses(inRange: 0..<(maxSpendingAddressIndex + 1))
-        let indicesToShow = derived.filter { fundedReservationAddresses.contains($0.value) }.map(\.key)
-        if !indicesToShow.isEmpty {
-            hiddenSpendingIndices.subtract(indicesToShow)
-        }
     }
 
 }

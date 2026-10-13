@@ -1631,3 +1631,6 @@
 "Used" = "Benutzt";
 "Unused" = "Unbenutzt";
 "Checking" = "Wird geprüft";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "Sende Kaspa von einer deiner Adressen.";

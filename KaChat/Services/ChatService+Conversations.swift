@@ -26,15 +26,6 @@ extension ChatService {
         // change watcher so this chat picks up other devices' uploads immediately.
         NextcloudService.shared.noteChatOpened()
         loadReactions(for: address)
-        // Fresh-address payment pools: lazily offer our pool once per contact, re-check the
-        // pool-of-2 replenish (retries a top-up whose send failed when a reservation got
-        // funded), and top up theirs if a previous addr_pool_request got lost (all no-ops
-        // when nothing to do).
-        offerAddressPoolIfNeeded(to: address)
-        replenishPoolIfNeeded(for: address)
-        if let contact = contactsManager.getContact(byAddress: address) {
-            maybeRequestMorePoolAddresses(from: contact)
-        }
         // Keep the Share Extension's "Recent" list fresh: opening a chat counts as touching it.
         let alias = ContactsManager.shared.displayName(for: address)
         SharedDataManager.recordRecentConversation(address: address, alias: alias)
@@ -2377,38 +2368,21 @@ extension ChatService {
         }
         // FUNDING SOURCE - keyed on the per-account Chats Payment Privacy toggle:
         //
-        // ON (default): payments spend from the spending chain (not the chatting/identity
-        // address) - same "Pay in Kaspa" balance already shown elsewhere in the app - with
-        // change always routed to a genuinely never-used address rather than back to the
-        // address just spent from, then that fresh index becomes active once the send actually
-        // succeeds. This mirrors ManageAddressesView/Swap's own spending-address model instead
-        // of paying straight out of the identity address every time.
-        //
-        // OFF: chatting-to-chatting end to end - funded from the CHATTING address with the
-        // identity key, change back to the chatting address (builder default), no spending
-        // index rotation. Matches the toggle copy: sent AND received Kaspa uses public chatting
-        // addresses. Estimators must agree - see `paymentFundingSourceAddress`.
-        let chatsPrivacyOn = AppSettings.chatsPrivacyEnabled(for: wallet.publicAddress)
+        // The From the person chose: the chatting address (nil, the default) - funded with the
+        // identity key, change back to it - or one of their spending addresses, whose change goes
+        // to a never-used address (revealed in Manage Addresses). Estimators must agree - see
+        // `paymentFundingSourceAddress`.
         let sourceAddress: String
         let sourcePrivateKey: Data
         let changeAddress: String?
         let freshChangeIndex: Int?
-        // A picked source (not the primary) keeps the primary where it is: its change still goes
-        // to a fresh address, which is revealed rather than made primary.
-        let primaryIndex = WalletManager.shared.currentSpendingAddressIndex
-        let keepsPrimary = sourceSpendingIndex != nil && sourceSpendingIndex != primaryIndex
-        if chatsPrivacyOn {
-            let spendingIndex = sourceSpendingIndex ?? primaryIndex
+        if let spendingIndex = sourceSpendingIndex {
             guard let spendingAddress = WalletManager.shared.spendingAddress(at: spendingIndex),
                   let spendingPrivateKey = WalletManager.shared.spendingPrivateKey(at: spendingIndex) else {
                 throw KasiaError.keychainError("Could not derive spending address")
             }
-            // One past the highest index this wallet has EVER revealed/used (not just
-            // spendingIndex + 1) - guarantees change never lands on an address that's already
-            // been used before, even if the active spending index was manually set backward via
-            // Manage Addresses. (Payment-pool reservations bump the same max, so this can never
-            // collide with an address reserved for a contact - both run serialized through the
-            // outgoing queue.)
+            // One past the highest index this wallet has EVER revealed, so change never lands
+            // on an address that has been used before.
             let index = max(WalletManager.shared.maxSpendingAddressIndex, spendingIndex) + 1
             sourceAddress = spendingAddress
             sourcePrivateKey = spendingPrivateKey
@@ -2423,6 +2397,7 @@ extension ChatService {
             changeAddress = nil
             freshChangeIndex = nil
         }
+        let fromChattingAddress = sourceSpendingIndex == nil
 
         if pendingTxId == nil {
             do {
@@ -2492,15 +2467,9 @@ extension ChatService {
         )
         markOutgoingAttemptSubmitting(messageId: pendingMessageId)
 
-        // Fresh-address payment pools: pay a fresh address from the contact's stored pool when
-        // one is available (chain observers can't link the payment to their chat identity),
-        // falling back to the chatting address when no pool exists. Consumed at selection and
-        // remembered per pending id so retries reuse the same destination. async: it probes
-        // each candidate's on-chain history first, so a pool address already paid by another
-        // device running the same seed is skipped instead of reused. See
-        // `ChatService+PaymentPools.swift` / MESSAGING.md.
+        // Paid to the contact's chatting address (the memo is encrypted to its key).
         if let reason = KaspaAddress.otherNetworkReason(contact.address) { throw KasiaError.networkError(reason) }
-        let destinationAddress = await poolPaymentDestination(for: contact, pendingTxId: activePendingTxId)
+        let destinationAddress = contact.address
 
         do {
             let rpcManager = NodePoolService.shared
@@ -2552,7 +2521,7 @@ extension ChatService {
             AppLog.log("[ChatService] Submitting payment via RPC manager...")
             let (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
             AppLog.log("[ChatService] Payment submitted: \(txId) via \(endpoint)")
-            if !chatsPrivacyOn, let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: sourceAddress) {
+            if fromChattingAddress, let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: sourceAddress) {
                 // Chatting-address-funded payment (privacy OFF) spends from the SAME UTXO set
                 // message sends use - the same outpoint bookkeeping every message send does
                 // keeps an immediately-following message from racing onto the just-spent
@@ -2574,20 +2543,8 @@ extension ChatService {
             clearNoInputRetryState(for: activePendingTxId)
             saveMessages()
             if let freshChangeIndex {
-                if keepsPrimary {
-                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
-                } else {
-                    await WalletManager.shared.setActiveSpendingAddress(freshChangeIndex)
-                }
+                await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
             }
-            handlePoolPaymentSubmitted(
-                contact: contact,
-                txId: txId,
-                amountSompi: amountSompi,
-                destinationAddress: destinationAddress,
-                pendingTxId: activePendingTxId,
-                memo: note
-            )
             return txId
         } catch {
             if let acceptedTxId = acceptedTransactionId(from: error) {
@@ -2605,20 +2562,8 @@ extension ChatService {
                 clearNoInputRetryState(for: activePendingTxId)
                 saveMessages()
                 if let freshChangeIndex {
-                    if keepsPrimary {
-                        await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
-                    } else {
-                        await WalletManager.shared.setActiveSpendingAddress(freshChangeIndex)
-                    }
+                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
                 }
-                handlePoolPaymentSubmitted(
-                    contact: contact,
-                    txId: acceptedTxId,
-                    amountSompi: amountSompi,
-                    destinationAddress: destinationAddress,
-                    pendingTxId: activePendingTxId,
-                    memo: note
-                )
                 return acceptedTxId
             }
 
@@ -3121,32 +3066,6 @@ extension ChatService {
                 Self.sessionUnusedAddresses.insert(address)
             }
             return used
-        } catch {
-            return nil
-        }
-    }
-
-    /// Uncached on-chain history probe for an address that is NOT one of our own - a contact's
-    /// pool address (cross-device double-pay protection in `poolPaymentDestination`). Same
-    /// one-integer transactions-count fetch as `spendingAddressUsedState`, but it deliberately
-    /// bypasses BOTH used-address caches: those are keyed by bare address and exist for THIS
-    /// wallet's own spending chain (Manage Addresses badges, Generate recycling, cold storage
-    /// discovery), so recording a foreign contact address in them would pollute lookups that
-    /// assume every entry is ours. `true` = the address has on-chain history, `false` =
-    /// confirmed empty, `nil` = the probe failed (network error, non-2xx, decode failure) so
-    /// history is unknown right now.
-    func addressHasOnChainHistory(_ address: String) async -> Bool? {
-        guard let url = kaspaRestURL(path: "/addresses/\(address)/transactions-count") else { return nil }
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 8
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                return nil
-            }
-            let count = try JSONDecoder().decode(KaspaAddressTransactionsCountResponse.self, from: data)
-            return count.total > 0
         } catch {
             return nil
         }

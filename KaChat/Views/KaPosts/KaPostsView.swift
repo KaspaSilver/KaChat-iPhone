@@ -6196,10 +6196,8 @@ private struct KaPostTipSheet: View {
     @StateObject private var fiatAmountState = KaspaFiatAmountState()
 
     @State private var contact: Contact?
-    @State private var paysViaPool = false
-    /// The address the tip is paid from (`paymentFundingSourceAddress`): coin control lists its
-    /// coins.
-    @State private var fundingAddress: String?
+    /// Where the tip comes from (the From section): the chatting address by default.
+    @State private var source: SendSource = .chatting
     @State private var amountInput = ""
     @State private var memo = ""
     @State private var manualUtxos: [UTXO]?
@@ -6271,6 +6269,8 @@ private struct KaPostTipSheet: View {
                 }
                 .padding(.top, 24)
 
+                SendFromSection(source: $source, availableSompi: $availableSompi)
+
                 KaspaAmountEntry(
                     fiatAmountState: fiatAmountState,
                     onAmountChange: { amountInput = $0 },
@@ -6280,21 +6280,6 @@ private struct KaPostTipSheet: View {
                 )
 
                 memoField
-
-                // Which of the privacy scenarios this tip will actually hit (same signal as the
-                // chat composer's fresh-address indicator).
-                HStack(spacing: 6) {
-                    Image(systemName: paysViaPool ? "lock.fill" : "globe")
-                    Text(paysViaPool
-                         ? "Goes to a fresh private address they shared"
-                         : "Goes to their public chatting address")
-                }
-                .font(.caption)
-                .foregroundColor(paysViaPool ? .green : .secondary)
-
-                SendInfoPill {
-                    Text(verbatim: availableText)
-                }
 
                 SendFeeControls(
                     feeTier: $feeTier,
@@ -6343,17 +6328,10 @@ private struct KaPostTipSheet: View {
             // cancelling must leave no trace in the Chats list. The contact (and its
             // conversation) is created in send(), only once a tip is actually sent.
             contact = ContactsManager.shared.getContact(byAddress: address)
-            paysViaPool = ChatService.shared.willPayViaFreshPoolAddress(contactAddress: address)
-            // Available = the FUNDING SOURCE's spendable balance, exactly what the send will
-            // see: the primary spending address when Payment Privacy is on, the chatting
-            // address when it's off (paymentFundingSourceAddress is the single authority).
-            if let source = try? ChatService.shared.paymentFundingSourceAddress() {
-                fundingAddress = source
-                let utxos = (try? await ChatService.shared.fetchUtxosWithFallback(for: source)) ?? []
-                availableSompi = utxos.filter { !$0.isCoinbase }.checkedTotalAmount
-            }
         }
-        .task(id: "\(amountSompi ?? 0)#\(manualUtxos?.count ?? -1)#\(memo)") {
+        // coins picked on one address can't pay from another
+        .onChange(of: source) { _ in manualUtxos = nil }
+        .task(id: "\(amountSompi ?? 0)#\(manualUtxos?.count ?? -1)#\(memo)#\(source.spendingIndex ?? -1)") {
             guard let amountSompi else {
                 normalFeeSompi = nil
                 return
@@ -6362,12 +6340,13 @@ private struct KaPostTipSheet: View {
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
             normalFeeSompi = try? await ChatService.shared.estimatePaymentFee(
-                to: estimationContact, amountSompi: amountSompi, note: memo, manualUtxos: manualUtxos
+                to: estimationContact, amountSompi: amountSompi, note: memo,
+                sourceSpendingIndex: source.spendingIndex, manualUtxos: manualUtxos
             )
             isEstimatingFee = false
         }
         .sheet(isPresented: $showCoinControl) {
-            if let fundingAddress {
+            if let fundingAddress = source.address {
                 CoinControlView(fromAddress: fundingAddress, initialSelection: manualUtxos) { selection in
                     manualUtxos = selection
                 }
@@ -6433,7 +6412,8 @@ private struct KaPostTipSheet: View {
         isEstimatingMax = true
         Task {
             let max = try? await ChatService.shared.estimateMaxPaymentAmount(
-                to: estimationContact, note: memo, manualUtxos: manualUtxos, extraFeeSompi: extraFeeSompi
+                to: estimationContact, note: memo, sourceSpendingIndex: source.spendingIndex,
+                manualUtxos: manualUtxos, extraFeeSompi: extraFeeSompi
             )
             await MainActor.run {
                 isEstimatingMax = false
@@ -6482,11 +6462,12 @@ private struct KaPostTipSheet: View {
         let tipExtraFee = extraFeeSompi
         let tipMemo = memo.trimmingCharacters(in: .whitespacesAndNewlines)
         let tipUtxos = manualUtxos
+        let tipSource = source.spendingIndex
         Task {
             do {
                 let txId = try await ChatService.shared.sendPayment(
                     to: recipient, amountSompi: amountSompi, note: tipMemo, extraFeeSompi: tipExtraFee,
-                    manualUtxos: tipUtxos
+                    sourceSpendingIndex: tipSource, manualUtxos: tipUtxos
                 )
                 await MainActor.run {
                     Haptics.success()

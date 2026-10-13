@@ -492,17 +492,13 @@ final class AddressActivityNotifier: ObservableObject {
     }
 
     /// Addresses whose receives should NOTIFY: watched own addresses minus the chatting
-    /// address (its receives are chat/payment classified) and minus currently-offered
-    /// payment-pool reservation addresses (those notify through the chat's payment_notice).
+    /// address (its receives are chat/payment classified).
     private func notifiableAddressSet(walletAddress: String) -> Set<String> {
         // Per account: the spending chain has its own switch, and each cold-storage account
         // its own - an account switched off is still ours (self-send check), just quiet.
         var set = coldLabelByAddress.keys.filter { !coldMutedAddresses.contains($0) }.reduce(into: Set<String>()) { $0.insert($1) }
         if spendingReceiveNotificationsEnabled { set.formUnion(spendingAddressSet) }
         set.remove(walletAddress)
-        for offered in PaymentPoolStore.shared.allOfferedReservationAddresses(wallet: walletAddress) {
-            set.remove(offered)
-        }
         return set
     }
 

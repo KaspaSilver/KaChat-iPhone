@@ -1683,3 +1683,6 @@
 "Used" = "Đã dùng";
 "Unused" = "Chưa dùng";
 "Checking" = "Đang kiểm tra";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "Gửi Kaspa từ bất kỳ địa chỉ nào của bạn.";

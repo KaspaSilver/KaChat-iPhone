@@ -324,13 +324,26 @@ and room rows. The chat composers' **+** sheets (1:1 and group) use the same til
 ### Send Kaspa screens
 
 Every Send Kaspa screen is built from the shared pieces in `Views/Shared/SendKaspaComponents.swift`,
-so they match: the 1:1 chat's Send KAS sheet, Profile's Send Kaspa (`WithdrawKaspaView`), a
-spending address's Send (`SpendingAddressWithdrawView`) and KasSigner's send (`ColdSendFlowView`).
+so they match: the 1:1 chat's Send KAS sheet, Send Kaspa (`WithdrawKaspaView`: Chats > + > Send
+Kaspa, Donate, the Address Book, an address's Send, paying a payment request), KaPosts tips, and
+KasSigner's send (`ColdSendFlowView`). `SpendingAddressWithdrawView` is left for compounding one
+spending address's coins.
+
+Every send but KasSigner's starts with **From** (`SendFromSection`): Chatting Address (the
+default) or Choose an Address (`OwnAddressPicker`: every address of the account, each marked Used
+or Unused), so it is always plain which address the Kaspa leaves. There is no "primary spending
+address" in the UI and no Chats Payment Privacy (removed 2026-10-13: no fresh-address offers to
+contacts; payments go to the contact's chatting address; other clients' `addr_pool` envelopes are
+swallowed). Profile has one Manage Addresses card; Manage Addresses lists the chatting address
+first, then the spending addresses.
 
 | Piece | What it is |
 |---|---|
 | `SendRecipientCard` | Address or name, with Paste, Scan QR and the lookup status. The screen runs the lookup (`NameServicesClient.resolveEverywhere`, .kachat first) and passes every answer in for the dropdown |
 | `OtherDomainsDropdown` | "Other domains" under the resolved name: the same typed name on the other services, each selectable. Every address field in the app shows it (Create chat, New Group rows, Group Add Members, the Send screens, Send Domain, Portfolio, the Address Book editor, .kachat Transfer); .kachat is always listed first |
+| `SendFromSection` / `SendSource` | From: Chatting Address or Choose an Address, the chosen address and its balance |
+| `OwnAddressPicker` | The account's addresses (chatting first) with balance and Used / Unused - Choose an Address, Request Payment |
+| `SelectablePill` | A choice pill, the chosen one filled in (From, Request Payment's address) |
 | `KaspaAmountEntry` | The big amount, the KAS / currency switch and Max |
 | `SendFeeControls` | Network fee (tap for a custom one), the speed, and Coin Control |
 | `SendInfoPill` | A small one-line pill (available balance, fee) |

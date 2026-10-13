@@ -204,7 +204,6 @@
 		PF0008B0000000000000001 /* PortfolioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PF0008A0000000000000001 /* PortfolioManager.swift */; };
 		PF0009B0000000000000001 /* PortfolioPickerHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = PF0009A0000000000000001 /* PortfolioPickerHeader.swift */; };
 		PF0010B0000000000000001 /* PortfolioAddressImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = PF0010A0000000000000001 /* PortfolioAddressImporter.swift */; };
-		PPOL00010001000100000001 /* PaymentPoolStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = PPOL00010001000000000001 /* PaymentPoolStore.swift */; };
 		PUSH00010001000100000001 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PUSH00010001000000000001 /* PushNotificationManager.swift */; };
 		PUSH00010001000100000002 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = PUSH00010001000000000002 /* SharedDataManager.swift */; };
 		QRBV00010001000100000001 /* QuickReactionBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = QRBV00010001000000000001 /* QuickReactionBarView.swift */; };
@@ -525,7 +524,6 @@
 		PF0008A0000000000000001 /* PortfolioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioManager.swift; sourceTree = "<group>"; };
 		PF0009A0000000000000001 /* PortfolioPickerHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioPickerHeader.swift; sourceTree = "<group>"; };
 		PF0010A0000000000000001 /* PortfolioAddressImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioAddressImporter.swift; sourceTree = "<group>"; };
-		PPOL00010001000000000001 /* PaymentPoolStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentPoolStore.swift; sourceTree = "<group>"; };
 		PUSH00010001000000000001 /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
 		PUSH00010001000000000002 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		QRBV00010001000000000001 /* QuickReactionBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickReactionBarView.swift; sourceTree = "<group>"; };
@@ -757,7 +755,6 @@
 				CSEX00010001000000000006 /* ChatService+Decryption.swift */,
 				CSEX00010001000000000007 /* ChatService+Reactions.swift */,
 				CSEX00010001000000000008 /* ChatService+PaymentPools.swift */,
-				PPOL00010001000000000001 /* PaymentPoolStore.swift */,
 				ADAC00010001000000000001 /* AddressActivityNotifier.swift */,
 				3F4C10022F72000100000001 /* ChatListSnapshotStore.swift */,
 				MSGS00012F5C000100000001 /* MessageStore.swift */,
@@ -1366,7 +1363,6 @@
 				CSEX00010001000100000006 /* ChatService+Decryption.swift in Sources */,
 				CSEX00010001000100000007 /* ChatService+Reactions.swift in Sources */,
 				CSEX00010001000100000008 /* ChatService+PaymentPools.swift in Sources */,
-				PPOL00010001000100000001 /* PaymentPoolStore.swift in Sources */,
 				ADAC00010001000100000001 /* AddressActivityNotifier.swift in Sources */,
 				3F4C10022F72000100000002 /* ChatListSnapshotStore.swift in Sources */,
 				MSGS00012F5C000100000002 /* MessageStore.swift in Sources */,

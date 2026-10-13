@@ -348,7 +348,11 @@ struct ChatListView: View {
                 .environmentObject(walletManager)
         }
         .sheet(isPresented: $showSpendingSend) {
-            SpendingSendLauncher()
+            Group {
+                if let wallet = walletManager.currentWallet {
+                    WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi)
+                }
+            }
                 .environmentObject(chatService)
                 .environmentObject(contactsManager)
                 .environmentObject(settingsViewModel)
@@ -679,7 +683,7 @@ struct ChatListView: View {
                     createRoomError = nil
                     pushCreate(.joinRoom)
                 }
-                CreateTile(title: "Send Kaspa", hint: "Send Kaspa from your spending address.", systemImage: "arrow.up.circle") {
+                CreateTile(title: "Send Kaspa", hint: "Send Kaspa from any of your addresses.", systemImage: "arrow.up.circle") {
                     closeCreateSheet { showSpendingSend = true }
                 }
                 CreateTile(title: "Receive Kaspa", hint: "Show a fresh address to get paid.", systemImage: "arrow.down.circle") {
@@ -2594,36 +2598,3 @@ private struct CreateTile: View {
     }
 }
 
-/// The New sheet's "Send Kaspa": the same send Profile opens for the current spending address,
-/// once that address's balance is known (it shows in the screen's Available pill).
-private struct SpendingSendLauncher: View {
-    @EnvironmentObject private var walletManager: WalletManager
-    @State private var balanceSompi: UInt64?
-
-    var body: some View {
-        Group {
-            if let address = walletManager.currentSpendingAddress(), let balanceSompi {
-                SpendingAddressWithdrawView(
-                    entry: SpendingAddressEntry(
-                        index: walletManager.currentSpendingAddressIndex,
-                        address: address,
-                        balanceSompi: balanceSompi,
-                        isCurrent: true
-                    )
-                ) {}
-            } else if walletManager.currentSpendingAddress() == nil {
-                Text("Spending address is unlocking — go back and try again.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else {
-                ProgressView()
-            }
-        }
-        .task {
-            guard let address = walletManager.currentSpendingAddress() else { return }
-            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
-            balanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
-        }
-    }
-}

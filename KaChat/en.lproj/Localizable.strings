@@ -1684,3 +1684,6 @@
 "Used" = "Used";
 "Unused" = "Unused";
 "Checking" = "Checking";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "Send Kaspa from any of your addresses.";

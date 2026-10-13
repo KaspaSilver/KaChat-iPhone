@@ -1683,3 +1683,6 @@
 "Used" = "사용됨";
 "Unused" = "미사용";
 "Checking" = "확인 중";
+
+/* Chats > + > Send Kaspa: from any of your addresses (the From section) */
+"Send Kaspa from any of your addresses." = "내 주소 중 어디서든 Kaspa를 보냅니다.";

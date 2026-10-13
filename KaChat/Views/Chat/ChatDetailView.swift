@@ -304,11 +304,11 @@ struct ChatDetailView: View {
     @State private var isEstimatingPaymentFee = false
     @State private var paymentFeeTask: Task<Void, Never>?
     @State private var paymentError: String?
-    /// The spending address this payment comes from, when not the primary (Chats Payment
-    /// Privacy on): picked from the sheet's Available pill. nil = the primary. Resets each time
-    /// the sheet opens; the primary itself never changes.
-    @State private var paymentSource: SpendingAddressEntry?
-    @State private var showPaymentSourcePicker = false
+    /// Where this payment comes from (the sheet's From): the chatting address, or one picked
+    /// under Choose an Address. Back to the chatting address each time the sheet opens.
+    @State private var paymentFrom: SendSource = .chatting
+    /// The From address's balance, loaded by `SendFromSection`.
+    @State private var paymentFromBalanceSompi: UInt64?
     /// Fee speed and a custom fee, and coin control - the same controls as every Send Kaspa
     /// screen (`SendFeeControls`). The extra over the base fee goes to `sendPayment`.
     @State private var paymentFeeTier: WithdrawFeeTier = .normal
@@ -317,9 +317,6 @@ struct ChatDetailView: View {
     @State private var paymentCustomFeeText = ""
     @State private var paymentManualUtxos: [UTXO]?
     @State private var showPaymentCoinControl = false
-    @State private var spendingBalanceSompi: UInt64?
-    /// Post-send retry schedule for the Available pill (see scheduleSpendingBalanceRetries).
-    @State private var spendingBalanceRetryTask: Task<Void, Never>?
     @State private var recordedAudioURL: URL?
     @State private var recordedAudioPreviewURL: URL?
     @State private var isRecording = false
@@ -1126,7 +1123,10 @@ struct ChatDetailView: View {
         .onChange(of: paymentNote) { _ in
             schedulePaymentFee(for: amountText)
         }
-        .onChange(of: paymentSource?.index) { _ in
+        .onChange(of: paymentFrom) { _ in
+            // Coin control and a custom fee belong to the address they were set for.
+            paymentManualUtxos = nil
+            paymentCustomExtraFeeSompi = nil
             schedulePaymentFee(for: amountText)
         }
         .onAppear {
@@ -1226,33 +1226,6 @@ struct ChatDetailView: View {
             // messaged, since it's always needed for our own outgoing bubbles.
             guard let myAddress, knsService.profileCache[myAddress] == nil else { return }
             _ = await knsService.fetchProfile(for: myAddress)
-        }
-        .task(id: showPaymentSheet) {
-            // Payments spend from the current spending (primary) address, not the chatting
-            // address - the "Available" bubble shown while composing a payment should match,
-            // not the identity wallet's own balance.
-            guard showPaymentSheet else { return }
-            await loadSpendingBalance()
-        }
-        .task(id: walletManager.currentWallet?.spendingAddressIndex) {
-            // Live re-fetch when the PRIMARY spending address changes while composing - e.g.
-            // "Set as Primary Address" inside the Manage Addresses sheet opened from the
-            // Available bubble. setActiveSpendingAddress republishes currentWallet with the new
-            // spendingAddressIndex, which re-keys this task; without it the bubble kept showing
-            // the old primary's balance until payment mode was re-entered or a send completed.
-            guard showPaymentSheet else { return }
-            await loadSpendingBalance()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .ownAddressUtxoActivity)) { notification in
-            // Change landing on the (possibly just-rotated) primary spending address. This is
-            // the always-post event - the user-notification path deliberately suppresses
-            // self-send change, which is exactly what a private-mode payment's rotation
-            // produces, so without this the pill sat at 0 until payment mode was re-entered.
-            guard showPaymentSheet else { return }
-            guard let involved = notification.userInfo?[AddressActivityNotifier.utxoActivityAddressesKey] as? [String],
-                  let primary = walletManager.currentSpendingAddress(),
-                  involved.contains(primary) else { return }
-            Task { await loadSpendingBalance() }
         }
         .task(id: contact.address) {
             guard knsService.profileCache[contact.address] == nil else { return }
@@ -2870,29 +2843,6 @@ struct ChatDetailView: View {
     }
 
 
-    /// True while the next payment to this contact will go to a fresh pool address (see
-    /// ChatService+PaymentPools) - refreshed on entering payment mode and after each send.
-    @State private var paysToFreshPoolAddress = false
-
-    /// True while this account's Chats Payment Privacy toggle is ON - payments fund from the
-    /// primary spending address; OFF funds them from the chatting address (see
-    /// `ChatService.paymentFundingSourceAddress`). Read live so a Settings change applies on
-    /// the next render.
-    private var isChatsPaymentPrivacyOn: Bool {
-        guard let myAddress else { return true }
-        return AppSettings.chatsPrivacyEnabled(for: myAddress)
-    }
-
-    /// Privacy ON - tappable: opens Manage Spending Addresses as a sheet (ManageAddressesView
-    /// is normally pushed from Profile, but a push would navigate away from the chat - a sheet
-    /// keeps the conversation and its active payment mode untouched underneath). Styled exactly
-    /// like the feeBubble's tappable fee display: the value text itself is underlined (same
-    /// caption2/secondary treatment), the whole glass pill is the tap target via onTapGesture.
-    ///
-    /// Privacy OFF - payments fund from the CHATTING address, so the pill shows the wallet's
-    /// main published chatting balance (already kept fresh by the normal refresh/UTXO-push
-    /// cycle), drops the underline, and is not tappable: Manage Spending Addresses is
-    /// irrelevant to chatting-address sends.
     // MARK: - Payment details sheet
 
     /// A tapped payment bubble: what moved (amount, direction, memo, when), and the transaction -
@@ -2984,14 +2934,13 @@ struct ChatDetailView: View {
         fiatAmountState.reset()
         paymentNote = ""
         paymentError = nil
-        paymentSource = nil
+        paymentFrom = .chatting
         paymentFeeTier = .normal
         paymentCustomExtraFeeSompi = nil
         isEditingPaymentFee = false
         paymentManualUtxos = nil
         paymentFeeSompi = nil
         isEstimatingPaymentFee = false
-        paysToFreshPoolAddress = chatService.willPayViaFreshPoolAddress(contactAddress: contact.address)
         showPaymentSheet = true
     }
 
@@ -3028,12 +2977,11 @@ struct ChatDetailView: View {
                 }
                 .padding(.top, 24)
 
+                SendFromSection(source: $paymentFrom, availableSompi: $paymentFromBalanceSompi)
+
                 paymentAmountEntry
 
                 paymentMemoField
-
-                availableBalanceBubble
-                    .frame(maxWidth: .infinity)
 
                 SendFeeControls(
                     feeTier: $paymentFeeTier,
@@ -3085,7 +3033,7 @@ struct ChatDetailView: View {
             schedulePaymentFee(for: amountText)
         }
         .sheet(isPresented: $showPaymentCoinControl) {
-            if let from = try? chatService.paymentFundingSourceAddress(spendingIndex: paymentSource?.index) {
+            if let from = try? chatService.paymentFundingSourceAddress(spendingIndex: paymentFrom.spendingIndex) {
                 CoinControlView(fromAddress: from, initialSelection: paymentManualUtxos) { selection in
                     paymentManualUtxos = selection
                 }
@@ -3130,7 +3078,7 @@ struct ChatDetailView: View {
                     do {
                         let maxSompi = try await chatService.estimateMaxPaymentAmount(
                             to: contact,
-                            sourceSpendingIndex: paymentSource?.index,
+                            sourceSpendingIndex: paymentFrom.spendingIndex,
                             manualUtxos: paymentManualUtxos,
                             extraFeeSompi: paymentExtraFeeSompi
                         )
@@ -3162,63 +3110,6 @@ struct ChatDetailView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(glassBackground(cornerRadius: 22))
-    }
-
-    private var availableBalanceBubble: some View {
-        let privacyOn = isChatsPaymentPrivacyOn
-        let primaryIndex = walletManager.currentSpendingAddressIndex
-        let balanceSompi = privacyOn
-            ? (paymentSource?.balanceSompi ?? spendingBalanceSompi)
-            : walletManager.currentWallet?.balanceSompi
-        return HStack(spacing: 6) {
-            if privacyOn {
-                Text(localizedAvailableBalanceText(balanceSompi))
-                    .underline()
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                // Which spending address pays: the primary unless another was picked here.
-                Text(verbatim: "·")
-                Text(paymentSource?.displayLabel ?? "Address #\(primaryIndex)")
-                    .lineLimit(1)
-                Image(systemName: "chevron.down")
-                    .font(.scaled(size: 8, weight: .bold))
-            } else {
-                Text(localizedAvailableBalanceText(balanceSompi))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-            }
-            // Fresh-address indicator, merged into this pill (used to be its own third pill
-            // that clipped off narrow screens): a small accent arrow, same accessibility
-            // label the standalone pill carried.
-            if paysToFreshPoolAddress {
-                Image(systemName: "arrow.right")
-                    .font(.scaled(size: 9, weight: .semibold))
-                    .foregroundColor(.accentColor)
-                    .accessibilityLabel(Text("Payment goes to a fresh address this contact shared, so it cannot be linked to their chat address on-chain"))
-            }
-        }
-        .font(.caption2)
-        .foregroundColor(.secondary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(glassBackground(cornerRadius: 14))
-        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        // Privacy on: tap to pay from another spending address (this payment only - the primary
-        // stays). Privacy off pays from the chatting address, so there's nothing to pick.
-        .allowsHitTesting(privacyOn)
-        .onTapGesture {
-            guard isChatsPaymentPrivacyOn else { return }
-            showPaymentSourcePicker = true
-        }
-        .accessibilityHint(privacyOn ? Text("Choose which spending address to send from") : Text(verbatim: ""))
-        .sheet(isPresented: $showPaymentSourcePicker) {
-            SpendingSourcePicker(currentIndex: paymentSource?.index ?? primaryIndex) { picked in
-                paymentSource = picked.index == primaryIndex ? nil : picked
-                // Coin control and a custom fee belong to the address they were set for.
-                paymentManualUtxos = nil
-                paymentCustomExtraFeeSompi = nil
-            }
-        }
     }
 
     private func glassBackground(cornerRadius: CGFloat) -> some View {
@@ -3337,7 +3228,7 @@ struct ChatDetailView: View {
                     amountSompi: amountSompi,
                     note: note,
                     extraFeeSompi: extraFee,
-                    sourceSpendingIndex: paymentSource?.index,
+                    sourceSpendingIndex: paymentFrom.spendingIndex,
                     manualUtxos: manualUtxos
                 )
                 await MainActor.run {
@@ -3347,19 +3238,10 @@ struct ChatDetailView: View {
                     paymentNote = ""
                     paymentFeeSompi = nil
                     isEstimatingPaymentFee = false
-                    // The send may have consumed the contact's last unused pool address.
-                    paysToFreshPoolAddress = chatService.willPayViaFreshPoolAddress(contactAddress: contact.address)
                     // No confirmation sheet: tapping the payment bubble gives the transaction
                     // (View in Explorer, Copy Transaction ID).
                     showPaymentSheet = false
                 }
-                // The active spending address rotates to a fresh one after a successful send -
-                // refresh so "Available" reflects that new address, not the one just spent from.
-                // The immediate fetch usually races the change UTXO landing (it reads 0), so a
-                // couple of short retries follow as a backstop in case the push event is missed -
-                // Kaspa confirms in about a second, so these converge quickly.
-                await loadSpendingBalance()
-                scheduleSpendingBalanceRetries()
             } catch {
                 await MainActor.run {
                     Haptics.error()
@@ -3403,36 +3285,6 @@ struct ChatDetailView: View {
             }
         } catch {
             showToast(error.localizedDescription, style: .error)
-        }
-    }
-
-    private func loadSpendingBalance() async {
-        // Chats Payment Privacy OFF: payments fund from the chatting address, whose balance is
-        // the wallet's main published one - this spending-index-keyed fetch is inert.
-        guard isChatsPaymentPrivacyOn else { return }
-        guard let address = walletManager.currentSpendingAddress() else {
-            spendingBalanceSompi = nil
-            return
-        }
-        // A failed lookup keeps the last known figure rather than printing 0 available.
-        if let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address]) {
-            spendingBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
-        }
-    }
-
-    /// Post-send backstop for the Available pill: a private-mode payment rotates the primary to
-    /// a fresh address whose change UTXO takes about a second to land, so the immediate
-    /// post-send fetch reads 0. The `.ownAddressUtxoActivity` event normally fixes that
-    /// push-style; these two short refetches (~1.5s and ~4s after send) cover a missed event.
-    /// Cancellable so a newer send's schedule replaces an older one.
-    private func scheduleSpendingBalanceRetries() {
-        spendingBalanceRetryTask?.cancel()
-        spendingBalanceRetryTask = Task {
-            for delayNs: UInt64 in [1_500_000_000, 2_500_000_000] {
-                try? await Task.sleep(nanoseconds: delayNs)
-                guard !Task.isCancelled else { return }
-                await loadSpendingBalance()
-            }
         }
     }
 
@@ -4063,7 +3915,7 @@ struct ChatDetailView: View {
             return
         }
         let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
-        let source = paymentSource?.index
+        let source = paymentFrom.spendingIndex
         let manual = paymentManualUtxos
 
         isEstimatingPaymentFee = true

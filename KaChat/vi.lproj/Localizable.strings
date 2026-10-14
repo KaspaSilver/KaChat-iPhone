@@ -1727,3 +1727,6 @@
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ bị khóa cùng tên của bạn trong khi bạn giữ nó (tiền ký quỹ + tiền gửi sổ đăng ký). Bạn nhận lại khi trả tên.";
 "%@ is locked with this name. It comes back to you when you release it." = "%@ đang bị khóa cùng tên này. Số tiền trở lại với bạn khi bạn trả tên.";
+
+/* Profile save: not enough funds popup (with the chatting address QR) */
+"You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Bạn không đủ tiền. Vui lòng gửi ít nhất 1 KAS đến địa chỉ trò chuyện của bạn.";

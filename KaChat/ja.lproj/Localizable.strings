@@ -1727,3 +1727,6 @@
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "名前を保有している間、%@ が名前とともにロックされます（保証金 + レジストリ預託金）。名前を手放すと戻ってきます。";
 "%@ is locked with this name. It comes back to you when you release it." = "%@ がこの名前とともにロックされています。名前を手放すとあなたに戻ります。";
+
+/* Profile save: not enough funds popup (with the chatting address QR) */
+"You don't have enough funds. Please send at least 1 KAS to your chatting address." = "残高が足りません。チャットアドレスに 1 KAS 以上を送ってください。";

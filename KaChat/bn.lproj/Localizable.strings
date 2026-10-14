@@ -1727,3 +1727,6 @@
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "নামটি আপনার কাছে থাকা পর্যন্ত %@ এর সাথে লক থাকে (বন্ড + রেজিস্ট্রি জমা)। নাম ছেড়ে দিলে আপনি তা ফেরত পাবেন।";
 "%@ is locked with this name. It comes back to you when you release it." = "%@ এই নামের সাথে লক আছে। নাম ছেড়ে দিলে আপনার কাছে ফিরে আসবে।";
+
+/* Profile save: not enough funds popup (with the chatting address QR) */
+"You don't have enough funds. Please send at least 1 KAS to your chatting address." = "আপনার পর্যাপ্ত তহবিল নেই। অনুগ্রহ করে আপনার চ্যাটিং ঠিকানায় অন্তত 1 KAS পাঠান।";

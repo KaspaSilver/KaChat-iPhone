@@ -1675,3 +1675,6 @@
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ bleiben an deinen Namen gebunden, solange er dir gehört (Pfand + Registry-Einlage). Du bekommst sie zurück, wenn du den Namen freigibst.";
 "%@ is locked with this name. It comes back to you when you release it." = "%@ sind an diesen Namen gebunden. Sie kommen zu dir zurück, wenn du ihn freigibst.";
+
+/* Profile save: not enough funds popup (with the chatting address QR) */
+"You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Du hast nicht genug Guthaben. Bitte sende mindestens 1 KAS an deine Chat-Adresse.";

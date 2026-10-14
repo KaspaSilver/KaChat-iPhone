@@ -3751,7 +3751,22 @@ struct KachatProfileSaveSheet: View {
     @State private var sending = false
     @State private var sendError: String?
     @State private var done: KachatTxDone?
+    /// The "not enough funds" popup: the chatting address's QR to fund it.
+    @State private var showFunding = false
     @AppStorage("kachat_profile_privacy_seen") private var privacySeen = false
+
+    private static var notEnoughFundsMessage: String {
+        KaspaUnit.label(AppLocalization.string("You don't have enough funds. Please send at least 1 KAS to your chatting address."))
+    }
+
+    /// The save can't be paid: the chatting address has no spendable coin, or too little for
+    /// the fee.
+    private func isShortOfFunds(_ error: Error) -> Bool {
+        if case let KasiaError.networkError(message) = error, message.localizedCaseInsensitiveContains("insufficient") {
+            return true
+        }
+        return (WalletManager.shared.currentWallet?.balanceSompi ?? 1) == 0
+    }
 
     private func source(_ link: String?, _ kind: KachatNames.SocialSource.Kind) -> String {
         guard let s = KachatNames.SocialSource(link: link ?? "", for: kind) else { return AppLocalization.string("None") }
@@ -3809,6 +3824,15 @@ struct KachatProfileSaveSheet: View {
             }
             .task { await quote() }
             .sheet(item: $done, onDismiss: { dismiss(); onSaved() }) { KachatTxDoneSheet(done: $0) }
+            // Closes by itself once 1 KAS has arrived; either way the fee is worked out again.
+            .sheet(isPresented: $showFunding, onDismiss: {
+                quoteError = nil
+                sendError = nil
+                fee = nil
+                Task { await quote() }
+            }) {
+                ZeroBalanceFundingSheetView(title: Self.notEnoughFundsMessage, dismissAtSompi: 100_000_000)
+            }
         }
     }
 
@@ -3818,7 +3842,12 @@ struct KachatProfileSaveSheet: View {
         do {
             fee = try await KachatNamesActions.shared.profileFee(p)
         } catch {
-            quoteError = error.localizedDescription
+            if isShortOfFunds(error) {
+                quoteError = Self.notEnoughFundsMessage
+                showFunding = true
+            } else {
+                quoteError = error.localizedDescription
+            }
         }
     }
 
@@ -3834,7 +3863,12 @@ struct KachatProfileSaveSheet: View {
                     done = KachatTxDone(txId: tx, title: doneTitle)
                     Haptics.success()
                 } catch {
-                    sendError = error.localizedDescription
+                    if isShortOfFunds(error) {
+                        sendError = Self.notEnoughFundsMessage
+                        showFunding = true
+                    } else {
+                        sendError = error.localizedDescription
+                    }
                 }
                 sending = false
             }

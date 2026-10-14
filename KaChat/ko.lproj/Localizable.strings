@@ -1727,3 +1727,6 @@
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "이름을 보유하는 동안 %@이(가) 이름과 함께 잠깁니다(보증금 + 레지스트리 예치금). 이름을 놓으면 돌려받습니다.";
 "%@ is locked with this name. It comes back to you when you release it." = "%@이(가) 이 이름과 함께 잠겨 있습니다. 이름을 놓으면 돌아옵니다.";
+
+/* Profile save: not enough funds popup (with the chatting address QR) */
+"You don't have enough funds. Please send at least 1 KAS to your chatting address." = "잔액이 부족합니다. 채팅 주소로 최소 1 KAS를 보내 주세요.";

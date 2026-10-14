@@ -5359,6 +5359,8 @@ private final class AudioRecorderDelegate: NSObject, AVAudioRecorderDelegate {
 /// than its own to avoid pbxproj churn - see the repo's dangling-reference history.
 struct ZeroBalanceFundingCardView: View {
     let address: String?
+    /// The headline; nil = "Fund your chatting address to start chatting".
+    var title: String? = nil
     /// Called after the address hits the pasteboard so the host can show its own toast; when
     /// nil (sheet contexts without a toast helper) the copy icon flips to a checkmark instead.
     var onCopied: ((String) -> Void)? = nil
@@ -5368,7 +5370,9 @@ struct ZeroBalanceFundingCardView: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            Text("Fund your chatting address to start chatting")
+            Group {
+                if let title { Text(verbatim: title) } else { Text("Fund your chatting address to start chatting") }
+            }
                 .font(.subheadline.weight(.semibold))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -5454,14 +5458,17 @@ struct ZeroBalanceFundingCardView: View {
 
 /// Sheet host for the funding card - used where the zero-balance gate intercepts an action
 /// (KaPosts' new-post and reply entry points) instead of locking an always-visible composer.
-/// Auto-dismisses the moment the chatting balance turns positive.
+/// Auto-dismisses the moment the chatting balance reaches `dismissAtSompi` (any KAS by default).
+/// Also the "not enough funds" popup of a profile save.
 struct ZeroBalanceFundingSheetView: View {
+    var title: String? = nil
+    var dismissAtSompi: UInt64 = 1
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var walletManager = WalletManager.shared
 
     var body: some View {
         ScrollView {
-            ZeroBalanceFundingCardView(address: walletManager.currentWallet?.publicAddress)
+            ZeroBalanceFundingCardView(address: walletManager.currentWallet?.publicAddress, title: title)
             .padding(.horizontal)
             .padding(.top, 20)
             .padding(.bottom, 16)
@@ -5469,7 +5476,7 @@ struct ZeroBalanceFundingSheetView: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .onChange(of: walletManager.currentWallet?.balanceSompi) { balance in
-            if let balance, balance > 0 { dismiss() }
+            if let balance, balance >= dismissAtSompi { dismiss() }
         }
     }
 }

@@ -1728,3 +1728,6 @@
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ restent bloqués avec votre nom tant que vous le détenez (caution + dépôt du registre). Vous les récupérez en libérant le nom.";
 "%@ is locked with this name. It comes back to you when you release it." = "%@ sont bloqués avec ce nom. Ils vous reviennent quand vous le libérez.";
+
+/* Profile save: not enough funds popup (with the chatting address QR) */
+"You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Vous n'avez pas assez de fonds. Envoyez au moins 1 KAS à votre adresse de discussion.";

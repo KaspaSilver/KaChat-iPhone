@@ -170,6 +170,9 @@ function addressPublicKey(address) {
 // A payment request is signed by its maker's chatting key (the app's PaymentRequest.signed). The
 // page checks that signature before it names the maker, so "Requested by" can't be faked by
 // editing the link. Plain BigInt secp256k1 - Node's crypto has no BIP340 - verify only, no secrets.
+// Jacobian coordinates (one inversion per verify) and one shared double-and-add pass for
+// s*G + (n-e)*P keep a check to a few ms; the verdicts are cached and the checks rate limited
+// (`signatureCheckAllowed`), so a stream of signed links can't stall the event loop (IOS-079).
 const SECP_P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn;
 const SECP_N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
 const SECP_G = [0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,
@@ -181,20 +184,45 @@ function modPow(b, e, m = SECP_P) {
   return r;
 }
 const modInv = (a) => modPow(a, SECP_P - 2n);
-function pointAdd(a, b) {
-  if (!a) return b;
-  if (!b) return a;
-  if (a[0] === b[0] && mod(a[1] + b[1]) === 0n) return null;
-  const l = a[0] === b[0] && a[1] === b[1]
-    ? mod(3n * a[0] * a[0] * modInv(2n * a[1]))
-    : mod((b[1] - a[1]) * modInv(b[0] - a[0]));
-  const x = mod(l * l - a[0] - b[0]);
-  return [x, mod(l * (a[0] - x) - a[1])];
+// Points as [X, Y, Z] (Jacobian); null is the point at infinity.
+function jDouble(p) {
+  if (!p || p[1] === 0n) return null;
+  const [X, Y, Z] = p;
+  const A = (X * X) % SECP_P, B = (Y * Y) % SECP_P, C = (B * B) % SECP_P;
+  const D = mod(2n * ((X + B) * (X + B) - A - C));
+  const E = (3n * A) % SECP_P;
+  const X3 = mod(E * E - 2n * D);
+  return [X3, mod(E * (D - X3) - 8n * C), (2n * Y * Z) % SECP_P];
 }
-function pointMul(pt, k) {
+function jAdd(p, q) {
+  if (!p) return q;
+  if (!q) return p;
+  const Z1Z1 = (p[2] * p[2]) % SECP_P, Z2Z2 = (q[2] * q[2]) % SECP_P;
+  const U1 = (p[0] * Z2Z2) % SECP_P, U2 = (q[0] * Z1Z1) % SECP_P;
+  const S1 = (p[1] * q[2] * Z2Z2) % SECP_P, S2 = (q[1] * p[2] * Z1Z1) % SECP_P;
+  if (U1 === U2) return S1 === S2 ? jDouble(p) : null;
+  const H = mod(U2 - U1), I = (4n * H * H) % SECP_P, J = (H * I) % SECP_P;
+  const r = mod(2n * (S2 - S1)), V = (U1 * I) % SECP_P;
+  const X3 = mod(r * r - J - 2n * V);
+  return [X3, mod(r * (V - X3) - 2n * S1 * J), mod(((p[2] + q[2]) ** 2n - Z1Z1 - Z2Z2) * H)];
+}
+function toAffine(p) {
+  if (!p) return null;
+  const zi = modInv(p[2]), zi2 = (zi * zi) % SECP_P;
+  return [(p[0] * zi2) % SECP_P, (p[1] * zi2 * zi) % SECP_P];
+}
+/** a*A + b*B in one pass (Straus): shared doublings, one add per set bit pair. */
+function mulAdd(a, A, b, B) {
+  const PA = [A[0], A[1], 1n], PB = [B[0], B[1], 1n], PAB = jAdd(PA, PB);
   let r = null;
-  for (let add = pt; k > 0n; k >>= 1n) { if (k & 1n) r = pointAdd(r, add); add = pointAdd(add, add); }
-  return r;
+  for (let i = 255n; i >= 0n; i--) {
+    r = jDouble(r);
+    const ba = (a >> i) & 1n, bb = (b >> i) & 1n;
+    if (ba && bb) r = jAdd(r, PAB);
+    else if (ba) r = jAdd(r, PA);
+    else if (bb) r = jAdd(r, PB);
+  }
+  return toAffine(r);
 }
 const bigOf = (buf) => BigInt('0x' + (Buffer.from(buf).toString('hex') || '0'));
 const bytes32 = (n) => Buffer.from(n.toString(16).padStart(64, '0'), 'hex');
@@ -216,11 +244,44 @@ function schnorrVerify(sig, msg, pub) {
     const s = bigOf(sig.subarray(32));
     if (r >= SECP_P || s >= SECP_N) return false;
     const e = mod(bigOf(taggedHash('BIP0340/challenge', sig.subarray(0, 32), pub, msg)), SECP_N);
-    const R = pointAdd(pointMul(SECP_G, s), pointMul([x, y], SECP_N - e));
+    const R = mulAdd(s, SECP_G, mod(SECP_N - e, SECP_N), [x, y]);
     return Boolean(R) && (R[1] & 1n) === 0n && R[0] === r;
   } catch (_) {
     return false;
   }
+}
+
+const graphemeSegmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+/** The first `limit` characters as a person counts them (an emoji or a flag is one), like Swift's `prefix`. */
+function firstGraphemes(text, limit) {
+  const pieces = graphemeSegmenter ? Array.from(graphemeSegmenter.segment(text), (g) => g.segment) : Array.from(text);
+  return pieces.length <= limit ? text : pieces.slice(0, limit).join('');
+}
+
+// Signature checks per client and in all: a client gets 20 a minute, the whole server 40 a
+// second (a few ms each, so at most a small share of the event loop). Over either, the page
+// answers "try again" instead of checking. Cached verdicts don't count.
+const SIG_PER_CLIENT_PER_MIN = 20;
+const SIG_GLOBAL_PER_SEC = 40;
+const sigClientWindows = new Map();
+let sigGlobalWindow = { start: 0, count: 0 };
+function signatureCheckAllowed(req) {
+  const now = Date.now();
+  if (now - sigGlobalWindow.start >= 1000) sigGlobalWindow = { start: now, count: 0 };
+  if (sigGlobalWindow.count >= SIG_GLOBAL_PER_SEC) return false;
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const client = forwarded || req.socket.remoteAddress || '';
+  let w = sigClientWindows.get(client);
+  if (!w || now - w.start >= 60_000) {
+    w = { start: now, count: 0 };
+    sigClientWindows.delete(client);
+    sigClientWindows.set(client, w);
+    if (sigClientWindows.size > 10_000) sigClientWindows.delete(sigClientWindows.keys().next().value);
+  }
+  if (w.count >= SIG_PER_CLIENT_PER_MIN) return false;
+  w.count++;
+  sigGlobalWindow.count++;
+  return true;
 }
 
 // ---------------------------------------------------------------- posts
@@ -745,13 +806,21 @@ function amountSompi(amount) {
 /** Whether `sig` is `by`'s signature over the request (the app's PaymentRequest.signingDigest:
  *  SHA-256 of "kachat-payment-request:v1", the address, the amount in sompi, the memo, "1"/"0" for
  *  chat and the maker, one per line; addresses lowercased with their prefix). */
-function paymentRequestSigned({ address, amount, memo, chat, by, sig }) {
+/** true or false - or null when the check was refused by the rate limit (`allowCheck`). */
+function paymentRequestSigned({ address, amount, memo, chat, by, sig }, allowCheck = () => true) {
   const pub = addressPublicKey(by);
   if (!pub || !/^[0-9a-f]{128}$/.test(sig)) return false;
   const text = ['kachat-payment-request:v1', address.toLowerCase(), amountSompi(amount).toString(), memo,
     chat ? '1' : '0', by.toLowerCase()].join('\n');
   const digest = crypto.createHash('sha256').update(text, 'utf8').digest();
-  return schnorrVerify(Buffer.from(sig, 'hex'), digest, pub);
+  const key = 'sig:' + digest.toString('hex') + sig;
+  const hit = cache.get(key);
+  if (hit) return hit.value;
+  if (!allowCheck()) return null;
+  const valid = schnorrVerify(Buffer.from(sig, 'hex'), digest, pub);
+  cache.set(key, { value: valid, expires: Infinity });
+  if (cache.size > 5000) cache.delete(cache.keys().next().value);
+  return valid;
 }
 
 /** One person row (avatar, name, address) for the payment page. */
@@ -965,18 +1034,31 @@ const server = http.createServer(async (req, res) => {
       const raw = parts[1].trim().toLowerCase();
       const address = raw.includes(':') ? raw : `kaspa:${raw}`;
       const amount = String(url.searchParams.get('amount') || '');
-      const memo = String(url.searchParams.get('memo') || '').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '').trim().slice(0, 140);
+      // The memo as the app signed it: control characters out, trimmed, NOT shortened - the app
+      // caps it at 140 characters (graphemes), which an emoji memo exceeds in UTF-16 units, so
+      // cutting it here first broke the signature (IOS-081). An unsigned memo is shortened the
+      // app's way, for the page only.
+      const fullMemo = String(url.searchParams.get('memo') || '').replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, '').trim();
       const rawBy = String(url.searchParams.get('by') || '').trim().toLowerCase();
       const by = rawBy ? (rawBy.includes(':') ? rawBy : `kaspa:${rawBy}`) : '';
       const sig = String(url.searchParams.get('sig') || '').toLowerCase();
-      if (!isKaspaAddress(address) || !AMOUNT.test(amount) || (by && (!isKaspaAddress(by) || !/^[0-9a-f]{128}$/.test(sig)))) {
+      if (!isKaspaAddress(address) || !AMOUNT.test(amount) || fullMemo.length > 2000
+          || (by && (!isKaspaAddress(by) || !/^[0-9a-f]{128}$/.test(sig)))) {
         return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That link isn't a KaChat payment request"));
       }
+      const memo = by ? fullMemo : firstGraphemes(fullMemo, 140);
       const chat = url.searchParams.get('chat') === '1';
       // A signature that doesn't check out (an edited amount, address or memo) is refused, as the
       // app refuses it; a signed one names its maker.
-      if (by && !paymentRequestSigned({ address, amount, memo, chat, by, sig })) {
-        return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That payment request was changed after it was made"));
+      if (by) {
+        const signed = paymentRequestSigned({ address, amount, memo, chat, by, sig }, () => signatureCheckAllowed(req));
+        if (signed === null) {
+          return send(res, 429, 'text/html; charset=utf-8', notFoundPage('Too many payment requests at once - try again in a minute'),
+            { 'cache-control': 'no-store', 'retry-after': '60' });
+        }
+        if (!signed) {
+          return send(res, 404, 'text/html; charset=utf-8', notFoundPage("That payment request was changed after it was made"));
+        }
       }
       const [payee, requester] = await Promise.all([
         loadIdentityForAddress(address),

@@ -55,7 +55,10 @@ Only the **first** message to B carries the tag. Use `dm` when **all** hold:
 
 1. no tagged message to B has been submitted yet (record B once the `dm` transaction is
    accepted by the node - a failed send does not use up the tag),
-2. B has never sent us anything we can see (no incoming message, payment or handshake), and
+2. B has never sent us a **message** we can see (no incoming message or handshake). A payment
+   from B does **not** count: B may have sent KAS from a plain wallet send (or a chat payment)
+   and have no chat with us, so an untagged reply would never reach them. Tagging costs
+   nothing here - the payment already links the two addresses on chain - and
 3. the configured indexer supports inbox lookups (section 5's endpoint answers; probe once per
    indexer URL and cache).
 
@@ -91,6 +94,15 @@ from the beginning.
   foreground sweep, and when a request push arrives. For each sender found: if they are blocked,
   ignore it; otherwise add the sender, derive the routing state, and fetch their whole history by
   sender + alias from block time 0 (iOS: `syncContactHistoryFromGenesis`).
+- **Payments open the door too.** Two cases every client must handle, or a reply is lost:
+  - *We paid B* (any send: chat payment or plain wallet send to B's address): poll B's
+    messages from then on, exactly as for a chat we started (iOS: routing state is created
+    for the destination of any outgoing payment). B's reply then arrives even if B's app
+    did not tag it (an older client, or Kasia).
+  - *B paid us with a chat payment* (`kchat:1:pay:` payload) and B is unknown: open B's own
+    chat - a Message Request - and poll B from then on. A plain transfer with no payload
+    from an unknown address still goes to the self-chat with the sender noted; it is not a
+    conversation.
 - **Request vs chat.** A conversation is a **request** until accepted. Accepted means any of:
   - the user tapped Accept,
   - the user has ever sent this address a message (messaging someone first is consent),

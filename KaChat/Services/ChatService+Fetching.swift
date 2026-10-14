@@ -2723,8 +2723,16 @@ extension ChatService {
             // conversation with our own chatting address) with the sender noted in the
             // bubble. Wallet history and notifications are unaffected. Outgoing payments to a
             // stranger's address keep creating destination chats - you chose that address.
+            //
+            // A CHAT payment (one carrying a KaChat payment payload) is different: the sender
+            // paid us from a chat with us, so it opens their own chat - a Message Request until
+            // accepted - and from then on their messages are fetched like anyone else's.
             var conversationAddress = contactAddress
-            if !isOutgoing, contactsManager.getContact(byAddress: contactAddress) == nil {
+            // the payload arrives hex-encoded, or (some indexer rows) with its text root intact
+            let rawPayload = payment.messagePayload ?? ""
+            let isChatPayment = Self.isPaymentRawPayload(rawPayload)
+                || ["kchat:1:pay:", "ciph_msg:1:pay:", "ciph_msg:pay:"].contains { rawPayload.hasPrefix($0) }
+            if !isOutgoing, !isChatPayment, contactsManager.getContact(byAddress: contactAddress) == nil {
                 conversationAddress = myAddress
                 content = "\(content)\n\(AppLocalization.string("From:")) \(contactAddress)"
             }
@@ -2982,8 +2990,12 @@ extension ChatService {
         }
         // Someone first seen through a push or the live subscription gets routing state like any
         // other contact, so every sync and sweep looks for their messages from now on (both cover
-        // only contacts with routing state or an alias).
-        if !message.isOutgoing, routingStates[contactAddress] == nil {
+        // only contacts with routing state or an alias). The same goes for someone we PAID: the
+        // payment opened a chat with them, and their reply must be found even when their app
+        // didn't tag it for our inbox (an older client, or Kasia).
+        let isPaymentWeSent = message.isOutgoing && message.messageType == .payment
+            && contactAddress.lowercased() != WalletManager.shared.currentWallet?.publicAddress.lowercased()
+        if !message.isOutgoing || isPaymentWeSent, routingStates[contactAddress] == nil {
             ensureRoutingState(for: contactAddress, privateKey: WalletManager.shared.getPrivateKey())
         }
 

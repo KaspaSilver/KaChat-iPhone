@@ -3786,6 +3786,11 @@ extension ChatService {
     /// a successful submit, so a failed one doesn't use it up), not once they have written to us,
     /// never in a Private chat, and only when the indexer files `dm` - one that doesn't know it
     /// drops the transaction from its index altogether.
+    ///
+    /// Only a MESSAGE from them counts as "written to us" - a payment does not. Someone who just
+    /// sent KAS (a wallet send, or a chat payment) may have no chat with us at all, so an untagged
+    /// reply would never reach them. Tagging costs nothing there: the payment already links the
+    /// two addresses on chain.
     func firstContactInboxTag(for address: String) async -> String? {
         let me = WalletManager.shared.currentWallet?.publicAddress.lowercased()
         guard address.lowercased() != me, !isPrivateChat(address),
@@ -3794,7 +3799,7 @@ extension ChatService {
         // or scanned in upper case is still the established conversation
         let lowered = address.lowercased()
         let heardFrom = conversations.first { $0.contact.address.lowercased() == lowered }?
-            .messages.contains { !$0.isOutgoing } ?? false
+            .messages.contains { !$0.isOutgoing && $0.messageType != .payment } ?? false
         guard !heardFrom, await inboxSupported() else { return nil }
         return InboxTag.compute(for: address)
     }

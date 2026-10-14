@@ -1730,3 +1730,13 @@
 
 /* Profile save: not enough funds popup (with the chatting address QR) */
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "잔액이 부족합니다. 채팅 주소로 최소 1 KAS를 보내 주세요.";
+
+/* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
+"From: %@" = "보낸 주소: %@";
+"Buy From" = "구매할 주소";
+"Fund" = "입금";
+"Copy address" = "주소 복사";
+"Not enough KAS on this address for this name." = "이 주소에 이 이름을 위한 KAS가 부족합니다.";
+"Send KAS to this address to buy with it." = "이 주소로 구매하려면 이 주소로 KAS를 보내세요.";
+"Choose the address the marketplace buys with" = "마켓에서 구매에 쓸 주소 선택";
+"Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "여기서의 등록, 구매, 제안은 이 주소에서 결제되며, 등록하거나 구매한 이름은 이 주소에 속합니다. 이름을 채팅 주소와 분리해 두려면 새 주소를 사용하세요.";

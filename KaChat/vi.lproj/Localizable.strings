@@ -1730,3 +1730,13 @@
 
 /* Profile save: not enough funds popup (with the chatting address QR) */
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Bạn không đủ tiền. Vui lòng gửi ít nhất 1 KAS đến địa chỉ trò chuyện của bạn.";
+
+/* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
+"From: %@" = "Từ: %@";
+"Buy From" = "Mua từ";
+"Fund" = "Nạp tiền";
+"Copy address" = "Sao chép địa chỉ";
+"Not enough KAS on this address for this name." = "Địa chỉ này không đủ KAS cho tên này.";
+"Send KAS to this address to buy with it." = "Gửi KAS đến địa chỉ này để mua bằng nó.";
+"Choose the address the marketplace buys with" = "Chọn địa chỉ mà chợ dùng để mua";
+"Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "Việc đăng ký, mua và đề nghị ở đây được trả từ địa chỉ này, và các tên bạn đăng ký hoặc mua thuộc về nó. Dùng một địa chỉ mới để giữ tên tách khỏi địa chỉ trò chuyện của bạn.";

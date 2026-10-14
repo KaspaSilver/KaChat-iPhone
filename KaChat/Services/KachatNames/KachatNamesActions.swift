@@ -87,6 +87,18 @@ final class KachatNamesActions: ObservableObject {
     private var pendingWallet: String?
     private var driver: Task<Void, Never>?
 
+    /// The address the marketplace pays and buys with: claims, purchases, offers, and extend or
+    /// renew opened from the marketplace. A name claimed or bought this way belongs to that
+    /// address. The chatting address unless the person picked another with the marketplace's
+    /// balance pill (`KachatMarketSourcePill`); back to it when the marketplace closes.
+    @Published var marketSource: SendSource = .chatting {
+        didSet {
+            if case .spending(_, let address, _) = marketSource { rememberMarketAddress(address) }
+        }
+    }
+    /// `marketSource` was made with Buy From's Fresh Address (which pill shows as chosen).
+    @Published var marketSourceIsFresh = false
+
     private init() {}
 
     private var service: KachatNamesService { KachatNamesService.shared }
@@ -257,16 +269,105 @@ final class KachatNamesActions: ObservableObject {
         default: heldBy = nil
         }
         if let owner = heldBy, case .spending(let index, let address)? = ownAddress(of: owner) {
-            try service.requireLaunched()
-            guard address.lowercased().hasPrefix(KachatNamesService.addressPrefix + ":"), NetworkType.isOnActiveNetwork(address) else {
-                throw KachatNamesService.ServiceError.wrongAddressNetwork
-            }
-            guard let key = WalletManager.shared.spendingPrivateKey(at: index) else { throw ActionError.noWallet }
-            let me = try KachatNamesService.xonlyKey(privateKey: key)
-            guard me == owner else { throw ActionError.keyMismatch }
-            return Signer(address: address.lowercased(), privateKey: key, me: me)
+            return try spendingSigner(index: index, address: address, expected: owner)
         }
-        return try signer()
+        switch op {
+        // an offer is withdrawn with the key it was made from (a refund is anyone's, but the
+        // buyer's own address pays its fee the same way)
+        case .withdraw(let o), .refund(let o):
+            if let mine = try? ownerSigner(o.buyer) { return mine }
+            return try signer()
+        // paid by, and (buy, offer) belonging to, the marketplace's address
+        case .buy, .offer, .extend, .renew:
+            return try buyerSigner()
+        default:
+            return try signer()
+        }
+    }
+
+    /// A spending address's signer, checked against the key it must have.
+    private func spendingSigner(index: Int, address: String, expected: Data?) throws -> Signer {
+        try service.requireLaunched()
+        guard address.lowercased().hasPrefix(KachatNamesService.addressPrefix + ":"), NetworkType.isOnActiveNetwork(address) else {
+            throw KachatNamesService.ServiceError.wrongAddressNetwork
+        }
+        guard let key = WalletManager.shared.spendingPrivateKey(at: index) else { throw ActionError.noWallet }
+        let me = try KachatNamesService.xonlyKey(privateKey: key)
+        guard me == (expected ?? KachatNamesRegistry.keyOf(address)) else { throw ActionError.keyMismatch }
+        return Signer(address: address.lowercased(), privateKey: key, me: me)
+    }
+
+    /// The signer for whichever of this wallet's addresses holds `owner` (the chatting address or
+    /// a spending address) - a claim in progress keeps the address it was started from.
+    private func ownerSigner(_ owner: Data) throws -> Signer {
+        switch ownAddress(of: owner) {
+        case .chatting?: return try signer()
+        case .spending(let index, let address)?: return try spendingSigner(index: index, address: address, expected: owner)
+        default: throw ActionError.keyMismatch
+        }
+    }
+
+    /// The marketplace's address (`marketSource`).
+    func buyerSigner() throws -> Signer {
+        guard case .spending(let index, let address, _) = marketSource else { return try signer() }
+        return try spendingSigner(index: index, address: address, expected: nil)
+    }
+
+    /// Who pays `op` (and, for a buy or an offer, who it belongs to), for the confirmation's
+    /// balance line - the same choice `signer(for:)` makes, without touching a private key.
+    func payer(for op: Operation) -> (address: String, key: Data)? {
+        let held: Data?
+        switch op {
+        case .transfer(let n, _), .list(let n, _), .release(let n): held = n.owner
+        case .accept(_, let n): held = n.owner
+        case .decline(let o): held = o.seller
+        case .withdraw(let o), .refund(let o): held = o.buyer
+        default: held = nil
+        }
+        if let held, case .spending(_, let address)? = ownAddress(of: held) {
+            return (address.lowercased(), held)
+        }
+        switch op {
+        case .buy, .offer, .extend, .renew:
+            if case .spending(_, let address, _) = marketSource, let key = KachatNamesRegistry.keyOf(address) {
+                return (address.lowercased(), key)
+            }
+        default: break
+        }
+        guard let me = myKey, let address = myAddress else { return nil }
+        return (address, me)
+    }
+
+    // MARK: - Addresses the marketplace bought with
+
+    private var marketAddressesKey: String? {
+        myAddress.map { "kachat_market_addresses.\($0)" }
+    }
+
+    /// Spending addresses picked to buy with in the marketplace, per wallet: Your Domains and the
+    /// marketplace list the names and offers they hold next to the chatting address's.
+    var marketAddresses: [String] {
+        guard let key = marketAddressesKey else { return [] }
+        return UserDefaults.standard.stringArray(forKey: key) ?? []
+    }
+
+    private func rememberMarketAddress(_ address: String) {
+        guard let key = marketAddressesKey else { return }
+        var list = marketAddresses
+        guard !list.contains(address.lowercased()) else { return }
+        list.append(address.lowercased())
+        UserDefaults.standard.set(list, forKey: key)
+    }
+
+    /// The keys whose names and offers count as this wallet's in the marketplace and Your Domains:
+    /// the chatting address's, then each address bought with.
+    var ownMarketKeys: [Data] {
+        var keys: [Data] = []
+        if let me = myKey { keys.append(me) }
+        for address in marketAddresses {
+            if let key = KachatNamesRegistry.keyOf(address), !keys.contains(key) { keys.append(key) }
+        }
+        return keys
     }
 
     /// The current wallet's x-only key, without touching the private key.
@@ -408,7 +509,7 @@ final class KachatNamesActions: ObservableObject {
 
     /// What the wallet can spend on names right now (sompi).
     func spendable() async throws -> UInt64 {
-        let s = try signer()
+        let s = try buyerSigner()
         let utxos = try await NodePoolService.shared.getUtxosByAddresses([s.address])
         let daa = await NodePoolService.shared.currentVirtualDaaScore() ?? 0
         return KachatNamesService.fundingUtxos(utxos, me: s.me, virtualDaaScore: daa).reduce(0) { $0 + $1.entry.amount }
@@ -814,8 +915,9 @@ final class KachatNamesActions: ObservableObject {
     /// an offer, so the buyer's app does it as soon as it sees the name changed hands; after that,
     /// `returnExpiredOffers` covers it from any app. Each offer is tried once per session.
     func withdrawDeclinedOffers(_ offers: [KachatNames.OfferInfo]) async {
-        guard KachatNamesService.isLaunched, let me = myKey else { return }
-        let mine = offers.filter { $0.buyer == me && !withdrawingOffers.contains($0.id) && !returningOffers.contains($0.id) }
+        let keys = ownMarketKeys
+        guard KachatNamesService.isLaunched, !keys.isEmpty else { return }
+        let mine = offers.filter { keys.contains($0.buyer) && !withdrawingOffers.contains($0.id) && !returningOffers.contains($0.id) }
         guard !mine.isEmpty else { return }
         var ownerByName: [String: Data?] = [:]
         for o in mine {
@@ -904,7 +1006,7 @@ final class KachatNamesActions: ObservableObject {
     /// The cost of registering `name` for `years`, estimated by building both transactions
     /// (nothing is signed or sent).
     func quote(name: String, years: Int64, gap: KachatNames.GapInfo, feeTier: WithdrawFeeTier = .normal) async throws -> Quote {
-        let s = try signer()
+        let s = try buyerSigner()
         let m = try await registry.prepare()
         try await Self.requireRegistrationOpen(m)
         let (b, env, wallet) = try await context(s, feerate: await feerate(for: feeTier))
@@ -944,12 +1046,14 @@ final class KachatNamesActions: ObservableObject {
     /// driver registers once the commit is `tCommit` deep. Returns the commit txid.
     @discardableResult
     func startRegistration(name raw: String, years: Int64, maxPrice: UInt64, feeTier: WithdrawFeeTier = .normal) async throws -> String {
-        let s = try signer()
+        let s = try buyerSigner()
+        // kept with the wallet's claims (and its salt under the wallet), whichever address pays
+        guard let wallet = myAddress else { throw ActionError.noWallet }
         let name = KachatNames.Codec.normalize(raw)
         try KachatNames.Codec.validate(name)
         // never a commit that couldn't be registered: v5 opens register at its migration deadline
         try await Self.requireRegistrationOpen(try await registry.prepare())
-        loadPending(for: s.address)
+        loadPending(for: wallet)
         await registry.refresh()
         var lapsed: KachatNames.NameInfo?
         switch try await registry.lookup(name) {
@@ -967,7 +1071,7 @@ final class KachatNamesActions: ObservableObject {
         let plan = try b.commit(env: env, wallet: wallet, name: name, salt: salt)
         guard let commit = plan.newCommit, let script = commit.utxo?.entry.script else { throw KachatNames.Failure("commit: no record") }
         let id = UUID().uuidString
-        try KeychainService.shared.saveKachatCommitSalt(salt, id: id, walletAddress: s.address)
+        try KeychainService.shared.saveKachatCommitSalt(salt, id: id, walletAddress: wallet)
         let now = KachatNames.nowMs()
         var record = KachatNames.PendingRegistration(
             id: id, name: name, years: years, owner: KachatNames.hex(s.me), commitTxId: plan.unsignedTx.idHex,
@@ -975,7 +1079,7 @@ final class KachatNamesActions: ObservableObject {
             stage: .committing, createdAt: now, updatedAt: now, lastError: nil, maxPrice: maxPrice,
             feeTier: feeTier.rawValue
         )
-        loadPending(for: s.address)
+        loadPending(for: wallet)
         upsert(record)
         do {
             let txId = try await service.signAndSubmit(plan, privateKey: s.privateKey, env: env)
@@ -1003,8 +1107,8 @@ final class KachatNamesActions: ObservableObject {
     /// Spends the commit back (the name was taken, or the person changed their mind).
     @discardableResult
     func cancel(_ p: KachatNames.PendingRegistration) async throws -> String {
-        let s = try signer()
-        guard let salt = try KeychainService.shared.loadKachatCommitSalt(id: p.id, walletAddress: s.address) else { throw ActionError.noSalt }
+        let s = try ownerSigner(try KachatNames.unhex32(p.owner))
+        guard let salt = try KeychainService.shared.loadKachatCommitSalt(id: p.id, walletAddress: pendingWallet ?? s.address) else { throw ActionError.noSalt }
         let b = try await service.builder()
         let env = try await service.environment(privateKey: s.privateKey, feerate: await feerate())
         let commitUtxo = try await service.liveUtxo(script: try KachatNames.unhex(p.commitScript), outpoint: try commitOutpoint(p))
@@ -1197,9 +1301,8 @@ final class KachatNamesActions: ObservableObject {
     /// the current fee, after a node dropped the first one.
     private func resendCommit(_ p: KachatNames.PendingRegistration) async {
         do {
-            let s = try signer()
-            guard KachatNames.hex(s.me) == p.owner else { return }
-            guard let salt = try KeychainService.shared.loadKachatCommitSalt(id: p.id, walletAddress: s.address) else { throw ActionError.noSalt }
+            guard let s = try? ownerSigner(try KachatNames.unhex32(p.owner)) else { return }
+            guard let salt = try KeychainService.shared.loadKachatCommitSalt(id: p.id, walletAddress: pendingWallet ?? s.address) else { throw ActionError.noSalt }
             let (b, env, wallet) = try await context(s, feerate: await registrationFeerate(p))
             let plan = try b.commit(env: env, wallet: wallet, name: p.name, salt: salt)
             guard let script = plan.newCommit?.utxo?.entry.script, KachatNames.hex(script) == p.commitScript else {
@@ -1239,15 +1342,15 @@ final class KachatNamesActions: ObservableObject {
     /// This wallet holds `name` as a live registration (a lapsed old record of it doesn't count:
     /// that is what claiming an expired name registers over).
     private func ownsName(_ name: String) async -> Bool {
-        guard let me = myKey, case .registered(let n)? = try? await registry.lookup(name) else { return false }
-        return n.owner == me && n.status(graceMs: registry.graceMs) != .lapsed
+        guard case .registered(let n)? = try? await registry.lookup(name) else { return false }
+        return ownAddress(of: n.owner) != nil && n.status(graceMs: registry.graceMs) != .lapsed
     }
 
     private func register(_ p: KachatNames.PendingRegistration, commit: KachatNames.Utxo) async {
         do {
-            let s = try signer()
-            guard KachatNames.hex(s.me) == p.owner else { return }
-            guard let salt = try KeychainService.shared.loadKachatCommitSalt(id: p.id, walletAddress: s.address) else { throw ActionError.noSalt }
+            // the address the claim was started from signs and pays, chatting or spending
+            guard let s = try? ownerSigner(try KachatNames.unhex32(p.owner)) else { return }
+            guard let salt = try KeychainService.shared.loadKachatCommitSalt(id: p.id, walletAddress: pendingWallet ?? s.address) else { throw ActionError.noSalt }
             await registry.refresh()
             let m = try await registry.prepare()
             // A commit isn't bound to a registry: one sent before a migration registers on the

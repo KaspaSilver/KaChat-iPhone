@@ -1730,3 +1730,13 @@
 
 /* Profile save: not enough funds popup (with the chatting address QR) */
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "אין לך מספיק כסף. יש לשלוח לפחות 1 KAS לכתובת הצ'אט שלך.";
+
+/* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
+"From: %@" = "מאת: %@";
+"Buy From" = "לקנות מ";
+"Fund" = "טעינה";
+"Copy address" = "העתקת כתובת";
+"Not enough KAS on this address for this name." = "אין מספיק KAS בכתובת הזו עבור השם הזה.";
+"Send KAS to this address to buy with it." = "שלחו KAS לכתובת הזו כדי לקנות איתה.";
+"Choose the address the marketplace buys with" = "בחרו את הכתובת שהשוק קונה איתה";
+"Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "תביעות, רכישות והצעות כאן משולמות מהכתובת הזו, והשמות שתתבעו או תקנו שייכים לה. השתמשו בכתובת חדשה כדי להפריד שם מכתובת הצ'אט שלכם.";

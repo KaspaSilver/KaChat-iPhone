@@ -531,6 +531,19 @@ REST API reports the transaction accepted.
   whose renewal is open. Anyone may extend or renew any name on chain (a gift); the actions don't
   require the owner.
 
+**Buy From (which address the marketplace uses).** In the marketplace only, the balance pill at
+the top shows the balance and the address the marketplace buys with (`KachatMarketSourcePill`).
+Tapping it opens Buy From: Chatting Address (the default), Fresh Address (a never-used spending
+address, revealed in Manage Addresses) or Choose an Address (any of yours, each marked used or
+unused), with that address's balance, a copy button and, when it is empty, Fund (its QR code).
+Inscribing a new name (the commit and the register, and a claim resumed later), buying a listed
+name, making an offer, and extend or renew opened from the marketplace are paid from that address,
+and a name claimed or bought this way belongs to it (`KachatNamesActions.marketSource`,
+`buyerSigner`). A claim in progress keeps signing with the address it started from (by its owner
+key), and its salt and record stay with the wallet. Addresses used this way are remembered per
+wallet, so Your Domains and the marketplace list their names and offers with the chatting
+address's. Leaving the marketplace switches back to the chatting address.
+
 **Until the v2 manifest is bundled.** The bundled manifest is registry v1, which this app no longer
 builds for: `KachatNamesService` recognises it (`registryUpgrading`), remembers the refusal instead
 of re-verifying the bundle on every call, and the hub shows a "Setting up" pill with "The .kachat

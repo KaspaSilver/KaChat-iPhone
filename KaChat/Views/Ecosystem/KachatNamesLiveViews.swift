@@ -471,9 +471,17 @@ final class KachatHubModel: ObservableObject {
             listings = try await registry.listings()
             lapsed = try await registry.lapsed()
             grace = (try? await registry.inGrace()) ?? []
-            if let me = KachatNamesActions.shared.myKey {
-                mine = try await registry.names(owner: me, includeInactive: true)
-                myOffers = try await registry.myOffers(buyer: me)
+            // the chatting address and every address the marketplace bought with
+            let keys = KachatNamesActions.shared.ownMarketKeys
+            if !keys.isEmpty {
+                var names: [KachatNames.NameInfo] = []
+                var offers: [KachatNames.OfferInfo] = []
+                for key in keys {
+                    names += try await registry.names(owner: key, includeInactive: true)
+                    offers += try await registry.myOffers(buyer: key)
+                }
+                mine = names
+                myOffers = offers
                 if !myOffers.isEmpty {
                     await KachatNamesActions.shared.refreshVirtualDaa()
                     // Your own expired offers come back to you on their own, and so do the ones
@@ -1689,6 +1697,12 @@ struct KachatBusyNetworkNotice: View {
 /// network is busy), the cost, and slide to confirm - the destructive ones show their warning in
 /// red above it; the slide itself is the confirmation - then the device lock, then the
 /// transaction. Ends on a receipt that follows it into a block.
+/// The address paying a name transaction and its key (`KachatTxSheet`).
+struct KachatPayerInfo: Equatable {
+    let address: String
+    let key: Data
+}
+
 struct KachatTxSheet<Inputs: View>: View {
     let title: LocalizedStringKey
     let confirmTitle: LocalizedStringKey
@@ -1720,6 +1734,24 @@ struct KachatTxSheet<Inputs: View>: View {
     @State private var txId: String?
     @State private var done: KachatTxDone?
     @State private var sendError: String?
+    /// The paying address's balance when it isn't the chatting address (`payer`).
+    @State private var payerBalance: UInt64?
+    /// Who pays this transaction (`KachatNamesActions.payer(for:)`), worked out once per operation.
+    @State private var payerInfo: KachatPayerInfo?
+
+    private var payer: (address: String, key: Data)? {
+        if let payerInfo { return (payerInfo.address, payerInfo.key) }
+        guard let me = actions.myKey, let address = actions.myAddress else { return nil }
+        return (address, me)
+    }
+
+    /// "Address #3" (or its name) for the marketplace's address, else the short address.
+    private func payerLabel(_ address: String) -> String {
+        if case .spending(_, let chosen, let label) = actions.marketSource, chosen.lowercased() == address.lowercased() {
+            return label
+        }
+        return KachatNamesRegistry.compactAddress(address)
+    }
     @State private var feeTier: WithdrawFeeTier = .normal
     @State private var customFee: UInt64?
     @State private var isEditingFee = false
@@ -1778,11 +1810,18 @@ struct KachatTxSheet<Inputs: View>: View {
                     showsCoinControl: false
                 )
 
-                if let plan, let me = actions.myKey {
-                    // Names always spend from, and pay back to, the chatting address.
-                    let change = Self.balanceChange(plan, me: me)
+                if let plan, let payer {
+                    // Spends from, and pays back to, the address that pays: the chatting address,
+                    // the marketplace's chosen one, or the spending address holding the name.
+                    let change = Self.balanceChange(plan, me: payer.key)
+                    let fromChatting = payer.address == actions.myAddress
                     HStack(spacing: 8) {
-                        if let balance = WalletManager.shared.currentWallet?.balanceSompi {
+                        if !fromChatting {
+                            SendInfoPill {
+                                Text("From: \(payerLabel(payer.address))")
+                            }
+                        }
+                        if let balance = fromChatting ? WalletManager.shared.currentWallet?.balanceSompi : payerBalance {
                             SendInfoPill {
                                 Text("Balance after: \(KaspaUnit.amount(UInt64(max(0, Int64(balance) + change))))")
                             }
@@ -1856,6 +1895,12 @@ struct KachatTxSheet<Inputs: View>: View {
             }
         }
         .task(id: "\(operationKey)|\(feeTier.rawValue)|\(customFee ?? 0)") { await rebuild() }
+        .task(id: operationKey) {
+            payerInfo = operation.flatMap { actions.payer(for: $0) }.map { KachatPayerInfo(address: $0.address, key: $0.key) }
+            guard let address = payerInfo?.address, address != actions.myAddress else { return }
+            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
+            payerBalance = utxos.reduce(UInt64(0)) { $0 + $1.amount }
+        }
         .task {
             // A busy network starts on Fast unless the person already chose.
             if let estimate = await actions.refreshFeeEstimate(), estimate.isBusy, !feeTouched, customFee == nil {
@@ -2087,6 +2132,10 @@ struct KachatClaimSheet: View {
 
                     if let q = quote {
                         HStack(spacing: 8) {
+                            // the marketplace's address pays, and the name will be on it
+                            if case .spending(_, _, let label) = KachatNamesActions.shared.marketSource {
+                                SendInfoPill { Text("From: \(label)") }
+                            }
                             SendInfoPill { Text("Available: \(KaspaUnit.amount(q.spendable))") }
                             Spacer(minLength: 0)
                         }
@@ -2113,8 +2162,13 @@ struct KachatClaimSheet: View {
 
                     Group {
                         if let q = quote, !q.affordable {
-                            KaspaUnit.text("Not enough KAS on your chatting address for this name.")
-                                .foregroundColor(.red)
+                            if case .spending = KachatNamesActions.shared.marketSource {
+                                KaspaUnit.text("Not enough KAS on this address for this name.")
+                                    .foregroundColor(.red)
+                            } else {
+                                KaspaUnit.text("Not enough KAS on your chatting address for this name.")
+                                    .foregroundColor(.red)
+                            }
                         } else {
                             Text("The price goes to the miners - KaChat takes nothing. The bond and the deposit come back when you release the name.")
                                 .foregroundColor(.secondary)
@@ -3349,10 +3403,22 @@ struct KachatLiveDomainsTab: View {
     private func load() async {
         guard let key = KachatNamesRegistry.keyOf(walletAddress) else { loaded = true; return }
         if registry.refreshedAt == nil { await registry.refresh() }
+        // Your own list (the chatting address's) also holds what the marketplace bought with your
+        // other addresses: a name claimed from a fresh address is still yours to find here.
+        var keys = [key]
+        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress {
+            keys += KachatNamesActions.shared.ownMarketKeys.filter { $0 != key }
+        }
         // A lapsed name is no longer yours: it moves to the marketplace's Reclaimable tab (and the
         // bell says so, `KachatNamesNotifier`). Expired names in grace stay, to be renewed.
-        names = (try? await registry.heldNames(owner: key)) ?? []
-        myOffers = (try? await registry.myOffers(buyer: key)) ?? []
+        var held: [KachatNames.NameInfo] = []
+        var offers: [KachatNames.OfferInfo] = []
+        for k in keys {
+            held += (try? await registry.heldNames(owner: k)) ?? []
+            offers += (try? await registry.myOffers(buyer: k)) ?? []
+        }
+        names = held
+        myOffers = offers
         if !myOffers.isEmpty {
             // expired offers, and ones made to an earlier owner, come back on their own
             await KachatNamesActions.shared.refreshVirtualDaa()

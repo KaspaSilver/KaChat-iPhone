@@ -1048,12 +1048,12 @@ final class KachatNamesActions: ObservableObject {
     func startRegistration(name raw: String, years: Int64, maxPrice: UInt64, feeTier: WithdrawFeeTier = .normal) async throws -> String {
         let s = try buyerSigner()
         // kept with the wallet's claims (and its salt under the wallet), whichever address pays
-        guard let wallet = myAddress else { throw ActionError.noWallet }
+        guard let walletAddress = myAddress else { throw ActionError.noWallet }
         let name = KachatNames.Codec.normalize(raw)
         try KachatNames.Codec.validate(name)
         // never a commit that couldn't be registered: v5 opens register at its migration deadline
         try await Self.requireRegistrationOpen(try await registry.prepare())
-        loadPending(for: wallet)
+        loadPending(for: walletAddress)
         await registry.refresh()
         var lapsed: KachatNames.NameInfo?
         switch try await registry.lookup(name) {
@@ -1071,7 +1071,7 @@ final class KachatNamesActions: ObservableObject {
         let plan = try b.commit(env: env, wallet: wallet, name: name, salt: salt)
         guard let commit = plan.newCommit, let script = commit.utxo?.entry.script else { throw KachatNames.Failure("commit: no record") }
         let id = UUID().uuidString
-        try KeychainService.shared.saveKachatCommitSalt(salt, id: id, walletAddress: wallet)
+        try KeychainService.shared.saveKachatCommitSalt(salt, id: id, walletAddress: walletAddress)
         let now = KachatNames.nowMs()
         var record = KachatNames.PendingRegistration(
             id: id, name: name, years: years, owner: KachatNames.hex(s.me), commitTxId: plan.unsignedTx.idHex,
@@ -1079,7 +1079,7 @@ final class KachatNamesActions: ObservableObject {
             stage: .committing, createdAt: now, updatedAt: now, lastError: nil, maxPrice: maxPrice,
             feeTier: feeTier.rawValue
         )
-        loadPending(for: wallet)
+        loadPending(for: walletAddress)
         upsert(record)
         do {
             let txId = try await service.signAndSubmit(plan, privateKey: s.privateKey, env: env)

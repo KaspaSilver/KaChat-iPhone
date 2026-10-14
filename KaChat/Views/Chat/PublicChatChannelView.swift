@@ -154,10 +154,10 @@ struct PublicChatChannelView: View {
         walletManager.hasConfirmedZeroChattingBalance
     }
 
-    /// Indexer-tracked curated channel (#kaspa / #kachat-bugs): history comes from the
-    /// public chat indexer and retention is fixed at 30 days.
+    /// A room the indexer tracks (the curated ones, or one added on the indexer): history comes
+    /// from the public chat indexer and retention is fixed at 30 days.
     private var isIndexedChannel: Bool {
-        PublicChatService.indexedChannels.contains(PublicChatChannelName.normalize(channelName))
+        PublicChatService.isIndexerTracked(channelName)
     }
 
     // Split into four expressions rather than one 14-modifier chain. The type checker solves a
@@ -271,14 +271,14 @@ struct PublicChatChannelView: View {
 
     /// The half sheet behind the bell: what notifications do in this room, and the switch.
     private var notifySheet: some View {
-        let isCurated = PublicChatService.indexedChannels.contains(PublicChatChannelName.normalize(channelName))
+        let isTracked = PublicChatService.isIndexerTracked(channelName)
         let on = roomNotifyEnabled
         return VStack(spacing: 14) {
             Text("#\(PublicChatChannelName.normalize(channelName))")
                 .font(.headline)
                 .padding(.top, 24)
             Text(on
-                 ? (isCurated ? "You're notified of new messages here, even when the app is closed."
+                 ? (isTracked ? "You're notified of new messages here, even when the app is closed."
                               : "You're notified of new messages here while the app is open.")
                  : "New messages here don't notify you. The room still updates when you open it.")
                 .font(.subheadline)
@@ -289,7 +289,7 @@ struct PublicChatChannelView: View {
                 title: on ? "Turn Off Notifications" : "Turn On Notifications",
                 subtitle: on
                     ? "No notification for new messages in this room."
-                    : (isCurated ? "Notifies you of new messages, even when the app is closed."
+                    : (isTracked ? "Notifies you of new messages, even when the app is closed."
                                  : "Notifies you of new messages while the app is open."),
                 systemImage: on ? "bell.slash" : "bell"
             ) {
@@ -311,9 +311,9 @@ struct PublicChatChannelView: View {
                 ConnectionStatusIndicator()
             }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                // A room you made yourself: what "public" does and does not mean here. The
-                // curated rooms are indexed, so they need no such warning.
-                if !PublicChatService.indexedChannels.contains(PublicChatChannelName.normalize(channelName)) {
+                // A room you made yourself: what "public" does and does not mean here. Rooms the
+                // indexer tracks keep their history there, so they need no such warning.
+                if !PublicChatService.isIndexerTracked(channelName) {
                     Button {
                         showOwnRoomExplainer = true
                     } label: {

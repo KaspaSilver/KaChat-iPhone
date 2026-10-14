@@ -341,7 +341,8 @@ struct PublicChatListView: View {
     @ViewBuilder
     private func roomActionSheet(for name: String) -> some View {
         let channel = publicChatService.channels.first { $0.channelName == name }
-        let isCurated = PublicChatService.indexedChannels.contains(name)
+        let isCurated = PublicChatService.curatedChannels.contains(name)
+        let isTracked = PublicChatService.isIndexerTracked(name)
         let notifyOn = channel?.notifyEnabled ?? false
         VStack(spacing: 12) {
             Text("#\(name)")
@@ -367,7 +368,7 @@ struct PublicChatListView: View {
                     title: notifyOn ? "Turn Off Notifications" : "Turn On Notifications",
                     subtitle: notifyOn
                         ? "No notification for new messages in this room."
-                        : (isCurated ? "Notifies you of new messages, even when the app is closed."
+                        : (isTracked ? "Notifies you of new messages, even when the app is closed."
                                      : "Notifies you of new messages while the app is open."),
                     systemImage: notifyOn ? "bell.slash" : "bell"
                 ) {
@@ -421,7 +422,7 @@ struct PublicChatListView: View {
     private func toggleNotify(_ channel: PublicChatChannel) {
         let newValue = !channel.notifyEnabled
         publicChatService.setNotifyEnabled(newValue, forChannel: channel.channelName)
-        let isIndexed = PublicChatService.indexedChannels.contains(channel.channelName)
+        let isIndexed = PublicChatService.isIndexerTracked(channel.channelName)
         showToast(newValue
             ? (isIndexed
                 ? "You'll get notifications for new messages in this public chat, even when the app is closed"

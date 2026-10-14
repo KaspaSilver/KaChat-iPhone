@@ -1258,7 +1258,7 @@ struct KaChatInternalLinkCardView: View {
         case .publicChatRoom(let channel):
             // Curated rooms and rooms already in the list just open; anything else is created
             // and added to the user's channel list on tap, so say so before they tap.
-            let known = PublicChatService.indexedChannels.contains(channel)
+            let known = PublicChatService.curatedChannels.contains(channel)
                 || PublicChatService.shared.channels.contains { $0.channelName == channel }
             return known
                 ? "Tap to open this KaChat public chat room."

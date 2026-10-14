@@ -1558,7 +1558,7 @@ final class PushNotificationManager: ObservableObject {
         // whose fingerprint includes this list, so the re-registration happens automatically.
         guard !AppSettings.load().childModeEnabled else { return [] }
         return PublicChatService.shared.channels
-            .filter { PublicChatService.indexedChannels.contains($0.channelName) && $0.notifyEnabled }
+            .filter { PublicChatService.isIndexerTracked($0.channelName) && $0.notifyEnabled }
             .map(\.channelName)
             .sorted()
     }

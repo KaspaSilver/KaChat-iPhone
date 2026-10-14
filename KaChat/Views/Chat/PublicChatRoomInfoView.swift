@@ -27,7 +27,7 @@ struct PublicChatRoomInfoView: View {
     private var normalized: String { PublicChatChannelName.normalize(channelName) }
 
     private var isCurated: Bool {
-        PublicChatService.indexedChannels.contains(normalized)
+        PublicChatService.curatedChannels.contains(normalized)
     }
 
     private var messages: [PublicChatMessage] {
@@ -57,12 +57,12 @@ struct PublicChatRoomInfoView: View {
         publicChatService.channels.first { $0.channelName == normalized }
     }
 
-    /// Only the curated rooms have history worth a number: the indexer keeps theirs. A room you
-    /// made holds nothing for anyone who was not there (see the room's info button).
+    /// Only rooms the indexer tracks have history worth a number: the indexer keeps theirs, 30
+    /// days, which is what this phone keeps too. A room you made holds nothing for anyone who
+    /// was not there (see the room's info button).
     private var retentionDescription: String? {
-        guard PublicChatService.indexedChannels.contains(normalized) else { return nil }
-        guard let millis = channel?.retentionMillis, millis > 0 else { return nil }
-        let days = Int((Double(millis) / 86_400_000).rounded())
+        guard PublicChatService.isIndexerTracked(normalized) else { return nil }
+        let days = Int((Double(PublicChatStore.indexerRetentionMillis) / 86_400_000).rounded())
         return days == 1 ? "1 day" : "\(days) days"
     }
 

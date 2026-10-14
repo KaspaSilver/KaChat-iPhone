@@ -40,11 +40,26 @@ final class PublicChatService: ObservableObject {
         "kaspa-hebrew",
     ]
 
-    /// Every indexer-tracked room. EVERYTHING that follows from "the indexer serves this room's
-    /// history" keys off this set - 30-day retention, no per-room retention gear, no Leave,
-    /// remote-push registration, the cellular block-stream skip, the push-covered local-banner
-    /// skip. Only auto-join and the pinned Popular list use `featuredChannels` alone.
-    nonisolated static let indexedChannels = featuredChannels + languageChannels
+    /// The rooms the app ships as defaults (Popular + the language rooms): always in the list,
+    /// switched off rather than left, "Popular" in Room Info. Only auto-join and the pinned
+    /// Popular list use `featuredChannels` alone.
+    nonisolated static let curatedChannels = featuredChannels + languageChannels
+
+    /// Whether the indexer keeps this room's history: the curated rooms, and any other room the
+    /// indexer tracks - one the operator adds on the indexer (it then keeps 30 days of it) needs
+    /// no app update. EVERYTHING that follows from "the indexer serves this room's history" keys
+    /// off this - 30-day retention, remote-push registration, the cellular block-stream skip,
+    /// the push-covered local-banner skip, the "even when the app is closed" wording. See
+    /// `IndexerTrackedRooms` for how the app learns the extra rooms.
+    nonisolated static func isIndexerTracked(_ channel: String) -> Bool {
+        let name = PublicChatChannelName.normalize(channel)
+        return curatedChannels.contains(name) || IndexerTrackedRooms.contains(name)
+    }
+
+    /// Every room `isIndexerTracked` says yes to, as far as this phone knows.
+    nonisolated static var indexerTrackedChannels: Set<String> {
+        Set(curatedChannels).union(IndexerTrackedRooms.all())
+    }
 
     /// Rooms the app uses as machinery, never shown as chats: the chess arena
     /// (ONLINE_CHESS.md). Hidden from Public Chats, no unread, no banners.
@@ -121,12 +136,43 @@ final class PublicChatService: ObservableObject {
         // The closed-room sweep runs only while the app is on screen (see sweepClosedRooms).
         NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in self?.startForegroundSweep() }
+            .sink { [weak self] _ in
+                self?.startForegroundSweep()
+                self?.refreshIndexerTrackedRooms()
+            }
             .store(in: &cancellables)
         NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.stopForegroundSweep() }
             .store(in: &cancellables)
+        // A room the indexer turned out to track (or stopped tracking): its push registration,
+        // cellular scanning and wording follow at once.
+        NotificationCenter.default.publisher(for: IndexerTrackedRooms.didChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.objectWillChange.send()
+                self.updateScanningStateIfNeeded()
+                Task { await PushNotificationManager.shared.updateWatchedAddresses() }
+            }
+            .store(in: &cancellables)
+    }
+
+    /// When the app-wide indexer was last asked which rooms it tracks.
+    private var trackedRoomsCheckedAt: (base: String, at: Date)?
+
+    /// Asks the app-wide public chat indexer which rooms it tracks (`/broadcast-channels`), at
+    /// most once an hour per indexer - on app open and wallet switch. An indexer without the
+    /// endpoint answers nothing and the set keeps what it learned from served rows.
+    func refreshIndexerTrackedRooms() {
+        let base = AppSettings.load().publicChatIndexerURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !base.isEmpty else { return }
+        if let last = trackedRoomsCheckedAt, last.base == base, Date().timeIntervalSince(last.at) < 3600 { return }
+        trackedRoomsCheckedAt = (base, Date())
+        Task {
+            guard let channels = await PublicChatIndexerClient.fetchTrackedChannels(baseURL: base) else { return }
+            IndexerTrackedRooms.setReported(channels)
+        }
     }
 
     // MARK: - Wallet lifecycle
@@ -153,6 +199,7 @@ final class PublicChatService: ObservableObject {
                 self.refreshChannels()
                 self.updateScanningStateIfNeeded()
                 if UIApplication.shared.applicationState == .active { self.startForegroundSweep() }
+                self.refreshIndexerTrackedRooms()
             }
         }
     }
@@ -309,7 +356,7 @@ final class PublicChatService: ObservableObject {
     /// same as its toggle in Public Chats settings, and that toggle brings it back.
     func removeFromList(_ rawName: String) {
         let name = PublicChatChannelName.normalize(rawName)
-        if Self.indexedChannels.contains(name) {
+        if Self.curatedChannels.contains(name) {
             setCuratedChannel(name, shown: false)
         } else {
             leaveChannel(name)
@@ -325,7 +372,7 @@ final class PublicChatService: ObservableObject {
     /// #kachat-bugs with their bell on again, as they start; the language rooms as they were.
     func setCuratedChannel(_ rawName: String, shown: Bool) {
         let name = PublicChatChannelName.normalize(rawName)
-        guard Self.indexedChannels.contains(name) else { return }
+        guard Self.curatedChannels.contains(name) else { return }
         if shown {
             hiddenCuratedChannels.remove(name)
         } else {
@@ -448,7 +495,7 @@ final class PublicChatService: ObservableObject {
     func leaveChannel(_ name: String) {
         // Curated rooms (Popular and the language rooms alike) can't be left - both are
         // permanent fixtures of the list screen, so no UI offers it; guard against stray paths.
-        guard !Self.indexedChannels.contains(PublicChatChannelName.normalize(name)) else { return }
+        guard !Self.curatedChannels.contains(PublicChatChannelName.normalize(name)) else { return }
         let normalized = PublicChatChannelName.normalize(name)
         store.leaveChannel(normalized)
         messagesByChannel.removeValue(forKey: normalized)
@@ -461,7 +508,7 @@ final class PublicChatService: ObservableObject {
     func setNotifyEnabled(_ enabled: Bool, forChannel name: String) {
         // Indexed channels' bells also gate remote push - sync the registration so the push
         // service starts/stops sending for this channel.
-        if Self.indexedChannels.contains(PublicChatChannelName.normalize(name)) {
+        if Self.isIndexerTracked(name) {
             Task { await PushNotificationManager.shared.updateWatchedAddresses() }
         }
         store.setNotifyEnabled(enabled, forChannel: name)
@@ -548,7 +595,7 @@ final class PublicChatService: ObservableObject {
     /// Hides in the indexed channels also gate server-side push - re-sync the registration so
     /// the push service stops (or resumes) sending for that sender.
     private func syncHiddenSendersToPushIfNeeded(channel: String) {
-        guard Self.indexedChannels.contains(PublicChatChannelName.normalize(channel)) else { return }
+        guard Self.isIndexerTracked(channel) else { return }
         Task { await PushNotificationManager.shared.updateWatchedAddresses() }
     }
 
@@ -1490,7 +1537,7 @@ final class PublicChatService: ObservableObject {
         guard NetworkEpochMonitor.shared.isExpensivePath else { return wanted }
         // Per room, since each can point at its own indexer now: a curated room whose override
         // is blank still counts as indexed via the app-wide setting.
-        wanted.subtract(Set(Self.indexedChannels.filter { !Self.indexerBaseURL(forChannel: $0).isEmpty }))
+        wanted.subtract(Self.indexerTrackedChannels.filter { !Self.indexerBaseURL(forChannel: $0).isEmpty })
         return wanted
     }
 
@@ -1719,7 +1766,7 @@ final class PublicChatService: ObservableObject {
         // scan-driven local banner there so one message can't notify twice. While the app is
         // ACTIVE the scan is the notification source whatever the mode
         // (AppDelegate.willPresent drops public chat pushes in foreground), so the banner fires.
-        if Self.indexedChannels.contains(channel), settings.notificationMode == .remotePush,
+        if Self.isIndexerTracked(channel), settings.notificationMode == .remotePush,
            UIApplication.shared.applicationState != .active {
             return
         }
@@ -1829,6 +1876,114 @@ enum PublicChatIndexerClient {
             throw ClientError.badResponse(http.statusCode)
         }
         let decoded = try JSONDecoder().decode(HistoryResponse.self, from: data)
+        // An indexer only stores the rooms it tracks: rows back mean it keeps this room's history.
+        if !decoded.messages.isEmpty {
+            IndexerTrackedRooms.markServed(channel)
+        }
         return (decoded.messages, decoded.hasMore ?? false)
+    }
+
+    private struct TrackedChannelsResponse: Decodable {
+        let channels: [String]
+    }
+
+    /// GET /broadcast-channels -> {"channels": [...]}: the rooms this indexer tracks now (set on
+    /// the indexer's dashboard). nil when the indexer predates the endpoint (404) or can't be reached.
+    static func fetchTrackedChannels(baseURL: String) async -> [String]? {
+        var trimmed = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasSuffix("/") { trimmed = String(trimmed.dropLast()) }
+        guard !trimmed.isEmpty, let url = URL(string: "\(trimmed)/broadcast-channels") else { return nil }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 15
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+              let decoded = try? JSONDecoder().decode(TrackedChannelsResponse.self, from: data) else { return nil }
+        return decoded.channels
+    }
+}
+
+/// The rooms an indexer tracks beyond the curated ones, so a room the operator adds on the
+/// indexer gets everything a default room gets - its 30 days of history kept on the phone,
+/// remote push, the cellular savings - with no app update. Learned two ways:
+/// - **Reported**: the app-wide indexer's `GET /broadcast-channels` (replaced on every answer).
+/// - **Served**: a room whose `/get-broadcasts` returned rows - an indexer stores only rooms it
+///   tracks. Counts for 30 days after the last rows came back (the indexer's own window), so
+///   this also works with an indexer that predates the endpoint, and with a room's own indexer.
+/// Per network, persisted. Thread-safe: the store's background prune reads it.
+enum IndexerTrackedRooms {
+    /// Posted (main queue) when the set changes, so push registration and scanning follow.
+    static let didChange = Notification.Name("IndexerTrackedRoomsDidChange")
+    private static let servedWindow: TimeInterval = 30 * 24 * 3600
+
+    private static let lock = NSLock()
+    private static var loadedSuffix: String?
+    private static var reported: Set<String> = []
+    private static var served: [String: TimeInterval] = [:]
+
+    private static var suffix: String {
+        AppSettings.load().networkType == .mainnet ? "" : ".testnet"
+    }
+    private static func reportedKey(_ suffix: String) -> String { "kachat_indexer_tracked_rooms.reported" + suffix }
+    private static func servedKey(_ suffix: String) -> String { "kachat_indexer_tracked_rooms.served" + suffix }
+
+    /// Call with `lock` held: loads this network's sets once (again after a network switch).
+    private static func loadIfNeeded() {
+        let current = suffix
+        guard loadedSuffix != current else { return }
+        loadedSuffix = current
+        reported = Set(UserDefaults.standard.stringArray(forKey: reportedKey(current)) ?? [])
+        served = (UserDefaults.standard.dictionary(forKey: servedKey(current)) as? [String: TimeInterval]) ?? [:]
+    }
+
+    static func contains(_ normalized: String) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        loadIfNeeded()
+        if reported.contains(normalized) { return true }
+        guard let at = served[normalized] else { return false }
+        return Date().timeIntervalSince1970 - at < servedWindow
+    }
+
+    static func all() -> Set<String> {
+        lock.lock(); defer { lock.unlock() }
+        loadIfNeeded()
+        let now = Date().timeIntervalSince1970
+        return reported.union(served.filter { now - $0.value < servedWindow }.keys)
+    }
+
+    /// The app-wide indexer's list, as `/broadcast-channels` answered.
+    static func setReported(_ channels: [String]) {
+        let names = Set(channels.map(PublicChatChannelName.normalize).filter { !$0.isEmpty })
+        lock.lock()
+        loadIfNeeded()
+        let changed = names != reported
+        if changed {
+            reported = names
+            UserDefaults.standard.set(Array(names).sorted(), forKey: reportedKey(loadedSuffix ?? ""))
+        }
+        lock.unlock()
+        if changed { postChange() }
+    }
+
+    /// `channel`'s indexer just returned rows for it.
+    static func markServed(_ channel: String) {
+        let name = PublicChatChannelName.normalize(channel)
+        guard !name.isEmpty else { return }
+        let now = Date().timeIntervalSince1970
+        lock.lock()
+        loadIfNeeded()
+        let previous = served[name]
+        let wasTracked = reported.contains(name) || previous.map { now - $0 < servedWindow } ?? false
+        // written at most once an hour per room: every 8 s poll lands here
+        let stale = previous.map { now - $0 > 3600 } ?? true
+        if stale {
+            served[name] = now
+            UserDefaults.standard.set(served, forKey: servedKey(loadedSuffix ?? ""))
+        }
+        lock.unlock()
+        if !wasTracked { postChange() }
+    }
+
+    private static func postChange() {
+        DispatchQueue.main.async { NotificationCenter.default.post(name: didChange, object: nil) }
     }
 }

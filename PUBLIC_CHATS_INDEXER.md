@@ -87,6 +87,19 @@ kchat:1:bcast:<channel>:<content>
 - Rate limiting: light (e.g. 60 req/min/IP) is plenty — the app makes one request per channel
   per session.
 
+### `GET /broadcast-channels`
+
+The rooms this indexer tracks right now (kachat-indexer: the admin dashboard's list, else the
+built-in defaults; empty while broadcasts are switched off):
+
+```json
+{ "channels": ["kaspa", "kachat-bugs", "kaspa-german", "my-new-room"] }
+```
+
+The app asks the app-wide indexer once an hour at most (on app open and wallet switch) and treats
+every listed room like a default one (§6). An indexer without the endpoint (404) is fine: the
+app then learns rooms from served rows alone.
+
 ## 4. Build guidance
 
 - **Skeleton:** fork/reuse the kasia-indexer codebase the project already runs (reference
@@ -211,6 +224,14 @@ in-app bell toggle. The plumbing on the app side is DONE:
   is off for indexed rooms on cellular, and the push that covers them is dropped in the
   foreground - without the sweep a message in #kaspa showed up only once the room was opened.
   Budget accordingly: a phone with N bell-on rooms makes N small requests every 20 s.
-- The two tracked channels match the app's curated "Popular" list
-  (`PublicChatService.featuredChannels = ["kaspa", "kachat-bugs"]`). If more channels get
-  curated later, the allowlist is the only thing to extend.
+- **Adding a room on the indexer needs no app update.** The app ships its curated rooms
+  (`PublicChatService.curatedChannels`: Popular + the language rooms), but every room the
+  indexer tracks counts as indexed (`PublicChatService.isIndexerTracked`): a room listed by
+  `/broadcast-channels`, or one whose `/get-broadcasts` returned rows in the last 30 days (an
+  indexer stores only rooms it tracks; this also covers older indexers and a room's own indexer
+  override). Such a room, once the user joins it, gets what a default room gets: the phone
+  keeps the indexer's full 30 days (instead of the 3-day cap for rooms only the phone sees),
+  its bell registers it for remote push, the cellular block-stream skip and the push-covered
+  banner skip apply, and the wording says "even when the app is closed". It stays a room the
+  user added: it is not auto-joined, not in Popular, and it can be left.
+  (`IndexerTrackedRooms` in `PublicChatService.swift`.)

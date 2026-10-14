@@ -1509,7 +1509,9 @@ struct ChatListView: View {
                 let name = String(id.dropFirst(2))
                 let rooms = PublicChatService.shared
                 let channel = rooms.channels.first { $0.channelName == name }
-                let isCurated = PublicChatService.indexedChannels.contains(name)
+                let isCurated = PublicChatService.curatedChannels.contains(name)
+                // the indexer keeps it, so push covers it with the app closed
+                let isTracked = PublicChatService.isIndexerTracked(name)
                 let notifyOn = channel?.notifyEnabled ?? false
                 Text(verbatim: "#\(name)")
                     .font(.headline)
@@ -1534,7 +1536,7 @@ struct ChatListView: View {
                         title: notifyOn ? "Turn Off Notifications" : "Turn On Notifications",
                         subtitle: notifyOn
                             ? "No notification for new messages in this room."
-                            : (isCurated ? "Notifies you of new messages, even when the app is closed."
+                            : (isTracked ? "Notifies you of new messages, even when the app is closed."
                                          : "Notifies you of new messages while the app is open."),
                         systemImage: notifyOn ? "bell.slash" : "bell"
                     ) {
@@ -1542,7 +1544,7 @@ struct ChatListView: View {
                         rooms.setNotifyEnabled(!notifyOn, forChannel: name)
                         showToast(AppLocalization.string(notifyOn
                             ? "Notifications are off for this public chat"
-                            : (isCurated
+                            : (isTracked
                                 ? "You'll get notifications for new messages in this public chat, even when the app is closed"
                                 : "You'll get a notification for new messages in this public chat as long as your app remains open")))
                     }

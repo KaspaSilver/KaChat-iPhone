@@ -1191,7 +1191,7 @@ enum KaChatLinkRouter {
         // else has to land in the user's own channel list first, exactly as if they'd typed the
         // name into "Join or Create a Channel", or the room screen would open something the
         // list screen doesn't know about.
-        if !PublicChatService.indexedChannels.contains(normalized) {
+        if !PublicChatService.curatedChannels.contains(normalized) {
             PublicChatService.shared.joinChannel(normalized)
         }
         PublicChatService.shared.pendingPublicChatNavigation = normalized

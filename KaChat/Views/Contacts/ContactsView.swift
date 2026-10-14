@@ -3949,7 +3949,8 @@ struct ChattingAddressManageView: View {
             }
         }
         .sheet(isPresented: $showSendSheet) {
-            WithdrawKaspaView(fromAddress: address, availableBalanceSompi: balanceSompi) {
+            WithdrawKaspaView(fromAddress: address, availableBalanceSompi: balanceSompi,
+                              lockedSource: .chatting) {
                 Task {
                     await loadTransactions()
                     await loadUtxos()
@@ -4658,6 +4659,9 @@ struct WithdrawKaspaView: View {
     /// Someone's payment request (a tapped or pasted link): its address is locked in, its amount
     /// and memo filled in. A request pasted into the recipient field does the same.
     var paymentRequest: PaymentRequest? = nil
+    /// Opened from one address's history (its Send button): the Kaspa leaves from that address
+    /// and the From section offers no other.
+    var lockedSource: SendSource? = nil
     var onComplete: (() -> Void)? = nil
 
     /// The request this send pays, if any (`paymentRequest`, or one pasted in).
@@ -4752,7 +4756,8 @@ struct WithdrawKaspaView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     if !isCompoundMode {
-                        SendFromSection(source: $source, availableSompi: $sourceBalanceSompi)
+                        SendFromSection(source: $source, availableSompi: $sourceBalanceSompi,
+                                        isLocked: lockedSource != nil)
                     }
 
                     SendRecipientCard(
@@ -4878,6 +4883,9 @@ struct WithdrawKaspaView: View {
                 isEstimatingFee = false
             }
             .task {
+                if let lockedSource, source != lockedSource {
+                    source = lockedSource
+                }
                 if isCompoundMode {
                     addressInput = fromAddress
                     isValidAddress = true

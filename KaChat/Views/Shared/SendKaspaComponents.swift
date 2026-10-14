@@ -660,6 +660,8 @@ struct SendFromSection: View {
     @Binding var source: SendSource
     /// The chosen address's balance, loaded here (nil while it loads) - the screen's Available.
     @Binding var availableSompi: UInt64?
+    /// Opened from one address's own page (its history's Send): that address only, no choice.
+    var isLocked: Bool = false
     @State private var showPicker = false
 
     var body: some View {
@@ -668,12 +670,14 @@ struct SendFromSection: View {
                 .font(.caption.weight(.semibold))
                 .foregroundColor(.secondary)
                 .textCase(.uppercase)
-            HStack(spacing: 10) {
-                SelectablePill(title: "Chatting Address", selected: source == .chatting) {
-                    source = .chatting
-                }
-                SelectablePill(title: "Choose an Address", selected: source != .chatting) {
-                    showPicker = true
+            if !isLocked {
+                HStack(spacing: 10) {
+                    SelectablePill(title: "Chatting Address", selected: source == .chatting) {
+                        source = .chatting
+                    }
+                    SelectablePill(title: "Choose an Address", selected: source != .chatting) {
+                        showPicker = true
+                    }
                 }
             }
             HStack(spacing: 12) {

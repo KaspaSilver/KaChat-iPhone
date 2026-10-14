@@ -2036,10 +2036,11 @@ struct SpendingAddressTransactionHistoryView: View {
             SpendingAddressQRView(entry: entry)
         }
         .sheet(isPresented: $showSendSheet) {
-            // every send has the From section (Chatting Address by default; this address under
-            // Choose an Address)
+            // Send from this address's own page: it is the From, with no other to pick.
             if let wallet = WalletManager.shared.currentWallet {
-                WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi) {
+                WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi,
+                                  lockedSource: .spending(index: entry.index, address: entry.address,
+                                                          label: entry.displayLabel)) {
                     Task {
                         await loadTransactions()
                         await loadUtxos()

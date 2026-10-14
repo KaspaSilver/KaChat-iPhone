@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "שלחו KAS לכתובת הזו כדי לקנות איתה.";
 "Choose the address the marketplace buys with" = "בחרו את הכתובת שהשוק קונה איתה";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "תביעות, רכישות והצעות כאן משולמות מהכתובת הזו, והשמות שתתבעו או תקנו שייכים לה. השתמשו בכתובת חדשה כדי להפריד שם מכתובת הצ'אט שלכם.";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "הכתובת שלך: %@";

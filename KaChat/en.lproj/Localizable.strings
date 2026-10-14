@@ -1741,3 +1741,6 @@
 "Send KAS to this address to buy with it." = "Send KAS to this address to buy with it.";
 "Choose the address the marketplace buys with" = "Choose the address the marketplace buys with";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address.";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "Your own address: %@";

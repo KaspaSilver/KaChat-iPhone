@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "このアドレスで購入するには、ここに KAS を送ってください。";
 "Choose the address the marketplace buys with" = "マーケットで購入に使うアドレスを選ぶ";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "ここでの取得・購入・オファーはこのアドレスから支払われ、取得または購入した名前はこのアドレスのものになります。名前をチャットアドレスと切り離すには、新しいアドレスを使ってください。";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "あなた自身のアドレス: %@";

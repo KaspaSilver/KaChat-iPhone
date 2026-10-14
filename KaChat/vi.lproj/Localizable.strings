@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "Gửi KAS đến địa chỉ này để mua bằng nó.";
 "Choose the address the marketplace buys with" = "Chọn địa chỉ mà chợ dùng để mua";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "Việc đăng ký, mua và đề nghị ở đây được trả từ địa chỉ này, và các tên bạn đăng ký hoặc mua thuộc về nó. Dùng một địa chỉ mới để giữ tên tách khỏi địa chỉ trò chuyện của bạn.";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "Địa chỉ của chính bạn: %@";

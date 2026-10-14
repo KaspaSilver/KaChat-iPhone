@@ -45,6 +45,14 @@ struct AddressResolutionCard: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    // one of this wallet's own addresses: you are sending to yourself
+                    if let own = WalletManager.shared.ownAddressLabel(for: address) {
+                        Label(String(format: AppLocalization.string("Your own address: %@"), own),
+                              systemImage: "person.crop.circle.badge.checkmark")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.accentColor)
+                            .lineLimit(1)
+                    }
                 }
                 Spacer(minLength: 0)
                 if isLoadingProfile { ProgressView().controlSize(.small) }

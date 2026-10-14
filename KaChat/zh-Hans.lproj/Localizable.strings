@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "向此地址发送 KAS 即可用它购买。";
 "Choose the address the marketplace buys with" = "选择市场用于购买的地址";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "这里的注册、购买和出价都从此地址支付，你注册或购买的名称归此地址所有。使用新地址可让名称与你的聊天地址保持分离。";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "你自己的地址：%@";

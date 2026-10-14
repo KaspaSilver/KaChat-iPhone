@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "Kirim KAS ke alamat ini untuk membeli dengannya.";
 "Choose the address the marketplace buys with" = "Pilih alamat yang dipakai pasar untuk membeli";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "Klaim, pembelian, dan penawaran di sini dibayar dari alamat ini, dan nama yang Anda klaim atau beli menjadi miliknya. Gunakan alamat baru agar nama terpisah dari alamat chat Anda.";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "Alamat Anda sendiri: %@";

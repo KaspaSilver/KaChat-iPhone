@@ -495,6 +495,29 @@ extension WalletManager {
     /// single seed decrypt via the shared change-node key - for callers that need the whole
     /// set WITHOUT balances (e.g. AddressActivityNotifier's own-address watch set), unlike
     /// `getSpendingAddressList()` which also fires a UTXO fetch.
+    /// Which of this wallet's own addresses `address` is: "Chatting Address", or a spending
+    /// address's name ("Address #3", or the name the person gave it). nil for anyone else's.
+    /// Cheap enough for a view body: the address-to-index map is built once per account and
+    /// address count (`spendingAddresses(inRange:)` serves it from its cache).
+    func ownAddressLabel(for address: String) -> String? {
+        let target = address.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !target.isEmpty, let wallet = currentWallet?.publicAddress.lowercased() else { return nil }
+        if target == wallet { return AppLocalization.string("Chatting Address") }
+        let key = "\(wallet)|\(maxSpendingAddressIndex)"
+        if Self.ownAddressIndexCache?.key != key {
+            var map: [String: Int] = [:]
+            for (index, spending) in spendingAddresses(inRange: 0..<(max(0, maxSpendingAddressIndex) + 1)) {
+                map[spending.lowercased()] = index
+            }
+            Self.ownAddressIndexCache = (key, map)
+        }
+        guard let index = Self.ownAddressIndexCache?.map[target] else { return nil }
+        let named = spendingLabels[index]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return named.isEmpty ? "Address #\(index)" : named
+    }
+
+    private static var ownAddressIndexCache: (key: String, map: [String: Int])?
+
     func allSpendingAddresses() -> [String] {
         guard let changeKey = spendingChangeKey() else { return [] }
         return (0...maxSpendingAddressIndex).compactMap { spendingAddress(at: $0, changeKey: changeKey) }

@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "इससे खरीदने के लिए इस पते पर KAS भेजें।";
 "Choose the address the marketplace buys with" = "वह पता चुनें जिससे मार्केटप्लेस खरीदता है";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "यहाँ दावे, खरीद और ऑफ़र इसी पते से चुकाए जाते हैं, और आप जो नाम दावा करते या खरीदते हैं वे इसी के होते हैं। किसी नाम को अपने चैटिंग पते से अलग रखने के लिए नया पता इस्तेमाल करें।";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "आपका अपना पता: %@";

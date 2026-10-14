@@ -1740,3 +1740,6 @@
 "Send KAS to this address to buy with it." = "Envie KAS para este endereço para comprar com ele.";
 "Choose the address the marketplace buys with" = "Escolha o endereço com que o mercado compra";
 "Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "Registros, compras e ofertas aqui são pagos a partir deste endereço, e os nomes que você registrar ou comprar pertencem a ele. Use um endereço novo para manter um nome separado do seu endereço de chat.";
+
+/* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
+"Your own address: %@" = "Seu próprio endereço: %@";

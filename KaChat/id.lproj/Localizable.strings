@@ -1694,3 +1694,9 @@
 "Hide All" = "Sembunyikan Semua";
 "Hide All Addresses?" = "Sembunyikan semua alamat?";
 "Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "Kelola Alamat dimulai ulang hanya dengan alamat obrolan Anda. Tidak ada yang hilang: tampilkan lagi alamat mana pun di sini, dan Kaspa-nya tetap dihitung dalam total Anda.";
+
+/* Setup guide: Your Chatting Address step */
+"Your Chatting Address" = "Alamat Obrolan Anda";
+"Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "Identitas Anda di KaChat, hanya milik Anda. Orang mengirim pesan ke sini, nama .kachat dan profil Anda ada di sini, dan setiap pesan Anda dibayar dari sini. Semua aktivitasnya publik di jaringan Kaspa dan terkait dengan Anda.";
+"Everything Else" = "Selain Itu";
+"To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Untuk menjaga privasi, gunakan alamat Anda yang lain untuk semua aktivitas lain di jaringan Kaspa. Terima Kaspa memberi Anda alamat baru, dan Kelola Alamat menampilkan semuanya.";

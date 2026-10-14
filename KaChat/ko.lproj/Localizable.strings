@@ -1694,3 +1694,9 @@
 "Hide All" = "모두 숨기기";
 "Hide All Addresses?" = "모든 주소를 숨길까요?";
 "Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "주소 관리가 채팅 주소만 남기고 새로 시작됩니다. 잃는 것은 없습니다: 여기서 어떤 주소든 다시 표시할 수 있고, 그 Kaspa는 총액에 계속 포함됩니다.";
+
+/* Setup guide: Your Chatting Address step */
+"Your Chatting Address" = "내 채팅 주소";
+"Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "KaChat에서 오직 나만의 신원입니다. 사람들이 이 주소로 메시지를 보내고, .kachat 이름과 프로필이 여기에 있으며, 보내는 모든 메시지가 여기서 결제됩니다. 이 주소의 모든 활동은 Kaspa 네트워크에 공개되고 나와 연결됩니다.";
+"Everything Else" = "그 밖의 모든 것";
+"To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "개인정보를 지키려면 Kaspa 네트워크의 다른 모든 활동에는 다른 주소를 쓰세요. Kaspa 받기가 새 주소를 주고, 주소 관리에서 모두 볼 수 있습니다.";

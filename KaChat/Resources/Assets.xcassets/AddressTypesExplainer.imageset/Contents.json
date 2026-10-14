@@ -1,7 +1,6 @@
 {
   "images" : [
     {
-      "filename" : "address_types_explainer.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -10,6 +9,7 @@
       "scale" : "2x"
     },
     {
+      "filename" : "address_explainer@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

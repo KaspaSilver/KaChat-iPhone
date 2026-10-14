@@ -804,29 +804,31 @@ struct WelcomeGuideView: View {
         VStack(spacing: 0) {
             centeringScroll {
                 VStack(spacing: 20) {
-                    Text("Your Addresses")
+                    Text("Your Chatting Address")
                         .font(.title2.weight(.bold))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
 
+                    // Profile: Receive Kaspa, the Chatting Address QR and Manage Addresses.
                     Image("AddressTypesExplainer")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: 280)
+                        .frame(maxWidth: 340)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .accessibilityHidden(true)
 
                     VStack(spacing: 12) {
                         addressMockRow(
                             icon: "bubble.left.and.bubble.right.fill",
                             title: "Chatting Address",
                             address: chattingAddress,
-                            caption: "Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address."
+                            caption: "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you."
                         )
                         addressMockRow(
-                            icon: "dollarsign.circle.fill",
-                            title: "Spending Address",
-                            address: walletManager.currentSpendingAddress() ?? "",
-                            caption: "More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses."
+                            icon: "lock.shield.fill",
+                            title: "Everything Else",
+                            address: "",
+                            caption: "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all."
                         )
                     }
                     .padding(.horizontal, 24)

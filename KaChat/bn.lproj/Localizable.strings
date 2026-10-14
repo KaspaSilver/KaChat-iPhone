@@ -1694,3 +1694,9 @@
 "Hide All" = "সব লুকান";
 "Hide All Addresses?" = "সব ঠিকানা লুকাবেন?";
 "Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "ঠিকানা ব্যবস্থাপনা শুধু আপনার চ্যাটিং ঠিকানা দিয়ে নতুন করে শুরু হবে। কিছুই হারাবে না: এখান থেকে যেকোনো ঠিকানা ফিরিয়ে আনুন, আর এর Kaspa আপনার মোটে গণনা হতে থাকবে।";
+
+/* Setup guide: Your Chatting Address step */
+"Your Chatting Address" = "আপনার চ্যাটিং ঠিকানা";
+"Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "KaChat-এ আপনার পরিচয়, শুধু আপনারই। লোকে এতে বার্তা পাঠায়, আপনার .kachat নাম ও প্রোফাইল এতেই থাকে, আর প্রতিটি বার্তা এখান থেকেই পরিশোধ হয়। এর সব কাজ Kaspa নেটওয়ার্কে প্রকাশ্য এবং আপনার সাথে যুক্ত।";
+"Everything Else" = "বাকি সবকিছু";
+"To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "গোপনীয়তা রক্ষায় Kaspa নেটওয়ার্কের অন্য সব কাজে আপনার অন্য ঠিকানাগুলো ব্যবহার করুন। Kaspa গ্রহণ করুন আপনাকে নতুন একটি দেয়, আর ঠিকানা ব্যবস্থাপনায় সব দেখা যায়।";

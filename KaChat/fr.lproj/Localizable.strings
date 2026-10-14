@@ -1695,3 +1695,9 @@
 "Hide All" = "Tout masquer";
 "Hide All Addresses?" = "Masquer toutes les adresses ?";
 "Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "Gérer les adresses repart avec votre seule adresse de discussion. Rien n’est perdu : réaffichez n’importe quelle adresse ici, et ses Kaspa restent comptés dans votre total.";
+
+/* Setup guide: Your Chatting Address step */
+"Your Chatting Address" = "Votre adresse de discussion";
+"Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "Votre identité sur KaChat, à vous seul. On vous écrit dessus, votre nom .kachat et votre profil y sont liés, et chaque message envoyé est payé depuis elle. Tout ce qu’elle fait est public sur le réseau Kaspa et lié à vous.";
+"Everything Else" = "Tout le reste";
+"To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Pour protéger votre vie privée, utilisez vos autres adresses pour toute autre activité sur le réseau Kaspa. Recevoir des Kaspa vous en donne une nouvelle, et Gérer les adresses les liste toutes.";

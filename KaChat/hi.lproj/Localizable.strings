@@ -1700,3 +1700,26 @@
 "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "KaChat पर आपकी पहचान, सिर्फ़ आपकी। लोग इसी पर संदेश भेजते हैं, आपका .kachat नाम और प्रोफ़ाइल इसी पर हैं, और आपका हर संदेश इसी से भुगतान होता है। इसकी हर गतिविधि Kaspa नेटवर्क पर सार्वजनिक है और आपसे जुड़ी है।";
 "Everything Else" = "बाकी सब";
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "अपनी गोपनीयता के लिए Kaspa नेटवर्क पर बाकी सभी गतिविधियों के लिए अपने दूसरे पते इस्तेमाल करें। Kaspa पाएँ आपको नया पता देता है, और पते प्रबंधित करें सब दिखाता है।";
+
+/* .kachat Names guide (claim, how it works, make it yours, keep it) */
+"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "Kaspa हब > .kachat में मनचाहा नाम खोजें, फिर उसे क्लेम करें।";
+"How a name works" = "नाम कैसे काम करता है";
+"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "आपका नाम Kaspa नेटवर्क पर रहता है, आपके चैटिंग पते के पास। जब तक यह आपका है, कोई इसे ले या बदल नहीं सकता।";
+"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "क्लेम करने में दो तेज़ लेनदेन लगते हैं: पहला आपकी पसंद को गुप्त रखता है, दूसरा उसे पंजीकृत करता है।";
+"You pay for one period at a time. Shorter names cost more." = "आप एक बार में एक अवधि का भुगतान करते हैं। छोटे नाम महँगे होते हैं।";
+"The price goes to the network's miners, not to KaChat." = "कीमत नेटवर्क के माइनरों को जाती है, KaChat को नहीं।";
+"Make it your name" = "इसे अपना नाम बनाएँ";
+"Set it as your primary name and it's how you appear everywhere in KaChat." = "इसे प्राथमिक नाम बनाएँ, फिर KaChat में हर जगह आप इसी नाम से दिखेंगे।";
+"People can find you and message you by typing your name." = "लोग आपका नाम टाइप करके आपको ढूँढ़ और संदेश भेज सकते हैं।";
+"They can send you Kaspa to yourname.kachat instead of a long address." = "वे लंबे पते की जगह yourname.kachat पर Kaspa भेज सकते हैं।";
+"Your profile link shows your name." = "आपकी प्रोफ़ाइल लिंक आपका नाम दिखाती है।";
+"Keep it" = "इसे बनाए रखें";
+"Your names are in Profile > Your Domains > .kachat." = "आपके नाम प्रोफ़ाइल > आपके डोमेन > .kachat में हैं।";
+"Renew before it expires. It shows when, on each name." = "समाप्त होने से पहले नवीनीकरण करें। हर नाम पर तारीख दिखती है।";
+"After it expires there's a grace period to renew it before anyone else can claim it." = "समाप्ति के बाद एक ग्रेस अवधि होती है जिसमें कोई और क्लेम करने से पहले आप नवीनीकरण कर सकते हैं।";
+"You can transfer it, list it for sale, or accept an offer for it." = "आप इसे ट्रांसफ़र कर सकते हैं, बिक्री के लिए रख सकते हैं या किसी ऑफ़र को स्वीकार कर सकते हैं।";
+"You're all set" = "सब तैयार है";
+"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "जब चाहें Kaspa हब > .kachat में अपना नाम क्लेम करें।";
+".kachat Names Guide" = ".kachat नाम गाइड";
+"Claim a .kachat name, make it your name, and keep it." = "एक .kachat नाम क्लेम करें, उसे अपना नाम बनाएँ और बनाए रखें।";
+"Walk through claiming your .kachat name and making it yours." = ".kachat नाम क्लेम करने और उसे अपना बनाने के चरण।";

@@ -1700,3 +1700,26 @@
 "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "Danh tính của bạn trên KaChat, chỉ của riêng bạn. Mọi người nhắn tin đến đây, tên .kachat và hồ sơ của bạn nằm ở đây, và mọi tin nhắn bạn gửi đều được trả từ đây. Mọi hoạt động của nó đều công khai trên mạng Kaspa và gắn với bạn.";
 "Everything Else" = "Mọi thứ khác";
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Để bảo vệ quyền riêng tư, hãy dùng các địa chỉ khác của bạn cho mọi hoạt động khác trên mạng Kaspa. Nhận Kaspa cho bạn một địa chỉ mới, và Quản lý địa chỉ liệt kê tất cả.";
+
+/* .kachat Names guide (claim, how it works, make it yours, keep it) */
+"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "Tìm tên bạn muốn trong Kaspa Hub > .kachat, rồi nhận nó.";
+"How a name works" = "Tên hoạt động thế nào";
+"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "Tên của bạn nằm trên mạng Kaspa, do địa chỉ trò chuyện của bạn nắm giữ. Khi còn là của bạn, không ai có thể lấy hay đổi nó.";
+"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "Nhận tên cần hai giao dịch nhanh: giao dịch đầu giữ bí mật lựa chọn, giao dịch thứ hai đăng ký.";
+"You pay for one period at a time. Shorter names cost more." = "Bạn trả cho từng kỳ một. Tên càng ngắn càng đắt.";
+"The price goes to the network's miners, not to KaChat." = "Khoản phí trả cho thợ đào của mạng, không phải cho KaChat.";
+"Make it your name" = "Biến nó thành tên của bạn";
+"Set it as your primary name and it's how you appear everywhere in KaChat." = "Đặt làm tên chính và bạn sẽ hiện với tên đó ở mọi nơi trong KaChat.";
+"People can find you and message you by typing your name." = "Mọi người có thể tìm và nhắn tin cho bạn bằng cách gõ tên bạn.";
+"They can send you Kaspa to yourname.kachat instead of a long address." = "Họ có thể gửi Kaspa tới tenban.kachat thay vì một địa chỉ dài.";
+"Your profile link shows your name." = "Liên kết hồ sơ của bạn hiển thị tên bạn.";
+"Keep it" = "Giữ lấy";
+"Your names are in Profile > Your Domains > .kachat." = "Các tên của bạn nằm ở Hồ sơ > Tên miền của bạn > .kachat.";
+"Renew before it expires. It shows when, on each name." = "Gia hạn trước khi hết hạn. Mỗi tên đều hiện ngày.";
+"After it expires there's a grace period to renew it before anyone else can claim it." = "Sau khi hết hạn có một thời gian ân hạn để gia hạn trước khi người khác có thể nhận.";
+"You can transfer it, list it for sale, or accept an offer for it." = "Bạn có thể chuyển nhượng, rao bán hoặc chấp nhận một lời đề nghị.";
+"You're all set" = "Đã xong";
+"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "Nhận tên của bạn trong Kaspa Hub > .kachat khi bạn sẵn sàng.";
+".kachat Names Guide" = "Hướng dẫn tên .kachat";
+"Claim a .kachat name, make it your name, and keep it." = "Nhận một tên .kachat, biến nó thành tên của bạn và giữ lấy.";
+"Walk through claiming your .kachat name and making it yours." = "Từng bước nhận tên .kachat và biến nó thành của bạn.";

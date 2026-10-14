@@ -1701,3 +1701,26 @@
 "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you.";
 "Everything Else" = "Everything Else";
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all.";
+
+/* .kachat Names guide (claim, how it works, make it yours, keep it) */
+"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "Search for the name you want in Kaspa Hub > .kachat, then claim it.";
+"How a name works" = "How a name works";
+"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours.";
+"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "Claiming takes two quick transactions: the first keeps your pick secret, the second registers it.";
+"You pay for one period at a time. Shorter names cost more." = "You pay for one period at a time. Shorter names cost more.";
+"The price goes to the network's miners, not to KaChat." = "The price goes to the network's miners, not to KaChat.";
+"Make it your name" = "Make it your name";
+"Set it as your primary name and it's how you appear everywhere in KaChat." = "Set it as your primary name and it's how you appear everywhere in KaChat.";
+"People can find you and message you by typing your name." = "People can find you and message you by typing your name.";
+"They can send you Kaspa to yourname.kachat instead of a long address." = "They can send you Kaspa to yourname.kachat instead of a long address.";
+"Your profile link shows your name." = "Your profile link shows your name.";
+"Keep it" = "Keep it";
+"Your names are in Profile > Your Domains > .kachat." = "Your names are in Profile > Your Domains > .kachat.";
+"Renew before it expires. It shows when, on each name." = "Renew before it expires. It shows when, on each name.";
+"After it expires there's a grace period to renew it before anyone else can claim it." = "After it expires there's a grace period to renew it before anyone else can claim it.";
+"You can transfer it, list it for sale, or accept an offer for it." = "You can transfer it, list it for sale, or accept an offer for it.";
+"You're all set" = "You're all set";
+"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "Claim your name in Kaspa Hub > .kachat whenever you're ready.";
+".kachat Names Guide" = ".kachat Names Guide";
+"Claim a .kachat name, make it your name, and keep it." = "Claim a .kachat name, make it your name, and keep it.";
+"Walk through claiming your .kachat name and making it yours." = "Walk through claiming your .kachat name and making it yours.";

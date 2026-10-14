@@ -1700,3 +1700,26 @@
 "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "هويتك على KaChat، وهي لك وحدك. يراسلك الناس عليه، وعليه اسم .kachat وملفك الشخصي، ومنه تُدفع كل رسالة ترسلها. كل ما يفعله علني على شبكة Kaspa ومرتبط بك.";
 "Everything Else" = "كل ما عدا ذلك";
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "لحماية خصوصيتك، استخدم عناوينك الأخرى لكل نشاط آخر على شبكة Kaspa. يمنحك «استلام Kaspa» عنوانًا جديدًا، و«إدارة العناوين» تعرضها كلها.";
+
+/* .kachat Names guide (claim, how it works, make it yours, keep it) */
+"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "ابحث عن الاسم الذي تريده في مركز Kaspa > .kachat، ثم احجزه.";
+"How a name works" = "كيف يعمل الاسم";
+"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "اسمك موجود على شبكة Kaspa، ويحتفظ به عنوان الدردشة الخاص بك. لا يمكن لأحد أخذه أو تغييره ما دام لك.";
+"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "الحجز يتم بمعاملتين سريعتين: الأولى تُبقي اختيارك سرًا، والثانية تسجّله.";
+"You pay for one period at a time. Shorter names cost more." = "تدفع فترة واحدة في كل مرة. الأسماء الأقصر أغلى.";
+"The price goes to the network's miners, not to KaChat." = "السعر يذهب إلى معدّني الشبكة، لا إلى KaChat.";
+"Make it your name" = "اجعله اسمك";
+"Set it as your primary name and it's how you appear everywhere in KaChat." = "عيّنه اسمًا أساسيًا وسيظهر به اسمك في كل مكان في KaChat.";
+"People can find you and message you by typing your name." = "يمكن للناس العثور عليك ومراسلتك بكتابة اسمك.";
+"They can send you Kaspa to yourname.kachat instead of a long address." = "يمكنهم إرسال Kaspa إلى yourname.kachat بدل عنوان طويل.";
+"Your profile link shows your name." = "رابط ملفك الشخصي يُظهر اسمك.";
+"Keep it" = "احتفظ به";
+"Your names are in Profile > Your Domains > .kachat." = "أسماؤك في الملف الشخصي > نطاقاتك > .kachat.";
+"Renew before it expires. It shows when, on each name." = "جدّده قبل أن ينتهي. يظهر الموعد على كل اسم.";
+"After it expires there's a grace period to renew it before anyone else can claim it." = "بعد انتهائه توجد فترة سماح لتجديده قبل أن يحجزه أي شخص آخر.";
+"You can transfer it, list it for sale, or accept an offer for it." = "يمكنك نقله أو عرضه للبيع أو قبول عرض عليه.";
+"You're all set" = "أنت جاهز";
+"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "احجز اسمك في مركز Kaspa > .kachat متى شئت.";
+".kachat Names Guide" = "دليل أسماء .kachat";
+"Claim a .kachat name, make it your name, and keep it." = "احجز اسم .kachat واجعله اسمك واحتفظ به.";
+"Walk through claiming your .kachat name and making it yours." = "تعرّف خطوة بخطوة على حجز اسم .kachat وجعله اسمك.";

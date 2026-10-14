@@ -1,16 +1,13 @@
 import SwiftUI
 
-/// The .kachat profile setup guide: claim your name, then avatar, banner and details, step by
-/// step. Opened from Edit KaChat Profile and Profile > Help - the guide .kas used to have,
-/// rebuilt for KaChat's own names (a .kas profile is edited field by field in Your Domains).
-///
-/// UI only until .kachat names launch: every step can be walked through, but nothing can be
-/// claimed, picked or typed, and each says so. No invented names or images anywhere.
+/// The .kachat names guide: claim a name, how a name works, make it your name, keep it. Opened
+/// from Edit KaChat Profile and Profile > Help. About the name only - an avatar, banner and bio
+/// are not part of a name (they are the address's profile, set in Edit KaChat Profile).
 struct KachatSetupGuideView: View {
     let onClose: () -> Void
 
     private enum Step: Int, CaseIterable {
-        case claim, avatar, banner, details, finished
+        case claim, howItWorks, useIt, keepIt, finished
     }
 
     @State private var step: Step = .claim
@@ -40,7 +37,7 @@ struct KachatSetupGuideView: View {
                 )
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Setup Guide")
+            .navigationTitle(".kachat Names")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -88,88 +85,65 @@ struct KachatSetupGuideView: View {
                 }
                 .padding(12)
                 .background(fieldBackground)
-                if KachatNamesService.isLaunched {
-                    Text("On Testnet, claim one in Kaspa Hub > .kachat.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("Registration isn't open yet.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                Text("Search for the name you want in Kaspa Hub > .kachat, then claim it.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                if let opens = KachatNamesService.publicLaunchMs, !KachatNamesService.isPubliclyOpenKnown {
+                    Text(String(format: AppLocalization.string(".kachat names open to everyone on %@."), KachatNamesActions.launchString(opens)))
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.accentColor)
                 }
             }
-            if !KachatNamesService.isLaunched {
-                comingSoonNote
-            }
 
-        case .avatar:
+        case .howItWorks:
             stepHeader(
-                title: "Add a profile photo",
-                subtitle: "Your avatar shows next to your name everywhere in KaChat."
+                title: "How a name works",
+                subtitle: "Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours."
             ) {
-                Image(systemName: "person.crop.circle")
-                    .font(.system(size: 52, weight: .regular))
-                    .foregroundColor(.accentColor)
-            }
-            Circle()
-                .fill(Color(.secondarySystemGroupedBackground))
-                .frame(width: 120, height: 120)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 48))
-                        .foregroundColor(Color(.systemGray3))
-                )
-            disabledAction("Choose Photo", systemImage: "photo")
-            comingSoonNote
-
-        case .banner:
-            stepHeader(
-                title: "Add a banner",
-                subtitle: "A wide image across the top of your profile."
-            ) {
-                Image(systemName: "photo.on.rectangle")
+                Image(systemName: "seal.fill")
                     .font(.system(size: 48, weight: .regular))
                     .foregroundColor(.accentColor)
             }
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground))
-                .frame(height: 120)
-                .overlay(
-                    Image(systemName: "photo")
-                        .font(.system(size: 36))
-                        .foregroundColor(Color(.systemGray3))
-                )
-            disabledAction("Choose Banner", systemImage: "photo.on.rectangle")
-            comingSoonNote
+            bulletList([
+                "Claiming takes two quick transactions: the first keeps your pick secret, the second registers it.",
+                "You pay for one period at a time. Shorter names cost more.",
+                "The price goes to the network's miners, not to KaChat."
+            ])
 
-        case .details:
+        case .useIt:
             stepHeader(
-                title: "Tell people about you",
-                subtitle: "A short bio and your links. All of it is optional."
+                title: "Make it your name",
+                subtitle: "Set it as your primary name and it's how you appear everywhere in KaChat."
             ) {
-                Image(systemName: "text.alignleft")
+                Image(systemName: "person.text.rectangle")
                     .font(.system(size: 46, weight: .regular))
                     .foregroundColor(.accentColor)
             }
-            VStack(spacing: 0) {
-                ForEach(Array(Self.detailFields.enumerated()), id: \.offset) { index, field in
-                    HStack {
-                        Text(LocalizedStringKey(field))
-                        Spacer()
-                    }
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    if index < Self.detailFields.count - 1 { Divider().padding(.leading, 14) }
-                }
+            bulletList([
+                "People can find you and message you by typing your name.",
+                "They can send you Kaspa to yourname.kachat instead of a long address.",
+                "Your profile link shows your name."
+            ])
+
+        case .keepIt:
+            stepHeader(
+                title: "Keep it",
+                subtitle: "Your names are in Profile > Your Domains > .kachat."
+            ) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 46, weight: .regular))
+                    .foregroundColor(.accentColor)
             }
-            .background(fieldBackground)
-            comingSoonNote
+            bulletList([
+                "Renew before it expires. It shows when, on each name.",
+                "After it expires there's a grace period to renew it before anyone else can claim it.",
+                "You can transfer it, list it for sale, or accept an offer for it."
+            ])
 
         case .finished:
             stepHeader(
-                title: "That's the whole setup",
-                subtitle: ".kachat names are coming soon. When they launch, this guide claims your name and saves your profile in one go."
+                title: "You're all set",
+                subtitle: "Claim your name in Kaspa Hub > .kachat whenever you're ready."
             ) {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 52, weight: .regular))
@@ -178,7 +152,22 @@ struct KachatSetupGuideView: View {
         }
     }
 
-    private static let detailFields = ["Bio", "X handle", "Website", "Telegram", "Discord user id", "Email", "GitHub"]
+    private func bulletList(_ lines: [String]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(lines, id: \.self) { line in
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.accentColor)
+                    Text(LocalizedStringKey(line))
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .padding(14)
+        .background(fieldBackground)
+    }
 
     private func stepHeader<Icon: View>(
         title: LocalizedStringKey,
@@ -197,26 +186,6 @@ struct KachatSetupGuideView: View {
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 8)
-    }
-
-    private func disabledAction(_ title: LocalizedStringKey, systemImage: String) -> some View {
-        Button {} label: {
-            Label(title, systemImage: systemImage)
-                .font(.subheadline.weight(.semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-        }
-        .buttonStyle(.bordered)
-        .disabled(true)
-    }
-
-    private var comingSoonNote: some View {
-        Text("Coming soon")
-            .font(.caption.weight(.bold))
-            .foregroundColor(.accentColor)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Capsule().fill(Color.accentColor.opacity(0.15)))
     }
 
     private var fieldBackground: some View {

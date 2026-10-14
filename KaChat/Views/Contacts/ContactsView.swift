@@ -5169,8 +5169,8 @@ struct ProfileHelpView: View {
                 }
                 helpRow(
                     icon: "person.text.rectangle",
-                    title: ".kachat Profile Setup Guide",
-                    subtitle: "Claim your .kachat name and set up your avatar, banner and bio step by step."
+                    title: ".kachat Names Guide",
+                    subtitle: "Claim a .kachat name, make it your name, and keep it."
                 ) {
                     onKNSSetupGuide()
                 }
@@ -5589,7 +5589,7 @@ struct KaChatProfileEditorSheet: View {
                             Text("Setup Guide")
                         }
                     } footer: {
-                        Text("Walk through claiming your .kachat name and setting up your avatar, banner and details step by step.")
+                        Text("Walk through claiming your .kachat name and making it yours.")
                     }
                 }
 

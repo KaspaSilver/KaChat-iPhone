@@ -1700,3 +1700,26 @@
 "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "KaChat でのあなただけの ID です。メッセージはここに届き、.kachat 名とプロフィールもここにあり、送るメッセージはすべてここから支払われます。その動きはすべて Kaspa ネットワーク上で公開され、あなたに結び付きます。";
 "Everything Else" = "それ以外のすべて";
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "プライバシーを守るため、Kaspa ネットワークでのその他の活動にはほかのアドレスを使いましょう。「Kaspa を受け取る」で新しいアドレスが得られ、「アドレス管理」ですべて確認できます。";
+
+/* .kachat Names guide (claim, how it works, make it yours, keep it) */
+"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "Kaspa ハブ > .kachat で欲しい名前を検索して取得します。";
+"How a name works" = "名前のしくみ";
+"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "名前は Kaspa ネットワーク上にあり、あなたのチャットアドレスが保有します。あなたのものである間、誰も奪ったり変えたりできません。";
+"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "取得には 2 つの短いトランザクションが必要です。1 つ目で選んだ名前を秘密にし、2 つ目で登録します。";
+"You pay for one period at a time. Shorter names cost more." = "1 期間ずつ支払います。短い名前ほど高くなります。";
+"The price goes to the network's miners, not to KaChat." = "料金はネットワークのマイナーに支払われ、KaChat には入りません。";
+"Make it your name" = "あなたの名前にする";
+"Set it as your primary name and it's how you appear everywhere in KaChat." = "メインの名前に設定すると、KaChat のどこでもその名前で表示されます。";
+"People can find you and message you by typing your name." = "名前を入力するだけで、あなたを見つけてメッセージを送れます。";
+"They can send you Kaspa to yourname.kachat instead of a long address." = "長いアドレスの代わりに yourname.kachat へ Kaspa を送れます。";
+"Your profile link shows your name." = "プロフィールリンクにも名前が表示されます。";
+"Keep it" = "維持する";
+"Your names are in Profile > Your Domains > .kachat." = "名前はプロフィール > あなたのドメイン > .kachat にあります。";
+"Renew before it expires. It shows when, on each name." = "期限が切れる前に更新しましょう。各名前に期限が表示されます。";
+"After it expires there's a grace period to renew it before anyone else can claim it." = "期限切れ後も、ほかの人が取得できるようになる前に更新できる猶予期間があります。";
+"You can transfer it, list it for sale, or accept an offer for it." = "移転、販売への出品、オファーの受け入れができます。";
+"You're all set" = "準備完了";
+"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "準備ができたら Kaspa ハブ > .kachat で名前を取得しましょう。";
+".kachat Names Guide" = ".kachat 名ガイド";
+"Claim a .kachat name, make it your name, and keep it." = ".kachat 名を取得して自分の名前にし、維持しましょう。";
+"Walk through claiming your .kachat name and making it yours." = ".kachat 名の取得と自分の名前にする手順を確認します。";

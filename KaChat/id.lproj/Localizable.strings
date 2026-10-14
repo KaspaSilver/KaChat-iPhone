@@ -1700,3 +1700,26 @@
 "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "Identitas Anda di KaChat, hanya milik Anda. Orang mengirim pesan ke sini, nama .kachat dan profil Anda ada di sini, dan setiap pesan Anda dibayar dari sini. Semua aktivitasnya publik di jaringan Kaspa dan terkait dengan Anda.";
 "Everything Else" = "Selain Itu";
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Untuk menjaga privasi, gunakan alamat Anda yang lain untuk semua aktivitas lain di jaringan Kaspa. Terima Kaspa memberi Anda alamat baru, dan Kelola Alamat menampilkan semuanya.";
+
+/* .kachat Names guide (claim, how it works, make it yours, keep it) */
+"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "Cari nama yang Anda mau di Kaspa Hub > .kachat, lalu klaim.";
+"How a name works" = "Cara kerja nama";
+"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "Nama Anda ada di jaringan Kaspa, dipegang oleh alamat obrolan Anda. Selama milik Anda, tak ada yang bisa mengambil atau mengubahnya.";
+"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "Klaim butuh dua transaksi cepat: yang pertama merahasiakan pilihan Anda, yang kedua mendaftarkannya.";
+"You pay for one period at a time. Shorter names cost more." = "Anda membayar satu periode setiap kali. Nama yang lebih pendek lebih mahal.";
+"The price goes to the network's miners, not to KaChat." = "Harganya untuk penambang jaringan, bukan untuk KaChat.";
+"Make it your name" = "Jadikan nama Anda";
+"Set it as your primary name and it's how you appear everywhere in KaChat." = "Jadikan nama utama, dan begitulah Anda tampil di seluruh KaChat.";
+"People can find you and message you by typing your name." = "Orang bisa menemukan dan mengirim pesan kepada Anda dengan mengetik nama Anda.";
+"They can send you Kaspa to yourname.kachat instead of a long address." = "Mereka bisa mengirim Kaspa ke namaanda.kachat alih-alih alamat yang panjang.";
+"Your profile link shows your name." = "Tautan profil Anda menampilkan nama Anda.";
+"Keep it" = "Pertahankan";
+"Your names are in Profile > Your Domains > .kachat." = "Nama Anda ada di Profil > Domain Anda > .kachat.";
+"Renew before it expires. It shows when, on each name." = "Perpanjang sebelum kedaluwarsa. Tanggalnya tampil di setiap nama.";
+"After it expires there's a grace period to renew it before anyone else can claim it." = "Setelah kedaluwarsa ada masa tenggang untuk memperpanjang sebelum orang lain bisa mengklaimnya.";
+"You can transfer it, list it for sale, or accept an offer for it." = "Anda bisa mentransfer, menjualnya, atau menerima tawaran.";
+"You're all set" = "Semua siap";
+"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "Klaim nama Anda di Kaspa Hub > .kachat kapan saja.";
+".kachat Names Guide" = "Panduan Nama .kachat";
+"Claim a .kachat name, make it your name, and keep it." = "Klaim nama .kachat, jadikan nama Anda, dan pertahankan.";
+"Walk through claiming your .kachat name and making it yours." = "Langkah demi langkah mengklaim nama .kachat dan menjadikannya milik Anda.";

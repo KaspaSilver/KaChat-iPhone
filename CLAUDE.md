@@ -334,7 +334,8 @@ default) or Choose an Address (`OwnAddressPicker`: every address of the account,
 or Unused), so it is always plain which address the Kaspa leaves. There is no "primary spending
 address" in the UI and no Chats Payment Privacy (removed 2026-10-13: no fresh-address offers to
 contacts; payments go to the contact's chatting address; other clients' `addr_pool` envelopes are
-swallowed). Profile has one Manage Addresses card; Manage Addresses lists the chatting address
+swallowed). A 1:1 chat payment From a spending address is a plain transfer plus a `payment_notice`
+from the chatting address, so it shows in the chat on both sides (MESSAGING.md). Profile has one Manage Addresses card; Manage Addresses lists the chatting address
 first, then the spending addresses.
 
 | Piece | What it is |

@@ -3038,8 +3038,13 @@ extension ChatService {
             return
         }
 
-        // The retired payment-pool envelopes another client may still send: never bubbles.
-        if isRetiredPaymentPoolEnvelope(message.content) {
+        // Payment-pool envelopes are never bubbles. A payment_notice may file the payment it
+        // names in this chat (a chat payment sent From a spending address); addr_pool and
+        // addr_pool_request are retired and dropped.
+        if let envelope = PaymentPoolCodec.parse(message.content) {
+            if case .notice(let notice) = envelope {
+                handlePaymentNotice(notice, message: message, contactAddress: contactAddress)
+            }
             return
         }
 

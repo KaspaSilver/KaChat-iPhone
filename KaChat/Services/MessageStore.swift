@@ -1497,7 +1497,9 @@ final class MessageStore {
         }
     }
 
-    func upsertMessage(_ message: ChatMessage, contactAddress: String, encryptionKey: SymmetricKey) {
+    /// `refile`: write it whatever is stored - a payment first shown in the self-chat and then
+    /// claimed by its `payment_notice` moves to that chat, with the notice's wording.
+    func upsertMessage(_ message: ChatMessage, contactAddress: String, encryptionKey: SymmetricKey, refile: Bool = false) {
         guard ensureStoreLoaded() else { return }
         let walletAddr = currentWalletAddress
         let context = container.newBackgroundContext()
@@ -1510,7 +1512,7 @@ final class MessageStore {
             let isPlaceholder = message.isSentPlaceholder
             let existingHasContent = record.contentEncrypted != nil
             let shouldForceOutgoingContent = message.isOutgoing && !isPlaceholder
-            let needsUpdate = isNewRecord ||
+            let needsUpdate = isNewRecord || refile ||
                 record.deliveryStatus != message.deliveryStatus.rawValue ||
                 record.acceptingBlock != message.acceptingBlock ||
                 shouldForceOutgoingContent ||
@@ -1539,7 +1541,7 @@ final class MessageStore {
             // - If new content is placeholder, NEVER overwrite existing content
             // - Preserve existing content unless we are explicitly importing
             //   outgoing content that should replace placeholders.
-            let shouldUpdateContent = !isPlaceholder && (shouldForceOutgoingContent || !existingHasContent || isNewRecord)
+            let shouldUpdateContent = !isPlaceholder && (shouldForceOutgoingContent || !existingHasContent || isNewRecord || refile)
 
             if shouldUpdateContent, let encrypted = self.encryptContent(message.content, key: encryptionKey) {
                 record.contentEncrypted = encrypted

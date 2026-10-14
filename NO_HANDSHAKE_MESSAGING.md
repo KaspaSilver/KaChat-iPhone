@@ -103,6 +103,9 @@ from the beginning.
     chat - a Message Request - and poll B from then on. A plain transfer with no payload
     from an unknown address still goes to the self-chat with the sender noted; it is not a
     conversation.
+  - A chat payment **From a spending address** is a plain transfer plus a `payment_notice` from
+    the chatting address (MESSAGING.md, "Chat Payments From a Spending Address"): it is filed in
+    the 1:1 chat, never as a request from the spending address.
 - **Request vs chat.** A conversation is a **request** until accepted. Accepted means any of:
   - the user tapped Accept,
   - the user has ever sent this address a message (messaging someone first is consent),

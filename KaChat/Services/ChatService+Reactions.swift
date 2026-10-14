@@ -89,9 +89,9 @@ extension ChatService {
         }
     }
 
-    /// One encrypted contextual message carrying an envelope (an edit today), with no message
+    /// One encrypted contextual message carrying an envelope (an edit, a payment notice), with no message
     /// row of its own - the same build/submit sequence as `sendReactionInternal`. Returns the txId.
-    private func sendEnvelopeInternal(to contact: Contact, payload: String) async throws -> String {
+    func sendEnvelopeInternal(to contact: Contact, payload: String) async throws -> String {
         guard let wallet = WalletManager.shared.currentWallet else { throw KasiaError.walletNotFound }
         guard let privateKey = WalletManager.shared.getPrivateKey() else { throw KasiaError.keychainError("Could not get private key") }
         guard let recipientPublicKey = KaspaAddress.publicKey(from: contact.address) else { throw KasiaError.invalidAddress }

@@ -2505,17 +2505,34 @@ extension ChatService {
                 throw KasiaError.invalidAddress
             }
 
-            let tx = try KasiaTransactionBuilder.buildPaymentTx(
-                from: sourceAddress,
-                to: destinationAddress,
-                amount: amountSompi,
-                note: note,
-                senderPrivateKey: sourcePrivateKey,
-                recipientPublicKey: recipientPublicKey,
-                utxos: spendable,
-                changeAddress: changeAddress,
-                extraFeeSompi: extraFeeSompi
-            )
+            // From a spending address it is a plain transfer, and the chatting address tells the
+            // chat about it right after (`sendSpendingPaymentNotice`): the payee has never seen
+            // that address, so a chat payment from it would open a stranger's Message Request on
+            // their side instead of landing in this chat (XP-022).
+            let tx: KaspaRpcTransaction
+            if fromChattingAddress {
+                tx = try KasiaTransactionBuilder.buildPaymentTx(
+                    from: sourceAddress,
+                    to: destinationAddress,
+                    amount: amountSompi,
+                    note: note,
+                    senderPrivateKey: sourcePrivateKey,
+                    recipientPublicKey: recipientPublicKey,
+                    utxos: spendable,
+                    changeAddress: changeAddress,
+                    extraFeeSompi: extraFeeSompi
+                )
+            } else {
+                tx = try KasiaTransactionBuilder.buildPlainTransferTx(
+                    from: sourceAddress,
+                    to: destinationAddress,
+                    amount: amountSompi,
+                    senderPrivateKey: sourcePrivateKey,
+                    utxos: spendable,
+                    extraFeeSompi: extraFeeSompi,
+                    changeAddress: changeAddress
+                )
+            }
 
             // Submit via RPC manager
             AppLog.log("[ChatService] Submitting payment via RPC manager...")
@@ -2545,6 +2562,9 @@ extension ChatService {
             if let freshChangeIndex {
                 await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
             }
+            if !fromChattingAddress {
+                sendSpendingPaymentNotice(to: contact, txId: txId, amountSompi: amountSompi, memo: note)
+            }
             return txId
         } catch {
             if let acceptedTxId = acceptedTransactionId(from: error) {
@@ -2563,6 +2583,9 @@ extension ChatService {
                 saveMessages()
                 if let freshChangeIndex {
                     await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
+                }
+                if !fromChattingAddress {
+                    sendSpendingPaymentNotice(to: contact, txId: acceptedTxId, amountSompi: amountSompi, memo: note)
                 }
                 return acceptedTxId
             }

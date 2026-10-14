@@ -269,10 +269,10 @@ class NotificationService: UNNotificationServiceExtension {
                 // message itself: the App Group plist is not encrypted at rest (and goes into
                 // unencrypted backups), so the plaintext never lands there (IOS-051).
                 addPendingMessage(txId: txId, sender: senderAddress, type: "contextual")
-                // Fresh-address payment pool control envelopes (addr_pool / addr_pool_request)
-                // are invisible protocol messages - suppress the banner entirely (still queued
-                // above so the main app processes them on open). A payment_notice however IS a
-                // payment the user should see, worded like a real payment push.
+                // Payment-pool envelopes are invisible protocol messages - the banner is
+                // suppressed (still queued above so the main app processes them on open), except
+                // a payment_notice for a payment to our chatting address, which reads
+                // "Received payment".
                 // An edit envelope changes an earlier bubble in place - nothing to announce.
                 if isSilentPoolEnvelope(decrypted) || isEditEnvelope(decrypted) {
                     content.title = ""
@@ -1243,14 +1243,16 @@ class NotificationService: UNNotificationServiceExtension {
         return ownTxIds.contains(targetTxId)
     }
 
-    /// Local mirror of the main app's fresh-address payment pool envelopes (`PaymentPoolCodec`
-    /// in Models.swift, which this extension target doesn't compile) - see MESSAGING.md
-    /// ("Fresh-Address Payment Pools"). addr_pool / addr_pool_request are invisible protocol
-    /// control messages whose push banner is suppressed outright; payment_notice maps to the
-    /// same wording a real incoming-payment push uses.
+    /// Local mirror of the main app's payment-pool envelopes (`PaymentPoolCodec` in Models.swift,
+    /// which this extension target doesn't compile) - see MESSAGING.md. addr_pool /
+    /// addr_pool_request are retired and silent. A payment_notice is announced only when it names
+    /// a payment to this wallet's chatting address (a chat payment sent From the contact's
+    /// spending address) - the app files those in the chat. One naming any other address is an
+    /// old app's fresh-address payment the app drops, so it is silent too (XP-023).
     private struct PushPoolEnvelope: Decodable {
         let type: String
         let amountSompi: UInt64?
+        let address: String?
     }
 
     private func parsePoolEnvelope(_ content: String) -> PushPoolEnvelope? {
@@ -1267,17 +1269,20 @@ class NotificationService: UNNotificationServiceExtension {
 
     private func isSilentPoolEnvelope(_ content: String) -> Bool {
         guard let parsed = parsePoolEnvelope(content) else { return false }
-        return parsed.type == "addr_pool" || parsed.type == "addr_pool_request"
+        if parsed.type == "payment_notice" { return !isNoticeForOurChattingAddress(parsed) }
+        return true
     }
 
+    private func isNoticeForOurChattingAddress(_ notice: PushPoolEnvelope) -> Bool {
+        guard let address = notice.address, let walletAddress = getWalletAddress() else { return false }
+        return address.lowercased() == walletAddress.lowercased()
+    }
+
+    /// No amount: it is only what the sender claims, and the app checks it against the chain
+    /// before the chat shows one (IOS-080).
     private func paymentNoticePreviewText(for content: String) -> String? {
         guard let parsed = parsePoolEnvelope(content), parsed.type == "payment_notice" else { return nil }
-        guard let amountSompi = parsed.amountSompi else {
-            return NSLocalizedString("Received payment", comment: "Push body for incoming payment")
-        }
-        let kas = Double(amountSompi) / 100_000_000.0
-        let format = unitLabel(NSLocalizedString("Received %.8f KAS", comment: "Push body for incoming payment with amount"))
-        return String(format: format, kas)
+        return NSLocalizedString("Received payment", comment: "Push body for incoming payment")
     }
 
     /// Local mirror of the main app's `MessageReplyCodec.previewText` for BROADCAST push bodies,

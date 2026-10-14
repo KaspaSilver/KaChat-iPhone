@@ -1724,3 +1724,7 @@
 ".kachat Names Guide" = "Guide des noms .kachat";
 "Claim a .kachat name, make it your name, and keep it." = "Réservez un nom .kachat, faites-en votre nom et gardez-le.";
 "Walk through claiming your .kachat name and making it yours." = "Étape par étape : réserver votre nom .kachat et le faire vôtre.";
+
+/* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
+"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ restent bloqués avec votre nom tant que vous le détenez (caution + dépôt du registre). Vous les récupérez en libérant le nom.";
+"%@ is locked with this name. It comes back to you when you release it." = "%@ sont bloqués avec ce nom. Ils vous reviennent quand vous le libérez.";

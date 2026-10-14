@@ -1723,3 +1723,7 @@
 ".kachat Names Guide" = "Hướng dẫn tên .kachat";
 "Claim a .kachat name, make it your name, and keep it." = "Nhận một tên .kachat, biến nó thành tên của bạn và giữ lấy.";
 "Walk through claiming your .kachat name and making it yours." = "Từng bước nhận tên .kachat và biến nó thành của bạn.";
+
+/* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
+"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ bị khóa cùng tên của bạn trong khi bạn giữ nó (tiền ký quỹ + tiền gửi sổ đăng ký). Bạn nhận lại khi trả tên.";
+"%@ is locked with this name. It comes back to you when you release it." = "%@ đang bị khóa cùng tên này. Số tiền trở lại với bạn khi bạn trả tên.";

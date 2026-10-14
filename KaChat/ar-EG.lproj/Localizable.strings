@@ -1723,3 +1723,7 @@
 ".kachat Names Guide" = "دليل أسماء .kachat";
 "Claim a .kachat name, make it your name, and keep it." = "احجز اسم .kachat واجعله اسمك واحتفظ به.";
 "Walk through claiming your .kachat name and making it yours." = "تعرّف خطوة بخطوة على حجز اسم .kachat وجعله اسمك.";
+
+/* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
+"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "يبقى %@ مقفلًا مع اسمك ما دمت تحتفظ به (الضمان + وديعة السجل). تستعيده عند التخلي عن الاسم.";
+"%@ is locked with this name. It comes back to you when you release it." = "%@ مقفل مع هذا الاسم. يعود إليك عند التخلي عنه.";

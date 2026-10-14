@@ -1724,3 +1724,7 @@
 ".kachat Names Guide" = ".kachat Names Guide";
 "Claim a .kachat name, make it your name, and keep it." = "Claim a .kachat name, make it your name, and keep it.";
 "Walk through claiming your .kachat name and making it yours." = "Walk through claiming your .kachat name and making it yours.";
+
+/* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
+"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name.";
+"%@ is locked with this name. It comes back to you when you release it." = "%@ is locked with this name. It comes back to you when you release it.";

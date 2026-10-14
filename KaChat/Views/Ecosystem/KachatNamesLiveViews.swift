@@ -53,6 +53,12 @@ enum KachatLive {
     /// The registry parameters, once the manifest is verified.
     @MainActor static var params: KachatNames.Params? { KachatNamesService.shared.manifest?.params }
 
+    /// The receipt's line for a registration: how much stays locked with the name.
+    @MainActor static var lockedNote: String? {
+        guard let p = params else { return nil }
+        return String(format: AppLocalization.string("%@ is locked with this name. It comes back to you when you release it."), KaspaUnit.amount(p.bond + p.gapValue))
+    }
+
     /// Whether a period is a year (mainnet), not a short test clock (testnet's 24 hours).
     @MainActor static var yearlyPeriods: Bool { (params?.periodMs ?? KachatNames.yearMs) == KachatNames.yearMs }
 
@@ -625,6 +631,8 @@ struct KachatTxDone: Identifiable, Equatable {
     var title: String = "Transaction sent"
     /// Already known to be in a block (a registration the driver saw land): no progress to follow.
     var accepted = false
+    /// A line under the headline - a registration says how much stays locked with the name.
+    var note: String? = nil
 }
 
 /// The receipt every name transaction ends on, in the Send receipt's style: what it does, its
@@ -671,6 +679,18 @@ struct KachatTxDoneSheet: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 28)
                 .padding(.top, 4)
+
+            if let note = done.note {
+                Label { Text(verbatim: note) } icon: { Image(systemName: "lock.fill") }
+                    .font(.footnote.weight(.semibold))
+                    .foregroundColor(.accentColor)
+                    .multilineTextAlignment(.leading)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(sendKaspaGlass(cornerRadius: 14))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+            }
 
             VStack(alignment: .leading, spacing: 10) {
                 step("Sent to the network", done: true)
@@ -909,7 +929,7 @@ struct KachatRegistrationCard: View {
     /// The finished registration (or cancelled commit) as the half sheet shows it.
     private var finished: KachatTxDone? {
         switch registration.stage {
-        case .registered: return registration.registerTxId.map { KachatTxDone(txId: $0, title: "Name registered", accepted: true) }
+        case .registered: return registration.registerTxId.map { KachatTxDone(txId: $0, title: "Name registered", accepted: true, note: KachatLive.lockedNote) }
         case .cancelled: return registration.cancelTxId.map { KachatTxDone(txId: $0, title: "Commit cancelled", accepted: true) }
         default: return nil
         }
@@ -2029,6 +2049,14 @@ struct KachatClaimSheet: View {
                             LabeledRow(title: "Network fees", value: KaspaUnit.amount(q.networkFee))
                             Divider()
                             LabeledRow(title: "Total", value: KaspaUnit.amount(q.total), bold: true)
+                            // the bond and the deposit stay with the name: said once, as one amount
+                            Label {
+                                Text(verbatim: String(format: AppLocalization.string("%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name."), KaspaUnit.amount(q.bond + q.gapDeposit)))
+                            } icon: { Image(systemName: "lock.fill") }
+                                .font(.footnote.weight(.semibold))
+                                .foregroundColor(.accentColor)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, 4)
                         } else if let quoteError {
                             Text(verbatim: quoteError).foregroundColor(.red)
                         } else if notOpen != nil {

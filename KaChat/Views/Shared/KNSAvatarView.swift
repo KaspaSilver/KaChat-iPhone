@@ -549,7 +549,9 @@ private actor KNSProfileImageCache {
     private var revalidating: Set<String> = []
     private let manifestEncoder = JSONEncoder()
     private let manifestDecoder = JSONDecoder()
-    private let revalidationInterval: TimeInterval = 12 * 60 * 60
+    /// Avatars and banners are fetched afresh once their copy is this old, so someone's new
+    /// picture reaches everyone eventually (the copy on disk keeps showing meanwhile).
+    private let revalidationInterval: TimeInterval = 5 * 24 * 60 * 60
 
     /// Disk budget: once the files described by the manifest pass the high-water mark, the
     /// least-recently-read entries go until the total is back under the low-water mark. Two
@@ -723,10 +725,10 @@ private actor KNSProfileImageCache {
         }
     }
 
+    /// Every 5 days, whatever the server says about caching: a host that sends no validators
+    /// (no ETag / Last-Modified / length) used to be never checked again, so a changed picture
+    /// at the same URL stayed old forever.
     private func shouldRevalidate(entry: ManifestEntry, descriptor: KNSProfileImageDescriptor) -> Bool {
-        let hasValidators = entry.eTag != nil || entry.lastModified != nil || entry.contentLength != nil
-        guard hasValidators else { return false }
-
         if entry.requestURL != descriptor.requestURL.absoluteString {
             return true
         }
@@ -739,6 +741,11 @@ private actor KNSProfileImageCache {
         cachedImage: UIImage,
         maxPixelSize: Int?
     ) async -> UIImage? {
+        // Nothing to compare against: fetch it afresh.
+        let hasValidators = entry.eTag != nil || entry.lastModified != nil || entry.contentLength != nil
+        guard hasValidators else {
+            return await downloadAndStore(descriptor: descriptor, existingEntry: entry, maxPixelSize: maxPixelSize) ?? cachedImage
+        }
         var request = URLRequest(url: descriptor.requestURL)
         request.httpMethod = "HEAD"
         request.cachePolicy = .reloadIgnoringLocalCacheData

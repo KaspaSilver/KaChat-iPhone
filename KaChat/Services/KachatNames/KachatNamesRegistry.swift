@@ -893,7 +893,7 @@ enum KachatProfileCache {
 /// now - avatar, banner, bio - and caches the answer on this device; no indexer involved.
 ///
 /// The cache holds the picture URLs and the bio; `KNSAvatarView` / `KNSBannerImageView` download
-/// and keep the images. An answer is fresh for 24 hours; a stale one is still shown while it is
+/// and keep the images. An answer is fresh for 5 days; a stale one is still shown while it is
 /// looked up again. When the platform answers but no longer shows something (taken down, account
 /// gone), it is dropped at once, so the platform's moderation carries over. When the platform
 /// can't be reached, the last answer stays.
@@ -909,7 +909,9 @@ final class KachatSocialImageResolver: ObservableObject {
     /// The cache file in `KachatProfileCache` (it lived in UserDefaults before 2026-10-07).
     private static let cacheFile = "social.json"
     private static let legacyDefaultsKey = "kachat_social_profile_cache"
-    private static let freshFor: TimeInterval = 24 * 3600
+    /// Avatars, banners and bios are looked up afresh once their answer is 5 days old, so an
+    /// updated profile reaches everyone eventually (the last answer shows meanwhile).
+    private static let freshFor: TimeInterval = 5 * 24 * 3600
     private static let maxEntries = 500
     /// The link-preview crawler user agent: X, TikTok and others serve their Open Graph tags to it.
     private static let crawlerAgent = "facebookexternalhit/1.1"

@@ -1734,6 +1734,8 @@ struct ConversationRow: View {
     @EnvironmentObject var walletManager: WalletManager
     @ObservedObject private var knsService = KNSService.shared
     @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
+    /// A name saved in the Address Book names the row, and the row redraws when it changes.
+    @ObservedObject private var addressBook = AddressBookManager.shared
     private static let previewCache: NSCache<NSString, NSString> = {
         let cache = NSCache<NSString, NSString>()
         cache.countLimit = 2048
@@ -1744,10 +1746,14 @@ struct ConversationRow: View {
         knsService.profileCache[conversation.contact.address]?.avatarURL
     }
 
-    /// `ContactsManager.displayName` - assigned name, else KNS domain, else short address - read
-    /// through the observed KNS service so the row redraws when a profile lands.
+    /// `ContactsManager.displayName` - the name you gave the chat, else its Address Book name,
+    /// else who it is on chain, else the short address - read through the observed services so
+    /// the row redraws when any of them changes. The contact is the live one, not this
+    /// conversation's copy of it: a rename in User Info shows at once.
     private var rowDisplayName: String {
-        if let assigned = conversation.contact.assignedName { return assigned }
+        let contact = ContactsManager.shared.getContact(byAddress: conversation.contact.address) ?? conversation.contact
+        if let assigned = contact.assignedName { return assigned }
+        if let saved = addressBook.entry(for: contact.address)?.name { return saved }
         // On testnet: the .kachat name (read through the observed registry, so the row redraws
         // when it lands); KNS isn't consulted there.
         if KachatNamesService.isEnabled {

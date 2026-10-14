@@ -248,7 +248,7 @@ struct KaspaAmountEntry: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField(
                     "0",
-                    // Shown with thousands commas ("12,345.5"); what the screen gets stays plain.
+                    // Shown with thousands separators ("12,345.5", or "12 345.5" where "," is the decimal point); what the screen gets stays plain.
                     text: Binding(
                         get: { Self.grouped(fiatAmountState.displayText) },
                         set: { newValue in
@@ -325,28 +325,62 @@ struct KaspaAmountEntry: View {
 }
 
 extension KaspaAmountEntry {
-    /// "12345.5" -> "12,345.5": commas every three digits of the whole part, the rest as typed.
-    static func grouped(_ plain: String) -> String {
+    /// Where the device writes the decimal point as "," (de, fr, es, it, pt, ru, tr, id, vi...),
+    /// a comma is ALWAYS the decimal point - "0,001" pasted from a chat is 0.001, never 1 (IOS-078) -
+    /// and thousands show as a thin space ("2 500"), which no reader takes for a decimal.
+    /// Elsewhere thousands show as "," ("12,345.5").
+    static func usesCommaDecimal(_ locale: Locale = .current) -> Bool {
+        locale.decimalSeparator == ","
+    }
+
+    static func groupingSeparator(_ locale: Locale = .current) -> String {
+        usesCommaDecimal(locale) ? "\u{202F}" : ","
+    }
+
+    /// "12345.5" -> "12,345.5" (or "12 345.5"): a separator every three digits of the whole
+    /// part, the rest as typed.
+    static func grouped(_ plain: String, locale: Locale = .current) -> String {
         let parts = plain.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
         guard let whole = parts.first, whole.count > 3, whole.allSatisfy({ $0.isASCII && $0.isNumber }) else { return plain }
+        let separator = groupingSeparator(locale)
         var out = ""
         for (i, ch) in whole.enumerated() {
-            if i > 0, (whole.count - i) % 3 == 0 { out.append(",") }
+            if i > 0, (whole.count - i) % 3 == 0 { out.append(separator) }
             out.append(ch)
         }
         return parts.count > 1 ? out + "." + parts[1] : out
     }
 
-    /// The edited field back to plain digits. The commas shown are ours and go; a comma TYPED as
-    /// the decimal point (comma-decimal keyboards) stays one: typed at the end, or a single comma
-    /// not three digits from the end in a number that had no grouping ("0,5" pasted is 0.5, never 5).
-    static func ungrouped(_ edited: String, previous: String) -> String {
+    /// The edited field back to a plain number ("." the decimal point).
+    /// - Comma-decimal device: the thin spaces shown are ours and go; a "," is the decimal point.
+    ///   A pasted "1.234,5" (dots as grouping, a comma decimal) is 1234.5.
+    /// - Otherwise: the commas shown are ours and go; a comma TYPED as the decimal point stays one:
+    ///   typed at the end, or a single comma not three digits from the end in a number that had no
+    ///   grouping ("0,5" is 0.5), or after a lone leading zero ("0,001" is 0.001, as no grouped
+    ///   number starts "0,").
+    static func ungrouped(_ edited: String, previous: String, locale: Locale = .current) -> String {
+        if usesCommaDecimal(locale) {
+            var text = edited.replacingOccurrences(of: "\u{202F}", with: "")
+                .replacingOccurrences(of: " ", with: "")
+                .replacingOccurrences(of: "\u{00A0}", with: "")
+            if text.contains(",") {
+                // a comma is the decimal point; dots beside it can only be grouping
+                text = text.replacingOccurrences(of: ".", with: "")
+                if let first = text.firstIndex(of: ",") {
+                    let head = text[..<first]
+                    let tail = text[text.index(after: first)...].replacingOccurrences(of: ",", with: "")
+                    text = String(head) + "." + tail
+                }
+            }
+            return text
+        }
         if edited == previous + "," {
             return previous.replacingOccurrences(of: ",", with: "") + "."
         }
         if !previous.contains(","), !edited.contains("."), edited.filter({ $0 == "," }).count == 1,
            let comma = edited.firstIndex(of: ","),
-           edited.distance(from: edited.index(after: comma), to: edited.endIndex) != 3 {
+           edited[..<comma] == "0" || edited[..<comma].isEmpty
+            || edited.distance(from: edited.index(after: comma), to: edited.endIndex) != 3 {
             return edited.replacingOccurrences(of: ",", with: ".")
         }
         return edited.replacingOccurrences(of: ",", with: "")
@@ -354,7 +388,7 @@ extension KaspaAmountEntry {
 }
 
 extension Binding where Value == String {
-    /// An amount field's text with thousands commas while shown ("12,345.5"), the plain number
+    /// An amount field's text with thousands separators while shown ("12,345.5"), the plain number
     /// stored - the same rules as `KaspaAmountEntry`, for the amount fields that aren't one.
     var groupedAmount: Binding<String> {
         Binding(

@@ -533,9 +533,9 @@ REST API reports the transaction accepted.
 
 **Buy From (which address the marketplace uses).** In the marketplace only, the balance pill at
 the top shows the balance and the address the marketplace buys with (`KachatMarketSourcePill`).
-Tapping it opens Buy From: Chatting Address (the default), Fresh Address (a never-used spending
-address, revealed in Manage Addresses) or Choose an Address (any of yours, each marked used or
-unused), with that address's balance, a copy button and, when it is empty, Fund (its QR code).
+Tapping it opens Buy From: Chatting Address (the default) or Choose an Address (any of yours,
+each marked used or unused), with that address's balance, a copy button and, when it is empty,
+Fund (its QR code).
 Inscribing a new name (the commit and the register, and a claim resumed later), buying a listed
 name, making an offer, and extend or renew opened from the marketplace are paid from that address,
 and a name claimed or bought this way belongs to it (`KachatNamesActions.marketSource`,

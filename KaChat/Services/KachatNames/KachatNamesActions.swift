@@ -96,8 +96,6 @@ final class KachatNamesActions: ObservableObject {
             if case .spending(_, let address, _) = marketSource { rememberMarketAddress(address) }
         }
     }
-    /// `marketSource` was made with Buy From's Fresh Address (which pill shows as chosen).
-    @Published var marketSourceIsFresh = false
 
     private init() {}
 

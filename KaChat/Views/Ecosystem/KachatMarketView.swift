@@ -166,7 +166,6 @@ struct KachatMarketView: View {
         // Domains' renew and extend, the profile) pays from the chatting address again.
         .onDisappear {
             KachatNamesActions.shared.marketSource = .chatting
-            KachatNamesActions.shared.marketSourceIsFresh = false
         }
     }
 
@@ -1162,8 +1161,8 @@ private struct KachatLaunchCountdown: View {
 
 /// The marketplace's balance pill, in place of the chatting balance every other screen shows: the
 /// balance of the address it buys with and which address that is (`marketSource`). Tapping it
-/// picks another - the chatting address, a fresh never-used one, or any of yours - so a name can
-/// be bought from an address nothing links to your chats.
+/// picks another - the chatting address or any of yours - so a name can be bought from an
+/// address nothing links to your chats.
 struct KachatMarketSourcePill: View {
     @ObservedObject private var actions = KachatNamesActions.shared
     @EnvironmentObject var walletManager: WalletManager
@@ -1214,8 +1213,8 @@ struct KachatMarketSourcePill: View {
 }
 
 /// Buy From: which address the marketplace pays with - claims, purchases and offers - and so
-/// which address a new name lands on. An empty address gets a Fund button: its QR code and a copy
-/// button, to send KAS to it from anywhere.
+/// which address a new name lands on: the chatting address or any of yours (Choose an Address).
+/// An empty address gets a Fund button: its QR code and a copy button.
 struct KachatMarketSourceSheet: View {
     @ObservedObject private var actions = KachatNamesActions.shared
     @EnvironmentObject var walletManager: WalletManager
@@ -1223,7 +1222,6 @@ struct KachatMarketSourceSheet: View {
     @State private var balance: UInt64?
     @State private var showChooser = false
     @State private var showFund = false
-    @State private var makingFresh = false
     @State private var copied = false
 
     static func title(_ source: SendSource) -> String {
@@ -1248,22 +1246,12 @@ struct KachatMarketSourceSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            SelectablePill(title: "Chatting Address", selected: !isSpending) {
-                                actions.marketSourceIsFresh = false
-                                actions.marketSource = .chatting
-                            }
-                            SelectablePill(title: "Fresh Address", selected: isSpending && actions.marketSourceIsFresh) {
-                                makeFresh()
-                            }
-                            SelectablePill(title: "Choose an Address", selected: isSpending && !actions.marketSourceIsFresh) {
-                                showChooser = true
-                            }
+                    HStack(spacing: 10) {
+                        SelectablePill(title: "Chatting Address", selected: !isSpending) {
+                            actions.marketSource = .chatting
+                        }
+                        SelectablePill(title: "Choose an Address", selected: isSpending) {
+                            showChooser = true
                         }
                     }
                     addressCard
@@ -1290,7 +1278,6 @@ struct KachatMarketSourceSheet: View {
             }
             .sheet(isPresented: $showChooser) {
                 OwnAddressPicker(title: "Buy From", selected: actions.marketSource.address) { picked in
-                    actions.marketSourceIsFresh = false
                     actions.marketSource = picked
                 }
             }
@@ -1325,9 +1312,7 @@ struct KachatMarketSourceSheet: View {
                 }
             }
             Spacer()
-            if makingFresh {
-                ProgressView().controlSize(.small)
-            } else if let shownBalance {
+            if let shownBalance {
                 Text(verbatim: "\(KaspaUnit.plain(shownBalance)) \(KaspaUnit.symbol)")
                     .font(.subheadline.monospacedDigit().weight(.semibold))
             } else {
@@ -1350,20 +1335,6 @@ struct KachatMarketSourceSheet: View {
         }
         .padding(12)
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
-    }
-
-    /// A never-used spending address (revealed in Manage Addresses), the same one Receive offers.
-    private func makeFresh() {
-        guard !makingFresh else { return }
-        makingFresh = true
-        Task { @MainActor in
-            defer { makingFresh = false }
-            guard let address = await WalletManager.shared.freshReceiveAddress(revealing: true) else { return }
-            let entries = await WalletManager.shared.getSpendingAddressList()
-            guard let entry = entries.first(where: { $0.address.lowercased() == address.lowercased() }) else { return }
-            actions.marketSourceIsFresh = true
-            actions.marketSource = .spending(index: entry.index, address: entry.address, label: entry.displayLabel)
-        }
     }
 }
 

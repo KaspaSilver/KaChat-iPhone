@@ -23,6 +23,8 @@ struct ChatInfoView: View {
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
     @State private var kachatLabel: String?
     @State private var kachatProfile: KachatNames.Profile?
+    /// Rescan Profile is looking everything up again.
+    @State private var rescanning = false
 
     @State private var editedAlias: String = ""
     @State private var notificationModeOverride: ContactNotificationMode? = nil
@@ -406,6 +408,8 @@ struct ChatInfoView: View {
                             systemImage: "info.circle"
                         ) { activeSheet = .info }
                     }
+
+                    rescanCard
 
                     shareCard
                 }
@@ -791,6 +795,57 @@ struct ChatInfoView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// Rescan Profile: the avatar, banner and bio looked up again now. They refresh by themselves
+    /// once every 5 days; this is for someone who just changed theirs.
+    private var rescanCard: some View {
+        Button {
+            rescanProfile()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.scaled(size: 16, weight: .semibold))
+                    .foregroundColor(.accentColor)
+                    .frame(width: 26)
+                Text("Rescan Profile")
+                    .foregroundColor(.primary)
+                Spacer(minLength: 8)
+                if rescanning { ProgressView().controlSize(.small) }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(rescanning)
+    }
+
+    /// The on-chain profile (which links it uses) asked for again, each link's avatar, banner and
+    /// bio looked up again, and both pictures downloaded again whatever the caches hold - so a
+    /// change shows now, here and everywhere this person appears.
+    private func rescanProfile() {
+        guard !rescanning else { return }
+        rescanning = true
+        Task { @MainActor in
+            defer { rescanning = false }
+            var pictures: [String] = []
+            if KachatNamesService.isEnabled {
+                if let identity = await kachatRegistry.refreshIdentity(address: contact.address) {
+                    kachatLabel = identity.label
+                    kachatProfile = (isSelf ? kachatRegistry.ownProfile(for: contact.address)?.profile : nil) ?? identity.profile
+                }
+                let links = kachatProfile
+                let answers = await socialImages.rescan([links?.avatar, links?.banner, links?.bio])
+                if let link = links?.avatar, let url = answers[link]?.avatar { pictures.append(url) }
+                if let link = links?.banner, let url = answers[link]?.banner { pictures.append(url) }
+            }
+            if usesKNSProfile, let info = await KNSService.shared.fetchProfile(for: contact.address, force: true) {
+                if let url = info.avatarURL { pictures.append(url) }
+                if let url = info.profile?.bannerUrl { pictures.append(url) }
+            }
+            await KNSProfileImageCacheControl.refetch(pictures)
+            Haptics.success()
+            showToast(localized("Profile rescanned."))
+        }
     }
 
     /// Shares this person's kachat.app profile link, the same link your own Profile shares:

@@ -619,6 +619,27 @@ final class KachatNamesRegistry: ObservableObject {
     /// re-asked once the registry moved on or after five minutes, and this wallet's own saved
     /// profile always wins for its own address. When an answer lands, views that read contact
     /// names re-render (ContactsManager is told).
+    /// Looks the address's identity up now, whatever the cache holds (User Info > Rescan
+    /// Profile), and stores the answer for every view that reads `cachedIdentity`.
+    @discardableResult
+    func refreshIdentity(address: String) async -> KachatNames.Identity? {
+        guard KachatNamesService.profilesEnabled else { return nil }
+        let key = address.lowercased()
+        guard NetworkType(address: key) != nil, NetworkType.isOnActiveNetwork(key),
+              let found = try? await identity(address: key) else { return nil }
+        identityMisses[key] = nil
+        if identities[key]?.identity != found {
+            objectWillChange.send()
+            identities[key] = CachedIdentity(identity: found, revision: revision, at: Date())
+            persistIdentities()
+            ContactsManager.shared.objectWillChange.send()
+        } else {
+            identities[key]?.revision = revision
+            identities[key]?.at = Date()
+        }
+        return found
+    }
+
     func cachedIdentity(for address: String) -> KachatNames.Identity? {
         guard KachatNamesService.profilesEnabled else { return nil }
         let key = address.lowercased()
@@ -982,6 +1003,19 @@ final class KachatSocialImageResolver: ObservableObject {
             }
         }
         return entry?.profile
+    }
+
+    /// Looks these profile links up again now, whatever the cache holds (User Info > Rescan
+    /// Profile): an avatar, banner or bio changed on the platform shows at once. Returns the
+    /// fresh answers by link.
+    func rescan(_ links: [String?]) async -> [String: KachatNames.SocialProfile] {
+        var answers: [String: KachatNames.SocialProfile] = [:]
+        for link in Set(links.compactMap { $0 }) {
+            guard let source = KachatNames.SocialSource(link: link, for: .avatar) else { continue }
+            unreachableAt[source.link] = nil
+            if let profile = await resolve(source, maxAge: 0).profile { answers[link] = profile }
+        }
+        return answers
     }
 
     /// What a lookup came back with.

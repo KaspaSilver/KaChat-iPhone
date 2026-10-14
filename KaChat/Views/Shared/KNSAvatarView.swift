@@ -98,6 +98,12 @@ struct KNSAvatarView: View {
         .task(id: descriptor?.cacheIdentity) {
             await loadAvatarIfNeeded()
         }
+        // Rescan Profile downloaded this picture again: show the new one
+        .onReceive(NotificationCenter.default.publisher(for: .knsProfileImageRefetched)) { note in
+            guard let identity = note.object as? String, identity == descriptor?.cacheIdentity else { return }
+            lastLoadedIdentity = nil
+            Task { await loadAvatarIfNeeded() }
+        }
     }
 
     private var fallbackAvatar: some View {
@@ -210,6 +216,12 @@ struct KNSBannerImageView: View {
         }
         .task(id: KNSProfileImageDescriptor.from(raw: bannerURLString)?.cacheIdentity) {
             await loadBannerIfNeeded()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .knsProfileImageRefetched)) { note in
+            guard let identity = note.object as? String,
+                  identity == KNSProfileImageDescriptor.from(raw: bannerURLString)?.cacheIdentity else { return }
+            lastLoadedIdentity = nil
+            Task { await loadBannerIfNeeded() }
         }
     }
 
@@ -479,6 +491,28 @@ enum KNSProfileImageCacheControl {
     static func resetAfterExternalPurge() async {
         await KNSProfileImageCache.shared.resetAfterExternalPurge()
     }
+
+    /// Downloads these pictures again whatever the cache holds (User Info > Rescan Profile), then
+    /// tells every avatar and banner showing one to redraw it. Returns how many came back.
+    @discardableResult
+    static func refetch(_ urlStrings: [String]) async -> Int {
+        var fetched = 0
+        for raw in Set(urlStrings) {
+            guard let descriptor = KNSProfileImageDescriptor.from(raw: raw) else { continue }
+            if await KNSProfileImageCache.shared.forceRefetch(descriptor) { fetched += 1 }
+            let identity = descriptor.cacheIdentity
+            await MainActor.run {
+                NotificationCenter.default.post(name: .knsProfileImageRefetched, object: identity)
+            }
+        }
+        return fetched
+    }
+}
+
+extension Notification.Name {
+    /// A profile picture was downloaded again (`KNSProfileImageCacheControl.refetch`); the object
+    /// is its cache identity.
+    static let knsProfileImageRefetched = Notification.Name("KNSProfileImageRefetched")
 }
 
 /// The decoded avatars in memory, outside the actor: `NSCache` is thread-safe, and a view
@@ -503,6 +537,16 @@ private actor KNSProfileImageCache {
     /// The decoded image already in memory, synchronously - nil when it has to be loaded.
     static func memoryImage(for descriptor: KNSProfileImageDescriptor, maxPixelSize: Int?) -> UIImage? {
         KNSProfileImageMemory.cache.object(forKey: KNSProfileImageMemory.key(for: descriptor.cacheIdentity, maxPixelSize: maxPixelSize))
+    }
+
+    /// A full download, no validators sent (a host may answer "not modified" to a changed picture):
+    /// the new bytes replace the old file, and every decoded variant goes. The old picture stays
+    /// when the download fails.
+    func forceRefetch(_ descriptor: KNSProfileImageDescriptor) async -> Bool {
+        await loadManifestIfNeeded()
+        downloadFailureAt.removeValue(forKey: descriptor.cacheIdentity)
+        let image = await downloadAndStore(descriptor: descriptor, existingEntry: nil, maxPixelSize: nil)
+        return image != nil
     }
 
     /// See `KNSProfileImageCacheControl.resetAfterExternalPurge`.

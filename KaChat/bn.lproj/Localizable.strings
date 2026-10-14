@@ -1743,3 +1743,7 @@
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "আপনার নিজের ঠিকানা: %@";
+
+/* User Info: look the person's avatar, banner and bio up again now */
+"Rescan Profile" = "প্রোফাইল আবার স্ক্যান করুন";
+"Profile rescanned." = "প্রোফাইল আবার স্ক্যান করা হয়েছে।";

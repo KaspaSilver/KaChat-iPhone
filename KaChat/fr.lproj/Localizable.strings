@@ -1744,3 +1744,7 @@
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "Votre propre adresse : %@";
+
+/* User Info: look the person's avatar, banner and bio up again now */
+"Rescan Profile" = "Actualiser le profil";
+"Profile rescanned." = "Profil actualisé.";

@@ -3903,7 +3903,19 @@ struct KachatProfileSaveSheet: View {
                     }
                     .disabled(fee == nil || profile == nil || sending || done != nil)
                 } footer: {
-                    if let sendError { Text(verbatim: sendError).foregroundColor(.red) }
+                    if let sendError {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(verbatim: sendError).foregroundColor(.red)
+                            if shortOfFunds {
+                                Button {
+                                    showFunding = true
+                                } label: {
+                                    Label("Fund", systemImage: "qrcode")
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .navigationTitle(title)

@@ -214,7 +214,6 @@ final class CallService: ObservableObject {
         // Nextcloud connected but Talk not known to be there (never checked, or the last check
         // failed): ask the server now. Asking the contact to host while this phone could host
         // left two phones each waiting for the other.
-        let nextcloud = NextcloudService.shared
         if hostingAccount != nil, !canHost, !talkRecheckedForCall {
             talkRecheckedForCall = true
             Task { [weak self] in
@@ -225,7 +224,6 @@ final class CallService: ObservableObject {
             }
             return
         }
-        _ = nextcloud
         lastError = nil
         let callId = UUID().uuidString.lowercased()
         guard canHost, let account = hostingAccount, let server = account.serverURL else {

@@ -58,8 +58,13 @@ extension ChatService {
     /// A `payment_notice` in a 1:1 chat - theirs (they paid us From a spending address) or our own
     /// read back on another device. It names a payment to the receiving side's chatting address;
     /// anything else (an old app's pool payment) is dropped. The payment becomes a payment bubble
-    /// in this chat, with its memo; if it already showed in the self-chat ("From: <address>"),
-    /// it moves here. Deduped by the payment's txId.
+    /// in this chat, with its memo. Deduped by the payment's txId.
+    ///
+    /// Any contact can send a notice naming any public txid (IOS-083), so a received one is checked
+    /// on chain BEFORE anything is filed: the tx must pay our chatting address exactly the amount,
+    /// carry no payload (a plain transfer) and be paid by nobody we know as another contact. Only
+    /// a plain transfer from an unknown address that landed in the self-chat may move into the
+    /// chat; another chat's payment, a message, or anything sent by us is never touched.
     func handlePaymentNotice(_ notice: PaymentNoticeContent, message: ChatMessage, contactAddress: String) {
         guard let wallet = WalletManager.shared.currentWallet else { return }
         let walletAddress = wallet.publicAddress
@@ -77,37 +82,118 @@ extension ChatService {
 
         Task { @MainActor [weak self] in
             guard let self, self.isActiveWallet(walletAddress) else { return }
-            if let existing = await self.findLocalMessage(txId: txId) {
+            let existing = await self.findLocalMessage(txId: txId)
+            if let existing {
                 let counterpart = existing.isOutgoing ? existing.receiverAddress : existing.senderAddress
                 if existing.isOutgoing == isOutgoing, counterpart.lowercased() == contactAddress.lowercased() {
+                    // already in this chat; one filed unverified gets its chain check again
+                    if !isOutgoing, existing.messageType == .payment, existing.deliveryStatus == .warning,
+                       case .valid = await self.checkNoticeOnChain(txId: txId, paidAddress: walletAddress,
+                                                                    claimedSompi: notice.amountSompi, payer: contactAddress) {
+                        _ = self.updateIncomingPaymentStatus(
+                            txId: txId, deliveryStatus: .sent,
+                            content: self.paymentNoticeText(amountSompi: notice.amountSompi, memo: memo, isOutgoing: false))
+                        self.saveMessages()
+                    }
                     return
                 }
-                // shown elsewhere first (the self-chat): it belongs to this chat
-                self.removeMessage(txId: txId)
+                guard !isOutgoing, self.isClaimableSelfChatPayment(existing, walletAddress: walletAddress) else {
+                    AppLog.log("[ChatService] Dropped payment_notice %@ - it names a message that isn't an unclaimed self-chat payment",
+                               String(txId.prefix(12)))
+                    return
+                }
             }
-            let bubble = ChatMessage(
-                txId: txId,
-                senderAddress: isOutgoing ? walletAddress : contactAddress,
-                receiverAddress: notice.address,
-                content: self.paymentNoticeText(amountSompi: notice.amountSompi, memo: memo, isOutgoing: isOutgoing),
-                timestamp: message.timestamp,
-                blockTime: message.blockTime,
-                acceptingBlock: nil,
-                isOutgoing: isOutgoing,
-                messageType: .payment,
-                deliveryStatus: .sent
-            )
-            self.addMessageToConversation(bubble, contactAddress: contactAddress)
-            if let key = self.messageEncryptionKey() {
-                self.messageStore.upsertMessage(bubble, contactAddress: contactAddress, encryptionKey: key, refile: true)
+            if isOutgoing {
+                // our own notice on another device: the outgoing bubble, if this device has none
+                guard existing == nil else { return }
+                self.fileNoticeBubble(txId: txId, notice: notice, memo: memo, message: message, contactAddress: contactAddress,
+                                      walletAddress: walletAddress, isOutgoing: true, status: .sent, moving: false)
+                return
             }
-            self.saveMessages()
-            AppLog.log("[ChatService] Payment %@ filed in its chat from a payment_notice", String(txId.prefix(12)))
-            if !isOutgoing {
-                await self.verifyPaymentNotice(txId: txId, paidAddress: notice.address,
-                                               claimedSompi: notice.amountSompi, memo: memo)
+            switch await self.checkNoticeOnChain(txId: txId, paidAddress: walletAddress,
+                                                 claimedSompi: notice.amountSompi, payer: contactAddress) {
+            case .valid:
+                if existing != nil { self.removeMessage(txId: txId) }
+                self.fileNoticeBubble(txId: txId, notice: notice, memo: memo, message: message, contactAddress: contactAddress,
+                                      walletAddress: walletAddress, isOutgoing: false, status: .sent, moving: existing != nil)
+            case .invalid(let reason):
+                AppLog.log("[ChatService] Dropped payment_notice %@ - %@", String(txId.prefix(12)), reason)
+            case .unknown:
+                // no chain answer: never move a record on an unchecked claim; with nothing stored
+                // yet, show it marked unverified (checked again when the notice is read again)
+                guard existing == nil else { return }
+                self.fileNoticeBubble(txId: txId, notice: notice, memo: memo, message: message, contactAddress: contactAddress,
+                                      walletAddress: walletAddress, isOutgoing: false, status: .warning, moving: false)
             }
         }
+    }
+
+    /// A stored message a received notice may claim: an incoming payment from an address that is
+    /// no contact of ours (so it sits in the self-chat with "From:") and not our own.
+    private func isClaimableSelfChatPayment(_ m: ChatMessage, walletAddress: String) -> Bool {
+        guard m.messageType == .payment, !m.isOutgoing else { return false }
+        let sender = m.senderAddress.lowercased()
+        guard !sender.isEmpty, sender != walletAddress.lowercased() else { return false }
+        return contactsManager.getContact(byAddress: m.senderAddress) == nil
+    }
+
+    private func fileNoticeBubble(txId: String, notice: PaymentNoticeContent, memo: String, message: ChatMessage,
+                                  contactAddress: String, walletAddress: String, isOutgoing: Bool,
+                                  status: ChatMessage.DeliveryStatus, moving: Bool) {
+        let bubble = ChatMessage(
+            txId: txId,
+            senderAddress: isOutgoing ? walletAddress : contactAddress,
+            receiverAddress: notice.address,
+            content: paymentNoticeText(amountSompi: notice.amountSompi, memo: memo, isOutgoing: isOutgoing),
+            timestamp: message.timestamp,
+            blockTime: message.blockTime,
+            acceptingBlock: nil,
+            isOutgoing: isOutgoing,
+            messageType: .payment,
+            deliveryStatus: status
+        )
+        addMessageToConversation(bubble, contactAddress: contactAddress)
+        if moving, let key = messageEncryptionKey() {
+            messageStore.upsertMessage(bubble, contactAddress: contactAddress, encryptionKey: key, refile: true)
+        }
+        saveMessages()
+        AppLog.log("[ChatService] Payment %@ filed in its chat from a payment_notice (%@)",
+                   String(txId.prefix(12)), status.rawValue)
+    }
+
+    private enum NoticeCheck {
+        case valid
+        case invalid(String)
+        /// the transaction couldn't be read (not indexed yet, or no answer)
+        case unknown
+    }
+
+    /// What the chain says about a received notice: the tx pays `paidAddress` exactly
+    /// `claimedSompi`, carries no payload (a chat payment or a message is never a notice's
+    /// payment), and none of its inputs is ours or another contact's.
+    private func checkNoticeOnChain(txId: String, paidAddress: String, claimedSompi: UInt64, payer: String) async -> NoticeCheck {
+        guard let url = kaspaRestURL(path: "/transactions/\(txId)",
+                                     queryItems: [URLQueryItem(name: "resolve_previous_outpoints", value: "light")]),
+              let (data, response) = try? await URLSession.shared.data(for: Self.timedRequest(url)),
+              let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode),
+              let fullTx = try? JSONDecoder().decode(KaspaFullTransactionResponse.self, from: data) else {
+            return .unknown
+        }
+        let paid = fullTx.outputs
+            .filter { $0.scriptPublicKeyAddress?.lowercased() == paidAddress.lowercased() }
+            .reduce(UInt64(0)) { $0 + $1.amount }
+        guard paid == claimedSompi else { return .invalid("it pays \(paid) sompi, not \(claimedSompi)") }
+        guard (fullTx.payload ?? "").isEmpty else { return .invalid("the transaction carries a payload") }
+        let inputs = (fullTx.inputs ?? []).compactMap { $0.previousOutpointAddress?.lowercased() }
+        guard !inputs.isEmpty else { return .unknown }
+        for input in inputs {
+            if input == paidAddress.lowercased() { return .invalid("paid by our own address") }
+            if input != payer.lowercased(), contactsManager.getContact(byAddress: input) != nil {
+                return .invalid("paid by another contact")
+            }
+        }
+        return .valid
     }
 
     private func paymentNoticeText(amountSompi: UInt64, memo: String, isOutgoing: Bool) -> String {
@@ -117,33 +203,5 @@ extension ChatService {
         }
         return String(format: KaspaUnit.label(AppLocalization.string(isOutgoing ? "Sent %@ KAS — %@" : "Received %@ KAS — %@")),
                       amount, memo)
-    }
-
-    /// The chain is the judge of a received notice: the amount shown is what the transaction
-    /// really paid our chatting address, and a transaction that paid it nothing is marked with a
-    /// warning. Silent when the transaction can't be fetched (checked again on the next notice
-    /// replay).
-    private func verifyPaymentNotice(txId: String, paidAddress: String, claimedSompi: UInt64, memo: String) async {
-        guard let url = kaspaRestURL(path: "/transactions/\(txId)"),
-              let (data, response) = try? await URLSession.shared.data(for: Self.timedRequest(url)),
-              let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode),
-              let fullTx = try? JSONDecoder().decode(KaspaFullTransactionResponse.self, from: data) else {
-            return
-        }
-        let paid = fullTx.outputs
-            .filter { $0.scriptPublicKeyAddress?.lowercased() == paidAddress.lowercased() }
-            .reduce(UInt64(0)) { $0 + $1.amount }
-        guard paid != claimedSompi else { return }
-        if paid == 0 {
-            AppLog.log("[ChatService] payment_notice %@ FAILED verification - pays nothing to the chatting address",
-                       String(txId.prefix(12)))
-        }
-        _ = updateIncomingPaymentStatus(
-            txId: txId,
-            deliveryStatus: paid == 0 ? .warning : .sent,
-            content: paymentNoticeText(amountSompi: paid == 0 ? claimedSompi : paid, memo: memo, isOutgoing: false)
-        )
-        saveMessages()
     }
 }

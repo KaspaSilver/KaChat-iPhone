@@ -341,13 +341,19 @@ Message Request from a stranger on their side - XP-022). So:
 2. **Payee.** On a `payment_notice` in a 1:1 chat:
    - If `address` is not this wallet's chatting address, **drop it silently** (no bubble, no
      banner): it is an old app's fresh-address pool payment (see Retired, below).
-   - Otherwise render an incoming payment bubble in **that chat**: "Received X KAS", or
+   - Otherwise **check the chain first** (any contact can send a notice naming any public
+     txid - IOS-083). The tx must pay this chatting address exactly `amountSompi`, carry **no
+     payload** (a chat payment or a message is never a notice's payment), and none of its inputs
+     may be our own address or another contact's address. A notice that fails is dropped.
+   - If it passes, render an incoming payment bubble in **that chat**: "Received X KAS", or
      "Received X KAS - <memo>", transaction id = `txId`, timestamp from the notice's block time.
-     Deduplicate by `txId`. If the payment already showed elsewhere first (a plain transfer from
-     an unknown address goes to the self-chat with "From: <address>"), **move** it into this
-     chat. A later payment fetch finds the txId present and does nothing.
-   - Check it against the chain when you can: the amount shown is what the tx really paid the
-     chatting address; a tx that paid it nothing gets the warning state.
+     Deduplicate by `txId`. A message with that txid already stored elsewhere may move into this
+     chat **only** if it is an incoming payment from an address that is no contact (a plain
+     transfer shown in the self-chat with "From: <address>") - the first notice to claim it wins.
+     Never move or overwrite anything else: another chat's payment, a message, or anything we
+     sent. A later payment fetch finds the txId present and does nothing.
+   - No chain answer (not indexed yet): never move an existing record. With nothing stored yet,
+     show the bubble marked unverified (warning) and check again when the notice is read again.
    - Notification: "Received payment", without the claimed amount.
 
 3. **Payer's other devices.** An outgoing `payment_notice` read back from the indexer makes the

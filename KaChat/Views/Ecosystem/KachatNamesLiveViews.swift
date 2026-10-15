@@ -173,7 +173,8 @@ enum KachatLive {
         return s
     }
 
-    @MainActor static func isMine(_ key: Data) -> Bool { KachatNamesActions.shared.myKey == key }
+    /// A key of this wallet: the chatting address or any revealed spending address (IOS-085).
+    @MainActor static func isMine(_ key: Data) -> Bool { KachatNamesActions.shared.isOwnKey(key) }
 
     static func eventIcon(_ op: String) -> String {
         switch op {
@@ -471,17 +472,11 @@ final class KachatHubModel: ObservableObject {
             listings = try await registry.listings()
             lapsed = try await registry.lapsed()
             grace = (try? await registry.inGrace()) ?? []
-            // the chatting address and every address the marketplace bought with
-            let keys = KachatNamesActions.shared.ownMarketKeys
-            if !keys.isEmpty {
-                var names: [KachatNames.NameInfo] = []
-                var offers: [KachatNames.OfferInfo] = []
-                for key in keys {
-                    names += try await registry.names(owner: key, includeInactive: true)
-                    offers += try await registry.myOffers(buyer: key)
-                }
-                mine = names
-                myOffers = offers
+            // the chatting address and every used address of this wallet (IOS-085)
+            if KachatNamesActions.shared.myKey != nil {
+                let own = try await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: false)
+                mine = own.names
+                myOffers = own.offers
                 if !myOffers.isEmpty {
                     await KachatNamesActions.shared.refreshVirtualDaa()
                     // Your own expired offers come back to you on their own, and so do the ones
@@ -2307,7 +2302,8 @@ struct KachatLiveNameDetail: View {
     @State private var heldBy: KachatNamesActions.OwnAddress?
 
     /// Held by the chatting address: the identity, so "Set as Primary" applies.
-    private var mine: Bool { heldBy == .chatting || (heldBy == nil && KachatLive.isMine(info.owner)) }
+    /// Held by the chatting address (Set as Primary applies only there).
+    private var mine: Bool { heldBy == .chatting || (heldBy == nil && KachatNamesActions.shared.myKey == info.owner) }
     /// Held by an address this app can sign for: every owner action is available.
     private var canActAsOwner: Bool {
         switch heldBy {
@@ -3403,22 +3399,18 @@ struct KachatLiveDomainsTab: View {
     private func load() async {
         guard let key = KachatNamesRegistry.keyOf(walletAddress) else { loaded = true; return }
         if registry.refreshedAt == nil { await registry.refresh() }
-        // Your own list (the chatting address's) also holds what the marketplace bought with your
-        // other addresses: a name claimed from a fresh address is still yours to find here.
-        var keys = [key]
-        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress {
-            keys += KachatNamesActions.shared.ownMarketKeys.filter { $0 != key }
-        }
         // A lapsed name is no longer yours: it moves to the marketplace's Reclaimable tab (and the
         // bell says so, `KachatNamesNotifier`). Expired names in grace stay, to be renewed.
-        var held: [KachatNames.NameInfo] = []
-        var offers: [KachatNames.OfferInfo] = []
-        for k in keys {
-            held += (try? await registry.heldNames(owner: k)) ?? []
-            offers += (try? await registry.myOffers(buyer: k)) ?? []
+        // Your own list (the chatting address's) holds the names and offers on every address of
+        // this wallet - one claimed with Buy From too, on any device restored from the seed.
+        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress,
+           let own = try? await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: true) {
+            names = own.names
+            myOffers = own.offers
+        } else {
+            names = (try? await registry.heldNames(owner: key)) ?? []
+            myOffers = (try? await registry.myOffers(buyer: key)) ?? []
         }
-        names = held
-        myOffers = offers
         if !myOffers.isEmpty {
             // expired offers, and ones made to an earlier owner, come back on their own
             await KachatNamesActions.shared.refreshVirtualDaa()

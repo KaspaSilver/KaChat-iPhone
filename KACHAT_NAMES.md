@@ -540,9 +540,19 @@ Inscribing a new name (the commit and the register, and a claim resumed later), 
 name, making an offer, and extend or renew opened from the marketplace are paid from that address,
 and a name claimed or bought this way belongs to it (`KachatNamesActions.marketSource`,
 `buyerSigner`). A claim in progress keeps signing with the address it started from (by its owner
-key), and its salt and record stay with the wallet. Addresses used this way are remembered per
-wallet, so Your Domains and the marketplace list their names and offers with the chatting
-address's. Leaving the marketplace switches back to the chatting address.
+key), and its salt and record stay with the wallet. Leaving the marketplace switches back to the chatting address.
+
+**A wallet's names are on all its addresses (XP-024).** A name or offer on any of the wallet's
+addresses - the chatting address or a revealed spending address - is the wallet's: Your
+Domains, the marketplace's own lists, "Yours" and Withdraw, the Profile bell and the offer
+clean-ups all count every one (`KachatNamesActions.allOwnKeys` for checks in a view;
+`ownNameKeys` for registry lookups: the chatting key plus every spending address that was ever
+used, since a name or offer needs KAS on its address - the used answers are cached). So a name
+claimed from Address #4 shows on any device restored from the seed. The indexer's renewal and
+expiry pushes go only to the chatting address, so for a name on a spending address the phone
+schedules **local reminders** from its expiry: renewal opens, the name expired, and a day before
+grace ends (`KachatNameReminders`, thread "kachat-names", tap opens the name). Nothing is sent to
+a server; Android and Desktop do the same.
 
 **Until the v2 manifest is bundled.** The bundled manifest is registry v1, which this app no longer
 builds for: `KachatNamesService` recognises it (`registryUpgrading`), remembers the refusal instead

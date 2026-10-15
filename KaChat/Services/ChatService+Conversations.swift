@@ -1344,8 +1344,12 @@ extension ChatService {
 
         // If replying, wrap the content in the shared reply envelope (matches public chats'
         // sendPublicChat) so the quote survives even if the original message is later pruned.
+        // Never a call message: a call_invite/request/end sent while a reply was queued in the
+        // chat went out as a reply, and the other phone never saw a call (the reply stays
+        // queued for the person's next text).
+        let isCallEnvelope = CallCodec.parseAny(trimmed) != nil
         let payload: String
-        if let reply = replyingTo {
+        if let reply = replyingTo, !isCallEnvelope {
             let preview = MessageReplyCodec.previewText(for: reply.content)
             payload = MessageReplyCodec.encode(
                 replyToId: reply.txId,
@@ -1405,7 +1409,7 @@ extension ChatService {
                 feeOverride: feeOverride
             )
         }
-        replyingTo = nil
+        if !isCallEnvelope { replyingTo = nil }
 
         // Successful send: refresh the Share Extension's recents and donate an
         // INSendMessageIntent so iOS can surface this conversation as a share-sheet

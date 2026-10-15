@@ -2,7 +2,7 @@ import SwiftUI
 import Combine
 import WebRTC
 
-/// The in-app call screen, shown by `MainTabView` whenever `CallService.session` exists:
+/// The in-app call screen, shown by `CallWindowPresenter` whenever `CallService.session` exists:
 /// ringing in, ringing out, connecting, connected and the brief "Call ended" beat.
 ///
 /// Voice calls look like the phone's own call screen: name and timer up top, big round buttons
@@ -439,5 +439,74 @@ struct CallReturnBar: View {
         }
         .buttonStyle(.plain)
         .onReceive(clock) { now = $0 }
+    }
+}
+
+/// Shows the call screen in a window of its own, above everything - not as a sheet of the main
+/// screen, which SwiftUI silently refused whenever another sheet was up (a chat, the Send sheet,
+/// the sync progress, the welcome guide), while the app was still on its loading screen after a
+/// launch by a VoIP push, or mid-transition; answering then "opened the app and nothing
+/// happened". Up whenever a call exists and isn't tucked away, and put back when the app comes
+/// to the foreground.
+@MainActor
+final class CallWindowPresenter {
+    static let shared = CallWindowPresenter()
+    private var window: UIWindow?
+    private var shownCallId: String?
+    private var cancellables = Set<AnyCancellable>()
+
+    private init() {}
+
+    func start() {
+        guard cancellables.isEmpty else { return }
+        let service = CallService.shared
+        // @Published sends before the value changes: read it on the next turn of the run loop
+        service.$session.map { _ in () }
+            .merge(with: service.$isMinimized.map { _ in () })
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in self?.update() }
+            .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UIScene.didActivateNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.update() }
+            .store(in: &cancellables)
+    }
+
+    private func update() {
+        let service = CallService.shared
+        guard let call = service.session, !service.isMinimized else {
+            hide()
+            return
+        }
+        if let window, shownCallId == call.id, window.windowScene != nil {
+            if window.isHidden { window.isHidden = false }
+            return
+        }
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        // no scene yet (a launch by a VoIP push): put up once one activates
+        guard let scene = scenes.first(where: { $0.activationState == .foregroundActive })
+                ?? scenes.first(where: { $0.activationState == .foregroundInactive }) else { return }
+        hide()
+        let host = UIHostingController(rootView: CallView(call: call).environmentObject(ContactsManager.shared))
+        let window = UIWindow(windowScene: scene)
+        window.windowLevel = .alert + 1
+        window.rootViewController = host
+        // the app's Light/Dark choice, as its own windows have it
+        if let main = scene.windows.first(where: { $0 !== window && !$0.isHidden }) {
+            window.overrideUserInterfaceStyle = main.overrideUserInterfaceStyle
+        }
+        window.makeKeyAndVisible()
+        self.window = window
+        shownCallId = call.id
+    }
+
+    private func hide() {
+        guard let window else { return }
+        let scene = window.windowScene
+        window.isHidden = true
+        self.window = nil
+        shownCallId = nil
+        // the app's own window takes the keyboard and focus back
+        scene?.windows.first { !$0.isHidden && $0.windowLevel == .normal }?.makeKey()
     }
 }

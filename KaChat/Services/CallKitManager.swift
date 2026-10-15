@@ -231,18 +231,24 @@ extension CallKitManager: CXProviderDelegate {
     nonisolated func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         Task { @MainActor in
             // A VoIP push reports the call before the app has finished loading the wallet
-            // behind it; the user can answer in that window. Give the call a moment to exist.
+            // behind it (a cold launch can take several seconds); the user can answer in that
+            // window. Give the call time to exist - while it is still known to CallKit.
             var waited = 0
-            while CallService.shared.session?.uuid != action.callUUID, waited < 100 {
+            while CallService.shared.session?.uuid != action.callUUID, waited < 200, self.knownCalls.contains(action.callUUID) {
                 try? await Task.sleep(nanoseconds: 100_000_000)
                 waited += 1
             }
             guard let call = CallService.shared.session, call.uuid == action.callUUID else {
+                AppLog.log("[CallKit] Answer for %@ failed: no such call in the app", String(action.callUUID.uuidString.prefix(8)))
                 action.fail()
                 return
             }
             CallKitManager.configureAudioSession(video: call.video)
-            CallService.shared.performAccept()
+            // nothing to answer (it ended meanwhile): tell CallKit, not a silent "answered"
+            guard CallService.shared.performAccept() else {
+                action.fail()
+                return
+            }
             action.fulfill()
         }
     }

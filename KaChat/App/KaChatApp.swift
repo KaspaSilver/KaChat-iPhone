@@ -48,6 +48,9 @@ struct KaChatApp: App {
         // auto-backup and the launch catch-up — are registered from the very first launch
         // moment, not only after the user first visits a screen that references it.
         _ = NextcloudService.shared
+        // The call screen's own window: from the first moment, so a call rung by a VoIP push
+        // that launched the app shows even before the main screen exists.
+        CallWindowPresenter.shared.start()
     }
 
     var body: some Scene {

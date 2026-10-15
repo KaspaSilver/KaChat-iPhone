@@ -161,12 +161,8 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showInitialSyncProgress) {
             InitialSyncProgressModal(onDismiss: { showInitialSyncProgress = false })
         }
-        // Dismissal only ever comes from CallService clearing the session or tucking the call
-        // away (the cover's own setter is deliberately inert) - swiping a live call away is
-        // not a way to hang up.
-        .fullScreenCover(item: Binding(get: { callService.isMinimized ? nil : callService.session }, set: { _ in })) { call in
-            CallView(call: call)
-        }
+        // The call screen itself is a window of its own (`CallWindowPresenter`), so no sheet up
+        // here can keep it from showing.
         // A call tucked away and not floating as Picture in Picture: the green return bar.
         .overlay(alignment: .top) {
             if let call = callService.session, callService.isMinimized, !pictureInPicture.isActive {

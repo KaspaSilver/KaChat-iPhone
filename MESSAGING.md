@@ -496,6 +496,25 @@ entitlement key BEFORE Apple grants it breaks signing, so it is deliberately not
 | `{"type":"call_end"}` | the caller, always | `callId`, `reason` (`hangup`, `remote_hangup`, `declined`, `no_answer`, `cancelled`, `failed`), `durationSeconds` (when it connected). Sent only after the caller's opening message went out. |
 | `{"type":"call_response"}` | *legacy* - nothing sends it any more | `callId`, `accepted`, `reason`; still parsed so older clients' messages render |
 
+**Who hosts.** A phone whose Nextcloud is connected always hosts its own calls: before falling
+back to `call_request` it re-checks Talk on the server when the last answer is unknown or was a
+failed lookup (a lookup that couldn't reach the server is not "no Talk"). Likewise a phone asked
+to host re-checks before turning a request away.
+
+**Hosting a request (the callee side).** Ring at once (so an Answer tapped while the room is
+being opened finds the call), then open the room, check its signaling is internal (not the
+external HPB), and only then send the `call_invite {viaRequest:true}` - again on a failed send.
+The host also **pushes** that invite to the requester (`POST /v1/push/ring`, `kind:"invite"`) so
+their phone joins without waiting for the chain; a requester already waiting for that call id
+joins from the push and ignores the later chain copy. After Answer the other phone has 30 s to
+appear in the room, then the call ends as failed ("X didn't join") instead of hanging on
+"Connecting".
+
+**Consent before ringing.** A call (VoIP push, `call_request`, or a non-`viaRequest`
+`call_invite`) from someone whose "Allow calls" is off is ended or silenced on arrival, from a
+list the push handlers can read before the wallet loads - never a ring or an "Incoming call"
+banner first. Call messages are never wrapped as a reply.
+
 So a hosted call costs the caller 2 messages whatever happens (answered: invite + "Call · 4:12";
 declined / no answer / cancelled: invite + the reason); a requested call costs the caller 2 and the
 host 1 (its invite). Callee-side events reach the caller through the room: appearing in the call =

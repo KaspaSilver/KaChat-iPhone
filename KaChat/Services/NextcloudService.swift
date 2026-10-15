@@ -1058,6 +1058,19 @@ final class NextcloudService: ObservableObject {
         refreshTalkAvailability()
     }
 
+    /// `walletAddress`'s Nextcloud account and its last Talk answer, read straight from the
+    /// Keychain and settings without scoping the service: a VoIP push that launched the app needs
+    /// them before the wallet's Nextcloud state is loaded (that waits on the message store,
+    /// seconds on a cold launch). nil when not connected, and always on testnet (Nextcloud is off
+    /// there).
+    static func peekCallHosting(walletAddress: String) -> (account: NextcloudAccount, talkCalls: Bool)? {
+        guard AppSettings.load().networkType != .testnet,
+              let data = try? KeychainService.shared.loadNextcloudCredentials(walletAddress: walletAddress),
+              let account = try? JSONDecoder().decode(NextcloudAccount.self, from: data) else { return nil }
+        let key = "\(talkCallsKey)_\(KeychainService.walletHashSuffix(walletAddress))"
+        return (account, UserDefaults.standard.bool(forKey: key))
+    }
+
     /// Asks the server's capabilities whether Talk is installed with calls on, and publishes
     /// the answer. A lookup that couldn't reach the server changes nothing: it used to store
     /// "no Talk" until the next wallet load, and a phone with Talk then asked the other side to

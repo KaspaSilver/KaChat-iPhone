@@ -1178,14 +1178,18 @@ struct KachatMarketSourcePill: View {
             showSheet = true
         } label: {
             HStack(spacing: 6) {
-                Image("KaspaLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 15, height: 15)
                 VStack(spacing: 0) {
-                    Text(verbatim: "\(String(format: "%.8f", Double(shownBalance ?? 0) / 100_000_000.0)) \(KaspaUnit.symbol)")
-                        .font(.footnote.weight(.semibold))
-                        .monospacedDigit()
+                    // the logo sits right beside the balance, as on every other screen - not out
+                    // at the side of the wider address line under it
+                    HStack(spacing: 6) {
+                        Image("KaspaLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 15, height: 15)
+                        Text(verbatim: "\(String(format: "%.8f", Double(shownBalance ?? 0) / 100_000_000.0)) \(KaspaUnit.symbol)")
+                            .font(.footnote.weight(.semibold))
+                            .monospacedDigit()
+                    }
                     Text(verbatim: KachatMarketSourceSheet.title(actions.marketSource) + " · "
                          + KachatNamesRegistry.compactAddress(actions.marketSource.address ?? ""))
                         .font(.caption2)

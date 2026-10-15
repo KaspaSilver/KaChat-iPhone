@@ -274,7 +274,10 @@ class NotificationService: UNNotificationServiceExtension {
                 // a payment_notice for a payment to our chatting address, which reads
                 // "Received payment".
                 // An edit envelope changes an earlier bubble in place - nothing to announce.
-                if isSilentPoolEnvelope(decrypted) || isEditEnvelope(decrypted) {
+                // A call from someone this phone hasn't allowed calls from: ignored silently, as
+                // the app does (no "Incoming call" banner).
+                if isSilentPoolEnvelope(decrypted) || isEditEnvelope(decrypted)
+                    || isUnwantedCall(decrypted, from: senderAddress) {
                     content.title = ""
                     content.body = ""
                     content.sound = nil
@@ -1135,6 +1138,20 @@ class NotificationService: UNNotificationServiceExtension {
         let reason: String?
         let durationSeconds: Int?
         let viaRequest: Bool?
+    }
+
+    /// An opening call message (`call_request`, or a `call_invite` that isn't the answer to
+    /// our own request) from someone not on the shared "Allow calls" list.
+    private func isUnwantedCall(_ content: String, from sender: String) -> Bool {
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.first == "{", trimmed.contains("\"call_"), let data = trimmed.data(using: .utf8),
+              let parsed = try? JSONDecoder().decode(PushCallEnvelope.self, from: data) else { return false }
+        let opening = parsed.type == "call_request" || (parsed.type == "call_invite" && parsed.viaRequest != true)
+        guard opening, let defaults = UserDefaults(suiteName: appGroupIdentifier),
+              let listData = defaults.data(forKey: "call_contacts"),
+              let list = try? JSONSerialization.jsonObject(with: listData) as? [[String: String]] else { return false }
+        let target = sender.lowercased()
+        return !list.contains { ($0["address"] ?? "").lowercased() == target }
     }
 
     private func callPreviewText(for content: String) -> String? {

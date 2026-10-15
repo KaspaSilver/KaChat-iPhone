@@ -193,9 +193,26 @@ final class CallService: ObservableObject {
 
     // MARK: - Outgoing
 
+    /// `startCall` is re-entered once after asking the server about Talk (never twice).
+    private var talkRecheckedForCall = false
+
     func startCall(with contact: Contact, video: Bool) {
         guard session == nil else { return }
         guard contact.callsEnabled == true else { return }
+        // Nextcloud connected but Talk not known to be there (never checked, or the last check
+        // failed): ask the server now. Asking the contact to host while this phone could host
+        // left two phones each waiting for the other.
+        let nextcloud = NextcloudService.shared
+        if nextcloud.account != nil, !nextcloud.talkCallsAvailable, !talkRecheckedForCall {
+            talkRecheckedForCall = true
+            Task { [weak self] in
+                await nextcloud.recheckTalkAvailability()
+                guard let self else { return }
+                self.startCall(with: contact, video: video)
+                self.talkRecheckedForCall = false
+            }
+            return
+        }
         lastError = nil
         let callId = UUID().uuidString.lowercased()
         guard canHost, let account = NextcloudService.shared.account, let server = account.serverURL else {
@@ -280,19 +297,24 @@ final class CallService: ObservableObject {
             guard !handledCallIds.contains(request.callId) else { return }
             guard let contact = ContactsManager.shared.getContact(byAddress: contactAddress) else { return }
             guard contact.callsEnabled == true, age < inviteFreshness else { return }
-            guard canHost else {
-                // Neither side can host. Nothing goes on chain from this side - the caller is
-                // the only one who pays for a call - so the requester's ring-out is what tells
-                // them one of the two needs Nextcloud Talk.
-                markHandled(request.callId)
-                return
-            }
             if session != nil {
                 // Busy: silent, and the caller rings out. Same invite delivered twice: ignored.
                 return
             }
             markHandled(request.callId)
-            _ = hostRequestedCall(id: request.callId, contact: contact, video: request.video)
+            Task { [weak self] in
+                // Talk not known to be there (never checked, or the last check failed): ask the
+                // server before turning the request away.
+                guard let self, await self.canHostNow() else {
+                    // Neither side can host. Nothing goes on chain from this side - the caller
+                    // is the only one who pays for a call - so the requester's ring-out is what
+                    // tells them one of the two needs Nextcloud Talk.
+                    AppLog.log("[Call] Request %@ not hosted: no Nextcloud Talk here", String(request.callId.prefix(8)))
+                    return
+                }
+                guard self.session == nil else { return }
+                _ = self.hostRequestedCall(id: request.callId, contact: contact, video: request.video)
+            }
         case .invite(let invite):
             guard let server = URL(string: invite.server), server.scheme?.lowercased() == "https" else { return }
             // A call already ringing off its VoIP push alone (the push could not be decrypted
@@ -977,6 +999,32 @@ final class CallService: ObservableObject {
         return true
     }
 
+    /// Whether this phone can host right now, asking the server first when Nextcloud is connected
+    /// but Talk isn't known to be there.
+    private func canHostNow() async -> Bool {
+        if canHost { return true }
+        guard NextcloudService.shared.account != nil else { return false }
+        await NextcloudService.shared.recheckTalkAvailability()
+        return canHost
+    }
+
+    /// A request rung off its VoIP push: host it (after checking Talk if needed) or end the
+    /// CallKit call it already shows.
+    private func hostOrDrop(callId: String, contact: Contact, video: Bool, drop: @escaping (CXCallEndedReason, String) -> Void) {
+        if canHost {
+            if !hostRequestedCall(id: callId, contact: contact, video: video) { drop(.failed, "cannot host (no Nextcloud Talk)") }
+            return
+        }
+        Task { [weak self] in
+            guard let self else { return }
+            guard await self.canHostNow(), self.session == nil,
+                  self.hostRequestedCall(id: callId, contact: contact, video: video) else {
+                drop(.failed, "cannot host (no Nextcloud Talk)")
+                return
+            }
+        }
+    }
+
     /// A VoIP push from the push service: the caller's phone asked it to ring this device the
     /// moment its opening message went on chain. Every push MUST become a CallKit call before
     /// this returns (iOS stops delivering VoIP pushes to an app that swallows one), so a push
@@ -1005,6 +1053,14 @@ final class CallService: ObservableObject {
         CallKitManager.shared.reportIncoming(uuid: uuid, displayName: provisionalName, handle: handle, video: video) { _ in }
         guard !callId.isEmpty, !sender.isEmpty else {
             CallKitManager.shared.reportEnded(uuid: uuid, reason: .failed)
+            return
+        }
+        // Calls off for this person (or never turned on): end it this instant, from the shared
+        // allow-list - not after the wallet loads, which let the phone ring for seconds for
+        // someone it should ignore. Only an unknown list (never written) waits for the contacts.
+        if SharedDataManager.isCallAllowed(sender) == false {
+            CallKitManager.shared.reportEnded(uuid: uuid, reason: .unanswered)
+            AppLog.log("[Call] VoIP push %@ from %@ ended at once: calls are off for them", String(callId.prefix(8)), String(sender.suffix(8)))
             return
         }
         if let current = session, current.id == callId {
@@ -1122,12 +1178,12 @@ final class CallService: ObservableObject {
             let call = ActiveCall(id: callId, contact: contact, isOutgoing: false, server: server, token: invite.token, video: invite.video, phase: .ringingIn, hostsThisCall: false)
             ringIncoming(call)
         case .request(let request):
-            if !hostRequestedCall(id: callId, contact: contact, video: request.video) { drop(.failed, "cannot host (no Nextcloud Talk)") }
+            hostOrDrop(callId: callId, contact: contact, video: request.video, drop: drop)
         case .response, .end:
             drop(.unanswered, "not an opening message")
         case nil:
             if kind == "request" {
-                if !hostRequestedCall(id: callId, contact: contact, video: video) { drop(.failed, "cannot host (no Nextcloud Talk)") }
+                hostOrDrop(callId: callId, contact: contact, video: video, drop: drop)
             } else {
                 let call = ActiveCall(id: callId, contact: contact, isOutgoing: false, server: nil, token: "", video: video, phase: .ringingIn, hostsThisCall: false)
                 ringIncoming(call)

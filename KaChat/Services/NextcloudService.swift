@@ -1059,27 +1059,38 @@ final class NextcloudService: ObservableObject {
     }
 
     /// Asks the server's capabilities whether Talk is installed with calls on, and publishes
-    /// the answer. Best effort: a failed lookup leaves the buttons hidden until the next try.
+    /// the answer. A lookup that couldn't reach the server changes nothing: it used to store
+    /// "no Talk" until the next wallet load, and a phone with Talk then asked the other side to
+    /// host every call it made.
     func refreshTalkAvailability() {
-        guard let account, let server = account.serverURL else {
-            talkCallsAvailable = false
-            return
-        }
-        let owner = currentWalletAddress
-        Task { [weak self] in
-            guard let self else { return }
-            let available = await Self.probeTalkCalls(server: server, account: account)
-            guard self.currentWalletAddress == owner, self.account?.serverURLString == account.serverURLString else { return }
-            if self.talkCallsAvailable != available {
-                self.talkCallsAvailable = available
-                AppLog.log("%@", "[Nextcloud] Talk calls \(available ? "available" : "not available") on \(server.host ?? "server")")
-            }
-            self.persistSetting(available, baseKey: Self.talkCallsKey)
-        }
+        Task { await recheckTalkAvailability() }
     }
 
-    private nonisolated static func probeTalkCalls(server: URL, account: NextcloudAccount) async -> Bool {
-        guard let endpoint = URL(string: server.absoluteString + "/ocs/v2.php/cloud/capabilities?format=json") else { return false }
+    /// The same, awaited: what a call about to start asks when Talk isn't known to be there.
+    @discardableResult
+    func recheckTalkAvailability() async -> Bool {
+        guard let account, let server = account.serverURL else {
+            talkCallsAvailable = false
+            return false
+        }
+        let owner = currentWalletAddress
+        guard let available = await Self.probeTalkCalls(server: server, account: account) else {
+            AppLog.log("%@", "[Nextcloud] Talk check could not reach \(server.host ?? "server") - keeping \(talkCallsAvailable)")
+            return talkCallsAvailable
+        }
+        guard currentWalletAddress == owner, self.account?.serverURLString == account.serverURLString else { return talkCallsAvailable }
+        if talkCallsAvailable != available {
+            talkCallsAvailable = available
+            AppLog.log("%@", "[Nextcloud] Talk calls \(available ? "available" : "not available") on \(server.host ?? "server")")
+        }
+        persistSetting(available, baseKey: Self.talkCallsKey)
+        return available
+    }
+
+    /// true/false when the server answered; nil when it couldn't be asked (offline, timeout,
+    /// an error page) - not an answer about Talk.
+    private nonisolated static func probeTalkCalls(server: URL, account: NextcloudAccount) async -> Bool? {
+        guard let endpoint = URL(string: server.absoluteString + "/ocs/v2.php/cloud/capabilities?format=json") else { return nil }
         var request = URLRequest(url: endpoint)
         let token = Data("\(account.username):\(account.appPassword)".utf8).base64EncodedString()
         request.setValue("Basic \(token)", forHTTPHeaderField: "Authorization")
@@ -1091,8 +1102,9 @@ final class NextcloudService: ObservableObject {
               let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let ocs = root["ocs"] as? [String: Any],
               let payload = ocs["data"] as? [String: Any],
-              let capabilities = payload["capabilities"] as? [String: Any],
-              let spreed = capabilities["spreed"] as? [String: Any] else { return false }
+              let capabilities = payload["capabilities"] as? [String: Any] else { return nil }
+        // the server answered: no "spreed" entry means Talk isn't installed
+        guard let spreed = capabilities["spreed"] as? [String: Any] else { return false }
         let features = (spreed["features"] as? [String]) ?? []
         guard features.contains("conversation-v4"), features.contains("signaling-v3") else { return false }
         let config = spreed["config"] as? [String: Any]

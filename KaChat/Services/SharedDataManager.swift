@@ -106,6 +106,16 @@ final class SharedDataManager {
         syncCallContactsForIntents()
     }
 
+    /// Whether calls are on for `address` (Chat Info's "Allow calls"), read from the shared list
+    /// without the wallet loaded - what a VoIP push that just launched the app decides by
+    /// before anything rings. nil when the list was never written (no answer yet).
+    static func isCallAllowed(_ address: String) -> Bool? {
+        guard let data = sharedDefaults?.data(forKey: Keys.callContacts),
+              let list = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] else { return nil }
+        let target = address.lowercased()
+        return list.contains { ($0["address"] ?? "").lowercased() == target }
+    }
+
     /// The callable contacts, for the Intents extension. Refreshed with the contact list.
     @MainActor
     static func syncCallContactsForIntents() {

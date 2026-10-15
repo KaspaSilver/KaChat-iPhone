@@ -1747,3 +1747,6 @@
 /* User Info: look the person's avatar, banner and bio up again now */
 "Rescan Profile" = "Ricarica profilo";
 "Profile rescanned." = "Profilo ricaricato.";
+
+/* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
+"Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "Il tuo indirizzo di chat non ha KAS per avvisare %@ di questo pagamento, quindi lo vedrà come un pagamento da un indirizzo sconosciuto, senza la nota. KaChat lo avviserà appena il tuo indirizzo di chat avrà dei KAS.";

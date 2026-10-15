@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 // The payment's From, and what is left of Chats Payment Privacy.
 //
@@ -49,10 +50,82 @@ extension ChatService {
                 }
                 AppLog.log("[ChatService] Sent payment_notice for %@", String(txId.prefix(12)))
             } catch {
-                AppLog.log("[ChatService] payment_notice send failed for %@: %@",
+                // usually an empty chatting address: kept, and sent once it has KAS (IOS-086)
+                AppLog.log("[ChatService] payment_notice send failed for %@, kept for later: %@",
                            String(txId.prefix(12)), error.localizedDescription)
+                self.keepUnsentNotice(UnsentPaymentNotice(contactAddress: contact.address, payload: payload, txId: txId))
             }
         }
+    }
+
+    // MARK: - Notices waiting for the chatting address
+
+    struct UnsentPaymentNotice: Codable, Equatable {
+        let contactAddress: String
+        let payload: String
+        let txId: String
+    }
+
+    private var unsentNoticesKey: String? {
+        WalletManager.shared.currentWallet.map { "kachat_unsent_payment_notices.\($0.publicAddress.lowercased())" }
+    }
+
+    private var unsentNotices: [UnsentPaymentNotice] {
+        get {
+            guard let key = unsentNoticesKey, let data = UserDefaults.standard.data(forKey: key) else { return [] }
+            return (try? JSONDecoder().decode([UnsentPaymentNotice].self, from: data)) ?? []
+        }
+        set {
+            guard let key = unsentNoticesKey else { return }
+            if newValue.isEmpty {
+                UserDefaults.standard.removeObject(forKey: key)
+            } else if let data = try? JSONEncoder().encode(newValue) {
+                UserDefaults.standard.set(data, forKey: key)
+            }
+        }
+    }
+
+    private func keepUnsentNotice(_ notice: UnsentPaymentNotice) {
+        var list = unsentNotices
+        guard !list.contains(where: { $0.txId == notice.txId }) else { return }
+        list.append(notice)
+        unsentNotices = Array(list.suffix(50))
+    }
+
+    /// Sends the notices that failed for want of KAS on the chatting address - called when its
+    /// balance turns positive (`observeChattingBalanceForNotices`). One at a time; any that
+    /// still fails stays for next time.
+    func sendUnsentPaymentNotices() async {
+        guard !sendingUnsentNotices else { return }
+        let pending = unsentNotices
+        guard !pending.isEmpty else { return }
+        sendingUnsentNotices = true
+        defer { sendingUnsentNotices = false }
+        var left: [UnsentPaymentNotice] = []
+        for notice in pending {
+            guard let contact = contactsManager.getContact(byAddress: notice.contactAddress) else { continue }
+            do {
+                _ = try await enqueueOutgoingTxOperation {
+                    try await self.sendEnvelopeInternal(to: contact, payload: notice.payload)
+                }
+                AppLog.log("[ChatService] Sent a kept payment_notice for %@", String(notice.txId.prefix(12)))
+            } catch {
+                left.append(notice)
+            }
+        }
+        unsentNotices = left
+    }
+
+    /// The chatting address got KAS: the notices waiting for it go out.
+    func observeChattingBalanceForNotices() {
+        unsentNoticesCancellable = WalletManager.shared.$currentWallet
+            .map { $0?.balanceSompi ?? 0 }
+            .removeDuplicates()
+            .filter { $0 > 0 }
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                Task { await self?.sendUnsentPaymentNotices() }
+            }
     }
 
     /// A `payment_notice` in a 1:1 chat - theirs (they paid us From a spending address) or our own

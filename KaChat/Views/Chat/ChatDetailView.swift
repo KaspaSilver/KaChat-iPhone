@@ -2979,6 +2979,17 @@ struct ChatDetailView: View {
 
                 SendFromSection(source: $paymentFrom, availableSompi: $paymentFromBalanceSompi)
 
+                // From a spending address the chatting address tells them about it (a small
+                // message fee); an empty one can't, until it has some KAS (IOS-086)
+                if paymentFrom != .chatting, walletManager.hasConfirmedZeroChattingBalance {
+                    Label(String(format: AppLocalization.string("Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS."),
+                                 contactsManager.displayName(for: contact)),
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundColor(.orange)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
                 paymentAmountEntry
 
                 paymentMemoField

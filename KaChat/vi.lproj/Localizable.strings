@@ -1747,3 +1747,6 @@
 /* User Info: look the person's avatar, banner and bio up again now */
 "Rescan Profile" = "Quét lại hồ sơ";
 "Profile rescanned." = "Đã quét lại hồ sơ.";
+
+/* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
+"Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "Địa chỉ trò chuyện của bạn không có KAS để báo cho %@ về khoản thanh toán này, nên họ sẽ thấy đây là khoản thanh toán từ một địa chỉ lạ, không có ghi chú. KaChat sẽ báo cho họ khi địa chỉ trò chuyện của bạn có KAS.";

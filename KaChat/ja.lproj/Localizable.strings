@@ -1747,3 +1747,6 @@
 /* User Info: look the person's avatar, banner and bio up again now */
 "Rescan Profile" = "プロフィールを再取得";
 "Profile rescanned." = "プロフィールを再取得しました。";
+
+/* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
+"Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "チャットアドレスに KAS がないため、この支払いを %@ に知らせられません。相手には不明なアドレスからのメモなしの支払いとして表示されます。チャットアドレスに KAS が入ると KaChat が知らせます。";

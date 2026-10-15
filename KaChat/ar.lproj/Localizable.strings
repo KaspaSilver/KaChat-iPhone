@@ -1747,3 +1747,6 @@
 /* User Info: look the person's avatar, banner and bio up again now */
 "Rescan Profile" = "إعادة فحص الملف الشخصي";
 "Profile rescanned." = "تمت إعادة فحص الملف الشخصي.";
+
+/* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
+"Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "لا يحتوي عنوان الدردشة الخاص بك على KAS لإبلاغ %@ بهذه الدفعة، لذا سيرونها دفعة من عنوان غير معروف وبدون الملاحظة. سيبلغهم KaChat عندما يصبح في عنوان الدردشة بعض KAS.";

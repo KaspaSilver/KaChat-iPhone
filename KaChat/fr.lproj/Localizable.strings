@@ -1748,3 +1748,6 @@
 /* User Info: look the person's avatar, banner and bio up again now */
 "Rescan Profile" = "Actualiser le profil";
 "Profile rescanned." = "Profil actualisé.";
+
+/* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
+"Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "Votre adresse de discussion n'a pas de KAS pour prévenir %@ de ce paiement : il le verra comme un paiement d'une adresse inconnue, sans la note. KaChat le préviendra dès que votre adresse de discussion aura des KAS.";

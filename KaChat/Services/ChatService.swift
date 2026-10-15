@@ -481,6 +481,9 @@ final class ChatService: ObservableObject {
     /// Prevents redundant heavy re-sync on Mac Catalyst window reopen.
     var hasCompletedInitialSync = false
     var contactsCancellable: AnyCancellable?
+    /// `observeChattingBalanceForNotices`: payment notices waiting for the chatting address.
+    var unsentNoticesCancellable: AnyCancellable?
+    var sendingUnsentNotices = false
     var settingsCancellable: AnyCancellable?
     var pingLatencyCancellable: AnyCancellable?
     var nodePoolSubscriptionStateCancellable: AnyCancellable?
@@ -628,6 +631,7 @@ final class ChatService: ObservableObject {
         loadPushReliabilityState()
         loadHiddenPaymentTxIds()
         observeContacts()
+        observeChattingBalanceForNotices()
         observeSettings()
         observeRpcReconnection()
         observePingLatency()

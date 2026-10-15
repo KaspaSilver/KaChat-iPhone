@@ -233,6 +233,10 @@ final class AddressActivityNotifier: ObservableObject {
                 // Never-tracked address (feature install, newly revealed slot, fresh cold
                 // import): seed silently - its history predates our tracking.
                 baselines[address] = balance
+                if address == wallet.publicAddress {
+                    // the chatting address's receives count from now on
+                    UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: chattingCatchUpFloorKey(address))
+                }
                 changed = true
                 continue
             }
@@ -264,17 +268,29 @@ final class AddressActivityNotifier: ObservableObject {
         defer { inFlightTxIds.remove(txId) }
 
         var isSelfSend = false
-        if let fullTx = await ChatService.shared.fetchKaspaFullTransaction(
+        var hits = hits
+        let fullTx = await ChatService.shared.fetchKaspaFullTransaction(
             txId: txId,
             retries: 4,
             delayNs: 1_500_000_000
-        ) {
+        )
+        if let fullTx {
             let inputAddresses = (fullTx.inputs ?? [])
                 .compactMap { $0.previousOutpointAddress }
                 .filter { !$0.isEmpty }
             if !inputAddresses.isEmpty {
                 isSelfSend = inputAddresses.contains { ownAddresses.contains($0) }
             }
+        }
+        // The chatting address notifies only for a plain transfer we could read: a chat payment
+        // or a handshake (a payload) is the chat's news, and an unreadable one stays quiet.
+        if fullTx.map({ !Self.isPlainTransfer($0) }) ?? true {
+            hits.removeAll { $0.address == walletAddress }
+        }
+        guard !hits.isEmpty else {
+            markHandled(txId: txId, wallet: walletAddress)
+            await refreshBaselines(for: [walletAddress], wallet: walletAddress)
+            return
         }
         // Unresolvable txs still notify: the removed-set fast path already suppressed every
         // self-send whose inputs we watch (which is all of them), so an unknown-input tx here
@@ -303,20 +319,34 @@ final class AddressActivityNotifier: ObservableObject {
         walletAddress: String
     ) async {
         let ownAll = ownInputAddressSet(walletAddress: walletAddress)
+        let isChatting = address == walletAddress
         let recentTxs = await ChatService.shared.fetchFullTransactionsPaginated(
             for: address,
             pageSize: 10,
             maxTransactions: 10
         )
+        // the chatting address: only plain transfers newer than what was already looked at
+        let floorKey = chattingCatchUpFloorKey(walletAddress)
+        let floor = UInt64(max(0, UserDefaults.standard.double(forKey: floorKey)))
+        if isChatting {
+            let newest = recentTxs.compactMap(\.blockTime).max() ?? UInt64(Date().timeIntervalSince1970 * 1000)
+            UserDefaults.standard.set(Double(max(newest, floor)), forKey: floorKey)
+            // the first look only sets where it starts
+            if floor == 0 { return }
+        }
 
         guard !recentTxs.isEmpty else {
-            // Resolution failed entirely - still surface the funds, neutral wording.
-            postBalanceIncreasedNotification(address: address, delta: delta)
+            // Resolution failed entirely - still surface the funds, neutral wording (not for the
+            // chatting address, whose balance moves with every chat payment too).
+            if !isChatting { postBalanceIncreasedNotification(address: address, delta: delta) }
             return
         }
 
         var attributedAny = false
         for tx in recentTxs {
+            if isChatting {
+                guard Self.isPlainTransfer(tx), (tx.blockTime ?? 0) > floor else { continue }
+            }
             let toAddress = tx.outputs
                 .filter { $0.scriptPublicKeyAddress == address }
                 .reduce(UInt64(0)) { $0 + $1.amount }
@@ -336,7 +366,7 @@ final class AddressActivityNotifier: ObservableObject {
             }
         }
 
-        if !attributedAny {
+        if !attributedAny, !isChatting {
             // Balance grew but none of the fetched recent txs pays this address (deep
             // history page or indexer lag) - neutral fallback rather than staying silent.
             postBalanceIncreasedNotification(address: address, delta: delta)
@@ -411,6 +441,9 @@ final class AddressActivityNotifier: ObservableObject {
     }
 
     private func describe(address: String) -> String {
+        if address == WalletManager.shared.currentWallet?.publicAddress {
+            return "Chatting address \(Self.shortAddress(address))"
+        }
         if let accountLabel = coldLabelByAddress[address] {
             return "Cold storage (\(accountLabel)) \(Self.shortAddress(address))"
         }
@@ -418,7 +451,8 @@ final class AddressActivityNotifier: ObservableObject {
     }
 
     private func kindKey(for address: String) -> String {
-        coldLabelByAddress[address] != nil ? "cold" : "spending"
+        if address == WalletManager.shared.currentWallet?.publicAddress { return "chatting" }
+        return coldLabelByAddress[address] != nil ? "cold" : "spending"
     }
 
     static func shortAddress(_ address: String) -> String {
@@ -491,16 +525,27 @@ final class AddressActivityNotifier: ObservableObject {
         cachedNetworkKey = networkKey
     }
 
-    /// Addresses whose receives should NOTIFY: watched own addresses minus the chatting
-    /// address (its receives are chat/payment classified).
+    /// Addresses whose receives should NOTIFY: the watched own addresses and the chatting
+    /// address. For the chatting address only a plain transfer counts (no payload): a chat
+    /// payment or a handshake is the chat's own news (`isPlainTransfer`).
     private func notifiableAddressSet(walletAddress: String) -> Set<String> {
         // Per account: the spending chain has its own switch, and each cold-storage account
         // its own - an account switched off is still ours (self-send check), just quiet.
         var set = coldLabelByAddress.keys.filter { !coldMutedAddresses.contains($0) }.reduce(into: Set<String>()) { $0.insert($1) }
         if spendingReceiveNotificationsEnabled { set.formUnion(spendingAddressSet) }
-        set.remove(walletAddress)
+        set.insert(walletAddress)
         return set
     }
+
+    /// A transaction with no payload: plain KAS, not a KaChat chat payment, message or handshake.
+    private static func isPlainTransfer(_ tx: KaspaFullTransactionResponse) -> Bool {
+        (tx.payload ?? "").isEmpty
+    }
+
+    /// The newest block time (ms) the chatting address's catch-up has already looked at, per
+    /// wallet: older receives were before it was watched, or already notified - never a burst
+    /// of old payments.
+    private func chattingCatchUpFloorKey(_ wallet: String) -> String { "addr_activity_chat_floor_\(wallet.lowercased())" }
 
     /// Addresses that count as "ours" when they appear among a tx's INPUTS - superset of the
     /// notifiable set: chatting address + all spending (reserved pool addresses are

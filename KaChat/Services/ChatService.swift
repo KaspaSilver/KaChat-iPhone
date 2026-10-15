@@ -503,6 +503,10 @@ final class ChatService: ObservableObject {
     var utxoFetchInFlight = false
     var queuedUtxoNotifications: [QueuedUtxoNotification] = []
     var lastPaymentFetchTime: UInt64 = 0
+    /// Payments may have been missed from this block time (ms) on: the next full sync fetches
+    /// them even while the UTXO subscription is up (`requestPaymentCatchUp`). nil = nothing missed.
+    var paymentCatchUpSince: UInt64?
+    var paymentCatchUpInFlight = false
 
     // Track in-flight resolve operations to prevent duplicates from multiple UTXO notifications
     let inFlightResolveTracker = InFlightResolveTracker()
@@ -743,6 +747,9 @@ final class ChatService: ObservableObject {
         ) { [weak self] _ in
             AppLog.log("[ChatService] RPC subscriptions restored - syncing to catch any missed messages")
             Task { @MainActor in
+                // the dead window may have held a payment too: the UTXO notification for it
+                // never came and is not replayed
+                self?.requestPaymentCatchUp(lookBackMs: 15 * 60 * 1000)
                 // force: this notification only fires when the utxosChanged subscription was
                 // just found dead and re-armed - i.e. there WAS a window with no UTXO
                 // notifications. Push reliability is scored by correlating APNs receipts

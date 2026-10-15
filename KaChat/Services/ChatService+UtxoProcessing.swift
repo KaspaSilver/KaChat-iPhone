@@ -1325,6 +1325,9 @@ extension ChatService {
         if elapsed >= 30.0 && current >= 1 {
             AppLog.log("[ChatService] Self-stash %@ unresolved after %.0fs - triggering full sync",
                   String(txId.prefix(12)), elapsed)
+            // The live lookup gave up on it: the full sync fetches payments this time, or a
+            // payment from an unknown address showed only after the next launch.
+            requestPaymentCatchUp(lookBackMs: 10 * 60 * 1000)
             Task { @MainActor in
                 await fetchNewMessages()
             }

@@ -2788,6 +2788,7 @@ extension ChatService {
         // Trigger full sync if we have unresolved senders
         if needsFullSync {
             AppLog.log("[ChatService] Triggering full sync to resolve pending senders...")
+            requestPaymentCatchUp(lookBackMs: 10 * 60 * 1000)
             Task { @MainActor in
                 // Small delay before full sync to let API propagate
                 try? await Task.sleep(nanoseconds: 3_000_000_000)

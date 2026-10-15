@@ -697,16 +697,19 @@ extension ChatService {
 
         var inPayments: [PaymentResponse] = []
         var outPayments: [PaymentResponse] = []
-        // Fetch payments only on full fetch AND when not using UTXO subscription
-        // (or on initial sync when lastPaymentFetchTime is 0)
-        let shouldFetchPayments = activeAddress == nil && (!isUtxoSubscribed || lastPaymentFetchTime == 0)
+        // Fetch payments only on full fetch AND when not using UTXO subscription (or on initial
+        // sync when lastPaymentFetchTime is 0, or when a payment may have been missed while the
+        // subscription was paused, dead, or a live lookup gave up - `paymentCatchUpSince`)
+        let catchUpSince = paymentCatchUpSince
+        let shouldFetchPayments = activeAddress == nil && (!isUtxoSubscribed || lastPaymentFetchTime == 0 || catchUpSince != nil)
+        let paymentSince = min(messageSince, catchUpSince ?? messageSince)
         var paymentsPhaseSucceeded = true
         if shouldFetchPayments {
             AppLog.log("[ChatService] === FETCHING PAYMENTS (full fetch, utxoSubscribed=%d) ===", isUtxoSubscribed ? 1 : 0)
             if let incomingPayments = await retryUntilSuccess(
                 label: "fetch incoming payments",
                 maxAttempts: Self.syncPhaseMaxRetryAttempts,
-                operation: { [self] in try await fetchIncomingPayments(for: wallet.publicAddress, blockTime: messageSince) }
+                operation: { [self] in try await fetchIncomingPayments(for: wallet.publicAddress, blockTime: paymentSince) }
             ) {
                 inPayments = incomingPayments
             } else {
@@ -718,7 +721,7 @@ extension ChatService {
             if let outgoingPayments = await retryUntilSuccess(
                 label: "fetch outgoing payments",
                 maxAttempts: Self.syncPhaseMaxRetryAttempts,
-                operation: { [self] in try await fetchOutgoingPayments(for: wallet.publicAddress, blockTime: messageSince) }
+                operation: { [self] in try await fetchOutgoingPayments(for: wallet.publicAddress, blockTime: paymentSince) }
             ) {
                 outPayments = outgoingPayments
             } else {
@@ -732,6 +735,8 @@ extension ChatService {
             // fetches actually succeeded. Advancing this cursor (or setting the initial-sync
             // baseline) off a failed fetch would permanently skip the unfetched window.
             if paymentsPhaseSucceeded {
+                // caught up: a gap that opened during this fetch would have set a later one
+                if paymentCatchUpSince == catchUpSince { paymentCatchUpSince = nil }
                 if !inPayments.isEmpty || !outPayments.isEmpty {
                     let maxInTime = inPayments.compactMap { $0.blockTime }.max() ?? 0
                     let maxOutTime = outPayments.compactMap { $0.blockTime }.max() ?? 0

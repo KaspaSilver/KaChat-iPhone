@@ -429,6 +429,9 @@ extension ChatService {
            Date().timeIntervalSince(last) < reliablePushCatchUpDebounce {
             AppLog.log("[ChatService] Skipping catch-up sync (%@) - push reliable and debounce active",
                   trigger.rawValue)
+            // Pushes cover messages, but a plain KAS payment gets none: the payments a gap may
+            // have missed are still fetched (two requests).
+            await fetchMissedPaymentsIfNeeded()
             return
         }
 
@@ -796,8 +799,40 @@ extension ChatService {
         }
         NodePoolService.shared.unsubscribeUtxosChanged()
         isUtxoSubscribed = false
+        // UTXO changes while paused are never replayed, and a plain payment gets no push: the
+        // first sync back in the foreground fetches payments from here on.
+        requestPaymentCatchUp(lookBackMs: 2 * 60 * 1000)
         AppLog.log("[ChatService] Remote push active - UTXO subscription paused for background")
 #endif
+    }
+
+    /// Only the payments since `paymentCatchUpSince` - for a foreground whose full catch-up is
+    /// debounced. A payment from an unknown address lands in the self-chat as usual.
+    func fetchMissedPaymentsIfNeeded() async {
+        guard let since = paymentCatchUpSince, !paymentCatchUpInFlight,
+              let wallet = WalletManager.shared.currentWallet else { return }
+        paymentCatchUpInFlight = true
+        defer { paymentCatchUpInFlight = false }
+        do {
+            let incoming = try await fetchIncomingPayments(for: wallet.publicAddress, blockTime: since)
+            let outgoing = try await fetchOutgoingPayments(for: wallet.publicAddress, blockTime: since)
+            guard isActiveWallet(wallet.publicAddress) else { return }
+            let privateKey = WalletManager.shared.getPrivateKey()
+            await processPayments(incoming, isOutgoing: false, myAddress: wallet.publicAddress, privateKey: privateKey)
+            await processPayments(outgoing, isOutgoing: true, myAddress: wallet.publicAddress, privateKey: privateKey)
+            if paymentCatchUpSince == since { paymentCatchUpSince = nil }
+            AppLog.log("[ChatService] Payment catch-up: in=%d, out=%d", incoming.count, outgoing.count)
+        } catch {
+            AppLog.log("[ChatService] Payment catch-up failed, kept for the next sync: %@", error.localizedDescription)
+        }
+    }
+
+    /// Payments may have been missed: the next full sync fetches them from `lookBackMs` ago (the
+    /// earliest such moment wins), even with the UTXO subscription up.
+    func requestPaymentCatchUp(lookBackMs: UInt64) {
+        let now = UInt64(Date().timeIntervalSince1970 * 1000)
+        let since = now > lookBackMs ? now - lookBackMs : 0
+        paymentCatchUpSince = min(paymentCatchUpSince ?? since, since)
     }
 
     func resumeUtxoSubscriptionForRemotePush() async {

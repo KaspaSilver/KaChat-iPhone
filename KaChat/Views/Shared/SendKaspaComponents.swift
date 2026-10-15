@@ -337,23 +337,30 @@ extension KaspaAmountEntry {
         usesCommaDecimal(locale) ? "\u{202F}" : ","
     }
 
-    /// "12345.5" -> "12,345.5" (or "12 345.5"): a separator every three digits of the whole
-    /// part, the rest as typed.
+    /// "12345.5" -> "12,345.5", or "12 345,5" where "," is the decimal point: a separator every
+    /// three digits of the whole part, the decimal point the device's own (so the person sees the
+    /// "," they typed and doesn't type it again - IOS-082), the rest as typed.
     static func grouped(_ plain: String, locale: Locale = .current) -> String {
         let parts = plain.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
-        guard let whole = parts.first, whole.count > 3, whole.allSatisfy({ $0.isASCII && $0.isNumber }) else { return plain }
-        let separator = groupingSeparator(locale)
+        let point = usesCommaDecimal(locale) ? "," : "."
+        guard let whole = parts.first, whole.allSatisfy({ $0.isASCII && $0.isNumber }) else { return plain }
         var out = ""
-        for (i, ch) in whole.enumerated() {
-            if i > 0, (whole.count - i) % 3 == 0 { out.append(separator) }
-            out.append(ch)
+        if whole.count > 3 {
+            let separator = groupingSeparator(locale)
+            for (i, ch) in whole.enumerated() {
+                if i > 0, (whole.count - i) % 3 == 0 { out.append(separator) }
+                out.append(ch)
+            }
+        } else {
+            out = String(whole)
         }
-        return parts.count > 1 ? out + "." + parts[1] : out
+        return parts.count > 1 ? out + point + parts[1] : out
     }
 
     /// The edited field back to a plain number ("." the decimal point).
-    /// - Comma-decimal device: the thin spaces shown are ours and go; a "," is the decimal point.
-    ///   A pasted "1.234,5" (dots as grouping, a comma decimal) is 1234.5.
+    /// - Comma-decimal device: the thin spaces shown are ours and go; the first "," is the
+    ///   decimal point and any further one is dropped (a second tap on the key never moves the
+    ///   point - IOS-082). A pasted "1.234,5" (dots as grouping, a comma decimal) is 1234.5.
     /// - Otherwise: the commas shown are ours and go; a comma TYPED as the decimal point stays one:
     ///   typed at the end, or a single comma not three digits from the end in a number that had no
     ///   grouping ("0,5" is 0.5), or after a lone leading zero ("0,001" is 0.001, as no grouped

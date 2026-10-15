@@ -3817,8 +3817,12 @@ struct KachatProfileSaveSheet: View {
     @State private var sending = false
     @State private var sendError: String?
     @State private var done: KachatTxDone?
-    /// The "not enough funds" popup: the chatting address's QR to fund it.
+    /// The "not enough funds" popup: the chatting address's QR to fund it. It opens by itself
+    /// once per sheet; after that the Fund button under the message opens it (IOS-084).
     @State private var showFunding = false
+    @State private var fundingShownOnce = false
+    /// The last quote or save failed for lack of funds: the Fund button shows.
+    @State private var shortOfFunds = false
     @AppStorage("kachat_profile_privacy_seen") private var privacySeen = false
 
     private static var notEnoughFundsMessage: String {
@@ -3826,12 +3830,21 @@ struct KachatProfileSaveSheet: View {
     }
 
     /// The save can't be paid: the chatting address has no spendable coin, or too little for
-    /// the fee.
+    /// the fee - read from the error alone (an unreachable node is not "no funds").
     private func isShortOfFunds(_ error: Error) -> Bool {
         if case let KasiaError.networkError(message) = error, message.localizedCaseInsensitiveContains("insufficient") {
             return true
         }
-        return (WalletManager.shared.currentWallet?.balanceSompi ?? 1) == 0
+        return false
+    }
+
+    /// Short of funds: the popup the first time, the Fund button after that.
+    private func noteShortOfFunds() {
+        shortOfFunds = true
+        if !fundingShownOnce {
+            fundingShownOnce = true
+            showFunding = true
+        }
     }
 
     private func source(_ link: String?, _ kind: KachatNames.SocialSource.Kind) -> String {
@@ -3865,7 +3878,17 @@ struct KachatProfileSaveSheet: View {
                     }
                 } footer: {
                     if let quoteError {
-                        Text(verbatim: quoteError).foregroundColor(.red)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(verbatim: quoteError).foregroundColor(.red)
+                            if shortOfFunds {
+                                Button {
+                                    showFunding = true
+                                } label: {
+                                    Label("Fund", systemImage: "qrcode")
+                                        .font(.subheadline.weight(.semibold))
+                                }
+                            }
+                        }
                     } else if privacySeen {
                         Text("Saved on chain from your chatting address to itself.")
                     } else {
@@ -3897,7 +3920,8 @@ struct KachatProfileSaveSheet: View {
                 fee = nil
                 Task { await quote() }
             }) {
-                ZeroBalanceFundingSheetView(title: Self.notEnoughFundsMessage, dismissAtSompi: 100_000_000)
+                // closes once any KAS arrives; the fee is then worked out again
+                ZeroBalanceFundingSheetView(title: Self.notEnoughFundsMessage)
             }
         }
     }
@@ -3907,10 +3931,11 @@ struct KachatProfileSaveSheet: View {
         profile = p
         do {
             fee = try await KachatNamesActions.shared.profileFee(p)
+            shortOfFunds = false
         } catch {
             if isShortOfFunds(error) {
                 quoteError = Self.notEnoughFundsMessage
-                showFunding = true
+                noteShortOfFunds()
             } else {
                 quoteError = error.localizedDescription
             }
@@ -3931,7 +3956,7 @@ struct KachatProfileSaveSheet: View {
                 } catch {
                     if isShortOfFunds(error) {
                         sendError = Self.notEnoughFundsMessage
-                        showFunding = true
+                        noteShortOfFunds()
                     } else {
                         sendError = error.localizedDescription
                     }

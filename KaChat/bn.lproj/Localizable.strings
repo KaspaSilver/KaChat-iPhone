@@ -1750,3 +1750,9 @@
 
 /* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "এই পেমেন্টের কথা %@ কে জানাতে আপনার চ্যাটিং ঠিকানায় কোনো KAS নেই, তাই তারা এটিকে মেমো ছাড়া একটি অজানা ঠিকানা থেকে আসা পেমেন্ট হিসেবে দেখবে। আপনার চ্যাটিং ঠিকানায় কিছু KAS এলে KaChat তাদের জানাবে।";
+
+/* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
+"Your Dock" = "আপনার ডক";
+"Always in your dock" = "সবসময় আপনার ডকে";
+"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "ডকে কোন দুটি চান এবং তাদের ক্রম বেছে নিতে টেনে আনুন। উপরের দুটি ডকে দেখায়; কার্ডের নিচের সবকিছু %@-এ থাকে।";
+"Anything below this lives in %@" = "এর নিচের সবকিছু %@-এ থাকে";

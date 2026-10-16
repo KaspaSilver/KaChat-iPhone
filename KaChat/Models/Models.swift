@@ -2089,14 +2089,15 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
 
     /// Tabs that always hold a dock slot and cannot be moved into Kaspa Hub.
     ///
-    /// Kaspa Hub, because it is what HOLDS whatever is not in the dock - move it inside itself and
-    /// everything it holds becomes unreachable. Profile, because it is the way to Settings, the
-    /// account list and the wallet's own addresses, so it is the one screen that must never be a
-    /// level deeper than the dock.
-    var isPinnedToDock: Bool { self == .ecosystem || self == .profile }
+    /// Chats, because it is what KaChat is. Kaspa Hub, because it is what HOLDS whatever is not in
+    /// the dock - move it inside itself and everything it holds becomes unreachable. Profile,
+    /// because it is the way to Settings, the account list and the wallet's own addresses, so it
+    /// is the one screen that must never be a level deeper than the dock.
+    var isPinnedToDock: Bool { self == .chats || self == .ecosystem || self == .profile }
 
-    /// In the order a fresh dock places them, so `visible` can reinsert a missing one sensibly.
-    static let pinnedToDock: [AppTab] = [.ecosystem, .profile]
+    /// The pinned tabs, in the dock's last three slots, always in this order: the person picks
+    /// (and orders) only the two slots before them.
+    static let pinnedToDock: [AppTab] = [.chats, .ecosystem, .profile]
 
     /// Tabs the user can place. Excludes the Hub (pinned) and the retired "+ More".
     static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .kachatStats, .addressBook, .kachatBots]
@@ -2191,18 +2192,13 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     /// Kaspa Hub is inserted whatever the stored list says, so no saved arrangement - or a
     /// hand-edited one - can leave the app with no way to reach what isn't in the dock.
     static func visible(from settings: AppSettings) -> [AppTab] {
-        var tabs = settings.dockTabs.compactMap { AppTab(rawValue: $0) }
-            .filter { $0.isEnabled(in: settings) && ($0.isPinnedToDock || assignable.contains($0)) }
-        // Reinserted whatever the stored list says, so no saved arrangement - or a hand-edited one
-        // - can leave the app without the Hub that holds everything else, or without Profile.
-        for pinned in pinnedToDock where !tabs.contains(pinned) {
-            let position = defaultDock.firstIndex(of: pinned) ?? tabs.count
-            tabs.insert(pinned, at: min(position, tabs.count))
-        }
-        // Deduplicate defensively; a repeated raw value would render the same tab twice.
+        // The person's two picks, in their order (deduplicated defensively - a repeated raw value
+        // would render the same tab twice), then Chats, Kaspa Hub and Profile, always - whatever
+        // the stored list says, so no saved arrangement can leave the app without them.
         var seen = Set<AppTab>()
-        tabs = tabs.filter { seen.insert($0).inserted }
-        return tabs.count > maxDockItems ? Array(tabs.prefix(maxDockItems)) : tabs
+        let picks = settings.dockTabs.compactMap { AppTab(rawValue: $0) }
+            .filter { !$0.isPinnedToDock && assignable.contains($0) && $0.isEnabled(in: settings) && seen.insert($0).inserted }
+        return Array(picks.prefix(assignableDockSlots)) + pinnedToDock.filter { $0.isEnabled(in: settings) }
     }
 
     /// What the Kaspa Hub grid shows: everything assignable that is not in the dock, in the

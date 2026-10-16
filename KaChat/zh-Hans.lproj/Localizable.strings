@@ -1750,3 +1750,9 @@
 
 /* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "你的聊天地址没有 KAS，无法告知 %@ 这笔付款，因此对方会看到一笔来自未知地址、没有备注的付款。等你的聊天地址有 KAS 后，KaChat 会告知对方。";
+
+/* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
+"Your Dock" = "你的程序坞";
+"Always in your dock" = "始终在程序坞中";
+"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "拖动以选择要放进程序坞的两项及其顺序。最上面的两项显示在程序坞中；卡片下方的一切都在 %@ 中。";
+"Anything below this lives in %@" = "此处以下的一切都在 %@ 中";

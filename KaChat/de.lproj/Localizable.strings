@@ -1698,3 +1698,9 @@
 
 /* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "Deine Chat-Adresse hat kein KAS, um %@ über diese Zahlung zu informieren. Sie sehen sie daher als Zahlung von einer unbekannten Adresse, ohne Notiz. KaChat informiert sie, sobald deine Chat-Adresse KAS hat.";
+
+/* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
+"Your Dock" = "Dein Dock";
+"Always in your dock" = "Immer in deinem Dock";
+"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "Ziehe, um die zwei für dein Dock und ihre Reihenfolge zu wählen. Die oberen zwei erscheinen im Dock; alles unter der Karte ist in %@.";
+"Anything below this lives in %@" = "Alles darunter ist in %@";

@@ -110,6 +110,11 @@ struct MainTabView: View {
             }
         }
         .tint(.accentColor)
+        // A new dock arrangement builds a fresh tab bar. Reordering the same TabView left UIKit's
+        // tab items with the image of whatever tab held that slot before (Portfolio showing
+        // KaPosts' pencil after Customize Dock) - the titles updated, the images did not. The key
+        // changes only when the arrangement does.
+        .id(AppTab.visible(from: settingsViewModel.settings).map(\.rawValue).joined(separator: ","))
         // the bell has something unread: Profile's dock dot, from whichever tab is showing. Its
         // own modifier: inline, these pushed the body past what the type checker can solve.
         .modifier(ProfileDockDotSync(selectedTab: selectedTab, dockTabs: AppTab.visible(from: settingsViewModel.settings)))

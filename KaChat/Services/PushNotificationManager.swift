@@ -505,6 +505,7 @@ final class PushNotificationManager: ObservableObject {
             kapostsNotifyComments: kinds.kaPostsNotifyComments,
             kapostsNotifyReposts: kinds.kaPostsNotifyReposts,
             kapostsNotifyFollows: kinds.kaPostsNotifyFollows,
+            kapostsWatchAuthors: collectKaPostsWatchAuthors(),
             primaryAddress: primaryAddress,
             aliases: aliases,
             apnsEnvironment: ApnsEnvironment.current.rawValue,
@@ -796,6 +797,7 @@ final class PushNotificationManager: ObservableObject {
             kapostsNotifyComments: kinds.kaPostsNotifyComments,
             kapostsNotifyReposts: kinds.kaPostsNotifyReposts,
             kapostsNotifyFollows: kinds.kaPostsNotifyFollows,
+            kapostsWatchAuthors: collectKaPostsWatchAuthors(),
             primaryAddress: primaryAddress,
             aliases: aliases,
             apnsEnvironment: ApnsEnvironment.current.rawValue,
@@ -922,6 +924,7 @@ final class PushNotificationManager: ObservableObject {
         let primary = primaryAddress ?? collectPrimaryAddress() ?? ""
         let publicChatChannels = collectWatchedPublicChatChannels()
         let kapostsKey = collectKaPostsPubkey() ?? ""
+        let watchAuthors = collectKaPostsWatchAuthors().sorted().joined(separator: "+")
         let hiddenPublicChat = collectHiddenPublicChatSenders()
             .sorted { $0.key < $1.key }
             .map { "\($0.key):\($0.value.joined(separator: "+"))" }
@@ -934,7 +937,7 @@ final class PushNotificationManager: ObservableObject {
         let kaPostsKinds = [kinds.kaPostsNotifyLikes, kinds.kaPostsNotifyDislikes, kinds.kaPostsNotifyComments, kinds.kaPostsNotifyReposts, kinds.kaPostsNotifyFollows]
             .map { $0 ? "1" : "0" }.joined()
         let silentGroups = GroupChatService.shared.groupSilentNotifications.sorted().joined(separator: "+")
-        return (addrs + ["|"] + groupIds + ["|"] + aliasList + ["|", primary] + ["|"] + publicChatChannels + ["|"] + hiddenPublicChat + ["|", kapostsKey] + ["|", apnsEnvironment] + ["|", voip] + ["|", kaPostsKinds] + ["|", silentGroups]).joined(separator: ",")
+        return (addrs + ["|"] + groupIds + ["|"] + aliasList + ["|", primary] + ["|"] + publicChatChannels + ["|"] + hiddenPublicChat + ["|", kapostsKey] + ["|", apnsEnvironment] + ["|", voip] + ["|", kaPostsKinds] + ["|", silentGroups] + ["|", watchAuthors]).joined(separator: ",")
     }
 
     /// Unregister device (call on logout/wallet delete)
@@ -1585,6 +1588,13 @@ final class PushNotificationManager: ObservableObject {
         // re-registration path as collectWatchedPublicChatChannels above.
         guard !AppSettings.load().childModeEnabled else { return nil }
         return try? KaPostsAPIClient.shared.requesterPubkey()
+    }
+
+    /// The authors this account asked to hear about when they post (KaPosts' bell). Empty in
+    /// Simple Mode, like the KaPosts identity itself.
+    private func collectKaPostsWatchAuthors() -> [String] {
+        guard collectKaPostsPubkey() != nil else { return [] }
+        return KaPostsWatchStore.shared.watchedPubkeys
     }
 
     private func collectWatchedAddresses() -> [String] {
@@ -2297,6 +2307,9 @@ struct PushRegistrationRequest: Codable {
     let kapostsNotifyComments: Bool
     let kapostsNotifyReposts: Bool
     let kapostsNotifyFollows: Bool
+    /// Authors whose new posts this device wants a push for - the bell beside Follow
+    /// (PUSH_EXTENSIONS.md §3a). Pubkeys, 66-hex compressed.
+    let kapostsWatchAuthors: [String]
     let primaryAddress: String?
     let aliases: [String]
     /// "development" | "production" - which APNs endpoint this device's token is valid for.
@@ -2319,6 +2332,7 @@ struct PushRegistrationRequest: Codable {
         case kapostsNotifyComments = "kaposts_notify_comments"
         case kapostsNotifyReposts = "kaposts_notify_reposts"
         case kapostsNotifyFollows = "kaposts_notify_follows"
+        case kapostsWatchAuthors = "kaposts_watch_authors"
         case primaryAddress = "primary_address"
         case aliases
         case apnsEnvironment = "apns_environment"
@@ -2340,6 +2354,9 @@ struct PushUpdateRequest: Codable {
     let kapostsNotifyComments: Bool
     let kapostsNotifyReposts: Bool
     let kapostsNotifyFollows: Bool
+    /// Authors whose new posts this device wants a push for - the bell beside Follow
+    /// (PUSH_EXTENSIONS.md §3a). Pubkeys, 66-hex compressed.
+    let kapostsWatchAuthors: [String]
     let primaryAddress: String?
     let aliases: [String]
     /// "development" | "production" - which APNs endpoint this device's token is valid for.
@@ -2360,6 +2377,7 @@ struct PushUpdateRequest: Codable {
         case kapostsNotifyComments = "kaposts_notify_comments"
         case kapostsNotifyReposts = "kaposts_notify_reposts"
         case kapostsNotifyFollows = "kaposts_notify_follows"
+        case kapostsWatchAuthors = "kaposts_watch_authors"
         case primaryAddress = "primary_address"
         case aliases
         case apnsEnvironment = "apns_environment"

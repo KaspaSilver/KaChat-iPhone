@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "Sesuai urutan yang ditampilkan %@.";
 "Move %@ to %@" = "Pindahkan %@ ke %@";
 "Add %@ to your dock" = "Tambahkan %@ ke dock";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Tip";
+"No tips yet." = "Belum ada tip.";
+"Who tipped this post" = "Siapa yang memberi tip pada postingan ini";
+"You'll now be notified when %@ posts." = "Anda sekarang akan diberi tahu saat %@ memposting.";
+"You won't be notified about %@'s posts anymore." = "Anda tidak akan lagi diberi tahu tentang postingan %@.";
+"Stop post notifications" = "Matikan notifikasi postingan";
+"Notify me when they post" = "Beri tahu saat dia memposting";

@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "בסדר שבו %@ מציג אותם.";
 "Move %@ to %@" = "העברת %@ אל %@";
 "Add %@ to your dock" = "הוספת %@ למעגן";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "טיפים";
+"No tips yet." = "עדיין אין טיפים.";
+"Who tipped this post" = "מי נתן טיפ לפוסט הזה";
+"You'll now be notified when %@ posts." = "מעכשיו תקבלו התראה כש־%@ מפרסם.";
+"You won't be notified about %@'s posts anymore." = "לא תקבלו עוד התראות על פוסטים של %@.";
+"Stop post notifications" = "כיבוי התראות על פוסטים";
+"Notify me when they post" = "תודיעו לי כשמפרסם";

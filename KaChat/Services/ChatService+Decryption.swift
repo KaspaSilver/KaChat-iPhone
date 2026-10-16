@@ -221,13 +221,16 @@ extension ChatService {
             return nil
         }
 
-        // Dual-read: new `kchat:1:pay:` root and the two legacy `ciph_msg:` roots.
+        // Dual-read: new `kchat:1:pay:` root and the two legacy `ciph_msg:` roots - and a KaPosts
+        // tip (`kchat:1:tip:`), whose sealed record is the same, as hex in its last field.
         let prefixNew = Data("kchat:1:pay:".utf8)
         let prefixV1 = Data("ciph_msg:1:pay:".utf8)
         let prefixLegacy = Data("ciph_msg:pay:".utf8)
         let encryptedBytes: Data
 
-        if payloadData.starts(with: prefixNew) {
+        if let sealed = tipSealedBytes(payloadData) {
+            encryptedBytes = sealed
+        } else if payloadData.starts(with: prefixNew) {
             encryptedBytes = Data(payloadData.dropFirst(prefixNew.count))
         } else if payloadData.starts(with: prefixV1) {
             encryptedBytes = Data(payloadData.dropFirst(prefixV1.count))
@@ -260,6 +263,26 @@ extension ChatService {
         let prefixV1 = Data("ciph_msg:1:pay:".utf8)
         let prefixLegacy = Data("ciph_msg:pay:".utf8)
         return payloadData.starts(with: prefixNew) || payloadData.starts(with: prefixV1) || payloadData.starts(with: prefixLegacy)
+            || payloadData.starts(with: Data(tipPrefix.utf8))
+    }
+
+    /// A KaPosts tip: `kchat:1:tip:<pubkey>:<signature>:<post_id>:<author_pubkey>:<sealed_hex>`
+    /// (KAPOSTS_INDEXER.md 5.11) - a chat payment to the post's author that names the post.
+    nonisolated static let tipPrefix = "kchat:1:tip:"
+
+    /// The tip's parts, or nil when `payloadData` isn't a well-formed tip.
+    nonisolated static func tipParts(_ payloadData: Data) -> (pubkey: String, postId: String, authorPubkey: String, sealedHex: String)? {
+        guard payloadData.starts(with: Data(tipPrefix.utf8)),
+              let text = String(data: payloadData, encoding: .utf8) else { return nil }
+        let fields = text.dropFirst(tipPrefix.count).split(separator: ":", omittingEmptySubsequences: false).map(String.init)
+        guard fields.count == 5, !fields[4].isEmpty else { return nil }
+        return (fields[0], fields[2], fields[3], fields[4])
+    }
+
+    /// The sealed payment record inside a tip, as bytes.
+    nonisolated static func tipSealedBytes(_ payloadData: Data) -> Data? {
+        guard let parts = tipParts(payloadData) else { return nil }
+        return hexStringToData(parts.sealedHex)
     }
 
     /// Decrypt self-stash on background thread

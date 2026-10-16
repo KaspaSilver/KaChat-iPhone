@@ -2341,7 +2341,10 @@ extension ChatService {
         /// Send KAS sheet's Available pill). nil = the primary, as always.
         sourceSpendingIndex: Int? = nil,
         /// Coin control: spend only these coins of the source address. nil = automatic.
-        manualUtxos: [UTXO]? = nil
+        manualUtxos: [UTXO]? = nil,
+        /// A KaPosts tip: the payment names the post (KAPOSTS_INDEXER.md 5.11), always from the
+        /// chatting address.
+        tip: KaPostTip? = nil
     ) async throws -> String? {
         // Paying someone is reaching out to them, like writing to them.
         acceptChat(contact.address)
@@ -2352,8 +2355,9 @@ extension ChatService {
                 note: note,
                 pendingTxId: pendingTxId,
                 extraFeeSompi: extraFeeSompi,
-                sourceSpendingIndex: sourceSpendingIndex,
-                manualUtxos: manualUtxos
+                sourceSpendingIndex: tip == nil ? sourceSpendingIndex : nil,
+                manualUtxos: manualUtxos,
+                tip: tip
             )
         }
     }
@@ -2367,11 +2371,16 @@ extension ChatService {
         /// Extra priority fee (Fast/Priority tiers) on top of the computed base fee.
         extraFeeSompi: UInt64 = 0,
         sourceSpendingIndex: Int? = nil,
-        manualUtxos: [UTXO]? = nil
+        manualUtxos: [UTXO]? = nil,
+        tip: KaPostTip? = nil
     ) async throws -> String? {
         guard amountSompi > 0 else {
             throw KasiaError.networkError("Amount must be greater than zero")
         }
+        // A tip stays a tip on a retry (which knows only the pending id), and is always paid
+        // from the chatting address.
+        let tip = tip ?? pendingTxId.flatMap { pendingTips[$0] }
+        let sourceSpendingIndex = tip == nil ? sourceSpendingIndex : nil
         guard let wallet = WalletManager.shared.currentWallet else {
             throw KasiaError.walletNotFound
         }
@@ -2431,6 +2440,7 @@ extension ChatService {
         }
 
         let activePendingTxId = pendingTxId ?? "pending_\(UUID().uuidString)"
+        if let tip { pendingTips[activePendingTxId] = tip }
         let pendingMessageId: UUID
         if pendingTxId == nil {
             let formattedAmount = formatKasAmount(amountSompi)
@@ -2518,6 +2528,18 @@ extension ChatService {
             // chat about it right after (`sendSpendingPaymentNotice`): the payee has never seen
             // that address, so a chat payment from it would open a stranger's Message Request on
             // their side instead of landing in this chat (XP-022).
+            // A tip: the same sealed note, inside a signed payload that names the post.
+            var tipPayload: Data?
+            if let tip {
+                let sealed = try KasiaTransactionBuilder.sealedPaymentHex(message: note, amount: amountSompi, recipientPublicKey: recipientPublicKey)
+                let pubkey = try KaPostsAPIClient.shared.requesterPubkey()
+                let signature = try WalletManager.shared.signArbitraryMessage(
+                    KaPostsProtocol.tipSigningString(postId: tip.postId, authorPubkey: tip.authorPubkey, sealedHex: sealed),
+                    mode: .kaspaPersonalMessage
+                )
+                tipPayload = Data(KaPostsProtocol.tipPayload(pubkey: pubkey, signature: signature, postId: tip.postId,
+                                                             authorPubkey: tip.authorPubkey, sealedHex: sealed).utf8)
+            }
             let tx: KaspaRpcTransaction
             if fromChattingAddress {
                 tx = try KasiaTransactionBuilder.buildPaymentTx(
@@ -2529,7 +2551,8 @@ extension ChatService {
                     recipientPublicKey: recipientPublicKey,
                     utxos: spendable,
                     changeAddress: changeAddress,
-                    extraFeeSompi: extraFeeSompi
+                    extraFeeSompi: extraFeeSompi,
+                    payloadOverride: tipPayload
                 )
             } else {
                 tx = try KasiaTransactionBuilder.buildPlainTransferTx(
@@ -4649,4 +4672,10 @@ extension ChatService {
 /// on newer servers) are ignored by the decoder.
 private struct KaspaAddressTransactionsCountResponse: Decodable {
     let total: Int
+}
+
+/// The post a KaPosts tip is for (KAPOSTS_INDEXER.md 5.11): its txid and its author's pubkey.
+struct KaPostTip: Equatable {
+    let postId: String
+    let authorPubkey: String
 }

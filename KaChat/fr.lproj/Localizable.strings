@@ -1762,3 +1762,12 @@
 "In the order %@ shows them." = "Dans l'ordre où %@ les affiche.";
 "Move %@ to %@" = "Déplacer %@ vers %@";
 "Add %@ to your dock" = "Ajouter %@ au dock";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Pourboires";
+"No tips yet." = "Pas encore de pourboires.";
+"Who tipped this post" = "Qui a donné un pourboire à ce post";
+"You'll now be notified when %@ posts." = "Vous serez désormais averti quand %@ publiera.";
+"You won't be notified about %@'s posts anymore." = "Vous ne serez plus averti des posts de %@.";
+"Stop post notifications" = "Désactiver les alertes de posts";
+"Notify me when they post" = "M'avertir de ses posts";

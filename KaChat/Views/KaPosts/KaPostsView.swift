@@ -214,6 +214,8 @@ struct KaPostsView: View {
         var likes: Int = 0
         var dislikes: Int = 0
         var reposts: Int = 0
+        /// How many times it was tipped (KAPOSTS_INDEXER.md 5.11).
+        var tips: Int = 0
         var likedByMe = false
         var dislikedByMe = false
         var repostedByMe = false
@@ -626,7 +628,7 @@ struct KaPostsView: View {
             )
         }
         .sheet(item: $tipTarget) { target in
-            KaPostTipSheet(address: target.address, displayName: posterDisplayName(target.address))
+            KaPostTipSheet(address: target.address, displayName: posterDisplayName(target.address), tip: target.tip)
         }
         .sheet(isPresented: $showComposeFundingSheet) {
             // Zero-balance gate: presented INSTEAD of the post composer (see
@@ -940,7 +942,7 @@ struct KaPostsView: View {
                             onViewEngagement: { kaPostsPresent { engagementTarget = post } },
                             onFollowToggle: { toggleFollowSubmitting(address: post.posterAddress, pubkey: post.posterPubkey) },
                             onOpenProfile: { kaPostsPresent { profileTarget = PosterProfileTarget(address: post.posterAddress, pubkey: post.posterPubkey) } },
-                            onTip: { tip(post.posterAddress) },
+                            onTip: { tip(post) },
                             onLike: { toggleLike(post) },
                             onDislike: { toggleDislike(post) },
                             onRepost: { handleRepostTap(post) },
@@ -1532,6 +1534,7 @@ struct KaPostsView: View {
         mapped.remoteReplyCount = post.repliesCount ?? 0
         mapped.dislikes = post.downVotesCount ?? 0
         mapped.reposts = post.quotesCount ?? 0
+        mapped.tips = post.tipsCount ?? 0
         mapped.likedByMe = post.isUpvoted ?? false
         mapped.dislikedByMe = post.isDownvoted ?? false
         mapped.editedAt = post.editedAt.map { Date(timeIntervalSince1970: TimeInterval($0) / 1000) }
@@ -3322,7 +3325,7 @@ struct KaPostsView: View {
             onViewEngagement: { threadEngagementTarget = item },
             onFollowToggle: { toggleFollowSubmitting(address: item.posterAddress, pubkey: item.posterPubkey) },
             onOpenProfile: { kaPostsPresent { profileTarget = PosterProfileTarget(address: item.posterAddress, pubkey: item.posterPubkey) } },
-            onTip: { tip(item.posterAddress) },
+            onTip: { tip(item) },
             onLike: { toggleLike(item) },
             onDislike: { toggleDislike(item) },
             onRepost: { handleRepostTap(item) },
@@ -4126,6 +4129,8 @@ struct KaPostsView: View {
 
     struct TipTarget: Identifiable {
         let address: String
+        /// The post being tipped; nil only for something that isn't on the network yet.
+        var tip: KaPostTip? = nil
         var id: String { address }
     }
 
@@ -4133,27 +4138,30 @@ struct KaPostsView: View {
     /// ChatService.sendPayment - destination and funding follow the same Chats Payment
     /// Privacy rules as an in-chat payment (privacy pool address when available, else the
     /// poster's chatting address), and the payment bubble lands in the 1:1 chat.
-    private func tip(_ address: String) {
+    private func tip(_ post: DraftPost) {
+        let address = post.posterAddress
         guard address != WalletManager.shared.currentWallet?.publicAddress else { return }
+        // A tip names the post it is for, so the post counts it (KAPOSTS_INDEXER.md 5.11).
+        let target = post.remoteId.flatMap { id in post.posterPubkey.map { KaPostTip(postId: id, authorPubkey: $0) } }
         if let amount = settingsViewModel.settings.kaPostsDefaultTipSompi, amount > 0 {
-            sendDefaultTip(amount, to: address)
+            sendDefaultTip(amount, to: address, tip: target)
             return
         }
-        tipTarget = TipTarget(address: address)
+        tipTarget = TipTarget(address: address, tip: target)
     }
 
     /// KaPosts > Settings > "Send a default tip instantly": the configured amount goes out at
     /// once, through exactly the path the tip sheet's Send uses - same contact creation, same
     /// funding source and destination rules as a payment in that person's chat. A failure
     /// falls back to the amount screen so the tip can still be sent by hand.
-    private func sendDefaultTip(_ amountSompi: UInt64, to address: String) {
+    private func sendDefaultTip(_ amountSompi: UInt64, to address: String, tip: KaPostTip?) {
         let recipient: Contact
         if let existing = ContactsManager.shared.getContact(byAddress: address) {
             recipient = existing
         } else if let created = try? ContactsManager.shared.addContact(address: address, alias: "", isAutoAdded: true) {
             recipient = created
         } else {
-            tipTarget = TipTarget(address: address)
+            tipTarget = TipTarget(address: address, tip: tip)
             return
         }
         _ = ChatService.shared.getOrCreateConversation(for: recipient)
@@ -4165,7 +4173,7 @@ struct KaPostsView: View {
         if kasText.hasSuffix(".") { kasText.removeLast() }
         Task {
             do {
-                let txId = try await ChatService.shared.sendPayment(to: recipient, amountSompi: amountSompi, extraFeeSompi: 0)
+                let txId = try await ChatService.shared.sendPayment(to: recipient, amountSompi: amountSompi, extraFeeSompi: 0, tip: tip)
                 Haptics.success()
                 // A deferred send (no confirmed inputs yet) has no transaction to show; the
                 // retry timer owns it from here.
@@ -4173,7 +4181,7 @@ struct KaPostsView: View {
             } catch {
                 AppLog.log("[KaPosts] Instant tip failed: %@", error.localizedDescription)
                 feedError = "Tip didn't send: \(UserFacingError.message(for: error))"
-                tipTarget = TipTarget(address: address)
+                tipTarget = TipTarget(address: address, tip: tip)
             }
         }
     }
@@ -4293,7 +4301,7 @@ struct KaPostsView: View {
             onViewEngagement: { kaPostsPresent { engagementTarget = post } },
             onFollowToggle: { toggleFollowSubmitting(address: post.posterAddress, pubkey: post.posterPubkey) },
             onOpenProfile: {},
-            onTip: { tip(post.posterAddress) },
+            onTip: { tip(post) },
             onLike: { toggleLike(post) },
             onDislike: { toggleDislike(post) },
             onRepost: { handleRepostTap(post) },
@@ -4327,7 +4335,7 @@ struct KaPostsView: View {
             onViewEngagement: { kaPostsPresent { engagementTarget = post } },
             onFollowToggle: { toggleFollowSubmitting(address: post.posterAddress, pubkey: post.posterPubkey) },
             onOpenProfile: {},
-            onTip: { tip(post.posterAddress) },
+            onTip: { tip(post) },
             onLike: { toggleLike(post) },
             onDislike: { toggleDislike(post) },
             onRepost: { handleRepostTap(post) },
@@ -4701,7 +4709,7 @@ struct KaPostsView: View {
                                     onViewEngagement: { kaPostsPresent { engagementTarget = post } },
                                     onFollowToggle: { toggleFollowSubmitting(address: post.posterAddress, pubkey: post.posterPubkey) },
                                     onOpenProfile: {},
-                                    onTip: { tip(post.posterAddress) },
+                                    onTip: { tip(post) },
                             onLike: { toggleLike(post) },
                                     onDislike: { toggleDislike(post) },
                                     onRepost: { handleRepostTap(post) },
@@ -5134,6 +5142,14 @@ private struct KaPostCellView: View {
     var onRetry: (() -> Void)? = nil
     var onViewEngagement: (() -> Void)? = nil
     let onFollowToggle: () -> Void
+    /// The bell beside Follow: notified when this author posts (`KaPostsWatchStore`). Rarely
+    /// changes, so observing it here costs nothing.
+    @ObservedObject private var watchStore = KaPostsWatchStore.shared
+    /// What the bell just did, said for a moment under the name.
+    @State private var bellNote: String?
+    /// The post whose tippers are listed (the count's sheet).
+    @State private var tippersPostId: String?
+    private struct TippersRoute: Identifiable { let id: String }
     let onOpenProfile: () -> Void
     /// "Tip": opens the 1:1 chat with the poster in KAS-send mode. nil (or your own post) hides it.
     var onTip: (() -> Void)? = nil
@@ -5401,6 +5417,16 @@ private struct KaPostCellView: View {
                                 .foregroundColor(isFollowing ? .secondary : .accentColor)
                         }
                         .buttonStyle(.plain)
+                        // Notified when this person posts - its own switch, beside Follow.
+                        Button {
+                            toggleBell()
+                        } label: {
+                            Image(systemName: watchStore.isWatching(post.posterAddress) ? "bell.fill" : "bell")
+                                .font(.caption.weight(.bold))
+                                .foregroundColor(.accentColor)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text(watchStore.isWatching(post.posterAddress) ? "Stop post notifications" : "Notify me when they post"))
                     }
                     Spacer()
                     // X-style overflow menu, as a half sheet. Mute: their content disappears
@@ -5437,6 +5463,13 @@ private struct KaPostCellView: View {
                     // A fresh sentAt (an edit landed) gets its own green check even if the
                     // original post's minute is long over.
                     .onChange(of: post.sentAt) { _ in sentCheckExpired = false }
+                }
+                if let bellNote {
+                    Text(bellNote)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(.accentColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .transition(.opacity)
                 }
 
                 // Text-only posts, but URLs are TAPPABLE: tapping a link opens a Copy/Open
@@ -5607,6 +5640,32 @@ private struct KaPostCellView: View {
                         }
                         .buttonStyle(.plain)
                         .layoutPriority(1)
+                    }
+                    // How many times it was tipped; a tap lists who (your own posts too).
+                    if post.tips > 0, let remoteId = post.remoteId {
+                        Button {
+                            Haptics.impact(.light)
+                            tippersPostId = remoteId
+                        } label: {
+                            HStack(spacing: 3) {
+                                if isOwnPost || onTip == nil {
+                                    Image("KaspaLogo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                }
+                                Text(verbatim: "\(post.tips)")
+                                    .monospacedDigit()
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("Who tipped this post"))
+                        .sheet(item: Binding(get: { tippersPostId.map(TippersRoute.init) }, set: { tippersPostId = $0?.id })) { route in
+                            KaPostTippersView(postId: route.id)
+                        }
                     }
                     Spacer()
                     // Bottom-right: on-chain delivery state, mirroring chat bubbles - green check
@@ -6190,6 +6249,9 @@ extension KaPostCellView: Equatable {
 private struct KaPostTipSheet: View {
     let address: String
     let displayName: String
+    /// The post being tipped: then it is a tip that names the post, paid from the chatting
+    /// address only (no From choice).
+    var tip: KaPostTip? = nil
 
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var portfolioViewModel = PortfolioViewModel.shared
@@ -6269,7 +6331,7 @@ private struct KaPostTipSheet: View {
                 }
                 .padding(.top, 24)
 
-                SendFromSection(source: $source, availableSompi: $availableSompi)
+                SendFromSection(source: $source, availableSompi: $availableSompi, isLocked: tip != nil)
 
                 KaspaAmountEntry(
                     fiatAmountState: fiatAmountState,
@@ -6467,7 +6529,7 @@ private struct KaPostTipSheet: View {
             do {
                 let txId = try await ChatService.shared.sendPayment(
                     to: recipient, amountSompi: amountSompi, note: tipMemo, extraFeeSompi: tipExtraFee,
-                    sourceSpendingIndex: tipSource, manualUtxos: tipUtxos
+                    sourceSpendingIndex: tipSource, manualUtxos: tipUtxos, tip: tip
                 )
                 await MainActor.run {
                     Haptics.success()
@@ -7608,6 +7670,60 @@ final class KaPostsFollowStore: ObservableObject {
 /// Muted + blocked poster addresses, persisted locally. Both hide the author's content
 /// everywhere in KaPosts; the distinction - a muted user can still interact with you, a blocked
 /// user cannot - takes effect when real feeds/interactions are wired.
+
+/// KaPosts' bell: the people this account wants a push from whenever they post
+/// (PUSH_EXTENSIONS.md §3a). Kept per account (each account is its own KaPosts identity) and
+/// sent to the push service with the device registration, which re-registers on every change.
+/// Follows the current account by itself - no per-account wiring needed.
+@MainActor
+final class KaPostsWatchStore: ObservableObject {
+    static let shared = KaPostsWatchStore()
+    private init() {}
+
+    private var cache: (wallet: String, addresses: Set<String>)?
+
+    private var walletKey: String? {
+        WalletManager.shared.currentWallet?.publicAddress.lowercased()
+    }
+
+    private var watching: Set<String> {
+        guard let wallet = walletKey else { return [] }
+        if let cache, cache.wallet == wallet { return cache.addresses }
+        let stored = Set(UserDefaults.standard.stringArray(forKey: "kachat_kaposts_watch_\(wallet)") ?? [])
+        cache = (wallet, stored)
+        return stored
+    }
+
+    func isWatching(_ address: String) -> Bool {
+        watching.contains(address.lowercased())
+    }
+
+    /// Turns the bell on or off for `address`; returns whether it is now on.
+    @discardableResult
+    func toggle(_ address: String) -> Bool {
+        guard let wallet = walletKey else { return false }
+        let key = address.lowercased()
+        guard !key.isEmpty, key != wallet else { return false }
+        var set = watching
+        let on = !set.contains(key)
+        if on { set.insert(key) } else { set.remove(key) }
+        objectWillChange.send()
+        cache = (wallet, set)
+        UserDefaults.standard.set(Array(set).sorted(), forKey: "kachat_kaposts_watch_\(wallet)")
+        Task { await PushNotificationManager.shared.updateWatchedAddresses() }
+        return on
+    }
+
+    /// The watched authors as KaPosts pubkeys (66-hex compressed; the push service compares the
+    /// x-only part), for the push registration.
+    var watchedPubkeys: [String] {
+        watching.sorted().compactMap { address in
+            guard let parsed = KaspaAddress(address: address), parsed.type == .pubKey, parsed.payload.count == 32 else { return nil }
+            return "02" + parsed.payload.map { String(format: "%02x", $0) }.joined()
+        }
+    }
+}
+
 @MainActor
 final class KaPostsModerationStore: ObservableObject {
     static let shared = KaPostsModerationStore()
@@ -7690,6 +7806,88 @@ final class KaPostsModerationStore: ObservableObject {
 
 // MARK: - Post engagement screen (who liked/disliked/reposted/quoted, each row -> explorer)
 
+/// Who tipped a post, newest first: name, avatar, amount and when - from the indexer's
+/// `get-post-tippers` (KAPOSTS_INDEXER.md 5.11).
+struct KaPostTippersView: View {
+    let postId: String
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var contactsManager: ContactsManager
+    @State private var tips: [KaPostsAPIClient.KTip] = []
+    @State private var nextCursor: String?
+    @State private var hasMore = false
+    @State private var loading = true
+    @State private var loadError: String?
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if loading && tips.isEmpty {
+                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if tips.isEmpty {
+                    Text(loadError ?? AppLocalization.string("No tips yet."))
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(tips) { tip in
+                            row(tip)
+                        }
+                        if hasMore {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .task { await load(more: true) }
+                        }
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            .navigationTitle("Tips")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            }
+            .task { await load(more: false) }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func row(_ tip: KaPostsAPIClient.KTip) -> some View {
+        let address = KaPostsAPIClient.kaspaAddress(fromPubkey: tip.userPublicKey) ?? ""
+        let name = address.isEmpty ? tip.userPublicKey : contactsManager.displayName(for: address)
+        return HStack(spacing: 12) {
+            KNSAvatarView(avatarURLString: nil, fallbackText: name, size: 36, contactAddress: address.isEmpty ? nil : address)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: name)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                Text(Date(timeIntervalSince1970: TimeInterval(tip.timestamp) / 1000), style: .relative)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            Text(verbatim: "\(KaspaUnit.plain(tip.amountSompi)) \(KaspaUnit.symbol)")
+                .font(.subheadline.monospacedDigit().weight(.semibold))
+        }
+    }
+
+    private func load(more: Bool) async {
+        if more, nextCursor == nil { return }
+        loading = true
+        defer { loading = false }
+        do {
+            let page = try await KaPostsAPIClient.shared.fetchTippers(postId: postId, before: more ? nextCursor : nil)
+            let known = Set(tips.map(\.id))
+            tips = (more ? tips : []) + page.tips.filter { !more || !known.contains($0.id) }
+            nextCursor = page.pagination?.nextCursor
+            hasMore = page.pagination?.hasMore == true && nextCursor != nil
+        } catch {
+            loadError = UserFacingError.message(for: error)
+            hasMore = false
+        }
+    }
+}
+
 /// Intermediate screen behind "Post Activity": four tabs of actors (Likes, Dislikes,
 /// Reposts, Quotes), each row linking to THAT action's transaction on the explorer, plus a link
 /// to the post's own transaction. Actor identity resolves through contacts/KNS as everywhere.
@@ -7730,6 +7928,21 @@ struct KaPostEngagementView: View {
     @State private var page = KaPostsPageState()
     /// Action txids already shown, across all four tabs (the server can repeat across pages).
     @State private var seenActionIds: Set<String> = []
+
+    /// The bell: on says "you'll be notified when they post", off says it won't - for a moment,
+    /// right under the name, wherever the post is showing.
+    private func toggleBell() {
+        Haptics.impact(.light)
+        let on = watchStore.toggle(post.posterAddress)
+        let note = on
+            ? String(format: AppLocalization.string("You'll now be notified when %@ posts."), displayName)
+            : String(format: AppLocalization.string("You won't be notified about %@'s posts anymore."), displayName)
+        withAnimation(.easeOut(duration: 0.2)) { bellNote = note }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+            guard bellNote == note else { return }
+            withAnimation(.easeOut(duration: 0.3)) { bellNote = nil }
+        }
+    }
 
     private var isOwnPost: Bool {
         post.posterAddress == WalletManager.shared.currentWallet?.publicAddress

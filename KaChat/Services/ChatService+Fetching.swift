@@ -740,7 +740,7 @@ extension ChatService {
         let kind: OnChainPayloadKind
         if ["kchat:1:handshake:", "ciph_msg:1:handshake:"].contains(where: { data.starts(with: Data($0.utf8)) }) {
             kind = .handshake
-        } else if ["kchat:1:pay:", "ciph_msg:1:pay:", "ciph_msg:pay:"].contains(where: { data.starts(with: Data($0.utf8)) }) {
+        } else if ["kchat:1:pay:", "ciph_msg:1:pay:", "ciph_msg:pay:", Self.tipPrefix].contains(where: { data.starts(with: Data($0.utf8)) }) {
             kind = .payment
         } else {
             kind = .other
@@ -2731,7 +2731,7 @@ extension ChatService {
             // the payload arrives hex-encoded, or (some indexer rows) with its text root intact
             let rawPayload = payment.messagePayload ?? ""
             let isChatPayment = Self.isPaymentRawPayload(rawPayload)
-                || ["kchat:1:pay:", "ciph_msg:1:pay:", "ciph_msg:pay:"].contains { rawPayload.hasPrefix($0) }
+                || ["kchat:1:pay:", "ciph_msg:1:pay:", "ciph_msg:pay:", Self.tipPrefix].contains { rawPayload.hasPrefix($0) }
             if !isOutgoing, !isChatPayment, contactsManager.getContact(byAddress: contactAddress) == nil {
                 conversationAddress = myAddress
                 content = "\(content)\n\(AppLocalization.string("From:")) \(contactAddress)"

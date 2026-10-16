@@ -507,6 +507,8 @@ final class ChatService: ObservableObject {
     /// them even while the UTXO subscription is up (`requestPaymentCatchUp`). nil = nothing missed.
     var paymentCatchUpSince: UInt64?
     var paymentCatchUpInFlight = false
+    /// KaPosts tips by pending id, so a retried tip is still a tip (`sendPaymentInternal`).
+    var pendingTips: [String: KaPostTip] = [:]
 
     // Track in-flight resolve operations to prevent duplicates from multiple UTXO notifications
     let inFlightResolveTracker = InFlightResolveTracker()

@@ -88,6 +88,8 @@ final class KaPostsAPIClient: ObservableObject {
         let quotesCount: Int?
         let upVotesCount: Int?
         let downVotesCount: Int?
+        /// How many times it was tipped (KAPOSTS_INDEXER.md 5.11); absent on an older indexer.
+        let tipsCount: Int?
         let parentPostId: String?
         let mentionedPubkeys: [String]?
         let isUpvoted: Bool?
@@ -445,6 +447,28 @@ final class KaPostsAPIClient: ObservableObject {
         return (response.items, response.pagination)
     }
 
+    /// One tip of a post: who, how much, when (`get-post-tippers`, KAPOSTS_INDEXER.md 5.11).
+    struct KTip: Decodable, Identifiable {
+        /// The tip's txid.
+        let id: String
+        let userPublicKey: String
+        let amountSompi: UInt64
+        let timestamp: Int64
+    }
+
+    private struct TippersResponse: Decodable {
+        let tippers: [KTip]
+        let pagination: KPagination?
+    }
+
+    /// Who tipped a post, newest first.
+    func fetchTippers(postId: String, limit: Int = 50, before: String? = nil) async throws -> (tips: [KTip], pagination: KPagination?) {
+        var query = ["postId": postId, "limit": "\(limit)"]
+        if let before { query["before"] = before }
+        let response: TippersResponse = try await get("get-post-tippers", query: query)
+        return (response.tippers, response.pagination)
+    }
+
     /// Follower/following counts etc. for an address's K identity.
     func fetchUserDetails(pubkey: String) async throws -> KUserDetails {
         try await get("get-user-details", query: ["user": pubkey, "requesterPubkey": try requesterPubkey()])
@@ -589,6 +613,14 @@ enum KaPostsProtocol {
     /// base64 joined by commas, and the closing time is unix ms.
     static func pollSigningString(b64Question: String, optionsCSV: String, closesAtMs: Int64, mentionsJSON: String) -> String {
         "poll:\(b64Question):\(optionsCSV):\(closesAtMs):\(mentionsJSON)"
+    }
+    /// A tip (§5.11): the sealed note is in what is signed, so two tips of one post never share
+    /// a signature.
+    static func tipSigningString(postId: String, authorPubkey: String, sealedHex: String) -> String {
+        "tip:\(postId):\(authorPubkey):\(sealedHex)"
+    }
+    static func tipPayload(pubkey: String, signature: String, postId: String, authorPubkey: String, sealedHex: String) -> String {
+        "\(prefix)tip:\(pubkey):\(signature):\(postId):\(authorPubkey):\(sealedHex)"
     }
     static func pollVoteSigningString(pollId: String, optionIndex: Int) -> String {
         "pollvote:\(pollId):\(optionIndex)"

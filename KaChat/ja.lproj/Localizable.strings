@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "%@ に表示される順番です。";
 "Move %@ to %@" = "%@ を %@ に移動";
 "Add %@ to your dock" = "%@ をドックに追加";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "チップ";
+"No tips yet." = "まだチップはありません。";
+"Who tipped this post" = "この投稿にチップを送った人";
+"You'll now be notified when %@ posts." = "%@ が投稿すると通知されるようになりました。";
+"You won't be notified about %@'s posts anymore." = "%@ の投稿は今後通知されません。";
+"Stop post notifications" = "投稿の通知をオフ";
+"Notify me when they post" = "投稿したら通知する";

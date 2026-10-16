@@ -1762,3 +1762,12 @@
 "In the order %@ shows them." = "In the order %@ shows them.";
 "Move %@ to %@" = "Move %@ to %@";
 "Add %@ to your dock" = "Add %@ to your dock";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Tips";
+"No tips yet." = "No tips yet.";
+"Who tipped this post" = "Who tipped this post";
+"You'll now be notified when %@ posts." = "You'll now be notified when %@ posts.";
+"You won't be notified about %@'s posts anymore." = "You won't be notified about %@'s posts anymore.";
+"Stop post notifications" = "Stop post notifications";
+"Notify me when they post" = "Notify me when they post";

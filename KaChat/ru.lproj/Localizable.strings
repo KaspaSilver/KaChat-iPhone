@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "В том порядке, в каком их показывает %@.";
 "Move %@ to %@" = "Переместить %@ в %@";
 "Add %@ to your dock" = "Добавить %@ в док";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Чаевые";
+"No tips yet." = "Чаевых пока нет.";
+"Who tipped this post" = "Кто отправил чаевые за этот пост";
+"You'll now be notified when %@ posts." = "Теперь вы будете получать уведомления о новых постах %@.";
+"You won't be notified about %@'s posts anymore." = "Вы больше не будете получать уведомления о постах %@.";
+"Stop post notifications" = "Отключить уведомления о постах";
+"Notify me when they post" = "Уведомлять о новых постах";

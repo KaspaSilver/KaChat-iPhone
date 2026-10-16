@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "%@ içinde göründükleri sırayla.";
 "Move %@ to %@" = "%@ öğesini %@ içine taşı";
 "Add %@ to your dock" = "%@ öğesini dock'a ekle";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Bahşişler";
+"No tips yet." = "Henüz bahşiş yok.";
+"Who tipped this post" = "Bu gönderiye kim bahşiş verdi";
+"You'll now be notified when %@ posts." = "Artık %@ paylaşım yaptığında bildirim alacaksınız.";
+"You won't be notified about %@'s posts anymore." = "Artık %@ kişisinin gönderileri için bildirim almayacaksınız.";
+"Stop post notifications" = "Gönderi bildirimlerini kapat";
+"Notify me when they post" = "Paylaşım yapınca bana bildir";

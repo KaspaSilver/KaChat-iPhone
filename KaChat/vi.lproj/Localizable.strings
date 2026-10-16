@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "Theo thứ tự %@ hiển thị.";
 "Move %@ to %@" = "Chuyển %@ vào %@";
 "Add %@ to your dock" = "Thêm %@ vào dock";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Tiền tip";
+"No tips yet." = "Chưa có tiền tip.";
+"Who tipped this post" = "Ai đã tip cho bài viết này";
+"You'll now be notified when %@ posts." = "Từ giờ bạn sẽ được thông báo khi %@ đăng bài.";
+"You won't be notified about %@'s posts anymore." = "Bạn sẽ không còn được thông báo về bài viết của %@.";
+"Stop post notifications" = "Tắt thông báo bài viết";
+"Notify me when they post" = "Báo cho tôi khi người này đăng bài";

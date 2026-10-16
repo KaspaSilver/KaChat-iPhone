@@ -1709,3 +1709,12 @@
 "In the order %@ shows them." = "In der Reihenfolge, in der %@ sie zeigt.";
 "Move %@ to %@" = "%@ nach %@ verschieben";
 "Add %@ to your dock" = "%@ zum Dock hinzufügen";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "Trinkgelder";
+"No tips yet." = "Noch keine Trinkgelder.";
+"Who tipped this post" = "Wer diesem Beitrag Trinkgeld gab";
+"You'll now be notified when %@ posts." = "Du wirst jetzt benachrichtigt, wenn %@ etwas postet.";
+"You won't be notified about %@'s posts anymore." = "Du wirst nicht mehr über Beiträge von %@ benachrichtigt.";
+"Stop post notifications" = "Beitragsbenachrichtigungen aus";
+"Notify me when they post" = "Benachrichtige mich bei neuen Beiträgen";

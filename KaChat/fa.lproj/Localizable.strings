@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "به ترتیبی که %@ نشانشان می‌دهد.";
 "Move %@ to %@" = "انتقال %@ به %@";
 "Add %@ to your dock" = "افزودن %@ به داک";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "انعام‌ها";
+"No tips yet." = "هنوز انعامی نیست.";
+"Who tipped this post" = "چه کسانی به این پست انعام دادند";
+"You'll now be notified when %@ posts." = "از این پس وقتی %@ پست بگذارد به شما اطلاع داده می‌شود.";
+"You won't be notified about %@'s posts anymore." = "دیگر درباره پست‌های %@ به شما اطلاع داده نمی‌شود.";
+"Stop post notifications" = "خاموش کردن اعلان پست‌ها";
+"Notify me when they post" = "وقتی پست گذاشت خبرم کن";

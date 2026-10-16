@@ -386,7 +386,9 @@ struct KasiaTransactionBuilder {
         changeAddress: String? = nil,
         /// Extra priority fee on top of the computed base fee (Fast/Priority tiers). Covered by
         /// input selection and left unclaimed by the outputs, so it becomes miner fee.
-        extraFeeSompi: UInt64 = 0
+        extraFeeSompi: UInt64 = 0,
+        /// The transaction's payload instead of `kchat:1:pay:` + the sealed note (a KaPosts tip).
+        payloadOverride: Data? = nil
     ) throws -> KaspaRpcTransaction {
         guard amount > 0 else {
             throw KasiaError.networkError("Amount must be greater than zero")
@@ -403,8 +405,9 @@ struct KasiaTransactionBuilder {
         AppLog.log("[TxBuilder]   amount: %llu sompi", amount)
         #endif
 
-        // Build payment payload (encrypted hex under kchat:1:pay:)
-        let paymentPayload = try buildPaymentPayload(message: note, amount: amount, recipientPublicKey: recipientPublicKey)
+        // Build payment payload (encrypted hex under kchat:1:pay:), or the caller's own (a
+        // KaPosts tip carries its sealed record inside a signed `kchat:1:tip:` payload)
+        let paymentPayload = try payloadOverride ?? buildPaymentPayload(message: note, amount: amount, recipientPublicKey: recipientPublicKey)
         #if DEBUG
         AppLog.log("[TxBuilder]   payload size: %d bytes", paymentPayload.count)
         AppLog.log("[TxBuilder]   payload hex (first 100): %@", paymentPayload.prefix(100).map { String(format: "%02x", $0) }.joined())
@@ -1706,8 +1709,10 @@ struct KasiaTransactionBuilder {
         throw KasiaError.networkError("Insufficient spendable funds for compaction")
     }
 
-    /// Build payment payload (encrypted payment JSON, hex inside kchat:1:pay:)
-    static func buildPaymentPayload(message: String, amount: UInt64, recipientPublicKey: Data) throws -> Data {
+    /// The encrypted payment record (`{"type":"payment","message","amount","timestamp","version"}`
+    /// sealed to the recipient's chat key), as lowercase hex - what follows `kchat:1:pay:`, and the
+    /// last field of a KaPosts tip.
+    static func sealedPaymentHex(message: String, amount: UInt64, recipientPublicKey: Data) throws -> String {
         let payload = PaymentPayload(
             type: "payment",
             message: message,
@@ -1720,7 +1725,12 @@ struct KasiaTransactionBuilder {
             throw KasiaError.encryptionError("Failed to encode payment payload")
         }
         let encrypted = try KasiaCipher.encrypt(jsonString, recipientPublicKey: recipientPublicKey)
-        let hex = encrypted.toBytes().hexString
+        return encrypted.toBytes().hexString
+    }
+
+    /// Build payment payload (encrypted payment JSON, hex inside kchat:1:pay:)
+    static func buildPaymentPayload(message: String, amount: UInt64, recipientPublicKey: Data) throws -> Data {
+        let hex = try sealedPaymentHex(message: message, amount: amount, recipientPublicKey: recipientPublicKey)
         let prefixHex = hexString(from: "kchat:1:pay:")
         let payloadHex = prefixHex + hex
         return Data(hexString: payloadHex) ?? Data()

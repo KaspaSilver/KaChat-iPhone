@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "按 %@ 显示的顺序。";
 "Move %@ to %@" = "将 %@ 移到 %@";
 "Add %@ to your dock" = "将 %@ 添加到程序坞";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "打赏";
+"No tips yet." = "暂无打赏。";
+"Who tipped this post" = "谁打赏了这条帖子";
+"You'll now be notified when %@ posts." = "%@ 发帖时你将收到通知。";
+"You won't be notified about %@'s posts anymore." = "你将不再收到 %@ 的发帖通知。";
+"Stop post notifications" = "关闭发帖通知";
+"Notify me when they post" = "发帖时通知我";

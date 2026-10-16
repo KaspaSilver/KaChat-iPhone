@@ -1761,3 +1761,12 @@
 "In the order %@ shows them." = "उसी क्रम में जिसमें %@ उन्हें दिखाता है।";
 "Move %@ to %@" = "%@ को %@ में ले जाएँ";
 "Add %@ to your dock" = "%@ को डॉक में जोड़ें";
+
+/* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
+"Tips" = "टिप";
+"No tips yet." = "अभी कोई टिप नहीं।";
+"Who tipped this post" = "इस पोस्ट पर किसने टिप दी";
+"You'll now be notified when %@ posts." = "अब %@ के पोस्ट करने पर आपको सूचना मिलेगी।";
+"You won't be notified about %@'s posts anymore." = "अब आपको %@ की पोस्ट की सूचना नहीं मिलेगी।";
+"Stop post notifications" = "पोस्ट सूचनाएँ बंद करें";
+"Notify me when they post" = "पोस्ट करने पर मुझे बताएँ";

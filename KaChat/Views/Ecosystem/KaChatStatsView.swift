@@ -268,7 +268,7 @@ final class KaChatStatsModel: ObservableObject {
 /// redacted, so nothing invented is ever on screen.
 struct KaChatStatsView: View {
     @ObservedObject private var model = KaChatStatsModel.shared
-    @State private var range: KaChatStatRange = .all
+    @State private var range: KaChatStatRange = .day
     @State private var showInfo = false
     /// .kachat registry transactions over 24 hours, 7 days and all time - from the registry
     /// itself (its indexer, or the chain), so it shows wherever names are live.

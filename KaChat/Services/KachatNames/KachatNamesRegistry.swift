@@ -541,7 +541,17 @@ final class KachatNamesRegistry: ObservableObject {
         let m = try await prepare()
         switch source {
         case .indexer(let base):
-            let j: KachatNames.IndexerAPI.StatsJSON = try await Self.get(base, "/stats/names")
+            // `/names/activity/stats` first: a proxy may send /stats/* to a server without the
+            // names module (mainnet today). Neither answering, the activity feed is counted.
+            let stats: KachatNames.IndexerAPI.StatsJSON
+            if let j: KachatNames.IndexerAPI.StatsJSON = try? await Self.get(base, "/names/activity/stats") {
+                stats = j
+            } else if let j: KachatNames.IndexerAPI.StatsJSON = try? await Self.get(base, "/stats/names") {
+                stats = j
+            } else {
+                return Self.totals(of: try await allIndexerEvents(base), params: m.params)
+            }
+            let j = stats
             let fees = j.fees.flatMap { f -> Totals? in
                 guard let t = UInt64(f.total), let d = UInt64(f.last24h), let w = UInt64(f.last7d) else { return nil }
                 return Totals(last24h: d, last7d: w, total: t)
@@ -559,7 +569,24 @@ final class KachatNamesRegistry: ObservableObject {
         }
     }
 
-    /// Counts and prices a walker's events (`activityTotals` from the chain), one per transaction.
+    /// Every registry event an indexer's `/names/activity` holds, newest first, page by page
+    /// (at most 50 pages of 200).
+    private func allIndexerEvents(_ base: String) async throws -> [KachatNames.Event] {
+        var events: [KachatNames.Event] = []
+        var cursor: String?
+        for _ in 0..<50 {
+            var path = "/names/activity?length=200"
+            if let cursor { path += "&cursor=\(cursor)" }
+            let page: KachatNames.IndexerAPI.EventsJSON = try await Self.get(base, path)
+            events += page.events.map(\.event)
+            guard let next = page.next, !next.isEmpty, !page.events.isEmpty else { break }
+            cursor = next
+        }
+        return events
+    }
+
+    /// Counts and prices registry events (`activityTotals` without an indexer's figures), one per
+    /// transaction: registrations, extensions and renewals at the registry's fixed prices.
     static func totals(of events: [KachatNames.Event], params: KachatNames.Params,
                        nowMs: Int64 = KachatNames.nowMs()) -> (transactions: Totals, fees: Totals?) {
         let d1 = nowMs - 86_400_000

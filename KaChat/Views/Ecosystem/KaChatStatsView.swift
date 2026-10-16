@@ -394,7 +394,7 @@ struct KaChatStatsView: View {
                 .padding(.bottom, 4)
             Group {
                 if let total = allTimeTotal {
-                    Text(total.formatted())
+                    Text(verbatim: Self.grouped(UInt64(max(total, 0))))
                 } else if model.snapshot != nil || model.failure != nil {
                     Text(verbatim: "—")
                 } else {
@@ -422,7 +422,7 @@ struct KaChatStatsView: View {
             ForEach(Self.chatCategories.filter { snapshot.counts[$0] != nil }) { category in
                 let counts = snapshot.counts[category]
                 statCard(icon: category.icon, color: category.color, title: category.title, detail: category.detail,
-                         values: [counts?.last24h, counts?.last7d, counts?.total].map { $0.map { $0.formatted() } })
+                         values: [counts?.last24h, counts?.last7d, counts?.total].map { $0.map { Self.grouped(UInt64(max($0, 0))) } })
             }
         } else {
             if let failure = model.failure, !model.isLoading {
@@ -435,7 +435,7 @@ struct KaChatStatsView: View {
         }
         if let kachat = kachatTotals {
             statCard(icon: "at", color: .mint, title: ".kachat Domains", detail: "Transactions on the .kachat registry",
-                     values: [kachat.last24h, kachat.last7d, kachat.total].map { Optional($0.formatted()) })
+                     values: [kachat.last24h, kachat.last7d, kachat.total].map { Optional(Self.grouped($0)) })
         }
     }
 
@@ -443,7 +443,7 @@ struct KaChatStatsView: View {
     private var feesPage: some View {
         if let fees = kachatFees {
             statCard(icon: "at", color: .mint, title: ".kachat Domains", detail: "Paid for registrations and renewals",
-                     values: [fees.last24h, fees.last7d, fees.total].map { Optional(KaspaUnit.amount($0)) })
+                     values: [fees.last24h, fees.last7d, fees.total].map { Optional(Self.kas($0)) })
         } else if kachatLoaded {
             VStack(spacing: 6) {
                 Text("Fees aren't available yet")
@@ -521,6 +521,31 @@ struct KaChatStatsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 4)
+    }
+
+    /// Every number on this screen with commas, whatever the language: "774,086".
+    private static let groupedFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.numberStyle = .decimal
+        f.usesGroupingSeparator = true
+        f.groupingSeparator = ","
+        f.groupingSize = 3
+        f.decimalSeparator = "."
+        f.minimumFractionDigits = 0
+        f.maximumFractionDigits = 2
+        return f
+    }()
+
+    static func grouped(_ value: UInt64) -> String {
+        groupedFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+
+    /// Sompi as KAS with commas and at most two decimals: "21,035.5 KAS".
+    static func kas(_ sompi: UInt64) -> String {
+        let value = NSDecimalNumber(value: sompi).dividing(by: NSDecimalNumber(value: 100_000_000))
+        let text = groupedFormatter.string(from: value) ?? KaspaUnit.plain(sompi)
+        return "\(text) \(KaspaUnit.symbol)"
     }
 
     private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {

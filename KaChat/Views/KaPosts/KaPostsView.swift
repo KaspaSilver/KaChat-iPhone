@@ -5360,6 +5360,21 @@ private struct KaPostCellView: View {
     @ObservedObject private var translation = PostTranslationService.shared
 
     /// Your own post: no follow affordance (you can't follow yourself).
+    /// The bell: on says "you'll be notified when they post", off says it won't - for a moment,
+    /// right under the name, wherever the post is showing.
+    private func toggleBell() {
+        Haptics.impact(.light)
+        let on = watchStore.toggle(post.posterAddress)
+        let note = on
+            ? String(format: AppLocalization.string("You'll now be notified when %@ posts."), displayName)
+            : String(format: AppLocalization.string("You won't be notified about %@'s posts anymore."), displayName)
+        withAnimation(.easeOut(duration: 0.2)) { bellNote = note }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+            guard bellNote == note else { return }
+            withAnimation(.easeOut(duration: 0.3)) { bellNote = nil }
+        }
+    }
+
     private var isOwnPost: Bool {
         post.posterAddress == WalletManager.shared.currentWallet?.publicAddress
     }
@@ -7928,21 +7943,6 @@ struct KaPostEngagementView: View {
     @State private var page = KaPostsPageState()
     /// Action txids already shown, across all four tabs (the server can repeat across pages).
     @State private var seenActionIds: Set<String> = []
-
-    /// The bell: on says "you'll be notified when they post", off says it won't - for a moment,
-    /// right under the name, wherever the post is showing.
-    private func toggleBell() {
-        Haptics.impact(.light)
-        let on = watchStore.toggle(post.posterAddress)
-        let note = on
-            ? String(format: AppLocalization.string("You'll now be notified when %@ posts."), displayName)
-            : String(format: AppLocalization.string("You won't be notified about %@'s posts anymore."), displayName)
-        withAnimation(.easeOut(duration: 0.2)) { bellNote = note }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
-            guard bellNote == note else { return }
-            withAnimation(.easeOut(duration: 0.3)) { bellNote = nil }
-        }
-    }
 
     private var isOwnPost: Bool {
         post.posterAddress == WalletManager.shared.currentWallet?.publicAddress

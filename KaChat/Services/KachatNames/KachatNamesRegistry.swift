@@ -1434,9 +1434,9 @@ final class KachatNamesNotifier {
         }
         // The indexer pushes name reminders only to the chatting address: for a name on another
         // address of this wallet the phone schedules its own (XP-024).
-        await KachatNameReminders.schedule(for: owned.filter { $0.owner != me }, params: p)
         // a different wallet signed in meanwhile: this answer isn't its
         guard KachatNamesActions.shared.myAddress == wallet else { return }
+        await KachatNameReminders.schedule(for: owned.filter { $0.owner != me }, params: p, wallet: wallet)
 
         let old: Snapshot? = UserDefaults.standard.data(forKey: key(wallet)).flatMap { try? JSONDecoder().decode(Snapshot.self, from: $0) }
         let quiet = old == nil // the first check only records where things stand
@@ -1541,12 +1541,39 @@ final class KachatNamesNotifier {
 /// the name (thread "kachat-names", like the pushes).
 @MainActor
 enum KachatNameReminders {
-    private static let prefix = "kachat-local-"
+    /// `kachat-reminder-<network>-<wallet tag>-<name>-<expiresAt>-<kind>`: each wallet and
+    /// network keeps its own set, so a check on one never removes another's (IOS-088).
+    private static let root = "kachat-reminder-"
+    /// The first build's ids, one device-wide set: removed wherever they are found.
+    private static let legacyPrefix = "kachat-local-"
 
-    static func schedule(for names: [KachatNames.NameInfo], params p: KachatNames.Params) async {
+    /// A short, stable tag for a wallet in the ids (the address's last 12 characters).
+    private static func walletTag(_ wallet: String) -> String {
+        String(wallet.lowercased().suffix(12))
+    }
+
+    private static func prefix(wallet: String, network: String) -> String {
+        "\(root)\(network)-\(walletTag(wallet))-"
+    }
+
+    /// A wallet's reminders on every network, for when it leaves this phone.
+    static func removeAll(forWallet wallet: String) async {
+        let center = UNUserNotificationCenter.current()
+        let tag = "-\(walletTag(wallet))-"
+        let ids = await center.pendingNotificationRequests().map(\.identifier)
+            .filter { $0.hasPrefix(root) && $0.contains(tag) }
+        if !ids.isEmpty { center.removePendingNotificationRequests(withIdentifiers: ids) }
+    }
+
+    static func schedule(for names: [KachatNames.NameInfo], params p: KachatNames.Params, wallet: String) async {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
-        let pending = await center.pendingNotificationRequests().map(\.identifier).filter { $0.hasPrefix(prefix) }
+        let all = await center.pendingNotificationRequests().map(\.identifier)
+        let legacy = all.filter { $0.hasPrefix(legacyPrefix) }
+        if !legacy.isEmpty { center.removePendingNotificationRequests(withIdentifiers: legacy) }
+        let prefix = prefix(wallet: wallet, network: KachatNamesService.networkName)
+        // only this wallet's reminders on this network are this call's to keep or drop
+        let pending = all.filter { $0.hasPrefix(prefix) }
         guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
             center.removePendingNotificationRequests(withIdentifiers: pending)
             return

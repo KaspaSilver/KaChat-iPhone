@@ -505,6 +505,8 @@ final class WalletManager: ObservableObject {
         }
         if let walletAddressToDelete {
             KaPostsDraftStore.shared.deleteDrafts(forWalletAddress: walletAddressToDelete)
+            // its .kachat reminders would keep firing for names this phone no longer holds
+            await KachatNameReminders.removeAll(forWallet: walletAddressToDelete)
         }
 
         // The Secure Enclave key wraps every saved account's snapshot (and the device id, the
@@ -664,6 +666,7 @@ final class WalletManager: ObservableObject {
                 for address in Self.accountAddressVariants(account.publicAddress) {
                     ContactsManager.shared.deletePersistedContacts(forWalletAddress: address)
                     NextcloudService.shared.purgeStoredState(forWalletAddress: address)
+                    await KachatNameReminders.removeAll(forWallet: address)
                 }
                 removeSavedAccountFromStorage(account)
                 return
@@ -680,6 +683,7 @@ final class WalletManager: ObservableObject {
         // Remove local message DB for the stored wallet, then clear local key material - on both
         // networks, since mainnet and testnet keep this account's data under different addresses.
         for address in Self.accountAddressVariants(account.publicAddress) {
+            await KachatNameReminders.removeAll(forWallet: address)
             await MessageStore.shared.setCurrentWallet(address)
             MessageStore.shared.clearAll()
             await MessageStore.shared.destroyLocalStoreFiles()

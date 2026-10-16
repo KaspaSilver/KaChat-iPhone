@@ -721,10 +721,12 @@ final class KachatNamesRegistry: ObservableObject {
     private var unnamedSweepRunning = false
 
     /// While the app is open, once a minute: everyone the app is showing as an address - a contact
-    /// with no name you gave them (chat or Address Book) and no .kachat name known - is asked
-    /// again whether they have one. A "no name" answer or a failed lookup is not trusted for
-    /// long: a name can be registered at any moment, and a lookup can fail while the registry is
-    /// still loading. An address only shows when no name exists. Started once, at launch.
+    /// with no name you gave them (chat or Address Book) and no .kachat name known - may be asked
+    /// again whether they have one. Never asked yet, or the last lookup failed (the registry
+    /// still loading at launch): this pass. A "no name" answer backs off - asked again after 1,
+    /// then 5, 15 and 60 minutes - and sooner (after a minute) only once the registry has seen
+    /// new transactions (`revision`), since a name only appears through one (IOS-087). Started
+    /// once, at launch.
     func startUnnamedIdentitySweep() {
         guard !unnamedSweepStarted else { return }
         unnamedSweepStarted = true
@@ -756,16 +758,27 @@ final class KachatNamesRegistry: ObservableObject {
                   NetworkType(address: key) != nil, NetworkType.isOnActiveNetwork(key) else { continue }
             if let entry = identities[key] {
                 if entry.identity.label != nil { continue }
-                if Date().timeIntervalSince(entry.at) < 60 { continue }
+                let age = Date().timeIntervalSince(entry.at)
+                let backoff = Self.unnamedBackoff[min(unnamedAnswers[key] ?? 0, Self.unnamedBackoff.count - 1)]
+                let registryMoved = entry.revision != revision && age > 60
+                if age < backoff, !registryMoved { continue }
             }
             targets.append(key)
         }
         // a few at a time, the people you talk to most recently first
         for key in targets.prefix(40) {
             guard UIApplication.shared.applicationState == .active else { return }
-            _ = await refreshIdentity(address: key)
+            if let found = await refreshIdentity(address: key) {
+                // one more "no name" in a row backs the next ask off further
+                unnamedAnswers[key] = found.label == nil ? (unnamedAnswers[key] ?? 0) + 1 : nil
+            }
         }
     }
+
+    /// How long a "no name" answer is trusted by the sweep, by how many came in a row.
+    private static let unnamedBackoff: [TimeInterval] = [60, 300, 900, 3600]
+    /// "No name" answers in a row, per address (in memory: a relaunch starts over at a minute).
+    private var unnamedAnswers: [String: Int] = [:]
 
     /// Looks the address's identity up now, whatever the cache holds (User Info > Rescan
     /// Profile), and stores the answer for every view that reads `cachedIdentity`.

@@ -88,11 +88,6 @@ struct KachatSetupGuideView: View {
                 Text("Search for the name you want in Kaspa Hub > .kachat, then claim it.")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                if let opens = KachatNamesService.publicLaunchMs, !KachatNamesService.isPubliclyOpenKnown {
-                    Text(String(format: AppLocalization.string(".kachat names open to everyone on %@."), KachatNamesActions.launchString(opens)))
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(.accentColor)
-                }
             }
 
         case .howItWorks:

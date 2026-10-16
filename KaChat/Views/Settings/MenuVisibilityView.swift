@@ -9,16 +9,16 @@ import SwiftUI
 /// Kaspa Hub. Kaspa Hub lists everything else in its grid order, also by dragging, each with a
 /// green plus that moves it into the dock - shown only while the dock has room (five at most).
 ///
-/// The arrangement is a draft until this screen is left (or the app goes to the background):
-/// writing the real `dockTabs` on every move rebuilt the tab pages under this screen - which
-/// lives inside the Profile tab - and threw the person out of it.
+/// Every move is applied at once, so the dock is already right when Done is tapped. A new
+/// arrangement rebuilds the whole tab bar, which is why this screen only ever opens as the
+/// sheet MainTabView presents (`.openCustomizeDock`) above it: pushed inside the Profile tab,
+/// each move rebuilt the page it sat on and threw the person out.
 struct MenuVisibilityView: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
-    @Environment(\.scenePhase) private var scenePhase
 
     @State private var dock: [AppTab] = []
     @State private var hub: [AppTab] = []
-    /// Guards against persisting before the draft is seeded, which would save an empty dock.
+    /// Guards against persisting before the lists are seeded, which would save an empty dock.
     @State private var loaded = false
 
     private var settings: AppSettings { settingsViewModel.settings }
@@ -70,25 +70,9 @@ struct MenuVisibilityView: View {
             hub = AppTab.ecosystemSections(from: settings)
             loaded = true
         }
-        // Applied once this screen has finished closing: a new arrangement rebuilds the whole
-        // tab bar, and rebuilding it under a closing sheet or navigation pop could leave the page
-        // shown next (KaPosts, say) black until a relaunch.
-        .onDisappear {
-            // what was arranged, taken now: this view's state is gone by the time it applies
-            guard loaded else { return }
-            let dockRaw = dock.map(\.rawValue)
-            let hubRaw = hub.map(\.rawValue)
-            let model = settingsViewModel
-            Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 600_000_000)
-                Self.apply(dock: dockRaw, hub: hubRaw, to: model)
-            }
-        }
-        // Backgrounding is the one way off this screen that never calls onDisappear, and an app
-        // killed from the background would otherwise lose the arrangement.
-        .onChange(of: scenePhase) { phase in
-            if phase != .active { persist() }
-        }
+        // live: the dock under this sheet follows every move
+        .onChange(of: dock) { _ in persist() }
+        .onChange(of: hub) { _ in persist() }
     }
 
     // MARK: - Rows
@@ -183,17 +167,15 @@ struct MenuVisibilityView: View {
         }
     }
 
-    /// Writes the draft to the real settings, and so rebuilds the tab bar - once, on the way out.
+    /// Writes the arrangement to the real settings, and so rebuilds the tab bar - only when it
+    /// changed.
     private func persist() {
         guard loaded else { return }
-        Self.apply(dock: dock.map(\.rawValue), hub: hub.map(\.rawValue), to: settingsViewModel)
-    }
-
-    @MainActor
-    private static func apply(dock: [String], hub: [String], to model: SettingsViewModel) {
-        guard dock != model.settings.dockTabs || hub != model.settings.hubTabs else { return }
-        model.settings.dockTabs = dock
-        model.settings.hubTabs = hub
-        model.saveSettings()
+        let dockRaw = dock.map(\.rawValue)
+        let hubRaw = hub.map(\.rawValue)
+        guard dockRaw != settings.dockTabs || hubRaw != settings.hubTabs else { return }
+        settingsViewModel.settings.dockTabs = dockRaw
+        settingsViewModel.settings.hubTabs = hubRaw
+        settingsViewModel.saveSettings()
     }
 }

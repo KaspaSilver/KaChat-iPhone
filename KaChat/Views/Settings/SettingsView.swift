@@ -197,10 +197,19 @@ struct SettingsView: View {
                     // per-account and the guides need an active wallet.
                     AppWideCustomizationPickers()
 
-                    NavigationLink {
-                        MenuVisibilityView()
+                    // The sheet above the tab bar (MainTabView), never a page in here: the dock
+                    // updates live, and every change rebuilds the tabs this page sits in.
+                    Button {
+                        NotificationCenter.default.post(name: .openCustomizeDock, object: nil)
                     } label: {
-                        Label("Customize Dock", systemImage: "list.bullet")
+                        HStack {
+                            Label("Customize Dock", systemImage: "list.bullet")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundColor(Color(.tertiaryLabel))
+                        }
                     }
 
                     // Moved here from Chats: it decides whether a number is drawn on the

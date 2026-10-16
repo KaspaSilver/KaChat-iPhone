@@ -169,8 +169,14 @@ extension ChatService {
                             content: self.paymentNoticeText(amountSompi: notice.amountSompi, memo: memo, isOutgoing: false))
                         self.saveMessages()
                     case .invalid(let reason):
+                        // still this notice's unverified bubble after the await?
+                        guard self.isActiveWallet(walletAddress),
+                              let current = await self.findLocalMessage(txId: txId),
+                              !current.isOutgoing, current.deliveryStatus == .warning,
+                              current.senderAddress.lowercased() == contactAddress.lowercased() else { return }
                         // the claim was false: its unverified bubble goes (a real payment under
                         // that txid is filed where it belongs by the next payment fetch)
+                        self.unmarkNoticeBubble(txId)
                         self.removeMessage(txId: txId)
                         self.messageStore.deleteMessage(txId: txId)
                         self.saveMessages()
@@ -273,6 +279,7 @@ extension ChatService {
             messageType: .payment,
             deliveryStatus: status
         )
+        if !isOutgoing { markNoticeBubble(txId) }
         addMessageToConversation(bubble, contactAddress: contactAddress)
         if moving, let key = messageEncryptionKey() {
             messageStore.upsertMessage(bubble, contactAddress: contactAddress, encryptionKey: key, refile: true)
@@ -280,6 +287,37 @@ extension ChatService {
         saveMessages()
         AppLog.log("[ChatService] Payment %@ filed in its chat from a payment_notice (%@)",
                    String(txId.prefix(12)), status.rawValue)
+    }
+
+    // MARK: Bubbles a notice filed (IOS-083, run 11)
+    //
+    // A received payment a payment_notice filed in its sender's chat is that notice's to confirm
+    // (its chain check, with the own-address and other-contact rules). The generic incoming-payment
+    // code (UTXO resolution, the REST payment sync, the warning retry) knows nothing of notices,
+    // and promoting such a bubble to "sent" in place would confirm a claim nobody checked - so it
+    // leaves the txids listed here alone. Per wallet, the newest 2,000.
+
+    private var noticeBubblesKey: String? {
+        WalletManager.shared.currentWallet.map { "kachat_notice_bubbles_\($0.publicAddress.lowercased())" }
+    }
+
+    func isNoticeBubble(_ txId: String) -> Bool {
+        guard let key = noticeBubblesKey else { return false }
+        return (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(txId.lowercased())
+    }
+
+    func markNoticeBubble(_ txId: String) {
+        guard let key = noticeBubblesKey else { return }
+        var ids = UserDefaults.standard.stringArray(forKey: key) ?? []
+        guard !ids.contains(txId.lowercased()) else { return }
+        ids.append(txId.lowercased())
+        UserDefaults.standard.set(Array(ids.suffix(2000)), forKey: key)
+    }
+
+    func unmarkNoticeBubble(_ txId: String) {
+        guard let key = noticeBubblesKey else { return }
+        let ids = (UserDefaults.standard.stringArray(forKey: key) ?? []).filter { $0 != txId.lowercased() }
+        UserDefaults.standard.set(ids, forKey: key)
     }
 
     private enum NoticeCheck {

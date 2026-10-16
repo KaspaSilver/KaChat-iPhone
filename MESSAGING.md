@@ -362,6 +362,9 @@ Message Request from a stranger on their side - XP-022). So:
      one of ours): never move an existing record. With nothing stored yet, show the bubble marked
      unverified (warning) and check again when the notice is read again; a re-check that says the
      claim is false removes that unverified bubble.
+   - A bubble a notice filed is confirmed **only** by that notice's chain check. The app's generic
+     incoming-payment handling (UTXO resolution, payment sync, warning retries) must never promote
+     or move it: remember which txids a notice filed and leave them to the notice.
    - Notification: "Received payment", without the claimed amount.
 
 3. **Payer's other devices.** An outgoing `payment_notice` read back from the indexer makes the

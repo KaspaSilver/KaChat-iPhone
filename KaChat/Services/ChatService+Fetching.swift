@@ -2599,6 +2599,10 @@ extension ChatService {
                     AppLog.log("[ChatService] Replacing outgoing message for %@ with incoming payment",
                           String(payment.txId.prefix(16)))
                     removeMessage(txId: payment.txId)
+                } else if isNoticeBubble(payment.txId) {
+                    // filed by a payment_notice in its sender's chat: only that notice's own chain
+                    // check may confirm it, never this generic path (IOS-083)
+                    continue
                 } else {
                     let shouldPromoteStatus = deliveryStatus.priority > existing.deliveryStatus.priority
                     let shouldKeepPending = incomingResolutionPendingTxIds.contains(payment.txId) && deliveryStatus == .sent

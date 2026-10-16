@@ -545,7 +545,8 @@ extension ChatService {
         incomingResolutionPendingTxIds.insert(txId)
 
         if let existing = await findLocalMessage(txId: txId) {
-            if existing.isOutgoing || existing.messageType != .payment {
+            // a notice's bubble is that notice's to confirm (IOS-083)
+            if existing.isOutgoing || existing.messageType != .payment || isNoticeBubble(txId) {
                 clearIncomingResolutionTracking(txId: txId)
                 return
             }
@@ -978,6 +979,8 @@ extension ChatService {
         // synchronous predicate. Explicit await-loop instead.
         var candidates: [String] = []
         for txId in warningTxIds {
+            // a notice's unverified bubble is re-checked by its notice, never resolved here (IOS-083)
+            guard !isNoticeBubble(txId) else { continue }
             guard let message = await findLocalMessage(txId: txId) else { continue }
             if !message.isOutgoing && message.messageType == .payment && message.deliveryStatus == .warning {
                 candidates.append(txId)

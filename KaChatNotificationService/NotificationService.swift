@@ -369,24 +369,28 @@ class NotificationService: UNNotificationServiceExtension {
 
     // MARK: - Message Handlers
 
+    /// A payment in a chat: the title is who sent it (set by the caller), the body says what -
+    /// "Sent you 1.5 KAS", the amount without trailing zeros.
     private func handlePayment(content: UNMutableNotificationContent, userInfo: [AnyHashable: Any]) {
-        // Try to extract amount from userInfo
-        if let amountSompi = userInfo["amount"] as? UInt64 {
-            let kas = Double(amountSompi) / 100_000_000.0
-            let format = unitLabel(NSLocalizedString("Received %.8f KAS", comment: "Push body for incoming payment with amount"))
-            content.body = String(format: format, kas)
-        } else if let amountStr = userInfo["amount"] as? String,
-                  let amountSompi = UInt64(amountStr) {
-            let kas = Double(amountSompi) / 100_000_000.0
-            let format = unitLabel(NSLocalizedString("Received %.8f KAS", comment: "Push body for incoming payment with amount"))
-            content.body = String(format: format, kas)
-        } else if let amountNum = userInfo["amount"] as? NSNumber {
-            let kas = amountNum.doubleValue / 100_000_000.0
-            let format = unitLabel(NSLocalizedString("Received %.8f KAS", comment: "Push body for incoming payment with amount"))
-            content.body = String(format: format, kas)
+        let sompi: UInt64?
+        if let value = userInfo["amount"] as? UInt64 {
+            sompi = value
+        } else if let text = userInfo["amount"] as? String, let value = UInt64(text) {
+            sompi = value
+        } else if let number = userInfo["amount"] as? NSNumber {
+            sompi = number.uint64Value
         } else {
-            content.body = NSLocalizedString("Received payment", comment: "Push body for incoming payment")
+            sompi = nil
         }
+        guard let sompi, sompi > 0 else {
+            content.body = NSLocalizedString("Sent you a payment", comment: "Push body for an incoming payment, amount unknown")
+            return
+        }
+        var kas = String(format: "%.8f", Double(sompi) / 100_000_000.0)
+        while kas.hasSuffix("0") { kas.removeLast() }
+        if kas.hasSuffix(".") { kas.removeLast() }
+        let format = unitLabel(NSLocalizedString("Sent you %@ KAS", comment: "Push body for an incoming payment; the title is who sent it"))
+        content.body = String(format: format, kas)
     }
 
     // MARK: - Group Push Handling

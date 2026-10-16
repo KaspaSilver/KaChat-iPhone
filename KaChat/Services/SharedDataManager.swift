@@ -85,10 +85,10 @@ final class SharedDataManager {
         let contacts = ContactsManager.shared.contacts.map { contact in
             SharedContact(
                 address: contact.address,
-                // A name you gave the chat, else the Address Book's, else the stored alias.
-                alias: contact.assignedName
-                    ?? AddressBookManager.shared.entry(for: contact.address)?.customName
-                    ?? contact.alias,
+                // Who they are in the app: a name you gave them (chat or Address Book), else their
+                // .kachat name, else the short address - so a push from someone with a .kachat
+                // name says it, not their address.
+                alias: ContactsManager.shared.displayName(for: contact),
                 notificationModeOverride: contact.notificationModeOverride
             )
         }

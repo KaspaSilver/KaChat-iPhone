@@ -359,3 +359,7 @@
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ لم يعد ملكك";
 "It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "انتهت صلاحيته ولم يُجدَّد، لذا أصبح متاحًا لأي شخص في السوق. يعود ضمانك إليك عندما يطالب به أحد.";
+
+/* Push body for an incoming chat payment (title = who sent it) */
+"Sent you %@ KAS" = "أرسل لك %@ KAS";
+"Sent you a payment" = "أرسل لك دفعة";

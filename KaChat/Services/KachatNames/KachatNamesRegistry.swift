@@ -687,6 +687,7 @@ final class KachatNamesRegistry: ObservableObject {
             identities[key] = CachedIdentity(identity: found, revision: revision, at: Date())
             persistIdentities()
             ContactsManager.shared.objectWillChange.send()
+            ContactsManager.shared.scheduleSharedNameSync()
         } else {
             identities[key]?.revision = revision
             identities[key]?.at = Date()
@@ -725,6 +726,7 @@ final class KachatNamesRegistry: ObservableObject {
                     self.identities[key] = CachedIdentity(identity: found, revision: self.revision, at: Date())
                     self.persistIdentities()
                     ContactsManager.shared.objectWillChange.send()
+                    ContactsManager.shared.scheduleSharedNameSync()
                 } else {
                     self.identities[key]?.revision = self.revision
                     self.identities[key]?.at = Date()

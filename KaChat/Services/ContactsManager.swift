@@ -810,6 +810,12 @@ final class ContactsManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + lastMessageSaveDelay, execute: workItem)
     }
 
+    /// A name the extensions show changed without the contact list changing (a .kachat name
+    /// landed): re-sync the shared copy, debounced like every other sync.
+    func scheduleSharedNameSync() {
+        scheduleSharedSync()
+    }
+
     private func scheduleSharedSync() {
         sharedSyncWorkItem?.cancel()
         let now = Date()

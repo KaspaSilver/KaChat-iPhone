@@ -79,7 +79,13 @@ struct MainTabView: View {
         return Image(uiImage: rendered.withRenderingMode(.alwaysTemplate))
     }()
 
-    var body: some View {
+
+    /// The dock's TabView on its own, so `body` stays small enough for the type checker.
+    /// A new dock arrangement builds a fresh tab bar: reordering the same TabView left UIKit's
+    /// tab items with the image of whatever tab held that slot before (Portfolio showing
+    /// KaPosts' pencil after Customize Dock) - the titles updated, the images did not. The key
+    /// changes only when the arrangement does.
+    private var dockTabView: some View {
         TabView(selection: tabSelection) {
             ForEach(AppTab.visible(from: settingsViewModel.settings)) { tab in
                 tabContent(for: tab)
@@ -110,11 +116,15 @@ struct MainTabView: View {
             }
         }
         .tint(.accentColor)
-        // A new dock arrangement builds a fresh tab bar. Reordering the same TabView left UIKit's
-        // tab items with the image of whatever tab held that slot before (Portfolio showing
-        // KaPosts' pencil after Customize Dock) - the titles updated, the images did not. The key
-        // changes only when the arrangement does.
-        .id(AppTab.visible(from: settingsViewModel.settings).map(\.rawValue).joined(separator: ","))
+        .id(dockArrangementKey)
+    }
+
+    private var dockArrangementKey: String {
+        AppTab.visible(from: settingsViewModel.settings).map(\.rawValue).joined(separator: ",")
+    }
+
+    var body: some View {
+        dockTabView
         // the bell has something unread: Profile's dock dot, from whichever tab is showing. Its
         // own modifier: inline, these pushed the body past what the type checker can solve.
         .modifier(ProfileDockDotSync(selectedTab: selectedTab, dockTabs: AppTab.visible(from: settingsViewModel.settings)))

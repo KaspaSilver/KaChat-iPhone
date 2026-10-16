@@ -40,6 +40,9 @@
 // What the app SHOWS in About is the real CFBundleVersion's last 4 digits: "5.2 (2579)" for
 // 202607032579, counting up with every build, plain "5.2" once KACHAT_IS_RELEASE is YES for the
 // App Store release. KACHAT_BUILD_NUMBER is no longer shown (kept for the Info.plist key).
+// A build run from Xcode (not Cloud, not an archive) gets its own next number from the app
+// target's "Local Build Number" script phase: one above CURRENT_PROJECT_VERSION, then one more
+// per build, kept in the gitignored KaChat/.local-build-number - so About counts up there too.
 KACHAT_BUILD_NUMBER = 1
 KACHAT_IS_RELEASE = NO
 CURRENT_PROJECT_VERSION = 202607032579

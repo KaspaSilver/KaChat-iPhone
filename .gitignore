@@ -40,3 +40,6 @@ external/*
 
 # Local API keys (see KaChat/Secrets.xcconfig.example)
 KaChat/Secrets.xcconfig
+
+# The local build counter (the "Local Build Number" script phase): per machine, never shared.
+KaChat/.local-build-number

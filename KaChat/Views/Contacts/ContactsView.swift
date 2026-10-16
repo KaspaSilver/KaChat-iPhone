@@ -1450,7 +1450,8 @@ struct ProfileView: View {
 
     /// "5.2 (2579)" through the beta cycle, plain "5.2" once the train is released. The build is
     /// the real one in the shipped bundle (CFBundleVersion: Xcode Cloud's counter, e.g.
-    /// 202607032579, or Version.xcconfig's for a local archive), shown by its last 4 digits for
+    /// 202607032579, the upload's for a local archive, or the "Local Build Number" script
+    /// phase's for a build run from Xcode), shown by its last 4 digits for
     /// easier reading - it still counts up with every build. `KaChatIsRelease` = YES drops the
     /// parenthetical for the App Store build.
     private var appVersionDisplay: String {

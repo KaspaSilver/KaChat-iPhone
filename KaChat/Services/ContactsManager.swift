@@ -549,7 +549,7 @@ final class ContactsManager: ObservableObject {
     /// .kachat names exist.
     func displayName(for address: String) -> String {
         if let assigned = getContact(byAddress: address)?.assignedName { return assigned }
-        if let saved = AddressBookManager.shared.entry(for: address)?.name { return saved }
+        if let saved = AddressBookManager.shared.entry(for: address)?.customName { return saved }
         return identityName(for: address)
     }
 
@@ -557,7 +557,7 @@ final class ContactsManager: ObservableObject {
     /// wins; then the address's Address Book name; then who it is on chain.
     func displayName(for contact: Contact) -> String {
         if let assigned = contact.assignedName { return assigned }
-        if let saved = AddressBookManager.shared.entry(for: contact.address)?.name { return saved }
+        if let saved = AddressBookManager.shared.entry(for: contact.address)?.customName { return saved }
         return identityName(for: contact.address)
     }
 

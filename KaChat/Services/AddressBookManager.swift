@@ -143,8 +143,9 @@ final class AddressBookManager: ObservableObject {
     func save(address: String, name: String, note: String = "", photo: PhotoChange = .unchanged) throws -> AddressBookEntry {
         guard walletAddress != nil else { throw SaveError.noWallet }
         let address = Self.normalize(address)
+        // An empty name is allowed: the entry keeps its note and photo, and the address goes by
+        // who it is on chain again (`AddressBookEntry.customName`).
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !name.isEmpty else { throw SaveError.emptyName }
         // the network the app runs on only: the other network's address is the same key on the
         // other chain, a chat with it is never read and is dropped on the next launch (IOS-063)
         if let reason = KaspaAddress.otherNetworkReason(address) { throw SaveError.otherNetwork(reason) }

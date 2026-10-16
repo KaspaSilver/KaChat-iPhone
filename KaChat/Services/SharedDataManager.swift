@@ -87,7 +87,7 @@ final class SharedDataManager {
                 address: contact.address,
                 // A name you gave the chat, else the Address Book's, else the stored alias.
                 alias: contact.assignedName
-                    ?? AddressBookManager.shared.entry(for: contact.address)?.name
+                    ?? AddressBookManager.shared.entry(for: contact.address)?.customName
                     ?? contact.alias,
                 notificationModeOverride: contact.notificationModeOverride
             )

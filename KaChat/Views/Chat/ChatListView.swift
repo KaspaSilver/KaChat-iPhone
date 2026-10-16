@@ -1753,7 +1753,7 @@ struct ConversationRow: View {
     private var rowDisplayName: String {
         let contact = ContactsManager.shared.getContact(byAddress: conversation.contact.address) ?? conversation.contact
         if let assigned = contact.assignedName { return assigned }
-        if let saved = addressBook.entry(for: contact.address)?.name { return saved }
+        if let saved = addressBook.entry(for: contact.address)?.customName { return saved }
         // On testnet: the .kachat name (read through the observed registry, so the row redraws
         // when it lands); KNS isn't consulted there.
         if KachatNamesService.isEnabled {

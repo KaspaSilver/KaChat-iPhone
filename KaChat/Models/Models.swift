@@ -314,7 +314,15 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
 struct AddressBookEntry: Codable, Identifiable, Equatable, Hashable {
     var id: UUID
     var address: String
+    /// May be empty: the person removed the name they gave, and the address goes by who it is on
+    /// chain again (its .kachat name, else the address). Read it through `customName`.
     var name: String
+
+    /// The name the person gave this address, or nil when it has none.
+    var customName: String? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
     var note: String
     var createdAt: Date
     var updatedAt: Date

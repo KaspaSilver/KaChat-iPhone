@@ -470,7 +470,8 @@ struct ChatInfoView: View {
                 }
             }
             .onAppear {
-                editedAlias = contact.assignedName ?? ""
+                // the name you gave them, wherever you gave it (the chat or the Address Book)
+                editedAlias = contact.assignedName ?? addressBook.entry(for: contact.address)?.customName ?? ""
                 notificationModeOverride = contact.notificationModeOverride
                 photoAutoDisplayOverride = contact.photoAutoDisplayOverride
                 // Already cached? Show the domains immediately rather than a spinner.
@@ -969,6 +970,11 @@ struct ChatInfoView: View {
         updatedContact.photoAutoDisplayOverride = photoAutoDisplayOverride
         contactsManager.updateContact(updatedContact)
         contact = updatedContact
+        // One name per person: the Address Book entry, if there is one, takes the same name - so
+        // clearing it here really clears it, and they go by their .kachat name or their address.
+        if let entry = addressBook.entry(for: contact.address), entry.customName != (trimmedAlias.isEmpty ? nil : trimmedAlias) {
+            _ = try? addressBook.save(address: entry.address, name: trimmedAlias, note: entry.note)
+        }
     }
 
     @ViewBuilder

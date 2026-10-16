@@ -292,7 +292,7 @@ struct AddressBookRow: View {
         HStack(spacing: 12) {
             AddressBookAvatar(address: entry.address, size: 38)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: entry.name)
+                Text(verbatim: entry.customName ?? ContactsManager.shared.displayName(for: entry.address))
                     .font(.body.weight(.semibold))
                     .lineLimit(1)
                 Text(verbatim: Contact.generateDefaultAlias(from: entry.address))
@@ -329,7 +329,7 @@ struct AddressBookEntryDetail: View {
                     Section {
                         VStack(spacing: 10) {
                             AddressBookAvatar(address: entry.address, size: 76)
-                            Text(verbatim: entry.name)
+                            Text(verbatim: entry.customName ?? ContactsManager.shared.displayName(for: entry.address))
                                 .font(.title3.weight(.semibold))
                                 .multilineTextAlignment(.center)
                             if !entry.note.isEmpty {
@@ -408,7 +408,7 @@ struct AddressBookEntryDetail: View {
                     }
                 }
                 .confirmationDialog(
-                    Text("Delete \(entry.name) from your Address Book?"),
+                    Text("Delete \(entry.customName ?? ContactsManager.shared.displayName(for: entry.address)) from your Address Book?"),
                     isPresented: $confirmDelete,
                     titleVisibility: .visible
                 ) {
@@ -615,7 +615,8 @@ struct AddressBookEntryEditor: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { save() }
-                        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || effectiveAddress.isEmpty)
+                        // an empty name saves too: the address goes by its .kachat name or itself
+                        .disabled(effectiveAddress.isEmpty)
                 }
             }
             .sheet(isPresented: $showScanner) {
@@ -697,7 +698,14 @@ struct AddressBookEntryEditor: View {
             case .some(.none): photo = .removed
             case .some(.some): photo = pendingPhotoData.map { .set($0) } ?? .unchanged
             }
-            try book.save(address: effectiveAddress, name: name, note: note, photo: photo)
+            let saved = try book.save(address: effectiveAddress, name: name, note: note, photo: photo)
+            // One name per person: a chat with them goes by the same one - so clearing it here
+            // really clears it, and they go by their .kachat name or their address.
+            let contacts = ContactsManager.shared
+            if var contact = contacts.getContact(byAddress: saved.address), contact.assignedName != saved.customName {
+                contact.alias = saved.customName ?? Contact.generateDefaultAlias(from: contact.address)
+                contacts.updateContact(contact)
+            }
             onDone(.saved)
             dismiss()
         } catch {

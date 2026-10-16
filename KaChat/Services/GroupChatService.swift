@@ -1429,7 +1429,7 @@ final class GroupChatService: ObservableObject {
     /// Best display name for a membership line: contact alias → roster snapshot → KNS → fallback.
     private func groupMemberLabel(_ address: String, fallback: String?) -> String {
         if let assigned = ContactsManager.shared.getContact(byAddress: address)?.assignedName { return assigned }
-        if let saved = AddressBookManager.shared.entry(for: address)?.name { return saved }
+        if let saved = AddressBookManager.shared.entry(for: address)?.customName { return saved }
         if let f = fallback, !f.isEmpty { return f }
         if let kns = KNSService.shared.profileCache[address]?.domainName, !kns.isEmpty { return kns }
         return Contact.generateDefaultAlias(from: address)

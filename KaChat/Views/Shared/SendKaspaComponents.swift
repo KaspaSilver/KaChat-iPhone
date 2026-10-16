@@ -95,8 +95,8 @@ struct SendRecipientCard: View {
                     }
                 }
                 AddressResolutionCard(address: resolvedAddress ?? (isValidAddress ? trimmed : nil), domain: resolvedName)
-                if let saved = addressBook.entry(for: resolvedAddress ?? trimmed) {
-                    Label(saved.name, systemImage: "book.closed.fill")
+                if let savedName = addressBook.entry(for: resolvedAddress ?? trimmed)?.customName {
+                    Label(savedName, systemImage: "book.closed.fill")
                         .font(.caption.weight(.semibold))
                         .foregroundColor(.accentColor)
                 }

@@ -111,6 +111,10 @@ history, except by an explicit chat deletion (tombstones, §5).
   - The winning entry decides the photo: a photo it carries replaces the local one; if it has none
     and it's newer than the local entry, the local photo is removed. On a device, photos are files
     and not part of the stored entry.
+  - `name` may be empty (`""`): the entry has no name the user gave and the address is shown by
+    its on-chain name (`.kachat`) or the address. Such an entry is a real entry (note, photo) and
+    merges like any other: a newer entry with an empty name clears an older entry's name. Every
+    app accepts, saves, exports and imports nameless entries (IOS-089).
   - `addressBookDeleted`: an array of `{address, deletedAt}`.
   - Merge per address: the newest `updatedAt` of either side's entries, unless a tombstone's
     `deletedAt` is at or after it. Then it's deleted and only the tombstone is kept.

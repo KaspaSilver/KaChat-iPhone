@@ -356,13 +356,14 @@ final class AddressBookManager: ObservableObject {
         iso.dateDecodingStrategy = .iso8601
         guard let file = (try? iso.decode(ExportFile.self, from: data)) ?? (try? JSONDecoder().decode(ExportFile.self, from: data)),
               file.type == ExportFile.kind else { throw ImportError.notAnAddressBook }
-        let named = file.entries.filter {
-            !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                && ContactsManager.shared.isValidKaspaAddress(Self.normalize($0.address))
+        // A nameless entry counts like any other (IOS-089): it may carry a note and a photo, and a
+        // name cleared elsewhere must clear here too when it is the newer one.
+        let addressed = file.entries.filter {
+            ContactsManager.shared.isValidKaspaAddress(Self.normalize($0.address))
         }
-        let valid = named.filter { KaspaAddress.isValidOnActiveNetwork(Self.normalize($0.address)) }
-        let skipped = named.count - valid.count
-        guard !named.isEmpty else { throw ImportError.empty }
+        let valid = addressed.filter { KaspaAddress.isValidOnActiveNetwork(Self.normalize($0.address)) }
+        let skipped = addressed.count - valid.count
+        guard !addressed.isEmpty else { throw ImportError.empty }
         guard !valid.isEmpty else { throw ImportError.otherNetwork }
         var added = 0, updated = 0
         for var incoming in valid {
@@ -370,6 +371,7 @@ final class AddressBookManager: ObservableObject {
             incoming.address = address
             let photo = incoming.photo.flatMap { Data(base64Encoded: $0) }
             incoming.photo = nil
+            incoming.name = incoming.name.trimmingCharacters(in: .whitespacesAndNewlines)
             if let i = byAddress[address] {
                 guard incoming.updatedAt > entries[i].updatedAt else { continue }
                 entries[i].name = incoming.name

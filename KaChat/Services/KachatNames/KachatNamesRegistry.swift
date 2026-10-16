@@ -1556,7 +1556,9 @@ enum KachatNameReminders {
         "\(root)\(network)-\(walletTag(wallet))-"
     }
 
-    /// A wallet's reminders on every network, for when it leaves this phone.
+    /// A wallet's reminders, for when it leaves this phone. The tag comes from the address as
+    /// given, whose checksum differs between kaspa: and kaspatest:, so a caller removing an
+    /// account calls this for each of its network variants (`accountAddressVariants`).
     static func removeAll(forWallet wallet: String) async {
         let center = UNUserNotificationCenter.current()
         let tag = "-\(walletTag(wallet))-"

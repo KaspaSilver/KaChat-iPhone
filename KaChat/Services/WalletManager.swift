@@ -505,8 +505,11 @@ final class WalletManager: ObservableObject {
         }
         if let walletAddressToDelete {
             KaPostsDraftStore.shared.deleteDrafts(forWalletAddress: walletAddressToDelete)
-            // its .kachat reminders would keep firing for names this phone no longer holds
-            await KachatNameReminders.removeAll(forWallet: walletAddressToDelete)
+            // its .kachat reminders would keep firing for names this phone no longer holds - on
+            // both networks: the tag is from the address, whose checksum differs per prefix
+            for address in Self.accountAddressVariants(walletAddressToDelete) {
+                await KachatNameReminders.removeAll(forWallet: address)
+            }
         }
 
         // The Secure Enclave key wraps every saved account's snapshot (and the device id, the

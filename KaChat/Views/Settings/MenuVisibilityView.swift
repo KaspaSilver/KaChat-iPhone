@@ -74,7 +74,14 @@ struct MenuVisibilityView: View {
         // tab bar, and rebuilding it under a closing sheet or navigation pop could leave the page
         // shown next (KaPosts, say) black until a relaunch.
         .onDisappear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { persist() }
+            // what was arranged, taken now: this view's state is gone by the time it applies
+            guard loaded else { return }
+            let dockRaw = dock.map(\.rawValue)
+            let hubRaw = hub.map(\.rawValue)
+            let model = settingsViewModel
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                Self.apply(dock: dockRaw, hub: hubRaw, to: model)
+            }
         }
         // Backgrounding is the one way off this screen that never calls onDisappear, and an app
         // killed from the background would otherwise lose the arrangement.
@@ -178,11 +185,13 @@ struct MenuVisibilityView: View {
     /// Writes the draft to the real settings, and so rebuilds the tab bar - once, on the way out.
     private func persist() {
         guard loaded else { return }
-        let dockRaw = dock.map(\.rawValue)
-        let hubRaw = hub.map(\.rawValue)
-        guard dockRaw != settings.dockTabs || hubRaw != settings.hubTabs else { return }
-        settingsViewModel.settings.dockTabs = dockRaw
-        settingsViewModel.settings.hubTabs = hubRaw
-        settingsViewModel.saveSettings()
+        Self.apply(dock: dock.map(\.rawValue), hub: hub.map(\.rawValue), to: settingsViewModel)
+    }
+
+    private static func apply(dock: [String], hub: [String], to model: SettingsViewModel) {
+        guard dock != model.settings.dockTabs || hub != model.settings.hubTabs else { return }
+        model.settings.dockTabs = dock
+        model.settings.hubTabs = hub
+        model.saveSettings()
     }
 }

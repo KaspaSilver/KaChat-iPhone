@@ -518,6 +518,23 @@ extension WalletManager {
 
     private static var ownAddressIndexCache: (key: String, map: [String: Int])?
 
+    /// Every spending address this phone has derived for the account `address` (either network
+    /// encoding, either network), read from that account's derived-address cache - for a saved
+    /// account that isn't the active one, whose seed isn't decrypted (IOS-083). An account
+    /// never active since the cache existed has none here.
+    func cachedSpendingAddresses(ofAccount address: String) -> [String] {
+        var out: [String] = []
+        for variant in Self.accountAddressVariants(address) {
+            for network in NetworkType.allCases {
+                let key = "kachat_spending_derived_addresses_\(variant)_\(network.rawValue)"
+                if let cached = UserDefaults.standard.dictionary(forKey: key) as? [String: String] {
+                    out += cached.values
+                }
+            }
+        }
+        return out
+    }
+
     func allSpendingAddresses() -> [String] {
         guard let changeKey = spendingChangeKey() else { return [] }
         return (0...maxSpendingAddressIndex).compactMap { spendingAddress(at: $0, changeKey: changeKey) }

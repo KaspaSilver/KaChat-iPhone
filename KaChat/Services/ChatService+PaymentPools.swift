@@ -160,13 +160,23 @@ extension ChatService {
                 let counterpart = existing.isOutgoing ? existing.receiverAddress : existing.senderAddress
                 if existing.isOutgoing == isOutgoing, counterpart.lowercased() == contactAddress.lowercased() {
                     // already in this chat; one filed unverified gets its chain check again
-                    if !isOutgoing, existing.messageType == .payment, existing.deliveryStatus == .warning,
-                       case .valid = await self.checkNoticeOnChain(txId: txId, paidAddress: walletAddress,
-                                                                    claimedSompi: notice.amountSompi, payer: contactAddress) {
+                    guard !isOutgoing, existing.messageType == .payment, existing.deliveryStatus == .warning else { return }
+                    switch await self.checkNoticeOnChain(txId: txId, paidAddress: walletAddress,
+                                                         claimedSompi: notice.amountSompi, payer: contactAddress) {
+                    case .valid:
                         _ = self.updateIncomingPaymentStatus(
                             txId: txId, deliveryStatus: .sent,
                             content: self.paymentNoticeText(amountSompi: notice.amountSompi, memo: memo, isOutgoing: false))
                         self.saveMessages()
+                    case .invalid(let reason):
+                        // the claim was false: its unverified bubble goes (a real payment under
+                        // that txid is filed where it belongs by the next payment fetch)
+                        self.removeMessage(txId: txId)
+                        self.messageStore.deleteMessage(txId: txId)
+                        self.saveMessages()
+                        AppLog.log("[ChatService] Removed unverified payment_notice bubble %@ - %@", String(txId.prefix(12)), reason)
+                    case .unknown:
+                        break
                     }
                     return
                 }
@@ -222,14 +232,19 @@ extension ChatService {
     }
 
     /// Every address this phone knows as the person's own, lowercased: the chatting address,
-    /// every revealed spending address, every saved account's chatting address and every Cold
-    /// Storage receive address. A transfer from any of them is the person moving their own
+    /// every revealed spending address, every saved account's chatting and (cached) spending
+    /// addresses and every Cold Storage receive address. A transfer from any of them is the person moving their own
     /// money, which no contact's notice may ever claim (IOS-083).
     private func ownAddressesForNotices(walletAddress: String) -> Set<String> {
         var own = Set(WalletManager.shared.allSpendingAddresses().map { $0.lowercased() })
         own.insert(walletAddress.lowercased())
+        // every saved account: its chatting address and every spending address this phone
+        // derived for it (run 10: B's Address #2 topping up A's chatting address is ours too)
         for account in WalletManager.shared.savedAccounts {
             own.insert(account.publicAddress.lowercased())
+            for spending in WalletManager.shared.cachedSpendingAddresses(ofAccount: account.publicAddress) {
+                own.insert(spending.lowercased())
+            }
         }
         let network = AppSettings.load().networkType
         for account in ColdStorageManager.shared.accounts {
@@ -292,8 +307,10 @@ extension ChatService {
             .reduce(UInt64(0)) { $0 + $1.amount }
         guard paid == claimedSompi else { return .invalid("it pays \(paid) sompi, not \(claimedSompi)") }
         guard (fullTx.payload ?? "").isEmpty else { return .invalid("the transaction carries a payload") }
-        let inputs = (fullTx.inputs ?? []).compactMap { $0.previousOutpointAddress?.lowercased() }
-        guard !inputs.isEmpty else { return .unknown }
+        // an input without a resolved address could be one of ours: no chain answer yet
+        let rawInputs = fullTx.inputs ?? []
+        guard !rawInputs.isEmpty, rawInputs.allSatisfy({ $0.previousOutpointAddress != nil }) else { return .unknown }
+        let inputs = rawInputs.compactMap { $0.previousOutpointAddress?.lowercased() }
         let own = ownAddressesForNotices(walletAddress: paidAddress)
         for input in inputs {
             if own.contains(input) { return .invalid("paid by one of our own addresses") }

@@ -358,8 +358,10 @@ Message Request from a stranger on their side - XP-022). So:
      notice may have claimed it meanwhile.
      Never move or overwrite anything else: another chat's payment, a message, or anything we
      sent. A later payment fetch finds the txId present and does nothing.
-   - No chain answer (not indexed yet): never move an existing record. With nothing stored yet,
-     show the bubble marked unverified (warning) and check again when the notice is read again.
+   - No chain answer (not indexed yet, or **any** input whose address isn't resolved - it could be
+     one of ours): never move an existing record. With nothing stored yet, show the bubble marked
+     unverified (warning) and check again when the notice is read again; a re-check that says the
+     claim is false removes that unverified bubble.
    - Notification: "Received payment", without the claimed amount.
 
 3. **Payer's other devices.** An outgoing `payment_notice` read back from the indexer makes the

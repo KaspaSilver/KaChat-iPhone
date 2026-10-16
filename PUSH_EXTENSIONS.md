@@ -127,6 +127,31 @@ Honor removal counter-actions: an `unvote`/`unquote` should not generate a push.
 - Actor subtitle: KNS primary name for the actor's derived Kaspa address if you resolve KNS
   server-side, else the address shortened (`kaspa:qq12....wxyz`).
 
+### 3a. New posts from people you asked to be notified about (2026-10-16)
+
+A bell next to Follow on a post (and on a profile) asks to be notified whenever that person
+posts. The app keeps the list per account and sends it on every register / update call:
+
+- **`kaposts_watch_authors`**: array of authors' pubkeys (66-hex compressed; compare on the
+  x-only key, like `kaposts_pubkey`). Empty or absent = none.
+
+When the KaPosts indexer ingests a new **top-level post** (`kchat:1:post`, also `kchat:1:poll`;
+not replies, quotes or reposts) by an author on a registration's list, push that device -
+except the author's own devices:
+
+```json
+{
+  "aps": { "alert": { "title": "KaPosts", "subtitle": "<author's name or short address>",
+                      "body": "posted: <snippet>" },
+           "sound": "default", "thread-id": "kaposts" },
+  "postId": "<the new post's txid>",
+  "kaposts_kind": "post"
+}
+```
+
+`apns-collapse-id` = the post's txid. Not affected by the per-kind switches (the bell is the
+switch). Snippet as for replies.
+
 ## 4. Delivery notes (both)
 
 - Plain alert pushes; both content types are public/unencrypted so there is nothing for the

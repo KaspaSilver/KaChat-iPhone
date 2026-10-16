@@ -39,6 +39,7 @@ kchat:1:edit:<pubkey>:<signature>:<post_id>:<b64_message>:<mentions_json>
 kchat:1:delete:<pubkey>:<signature>:<post_id>
 kchat:1:poll:<pubkey>:<signature>:<b64_question>:<options_b64_csv>:<closes_at_ms>:<mentions_json>
 kchat:1:pollvote:<pubkey>:<signature>:<poll_id>:<option_index>
+kchat:1:tip:<pubkey>:<signature>:<post_id>:<author_pubkey>:<sealed_hex>
 ```
 
 **Root migration.** The app used to write the K indexer's `k:1:` root (until 2026-08-18); it
@@ -70,6 +71,7 @@ are re-enabled.
   - delete: `"delete:<post_id>"` — same idea (an unquote signs a bare content id). See §5.8.
   - poll: `"poll:<b64_question>:<options_b64_csv>:<closes_at_ms>:<mentions_json>"` — see §5.9.
   - pollvote: `"pollvote:<poll_id>:<option_index>"` — see §5.9.
+  - tip: `"tip:<post_id>:<author_pubkey>:<sealed_hex>"` — see §5.11.
 - `<b64_message>`: base64 of the UTF-8 message text.
 - `<mentions_json>`: JSON array of mentioned pubkeys; the app currently always sends `[]`.
 - A **plain repost** is a quote whose message is empty-after-marker (see §3) — the K
@@ -334,6 +336,49 @@ Nice-to-haves once the core is up: richer notifications (mentions, replies to re
 a push hook — the app already runs a forked kasia-indexer with a `PushNotificationActor` for
 chat push (see `PUSH_NOTIFICATIONS.md`), so mirroring that pattern for social notifications
 is natural.
+
+### 5.11 Tips (2026-10-16)
+
+A tip is a payment to a post's author that **names the post**, so every reader sees how many
+times a post was tipped and by whom. It replaces the old tip (an ordinary chat payment that said
+nothing about the post).
+
+```
+kchat:1:tip:<pubkey>:<signature>:<post_id>:<author_pubkey>:<sealed_hex>
+```
+
+- The transaction is sent **from the tipper's chatting address** (never a spending address) and
+  pays the **author's chatting address**: the p2pk address of `<author_pubkey>` (x-only key =
+  the 66-hex key without its first byte). The tip's amount is what the transaction's outputs pay
+  that address. The tipper's change goes back to their chatting address.
+- `<pubkey>` / `<signature>`: the tipper, as for every action; the signing string is
+  `"tip:<post_id>:<author_pubkey>:<sealed_hex>"` (the sealed memo carries a random IV, so two
+  tips of the same post never share a signature).
+- `<post_id>`: the tipped content's txid (a post or a reply). `<author_pubkey>`: its author.
+- `<sealed_hex>`: lowercase hex of the same encrypted payment record a chat payment carries
+  after `kchat:1:pay:` - `{"type":"payment","message":<memo>,"amount":<sompi>,"timestamp":<ms>,
+  "version":1}` encrypted to the author's chat key - so the author's KaChat shows it in the chat
+  with the tipper exactly like a chat payment, memo included. Hex (not raw bytes) keeps the whole
+  payload text.
+
+**Indexer (KaPosts processor).** Accept a tip only when the signature verifies, `<post_id>`
+exists with `sender_pubkey = <author_pubkey>`, the tipper is not the author, and the outputs pay
+the author's address more than 0. Store it (dedupe on the signature) with the tipper, the post,
+the author, the amount and the block time. Push the author (`kaposts_kind: "tip"`, body
+`tipped your post: <amount> KAS`, `postId` = the tipped content). Post objects gain
+**`tipsCount`** (number of tips). New endpoint:
+
+| Endpoint | Returns |
+|---|---|
+| `get-post-tippers?postId=<txid>&limit=&before=` | `{tippers: [{id (the tip's txid), userPublicKey, amountSompi, timestamp}], pagination: {hasMore, nextCursor}}`, newest first |
+
+**Chat indexer.** A `kchat:1:tip:` transaction is also a chat payment to the author: index and
+push it as one (the "Received X KAS" push, `/payments/by-receiver`), the same as `kchat:1:pay:`.
+
+**App.** Tips are sent from the chatting address only (no From choice), the default "tip
+instantly" amount included. Each post shows a tip button with its count; tapping the count lists
+who tipped (and how much). The receiver's app reads `kchat:1:tip:` as a chat payment (the sealed
+part after the fifth field), shown in the chat with the tipper.
 
 ## 6. Getting started pointers
 

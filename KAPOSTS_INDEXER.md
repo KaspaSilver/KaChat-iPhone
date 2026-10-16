@@ -375,7 +375,9 @@ the author, the amount and the block time. Push the author (`kaposts_kind: "tip"
 **Chat indexer.** A `kchat:1:tip:` transaction is also a chat payment to the author: index and
 push it as one (the "Received X KAS" push, `/payments/by-receiver`), the same as `kchat:1:pay:`.
 Never skip that push for a tip. The two pushes for one tip share the tip's txid as collapse id
-(`apns-collapse-id` / FCM `collapse_key`), so the phone keeps one notification: the KaPosts
+(`apns-collapse-id`; on Android FCM `collapse_key` plus `android.notification.tag` on the
+OS-displayed KaPosts push, and the app posts its payment banner with tag = txid), so the phone
+keeps one notification: the KaPosts
 "tipped your post" replaces the payment one when it arrives, and the payment one still shows when
 the KaPosts processor never sends its push (node unreachable, post unknown).
 

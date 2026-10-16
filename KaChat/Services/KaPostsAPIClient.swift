@@ -181,6 +181,8 @@ final class KaPostsAPIClient: ObservableObject {
         let contentType: String?
         let voteType: String?
         let contentId: String?
+        /// contentType "tip" only: what the tip paid you, in sompi (contentId = the tipped post).
+        let tipAmountSompi: UInt64?
 
         var decodedContent: String? {
             guard let postContent, let data = Data(base64Encoded: postContent),
@@ -1390,6 +1392,9 @@ final class KaPostsNotificationService {
         let action: String
         switch notification.contentType {
         case "vote": action = notification.voteType == "downvote" ? "disliked your post" : "liked your post"
+        case "tip":
+            action = notification.tipAmountSompi.map { "tipped your post: \(KaspaUnit.plain($0)) \(KaspaUnit.symbol)" }
+                ?? "tipped your post"
         case "reply": action = "replied to your post"
         case "quote": action = text.isEmpty ? "reposted your post" : "quoted your post"
         case "follow": action = "followed you"

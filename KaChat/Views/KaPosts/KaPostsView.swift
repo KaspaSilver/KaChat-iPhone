@@ -8560,7 +8560,7 @@ struct KaPostsNotificationsView: View {
 
     struct Item: Identifiable {
         enum Kind {
-            case like, dislike, reply, quote, repost, follow, mention, other
+            case like, dislike, reply, quote, repost, follow, mention, tip, other
 
             var icon: String {
                 switch self {
@@ -8570,6 +8570,7 @@ struct KaPostsNotificationsView: View {
                 case .quote, .repost: return "arrow.2.squarepath"
                 case .follow: return "person.fill.badge.plus"
                 case .mention: return "at"
+                case .tip: return "dollarsign.circle.fill" // drawn as the Kaspa logo in the row
                 case .other: return "bell.fill"
                 }
             }
@@ -8582,6 +8583,7 @@ struct KaPostsNotificationsView: View {
                 case .quote, .repost: return .green
                 case .follow: return .accentColor
                 case .mention: return .accentColor
+                case .tip: return .accentColor
                 case .other: return .secondary
                 }
             }
@@ -8595,6 +8597,7 @@ struct KaPostsNotificationsView: View {
                 case .repost: return "reposted your post"
                 case .follow: return "followed you"
                 case .mention: return "mentioned you in a post"
+                case .tip: return "tipped your post"
                 case .other: return "interacted with your post"
                 }
             }
@@ -8609,6 +8612,16 @@ struct KaPostsNotificationsView: View {
         /// shown with its "Replying to"/embed context), or YOUR post for votes/reposts.
         /// Nil for follows (nothing to open).
         let targetTxId: String?
+        /// Tips only: what the tip paid, in sompi.
+        var tipAmountSompi: UInt64? = nil
+
+        /// "tipped your post: 1.5 KAS" for a tip, else the kind's own text.
+        var actionText: String {
+            if kind == .tip, let tipAmountSompi {
+                return "\(kind.actionText): \(KaspaUnit.plain(tipAmountSompi)) \(KaspaUnit.symbol)"
+            }
+            return kind.actionText
+        }
     }
 
     @State private var items: [Item] = []
@@ -8727,16 +8740,26 @@ struct KaPostsNotificationsView: View {
                 contactAddress: item.actorAddress
             )
             .overlay(alignment: .bottomTrailing) {
-                Image(systemName: item.kind.icon)
-                    .font(.scaled(size: 10, weight: .bold))
-                    .foregroundColor(item.kind.tint)
+                Group {
+                    if item.kind == .tip {
+                        // the Tip button's own mark
+                        Image("KaspaLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 12, height: 12)
+                    } else {
+                        Image(systemName: item.kind.icon)
+                            .font(.scaled(size: 10, weight: .bold))
+                            .foregroundColor(item.kind.tint)
+                    }
+                }
                     .padding(3)
                     .background(Circle().fill(Color(uiColor: .systemBackground)))
                     .offset(x: 4, y: 4)
             }
             VStack(alignment: .leading, spacing: 3) {
                 (Text(displayName(for: item.actorAddress)).fontWeight(.bold)
-                    + Text(" \(item.kind.actionText)"))
+                    + Text(" \(item.actionText)"))
                     .font(.subheadline)
                     .lineLimit(2)
                 if let snippet = item.snippet, !snippet.isEmpty {
@@ -8855,6 +8878,9 @@ struct KaPostsNotificationsView: View {
                         case "vote":
                             kind = notification.voteType == "downvote" ? .dislike : .like
                             targetTxId = notification.contentId
+                        case "tip":
+                            kind = .tip
+                            targetTxId = notification.contentId
                         case "reply":
                             kind = .reply
                             targetTxId = notification.id
@@ -8880,7 +8906,8 @@ struct KaPostsNotificationsView: View {
                             kind: kind,
                             snippet: text.isEmpty ? nil : text,
                             timestamp: Date(timeIntervalSince1970: TimeInterval(notification.timestamp) / 1000),
-                            targetTxId: targetTxId
+                            targetTxId: targetTxId,
+                            tipAmountSompi: kind == .tip ? notification.tipAmountSompi : nil
                         )
                     }
                 }

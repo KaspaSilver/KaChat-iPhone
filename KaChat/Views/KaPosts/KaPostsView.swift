@@ -628,7 +628,8 @@ struct KaPostsView: View {
             )
         }
         .sheet(item: $tipTarget) { target in
-            KaPostTipSheet(address: target.address, displayName: posterDisplayName(target.address), tip: target.tip)
+            KaPostTipSheet(address: target.address, displayName: posterDisplayName(target.address), tip: target.tip,
+                           onTipped: { countTip(target.tip) })
         }
         .sheet(isPresented: $showComposeFundingSheet) {
             // Zero-balance gate: presented INSTEAD of the post composer (see
@@ -4175,6 +4176,7 @@ struct KaPostsView: View {
             do {
                 let txId = try await ChatService.shared.sendPayment(to: recipient, amountSompi: amountSompi, extraFeeSompi: 0, tip: tip)
                 Haptics.success()
+                countTip(tip)
                 // A deferred send (no confirmed inputs yet) has no transaction to show; the
                 // retry timer owns it from here.
                 showActionToast("Tipped \(kasText) \(KaspaUnit.symbol) to \(name)", txId: txId ?? "")
@@ -4184,6 +4186,13 @@ struct KaPostsView: View {
                 tipTarget = TipTarget(address: address, tip: tip)
             }
         }
+    }
+
+    /// A tip just sent counts on its post at once; the indexer's own count takes over on the
+    /// next refresh.
+    private func countTip(_ tip: KaPostTip?) {
+        guard let postId = tip?.postId else { return }
+        mutatePost(id: Self.stableId(forTxId: postId)) { $0.tips += 1 }
     }
 
     /// Underline tab bar for profile feeds (Posts | Replies), matching the app's other tab
@@ -5646,13 +5655,6 @@ private struct KaPostCellView: View {
                                     .frame(width: 16, height: 16)
                                 Text("Tip")
                                     .lineLimit(1)
-                                // how many times it was tipped, beside the button like the likes
-                                if post.tips > 0 {
-                                    Text(verbatim: "\(post.tips)")
-                                        .font(.caption.weight(.semibold))
-                                        .monospacedDigit()
-                                        .lineLimit(1)
-                                }
                             }
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(.accentColor)
@@ -5663,24 +5665,31 @@ private struct KaPostCellView: View {
                         .buttonStyle(.plain)
                         .layoutPriority(1)
                     }
-                    // Your own post has no Tip button: its count shows on its own, and a tap lists
-                    // who tipped (Post Activity > Tips lists them for any post).
-                    if post.tips > 0, let remoteId = post.remoteId, isOwnPost || onTip == nil {
+                    // How many times it was tipped, the way likes and comments show theirs: a number
+                    // beside its mark (beside the Tip button, on someone else's post). A tap lists
+                    // who tipped (Post Activity > Tips lists them too).
+                    if post.tips > 0, let remoteId = post.remoteId {
                         Button {
                             Haptics.impact(.light)
                             tippersPostId = remoteId
                         } label: {
-                            HStack(spacing: 3) {
-                                Image("KaspaLogo")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 16, height: 16)
+                            HStack(spacing: 4) {
+                                // the Tip button carries the mark already
+                                if isOwnPost || onTip == nil {
+                                    Image("KaspaLogo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 16, height: 16)
+                                }
                                 Text(verbatim: "\(post.tips)")
+                                    .font(.caption.weight(.semibold))
                                     .monospacedDigit()
+                                    .lineLimit(1)
                             }
-                            .font(.subheadline)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: true, vertical: false)
+                            // sits against the Tip button like a like count against its heart
+                            .padding(.leading, (isOwnPost || onTip == nil) ? 0 : -10)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text("Who tipped this post"))
@@ -6273,6 +6282,8 @@ private struct KaPostTipSheet: View {
     /// The post being tipped: then it is a tip that names the post, paid from the chatting
     /// address only (no From choice).
     var tip: KaPostTip? = nil
+    /// Called once the tip has gone out (the post's count goes up at once).
+    var onTipped: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var portfolioViewModel = PortfolioViewModel.shared
@@ -6554,6 +6565,7 @@ private struct KaPostTipSheet: View {
                 )
                 await MainActor.run {
                     Haptics.success()
+                    onTipped?()
                     guard let txId else {
                         // Deferred rather than public chat (no confirmed inputs yet) - there is no
                         // transaction to show, and the retry timer owns it from here.

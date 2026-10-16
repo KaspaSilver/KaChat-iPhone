@@ -51,6 +51,8 @@ struct KaChatApp: App {
         // The call screen's own window: from the first moment, so a call rung by a VoIP push
         // that launched the app shows even before the main screen exists.
         CallWindowPresenter.shared.start()
+        // People shown as their address are asked again for a .kachat name, once a minute.
+        KachatNamesRegistry.shared.startUnnamedIdentitySweep()
     }
 
     var body: some Scene {

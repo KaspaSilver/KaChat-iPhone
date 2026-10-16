@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import UserNotifications
 
 /// The `.kachat` registry for the screens: lookups, an owner's names, listings, lapsed names,
@@ -620,6 +621,58 @@ final class KachatNamesRegistry: ObservableObject {
     /// re-asked once the registry moved on or after five minutes, and this wallet's own saved
     /// profile always wins for its own address. When an answer lands, views that read contact
     /// names re-render (ContactsManager is told).
+    // MARK: - People shown as an address
+
+    private var unnamedSweepStarted = false
+    private var unnamedSweepRunning = false
+
+    /// While the app is open, once a minute: everyone the app is showing as an address - a contact
+    /// with no name you gave them (chat or Address Book) and no .kachat name known - is asked
+    /// again whether they have one. A "no name" answer or a failed lookup is not trusted for
+    /// long: a name can be registered at any moment, and a lookup can fail while the registry is
+    /// still loading. An address only shows when no name exists. Started once, at launch.
+    func startUnnamedIdentitySweep() {
+        guard !unnamedSweepStarted else { return }
+        unnamedSweepStarted = true
+        Task { @MainActor [weak self] in
+            // the first pass once the app has settled after launch
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
+            while let self {
+                if UIApplication.shared.applicationState == .active {
+                    await self.refreshUnnamedIdentities()
+                }
+                try? await Task.sleep(nanoseconds: 60_000_000_000)
+            }
+        }
+    }
+
+    private func refreshUnnamedIdentities() async {
+        guard KachatNamesService.profilesEnabled, !unnamedSweepRunning,
+              let me = WalletManager.shared.currentWallet?.publicAddress.lowercased() else { return }
+        unnamedSweepRunning = true
+        defer { unnamedSweepRunning = false }
+        let book = AddressBookManager.shared
+        var targets: [String] = []
+        let byRecency = ContactsManager.shared.contacts.sorted {
+            ($0.lastMessageAt ?? .distantPast) > ($1.lastMessageAt ?? .distantPast)
+        }
+        for contact in byRecency {
+            let key = contact.address.lowercased()
+            guard key != me, contact.assignedName == nil, book.entry(for: key)?.customName == nil,
+                  NetworkType(address: key) != nil, NetworkType.isOnActiveNetwork(key) else { continue }
+            if let entry = identities[key] {
+                if entry.identity.label != nil { continue }
+                if Date().timeIntervalSince(entry.at) < 60 { continue }
+            }
+            targets.append(key)
+        }
+        // a few at a time, the people you talk to most recently first
+        for key in targets.prefix(40) {
+            guard UIApplication.shared.applicationState == .active else { return }
+            _ = await refreshIdentity(address: key)
+        }
+    }
+
     /// Looks the address's identity up now, whatever the cache holds (User Info > Rescan
     /// Profile), and stores the answer for every view that reads `cachedIdentity`.
     @discardableResult
@@ -653,7 +706,9 @@ final class KachatNamesRegistry: ObservableObject {
             let age = Date().timeIntervalSince($0.at)
             return age > 300 || ($0.revision != revision && age > 60)
         } ?? true
-        let missedRecently = identityMisses[key].map { Date().timeIntervalSince($0) < 300 } ?? false
+        // a failed lookup (the registry still loading, a network blip) is asked again after a
+        // minute, not five - until then the person shows as their address
+        let missedRecently = identityMisses[key].map { Date().timeIntervalSince($0) < 60 } ?? false
         if stale, !missedRecently, !identityLookups.contains(key) {
             identityLookups.insert(key)
             Task { [weak self] in

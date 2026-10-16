@@ -220,8 +220,11 @@ extension ChatService {
                 AppLog.log("[ChatService] Dropped payment_notice %@ - %@", String(txId.prefix(12)), reason)
             case .unknown:
                 // no chain answer: never move a record on an unchecked claim; with nothing stored
-                // yet, show it marked unverified (checked again when the notice is read again)
-                guard existing == nil else { return }
+                // yet, show it marked unverified (checked again when the notice is read again).
+                // After the await: still this wallet (a switch meanwhile must not file A's bubble
+                // into B - IOS-090), and still nothing stored under that txid.
+                guard existing == nil, self.isActiveWallet(walletAddress),
+                      await self.findLocalMessage(txId: txId) == nil else { return }
                 self.fileNoticeBubble(txId: txId, notice: notice, memo: memo, message: message, contactAddress: contactAddress,
                                       walletAddress: walletAddress, isOutgoing: false, status: .warning, moving: false)
             }
@@ -279,7 +282,7 @@ extension ChatService {
             messageType: .payment,
             deliveryStatus: status
         )
-        if !isOutgoing { markNoticeBubble(txId) }
+        if !isOutgoing { markNoticeBubble(txId, wallet: walletAddress) }
         addMessageToConversation(bubble, contactAddress: contactAddress)
         if moving, let key = messageEncryptionKey() {
             messageStore.upsertMessage(bubble, contactAddress: contactAddress, encryptionKey: key, refile: true)
@@ -298,7 +301,11 @@ extension ChatService {
     // leaves the txids listed here alone. Per wallet, the newest 2,000.
 
     private var noticeBubblesKey: String? {
-        WalletManager.shared.currentWallet.map { "kachat_notice_bubbles_\($0.publicAddress.lowercased())" }
+        WalletManager.shared.currentWallet.map { Self.noticeBubblesKey(wallet: $0.publicAddress) }
+    }
+
+    private static func noticeBubblesKey(wallet: String) -> String {
+        "kachat_notice_bubbles_\(wallet.lowercased())"
     }
 
     func isNoticeBubble(_ txId: String) -> Bool {
@@ -306,8 +313,9 @@ extension ChatService {
         return (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(txId.lowercased())
     }
 
-    func markNoticeBubble(_ txId: String) {
-        guard let key = noticeBubblesKey else { return }
+    /// `wallet`: the wallet the bubble was filed for (default: the active one).
+    func markNoticeBubble(_ txId: String, wallet: String? = nil) {
+        guard let key = wallet.map(Self.noticeBubblesKey(wallet:)) ?? noticeBubblesKey else { return }
         var ids = UserDefaults.standard.stringArray(forKey: key) ?? []
         guard !ids.contains(txId.lowercased()) else { return }
         ids.append(txId.lowercased())

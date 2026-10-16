@@ -5646,6 +5646,13 @@ private struct KaPostCellView: View {
                                     .frame(width: 16, height: 16)
                                 Text("Tip")
                                     .lineLimit(1)
+                                // how many times it was tipped, beside the button like the likes
+                                if post.tips > 0 {
+                                    Text(verbatim: "\(post.tips)")
+                                        .font(.caption.weight(.semibold))
+                                        .monospacedDigit()
+                                        .lineLimit(1)
+                                }
                             }
                             .font(.subheadline.weight(.semibold))
                             .foregroundColor(.accentColor)
@@ -5656,19 +5663,18 @@ private struct KaPostCellView: View {
                         .buttonStyle(.plain)
                         .layoutPriority(1)
                     }
-                    // How many times it was tipped; a tap lists who (your own posts too).
-                    if post.tips > 0, let remoteId = post.remoteId {
+                    // Your own post has no Tip button: its count shows on its own, and a tap lists
+                    // who tipped (Post Activity > Tips lists them for any post).
+                    if post.tips > 0, let remoteId = post.remoteId, isOwnPost || onTip == nil {
                         Button {
                             Haptics.impact(.light)
                             tippersPostId = remoteId
                         } label: {
                             HStack(spacing: 3) {
-                                if isOwnPost || onTip == nil {
-                                    Image("KaspaLogo")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 16, height: 16)
-                                }
+                                Image("KaspaLogo")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 16, height: 16)
                                 Text(verbatim: "\(post.tips)")
                                     .monospacedDigit()
                             }
@@ -7926,6 +7932,7 @@ struct KaPostEngagementView: View {
         case dislikes = "Dislikes"
         case reposts = "Reposts"
         case quotes = "Quotes"
+        case tips = "Tips"
     }
 
     struct EngagementEntry: Identifiable {
@@ -7943,6 +7950,11 @@ struct KaPostEngagementView: View {
     @State private var page = KaPostsPageState()
     /// Action txids already shown, across all four tabs (the server can repeat across pages).
     @State private var seenActionIds: Set<String> = []
+    /// Who tipped the post (`get-post-tippers`): its own list, with amounts.
+    @State private var tips: [KaPostsAPIClient.KTip] = []
+    @State private var tipsCursor: String?
+    @State private var tipsHasMore = false
+    @State private var tipsLoaded = false
 
     private var isOwnPost: Bool {
         post.posterAddress == WalletManager.shared.currentWallet?.publicAddress
@@ -7960,7 +7972,9 @@ struct KaPostEngagementView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
 
-                if isLoading {
+                if selectedTab == .tips {
+                    tipsList
+                } else if isLoading {
                     Spacer()
                     ProgressView()
                     Spacer()
@@ -8005,7 +8019,75 @@ struct KaPostEngagementView: View {
             .navigationBarTitleDisplayMode(.inline)
             .kaPostsStatusChrome()
             .task { await load() }
+            .task { await loadTips(more: false) }
         }
+    }
+
+    /// Tips: who tipped, how much and when, newest first.
+    @ViewBuilder
+    private var tipsList: some View {
+        if !tipsLoaded {
+            Spacer()
+            ProgressView()
+            Spacer()
+        } else if tips.isEmpty {
+            Spacer()
+            Text("No tips yet.")
+                .foregroundColor(.secondary)
+            Spacer()
+        } else {
+            List {
+                ForEach(tips) { tip in
+                    tipRow(tip)
+                }
+                if tipsHasMore {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .task { await loadTips(more: true) }
+                        .listRowSeparator(.hidden)
+                }
+            }
+            .listStyle(.plain)
+        }
+    }
+
+    private func tipRow(_ tip: KaPostsAPIClient.KTip) -> some View {
+        let address = KaPostsAPIClient.kaspaAddress(fromPubkey: tip.userPublicKey) ?? ""
+        return HStack(spacing: 12) {
+            KNSAvatarView(
+                avatarURLString: knsService.profileCache[address]?.avatarURL,
+                fallbackText: displayName(for: address),
+                size: 38,
+                contactAddress: address
+            )
+            VStack(alignment: .leading, spacing: 2) {
+                Text(displayName(for: address))
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                Text(Date(timeIntervalSince1970: TimeInterval(tip.timestamp) / 1000), style: .relative)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            Text(verbatim: "\(KaspaUnit.plain(tip.amountSompi)) \(KaspaUnit.symbol)")
+                .font(.subheadline.monospacedDigit().weight(.semibold))
+                .foregroundColor(.accentColor)
+        }
+    }
+
+    private func loadTips(more: Bool) async {
+        guard let postId = post.remoteId else { tipsLoaded = true; return }
+        if more, tipsCursor == nil { return }
+        do {
+            let page = try await KaPostsAPIClient.shared.fetchTippers(postId: postId, before: more ? tipsCursor : nil)
+            let known = Set(tips.map(\.id))
+            tips = (more ? tips : []) + page.tips.filter { !more || !known.contains($0.id) }
+            tipsCursor = page.pagination?.nextCursor
+            tipsHasMore = page.pagination?.hasMore == true && tipsCursor != nil
+        } catch {
+            tipsHasMore = false
+        }
+        tipsLoaded = true
     }
 
     private func tabTitle(_ tab: EngagementTab) -> String {
@@ -8015,6 +8097,7 @@ struct KaPostEngagementView: View {
         case .dislikes: count = max(post.dislikes, entries[.dislikes]?.count ?? 0)
         case .reposts: count = entries[.reposts]?.count ?? 0
         case .quotes: count = entries[.quotes]?.count ?? 0
+        case .tips: count = max(post.tips, tips.count)
         }
         return count > 0 ? "\(tab.rawValue) (\(count))" : tab.rawValue
     }

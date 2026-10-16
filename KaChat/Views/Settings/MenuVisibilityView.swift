@@ -79,7 +79,8 @@ struct MenuVisibilityView: View {
             let dockRaw = dock.map(\.rawValue)
             let hubRaw = hub.map(\.rawValue)
             let model = settingsViewModel
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 600_000_000)
                 Self.apply(dock: dockRaw, hub: hubRaw, to: model)
             }
         }
@@ -188,6 +189,7 @@ struct MenuVisibilityView: View {
         Self.apply(dock: dock.map(\.rawValue), hub: hub.map(\.rawValue), to: settingsViewModel)
     }
 
+    @MainActor
     private static func apply(dock: [String], hub: [String], to model: SettingsViewModel) {
         guard dock != model.settings.dockTabs || hub != model.settings.hubTabs else { return }
         model.settings.dockTabs = dock

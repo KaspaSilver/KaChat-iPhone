@@ -25,6 +25,18 @@
 > - **Budgets:** the v5 gap's (`Budgets.recommendedV5`: register 13, merge 7, absorbed 1).
 > - **Tests:** `scripts/test_kachat_names_core.swift` and `scripts/test_kachat_names_registry.swift`
 >   take `KaChatTests/KachatNamesVectors-v5.json` as an argument (kachat-domains 6eddc7a).
+>
+> **⚠️ Known gap before ANY registry switch (audit IOS-066, owner: left as is, 2026-10-16).** The
+> app reads only the registry its manifest names. After a switch to a new registry, offers (and
+> their locked coins) made on the OLD registry disappear from the app: the buyer can't withdraw
+> them, the seller can't decline them, and `returnExpiredOffers` never refunds them - they stay
+> locked until someone runs the kachat-domains CLI by hand. Testnet's v4 -> v5 switch already left
+> such offers; mainnet (registry `348bd2c8…`, no predecessor) is unaffected today. **Before mainnet
+> ever switches registry** (REGISTRY_V5.md section 8, the emergency procedure), build the clean-up
+> first: keep the predecessor manifest bundled (selected by `params.migration.predecessorRegistryId`,
+> verified with the old pins), list its offers as "on the old registry, returning", and let the
+> buyer withdraw, the seller decline and the background sweep refund them; never allow new offers
+> or accepts there. See `findings/IOS-066.md` in kachat-audits.
 
 > **Registry v4 (2026-10-07): the contracts mainnet v1 runs; on testnet-10 superseded by v5.** Live on testnet-10 on the day clock
 > since 2026-10-07: genesis `5ffdd006…a777`, registry `e6b72448…7f0d` (the first, 10-minute v4
@@ -590,6 +602,9 @@ the node reads and submits, P256K signing, DeviceAuth, Keychain salts and the dr
    mass; anyone may match a listing with a higher offer and keep at most 0.02 KAS (the app warns);
    offers follow the name, so a re-registered name's new owner can accept old offers; the
    manifest's genesis binding must be verified by app and indexer.
+
+8. **Registry switch strands old offers** (IOS-066): see the warning at the top. Must be built
+   before mainnet ever moves to a new registry.
 
 ## 11. Plan
 

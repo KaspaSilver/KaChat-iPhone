@@ -6435,7 +6435,7 @@ private struct KaPostTipSheet: View {
             guard !Task.isCancelled else { return }
             normalFeeSompi = try? await ChatService.shared.estimatePaymentFee(
                 to: estimationContact, amountSompi: amountSompi, note: memo,
-                sourceSpendingIndex: source.spendingIndex, manualUtxos: manualUtxos
+                sourceSpendingIndex: source.spendingIndex, manualUtxos: manualUtxos, tip: tip
             )
             isEstimatingFee = false
         }
@@ -6507,7 +6507,7 @@ private struct KaPostTipSheet: View {
         Task {
             let max = try? await ChatService.shared.estimateMaxPaymentAmount(
                 to: estimationContact, note: memo, sourceSpendingIndex: source.spendingIndex,
-                manualUtxos: manualUtxos, extraFeeSompi: extraFeeSompi
+                manualUtxos: manualUtxos, extraFeeSompi: extraFeeSompi, tip: tip
             )
             await MainActor.run {
                 isEstimatingMax = false

@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "Tu dock";
 "Always in your dock" = "Siempre en tu dock";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "Arrastra para elegir los dos que quieres en tu dock y su orden. Los dos de arriba aparecen en el dock; todo lo que está bajo la tarjeta vive en %@.";
-"Anything below this lives in %@" = "Todo lo que está debajo vive en %@";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@ y %@ siempre se quedan en tu dock.";
+"Your dock is full. Remove one from it to add one of these." = "Tu dock está lleno. Quita uno para añadir uno de estos.";
+"In the order %@ shows them." = "En el orden en que %@ los muestra.";
+"Move %@ to %@" = "Mover %@ a %@";
+"Add %@ to your dock" = "Añadir %@ a tu dock";

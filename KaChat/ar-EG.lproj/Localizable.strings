@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "الشريط الخاص بك";
 "Always in your dock" = "دائمًا في الشريط";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "اسحب لتختار العنصرين اللذين تريدهما في الشريط وترتيبهما. يظهر أول عنصرين في الشريط، وكل ما تحت البطاقة موجود في %@.";
-"Anything below this lives in %@" = "كل ما تحت هذا موجود في %@";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@ و%@ و%@ تبقى دائمًا في الشريط.";
+"Your dock is full. Remove one from it to add one of these." = "الشريط ممتلئ. أزل عنصرًا منه لإضافة أحد هذه.";
+"In the order %@ shows them." = "بالترتيب الذي يعرضها به %@.";
+"Move %@ to %@" = "نقل %@ إلى %@";
+"Add %@ to your dock" = "إضافة %@ إلى الشريط";

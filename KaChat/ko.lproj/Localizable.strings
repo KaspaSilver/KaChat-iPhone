@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "내 독";
 "Always in your dock" = "항상 독에 있음";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "드래그해서 독에 둘 두 가지와 순서를 고르세요. 위의 두 개가 독에 표시되고, 카드 아래는 모두 %@에 있습니다.";
-"Anything below this lives in %@" = "이 아래는 모두 %@에 있습니다";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@, %@은(는) 항상 독에 있습니다.";
+"Your dock is full. Remove one from it to add one of these." = "독이 가득 찼습니다. 이 중 하나를 추가하려면 독에서 하나를 빼세요.";
+"In the order %@ shows them." = "%@에 표시되는 순서입니다.";
+"Move %@ to %@" = "%@을(를) %@(으)로 이동";
+"Add %@ to your dock" = "%@을(를) 독에 추가";

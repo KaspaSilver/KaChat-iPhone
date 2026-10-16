@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "Ваш док";
 "Always in your dock" = "Всегда в доке";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "Перетащите, чтобы выбрать два раздела для дока и их порядок. Два верхних видны в доке; всё, что ниже карточки, находится в %@.";
-"Anything below this lives in %@" = "Всё, что ниже, находится в %@";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@ и %@ всегда остаются в доке.";
+"Your dock is full. Remove one from it to add one of these." = "Док заполнен. Уберите из него один раздел, чтобы добавить один из этих.";
+"In the order %@ shows them." = "В том порядке, в каком их показывает %@.";
+"Move %@ to %@" = "Переместить %@ в %@";
+"Add %@ to your dock" = "Добавить %@ в док";

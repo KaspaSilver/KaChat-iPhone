@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "你的程序坞";
 "Always in your dock" = "始终在程序坞中";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "拖动以选择要放进程序坞的两项及其顺序。最上面的两项显示在程序坞中；卡片下方的一切都在 %@ 中。";
-"Anything below this lives in %@" = "此处以下的一切都在 %@ 中";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@、%@ 和 %@ 始终在程序坞中。";
+"Your dock is full. Remove one from it to add one of these." = "程序坞已满。请先移出一项，再添加这里的项目。";
+"In the order %@ shows them." = "按 %@ 显示的顺序。";
+"Move %@ to %@" = "将 %@ 移到 %@";
+"Add %@ to your dock" = "将 %@ 添加到程序坞";

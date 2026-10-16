@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "داک شما";
 "Always in your dock" = "همیشه در داک شما";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "بکشید تا دو موردی را که در داک می‌خواهید و ترتیبشان را انتخاب کنید. دو مورد بالا در داک نمایش داده می‌شوند؛ هر چه زیر کارت باشد در %@ است.";
-"Anything below this lives in %@" = "هر چه زیر این باشد در %@ است";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@، %@ و %@ همیشه در داک شما می‌مانند.";
+"Your dock is full. Remove one from it to add one of these." = "داک شما پر است. برای افزودن یکی از این‌ها، یکی را از آن بردارید.";
+"In the order %@ shows them." = "به ترتیبی که %@ نشانشان می‌دهد.";
+"Move %@ to %@" = "انتقال %@ به %@";
+"Add %@ to your dock" = "افزودن %@ به داک";

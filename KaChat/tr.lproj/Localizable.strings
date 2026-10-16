@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "Dock'unuz";
 "Always in your dock" = "Her zaman dock'unuzda";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "Dock'ta istediğiniz ikisini ve sıralarını seçmek için sürükleyin. Üstteki ikisi dock'ta görünür; kartın altındaki her şey %@ içinde yer alır.";
-"Anything below this lives in %@" = "Bunun altındaki her şey %@ içinde";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@ ve %@ her zaman dock'unuzda kalır.";
+"Your dock is full. Remove one from it to add one of these." = "Dock'unuz dolu. Bunlardan birini eklemek için dock'tan birini çıkarın.";
+"In the order %@ shows them." = "%@ içinde göründükleri sırayla.";
+"Move %@ to %@" = "%@ öğesini %@ içine taşı";
+"Add %@ to your dock" = "%@ öğesini dock'a ekle";

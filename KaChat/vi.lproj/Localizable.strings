@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "Dock của bạn";
 "Always in your dock" = "Luôn có trong dock";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "Kéo để chọn hai mục bạn muốn trong dock và thứ tự của chúng. Hai mục trên cùng hiện trong dock; mọi thứ bên dưới thẻ nằm trong %@.";
-"Anything below this lives in %@" = "Mọi thứ bên dưới nằm trong %@";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@ và %@ luôn ở trong dock của bạn.";
+"Your dock is full. Remove one from it to add one of these." = "Dock của bạn đã đầy. Hãy bỏ một mục ra để thêm một trong những mục này.";
+"In the order %@ shows them." = "Theo thứ tự %@ hiển thị.";
+"Move %@ to %@" = "Chuyển %@ vào %@";
+"Add %@ to your dock" = "Thêm %@ vào dock";

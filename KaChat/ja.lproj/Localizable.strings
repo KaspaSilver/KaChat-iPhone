@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "あなたのドック";
 "Always in your dock" = "常にドックに表示";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "ドラッグして、ドックに置く2つとその順番を選びます。上の2つがドックに表示され、カードより下はすべて %@ に入ります。";
-"Anything below this lives in %@" = "ここより下はすべて %@ に入ります";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@、%@、%@ は常にドックにあります。";
+"Your dock is full. Remove one from it to add one of these." = "ドックがいっぱいです。これらを追加するには、ドックから1つ外してください。";
+"In the order %@ shows them." = "%@ に表示される順番です。";
+"Move %@ to %@" = "%@ を %@ に移動";
+"Add %@ to your dock" = "%@ をドックに追加";

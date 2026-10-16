@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "Dock Anda";
 "Always in your dock" = "Selalu di dock Anda";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "Seret untuk memilih dua yang Anda inginkan di dock dan urutannya. Dua teratas tampil di dock; semua di bawah kartu ada di %@.";
-"Anything below this lives in %@" = "Semua di bawah ini ada di %@";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@, dan %@ selalu ada di dock Anda.";
+"Your dock is full. Remove one from it to add one of these." = "Dock Anda penuh. Hapus satu darinya untuk menambahkan salah satu dari ini.";
+"In the order %@ shows them." = "Sesuai urutan yang ditampilkan %@.";
+"Move %@ to %@" = "Pindahkan %@ ke %@";
+"Add %@ to your dock" = "Tambahkan %@ ke dock";

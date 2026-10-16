@@ -2095,8 +2095,8 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     /// is the one screen that must never be a level deeper than the dock.
     var isPinnedToDock: Bool { self == .chats || self == .ecosystem || self == .profile }
 
-    /// The pinned tabs, in the dock's last three slots, always in this order: the person picks
-    /// (and orders) only the two slots before them.
+    /// In the order a fresh dock places them, so `visible` can reinsert a missing one sensibly.
+    /// Where they sit among the five is the person's (Customize Dock); that they are there is not.
     static let pinnedToDock: [AppTab] = [.chats, .ecosystem, .profile]
 
     /// Tabs the user can place. Excludes the Hub (pinned) and the retired "+ More".
@@ -2192,13 +2192,26 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     /// Kaspa Hub is inserted whatever the stored list says, so no saved arrangement - or a
     /// hand-edited one - can leave the app with no way to reach what isn't in the dock.
     static func visible(from settings: AppSettings) -> [AppTab] {
-        // The person's two picks, in their order (deduplicated defensively - a repeated raw value
-        // would render the same tab twice), then Chats, Kaspa Hub and Profile, always - whatever
-        // the stored list says, so no saved arrangement can leave the app without them.
+        // The stored order, deduplicated defensively (a repeated raw value would render the same
+        // tab twice), with at most `assignableDockSlots` picks besides the pinned tabs.
         var seen = Set<AppTab>()
-        let picks = settings.dockTabs.compactMap { AppTab(rawValue: $0) }
-            .filter { !$0.isPinnedToDock && assignable.contains($0) && $0.isEnabled(in: settings) && seen.insert($0).inserted }
-        return Array(picks.prefix(assignableDockSlots)) + pinnedToDock.filter { $0.isEnabled(in: settings) }
+        var picks = 0
+        var tabs: [AppTab] = []
+        for tab in settings.dockTabs.compactMap({ AppTab(rawValue: $0) })
+        where tab.isEnabled(in: settings) && (tab.isPinnedToDock || assignable.contains(tab)) && seen.insert(tab).inserted {
+            if !tab.isPinnedToDock {
+                guard picks < assignableDockSlots else { continue }
+                picks += 1
+            }
+            tabs.append(tab)
+        }
+        // Reinserted whatever the stored list says, so no saved arrangement - or a hand-edited one
+        // - can leave the app without Chats, the Hub that holds everything else, or Profile.
+        for pinned in pinnedToDock where pinned.isEnabled(in: settings) && !tabs.contains(pinned) {
+            let position = defaultDock.firstIndex(of: pinned) ?? tabs.count
+            tabs.insert(pinned, at: min(position, tabs.count))
+        }
+        return tabs
     }
 
     /// What the Kaspa Hub grid shows: everything assignable that is not in the dock, in the

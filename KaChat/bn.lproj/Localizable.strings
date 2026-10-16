@@ -1754,5 +1754,10 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 "Your Dock" = "আপনার ডক";
 "Always in your dock" = "সবসময় আপনার ডকে";
-"Drag to choose the two you want in your dock, and their order. The top two show in your dock; everything below the card lives in %@." = "ডকে কোন দুটি চান এবং তাদের ক্রম বেছে নিতে টেনে আনুন। উপরের দুটি ডকে দেখায়; কার্ডের নিচের সবকিছু %@-এ থাকে।";
-"Anything below this lives in %@" = "এর নিচের সবকিছু %@-এ থাকে";
+
+/* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
+"%@, %@ and %@ always stay in your dock." = "%@, %@ এবং %@ সবসময় আপনার ডকে থাকে।";
+"Your dock is full. Remove one from it to add one of these." = "আপনার ডক পূর্ণ। এগুলোর একটি যোগ করতে ডক থেকে একটি সরান।";
+"In the order %@ shows them." = "%@ যে ক্রমে দেখায়।";
+"Move %@ to %@" = "%@ কে %@-এ সরান";
+"Add %@ to your dock" = "%@ ডকে যোগ করুন";

@@ -1775,3 +1775,8 @@
 /* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
 "Fees" = "Frais";
 "Transactions on the .kachat registry" = "Transactions sur le registre .kachat";
+
+/* KaChat Stats: Fees tab (.kachat Domains fees) */
+"Paid for registrations and renewals" = "Payé pour les enregistrements et les renouvellements";
+"Fees aren't available yet" = "Les frais ne sont pas encore disponibles";
+"Your indexer doesn't report them yet. They'll show here once it does." = "Votre indexeur ne les fournit pas encore. Ils apparaîtront ici dès qu'il le fera.";

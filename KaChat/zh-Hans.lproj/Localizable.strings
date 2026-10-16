@@ -1774,3 +1774,8 @@
 /* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
 "Fees" = "费用";
 "Transactions on the .kachat registry" = ".kachat 注册表上的交易";
+
+/* KaChat Stats: Fees tab (.kachat Domains fees) */
+"Paid for registrations and renewals" = "注册和续费支付的金额";
+"Fees aren't available yet" = "暂无费用数据";
+"Your indexer doesn't report them yet. They'll show here once it does." = "你的索引器尚未提供这些数据。提供后会显示在这里。";

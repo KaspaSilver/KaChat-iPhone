@@ -1774,3 +1774,8 @@
 /* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
 "Fees" = "Phí";
 "Transactions on the .kachat registry" = "Giao dịch trên sổ đăng ký .kachat";
+
+/* KaChat Stats: Fees tab (.kachat Domains fees) */
+"Paid for registrations and renewals" = "Đã trả cho đăng ký và gia hạn";
+"Fees aren't available yet" = "Chưa có dữ liệu phí";
+"Your indexer doesn't report them yet. They'll show here once it does." = "Trình lập chỉ mục của bạn chưa báo cáo. Dữ liệu sẽ hiện ở đây khi có.";

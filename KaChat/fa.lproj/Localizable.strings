@@ -1774,3 +1774,8 @@
 /* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
 "Fees" = "کارمزدها";
 "Transactions on the .kachat registry" = "تراکنش‌ها در رجیستری ‎.kachat";
+
+/* KaChat Stats: Fees tab (.kachat Domains fees) */
+"Paid for registrations and renewals" = "پرداخت‌شده برای ثبت‌ها و تمدیدها";
+"Fees aren't available yet" = "کارمزدها هنوز در دسترس نیستند";
+"Your indexer doesn't report them yet. They'll show here once it does." = "ایندکسر شما هنوز آن‌ها را گزارش نمی‌کند. وقتی گزارش کند اینجا نمایش داده می‌شوند.";

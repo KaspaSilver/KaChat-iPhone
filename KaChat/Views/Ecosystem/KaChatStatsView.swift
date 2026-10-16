@@ -15,6 +15,14 @@ enum KaChatStatCategory: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// One of the .kachat registry kinds - shown together as the .kachat Domains card.
+    var isKachat: Bool {
+        switch self {
+        case .kachatRegistrations, .kachatRenewals, .kachatSales, .kachatOffers, .kachatActivity: return true
+        default: return false
+        }
+    }
+
     var title: LocalizedStringKey {
         switch self {
         case .messages: return "Direct Messages"
@@ -267,12 +275,20 @@ final class KaChatStatsModel: ObservableObject {
 /// or when the indexer has no stats yet, the rows keep their real names with the numbers
 /// redacted, so nothing invented is ever on screen.
 struct KaChatStatsView: View {
+    enum Page: Hashable { case transactions, fees }
+
     @ObservedObject private var model = KaChatStatsModel.shared
-    @State private var range: KaChatStatRange = .day
+    @State private var page: Page = .transactions
     @State private var showInfo = false
-    /// .kachat registry transactions over 24 hours, 7 days and all time - from the registry
-    /// itself (its indexer, or the chain), so it shows wherever names are live.
+    /// .kachat registry transactions and what they paid (sompi), over 24 hours, 7 days and all
+    /// time - from the registry itself (its indexer, or the chain), so it shows wherever names
+    /// are live.
     @State private var kachatTransactions: KachatNamesRegistry.Totals?
+    @State private var kachatFees: KachatNamesRegistry.Totals?
+    @State private var kachatLoaded = false
+
+    /// The kinds with a card of their own. .kachat's five are one card, .kachat Domains.
+    private static let chatCategories = KaChatStatCategory.allCases.filter { !$0.isKachat }
 
     var body: some View {
         NavigationStack {
@@ -280,20 +296,12 @@ struct KaChatStatsView: View {
                 VStack(spacing: 18) {
                     hero
                     UnderlineTabBar(
-                        tabs: KaChatStatRange.allCases.map { (tab: $0, title: $0.title) },
-                        selection: $range
+                        tabs: [(tab: Page.transactions, title: "Transactions"), (tab: Page.fees, title: "Fees")],
+                        selection: $page
                     )
-                    if let snapshot = model.snapshot {
-                        shareBar(snapshot)
-                        categoryList(snapshot)
-                    } else {
-                        if let failure = model.failure, !model.isLoading {
-                            unavailableCard(failure)
-                        }
-                        placeholderList
-                    }
-                    if let kachatTransactions {
-                        kachatCard(kachatTransactions)
+                    switch page {
+                    case .transactions: transactionsPage
+                    case .fees: feesPage
                     }
                     footer
                 }
@@ -302,11 +310,11 @@ struct KaChatStatsView: View {
             .background(Color(.systemGroupedBackground))
             .refreshable {
                 await model.refresh(force: true)
-                await loadKachatTransactions()
+                await loadKachat()
             }
             .task {
                 await model.refresh(force: false)
-                await loadKachatTransactions()
+                await loadKachat()
             }
             .navigationTitle("KaChat Stats")
             .navigationBarTitleDisplayMode(.inline)
@@ -328,24 +336,52 @@ struct KaChatStatsView: View {
 
     // MARK: - Numbers
 
-    private struct Row: Identifiable {
-        let category: KaChatStatCategory
-        /// Nil when the indexer reports the category but not this range.
-        let value: Int64?
-        var id: KaChatStatCategory { category }
-    }
-
-    /// The categories the indexer reports, in the fixed display order.
-    private func reported(_ snapshot: KaChatStatsSnapshot) -> [Row] {
-        KaChatStatCategory.allCases.compactMap { category in
-            guard let counts = snapshot.counts[category] else { return nil }
-            return Row(category: category, value: counts.value(for: range))
+    private func loadKachat() async {
+        guard KachatLive.isEnabled else {
+            kachatTransactions = nil
+            kachatFees = nil
+            kachatLoaded = true
+            return
         }
+        let registry = KachatNamesRegistry.shared
+        await registry.refreshIfStale()
+        if let totals = try? await registry.activityTotals() {
+            kachatTransactions = totals.transactions
+            kachatFees = totals.fees
+        }
+        kachatLoaded = true
     }
 
-    private func total(_ snapshot: KaChatStatsSnapshot) -> Int64? {
-        let values = reported(snapshot).compactMap { $0.value }
-        return values.isEmpty ? nil : values.reduce(0, +)
+    /// The .kachat Domains counts: the registry's own, else the indexer's five .kachat kinds
+    /// added up.
+    private var kachatTotals: KachatNamesRegistry.Totals? {
+        if let kachatTransactions { return kachatTransactions }
+        guard let snapshot = model.snapshot else { return nil }
+        let counts = KaChatStatCategory.allCases.filter(\.isKachat).compactMap { snapshot.counts[$0] }
+        guard !counts.isEmpty else { return nil }
+        func sum(_ value: (KaChatStatCounts) -> Int64?) -> UInt64 {
+            counts.reduce(0) { $0 + UInt64(max(value($1) ?? 0, 0)) }
+        }
+        return KachatNamesRegistry.Totals(last24h: sum(\.last24h), last7d: sum(\.last7d), total: sum(\.total))
+    }
+
+    /// Every KaChat transaction, all time: each kind's all-time count plus .kachat's.
+    private var allTimeTotal: Int64? {
+        var sum: Int64 = 0
+        var any = false
+        if let snapshot = model.snapshot {
+            for category in Self.chatCategories {
+                if let total = snapshot.counts[category]?.total {
+                    sum += total
+                    any = true
+                }
+            }
+        }
+        if let kachat = kachatTotals {
+            sum += Int64(kachat.total)
+            any = true
+        }
+        return any ? sum : nil
     }
 
     // MARK: - Hero
@@ -357,9 +393,9 @@ struct KaChatStatsView: View {
                 .foregroundColor(.accentColor)
                 .padding(.bottom, 4)
             Group {
-                if let snapshot = model.snapshot, let total = total(snapshot) {
+                if let total = allTimeTotal {
                     Text(total.formatted())
-                } else if model.snapshot != nil {
+                } else if model.snapshot != nil || model.failure != nil {
                     Text(verbatim: "—")
                 } else {
                     Text(verbatim: "000,000").redacted(reason: .placeholder)
@@ -369,155 +405,84 @@ struct KaChatStatsView: View {
             .monospacedDigit()
             .lineLimit(1)
             .minimumScaleFactor(0.5)
-            Text(range.caption)
+            Text("KaChat transactions on Kaspa, all time")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-            // A kind the indexer counts all time only has no number for 24 Hours / 7 Days, so
-            // the total above leaves it out - say so rather than let the total look complete.
-            if range != .all, let snapshot = model.snapshot,
-               reported(snapshot).contains(where: { $0.value == nil }) {
-                Text("Kinds marked \"All-time only\" aren't in this total yet.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 2)
-            }
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
     }
 
-    // MARK: - Share bar and rows
+    // MARK: - Pages
 
-    /// Each category's share of the range's total as one segmented bar.
-    private func shareBar(_ snapshot: KaChatStatsSnapshot) -> some View {
-        let parts = reported(snapshot).filter { ($0.value ?? 0) > 0 }
-        let sum = parts.reduce(Int64(0)) { $0 + ($1.value ?? 0) }
-        return GeometryReader { proxy in
-            HStack(spacing: 2) {
-                if sum > 0 {
-                    ForEach(parts) { part in
-                        part.category.color
-                            .frame(width: max(3, (proxy.size.width - CGFloat(parts.count - 1) * 2) * CGFloat(Double(part.value ?? 0) / Double(sum))))
-                    }
-                } else {
-                    Color(.tertiarySystemFill)
-                }
+    @ViewBuilder
+    private var transactionsPage: some View {
+        if let snapshot = model.snapshot {
+            ForEach(Self.chatCategories.filter { snapshot.counts[$0] != nil }) { category in
+                let counts = snapshot.counts[category]
+                statCard(icon: category.icon, color: category.color, title: category.title, detail: category.detail,
+                         values: [counts?.last24h, counts?.last7d, counts?.total].map { $0.map { $0.formatted() } })
+            }
+        } else {
+            if let failure = model.failure, !model.isLoading {
+                unavailableCard(failure)
+            }
+            ForEach(Self.chatCategories) { category in
+                statCard(icon: category.icon, color: category.color, title: category.title, detail: category.detail,
+                         values: [], redacted: true)
             }
         }
-        .frame(height: 12)
-        .clipShape(Capsule())
-        .padding(.horizontal, 16)
-        .accessibilityHidden(true)
-    }
-
-    private func categoryList(_ snapshot: KaChatStatsSnapshot) -> some View {
-        let rows = reported(snapshot)
-        let sum = total(snapshot) ?? 0
-        return card {
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                categoryRow(row.category) {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        if let value = row.value {
-                            Text(value.formatted())
-                                .font(.subheadline.weight(.semibold))
-                                .monospacedDigit()
-                            if sum > 0 {
-                                Text((Double(value) / Double(sum)).formatted(.percent.precision(.fractionLength(0...1))))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .monospacedDigit()
-                            }
-                        } else {
-                            Text(verbatim: "—")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundColor(.secondary)
-                            // Reported, but without this range - the indexer keeps an all-time
-                            // counter for it only (STATS_INDEXER.md).
-                            if range != .all {
-                                Text("All-time only")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                }
-                if index < rows.count - 1 { Divider().padding(.leading, 60) }
-            }
+        if let kachat = kachatTotals {
+            statCard(icon: "at", color: .mint, title: ".kachat Domains", detail: "Transactions on the .kachat registry",
+                     values: [kachat.last24h, kachat.last7d, kachat.total].map { Optional($0.formatted()) })
         }
     }
 
-    /// Real category names with the numbers redacted - while loading, or when the indexer has no
-    /// stats yet.
-    private var placeholderList: some View {
-        let categories = KaChatStatCategory.allCases
-        return card {
-            ForEach(Array(categories.enumerated()), id: \.element) { index, category in
-                categoryRow(category) {
-                    Text(verbatim: "00,000")
-                        .font(.subheadline.weight(.semibold))
-                        .redacted(reason: .placeholder)
-                }
-                if index < categories.count - 1 { Divider().padding(.leading, 60) }
-            }
-        }
-    }
-
-    private func categoryRow<Value: View>(_ category: KaChatStatCategory, @ViewBuilder value: () -> Value) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: category.icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(category.color))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(category.title)
-                    .font(.subheadline.weight(.semibold))
-                Text(category.detail)
-                    .font(.caption)
+    @ViewBuilder
+    private var feesPage: some View {
+        if let fees = kachatFees {
+            statCard(icon: "at", color: .mint, title: ".kachat Domains", detail: "Paid for registrations and renewals",
+                     values: [fees.last24h, fees.last7d, fees.total].map { Optional(KaspaUnit.amount($0)) })
+        } else if kachatLoaded {
+            VStack(spacing: 6) {
+                Text("Fees aren't available yet")
+                    .font(.headline)
+                Text("Your indexer doesn't report them yet. They'll show here once it does.")
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
-                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
             }
-            Spacer(minLength: 8)
-            value()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 11)
-    }
-
-    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 0, content: content)
+            .frame(maxWidth: .infinity)
+            .padding(18)
             .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
             .padding(.horizontal, 16)
-    }
-
-    // MARK: - .kachat
-
-    private func loadKachatTransactions() async {
-        guard KachatLive.isEnabled else { kachatTransactions = nil; return }
-        let registry = KachatNamesRegistry.shared
-        await registry.refreshIfStale()
-        if let totals = try? await registry.activityTotals() {
-            kachatTransactions = totals.transactions
+        } else {
+            statCard(icon: "at", color: .mint, title: ".kachat Domains", detail: "Paid for registrations and renewals",
+                     values: [], redacted: true)
         }
     }
 
-    /// The .kachat Domains card: how many registry transactions there were in each range.
-    private func kachatCard(_ totals: KachatNamesRegistry.Totals) -> some View {
+    // MARK: - Cards
+
+    /// One kind: its icon, name and what it counts, then its 24 Hours, 7 Days and All Time
+    /// figures side by side. A figure the indexer doesn't keep shows a dash.
+    private func statCard(icon: String, color: Color, title: LocalizedStringKey, detail: LocalizedStringKey,
+                          values: [String?], redacted: Bool = false) -> some View {
         card {
             HStack(spacing: 12) {
-                Image(systemName: "at")
+                Image(systemName: icon)
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 32, height: 32)
-                    .background(Circle().fill(Color.mint))
+                    .background(Circle().fill(color))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(".kachat Domains")
+                    Text(title)
                         .font(.subheadline.weight(.semibold))
-                    Text("Transactions on the .kachat registry")
+                    Text(detail)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .lineLimit(2)
                 }
                 Spacer(minLength: 0)
             }
@@ -526,28 +491,42 @@ struct KaChatStatsView: View {
             .padding(.bottom, 8)
             Divider().padding(.leading, 60)
             HStack(spacing: 0) {
-                kachatColumn(.day, totals.last24h)
-                Divider().frame(height: 34)
-                kachatColumn(.week, totals.last7d)
-                Divider().frame(height: 34)
-                kachatColumn(.all, totals.total)
+                ForEach(Array(KaChatStatRange.allCases.enumerated()), id: \.element) { index, range in
+                    if index > 0 { Divider().frame(height: 34) }
+                    statColumn(range.title, index < values.count ? values[index] : nil, redacted: redacted)
+                }
             }
             .padding(.vertical, 12)
         }
     }
 
-    private func kachatColumn(_ column: KaChatStatRange, _ value: UInt64) -> some View {
+    private func statColumn(_ title: String, _ value: String?, redacted: Bool) -> some View {
         VStack(spacing: 4) {
-            Text(value.formatted())
-                .font(.headline)
-                .monospacedDigit()
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-            Text(column.title)
+            Group {
+                if redacted {
+                    Text(verbatim: "0,000").redacted(reason: .placeholder)
+                } else if let value {
+                    Text(verbatim: value)
+                } else {
+                    Text(verbatim: "—").foregroundColor(.secondary)
+                }
+            }
+            .font(.headline)
+            .monospacedDigit()
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            Text(LocalizedStringKey(title))
                 .font(.caption)
-                .foregroundColor(column == range ? .accentColor : .secondary)
+                .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, 4)
+    }
+
+    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        VStack(spacing: 0, content: content)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+            .padding(.horizontal, 16)
     }
 
     // MARK: - States and footer

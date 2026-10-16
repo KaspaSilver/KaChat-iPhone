@@ -45,10 +45,6 @@ struct KaPostsSettingsView: View {
                     }
                 } header: {
                     Text("Tipping")
-                } footer: {
-                    Text(instantTipEnabled
-                         ? "Tapping Tip on a post sends this amount straight away - no amount screen. It goes out exactly like a payment in that person's chat: from your primary spending address when Chats Payment Privacy is on, to a fresh private address of theirs when they shared one."
-                         : "Off: tapping Tip opens the amount screen every time.")
                 }
 
                 Section {
@@ -57,8 +53,6 @@ struct KaPostsSettingsView: View {
                     } label: {
                         Label("Notifications", systemImage: "bell")
                     }
-                } footer: {
-                    Text("Choose which KaPosts activity reaches you: likes, dislikes, reposts, comments, follows and mentions.")
                 }
             }
             .navigationTitle("KaPosts Settings")

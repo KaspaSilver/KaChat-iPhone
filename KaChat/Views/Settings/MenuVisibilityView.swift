@@ -70,7 +70,12 @@ struct MenuVisibilityView: View {
             hub = AppTab.ecosystemSections(from: settings)
             loaded = true
         }
-        .onDisappear { persist() }
+        // Applied once this screen has finished closing: a new arrangement rebuilds the whole
+        // tab bar, and rebuilding it under a closing sheet or navigation pop could leave the page
+        // shown next (KaPosts, say) black until a relaunch.
+        .onDisappear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { persist() }
+        }
         // Backgrounding is the one way off this screen that never calls onDisappear, and an app
         // killed from the background would otherwise lose the arrangement.
         .onChange(of: scenePhase) { phase in

@@ -1396,8 +1396,6 @@ struct KaPostsNotificationSettingsView: View {
                         settingsViewModel.saveSettings()
                         SharedDataManager.syncGroupsForExtension()
                     }
-            } footer: {
-                Text("Choose which KaPosts activity reaches you. Anything switched off sends no notification and does not appear in the KaPosts bell. Quotes of your posts count as reposts.")
             }
         }
         .navigationTitle("KaPosts")

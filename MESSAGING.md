@@ -344,12 +344,18 @@ Message Request from a stranger on their side - XP-022). So:
    - Otherwise **check the chain first** (any contact can send a notice naming any public
      txid - IOS-083). The tx must pay this chatting address exactly `amountSompi`, carry **no
      payload** (a chat payment or a message is never a notice's payment), and none of its inputs
-     may be our own address or another contact's address. A notice that fails is dropped.
+     may be **any address the person owns** or another contact's address. "Owns" means every
+     address the app knows as theirs: the chatting address, every revealed spending address,
+     every Cold Storage / KasSigner address and every other saved account's addresses (a
+     top-up from one of them is public, and a contact must never claim it). A notice that fails
+     is dropped.
    - If it passes, render an incoming payment bubble in **that chat**: "Received X KAS", or
      "Received X KAS - <memo>", transaction id = `txId`, timestamp from the notice's block time.
      Deduplicate by `txId`. A message with that txid already stored elsewhere may move into this
-     chat **only** if it is an incoming payment from an address that is no contact (a plain
-     transfer shown in the self-chat with "From: <address>") - the first notice to claim it wins.
+     chat **only** if it is an incoming payment from an address that is no contact and none of
+     the person's own (a plain transfer shown in the self-chat with "From: <address>") - the
+     first notice to claim it wins; check this again after the chain lookup, since another
+     notice may have claimed it meanwhile.
      Never move or overwrite anything else: another chat's payment, a message, or anything we
      sent. A later payment fetch finds the txId present and does nothing.
    - No chain answer (not indexed yet): never move an existing record. With nothing stored yet,

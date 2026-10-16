@@ -1770,3 +1770,7 @@
 "You won't be notified about %@'s posts anymore." = "Artık %@ kişisinin gönderileri için bildirim almayacaksınız.";
 "Stop post notifications" = "Gönderi bildirimlerini kapat";
 "Notify me when they post" = "Paylaşım yapınca bana bildir";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "Ücretler";
+"Transactions on the .kachat registry" = ".kachat kayıt defterindeki işlemler";

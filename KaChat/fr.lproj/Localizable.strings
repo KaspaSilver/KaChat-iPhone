@@ -1771,3 +1771,7 @@
 "You won't be notified about %@'s posts anymore." = "Vous ne serez plus averti des posts de %@.";
 "Stop post notifications" = "Désactiver les alertes de posts";
 "Notify me when they post" = "M'avertir de ses posts";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "Frais";
+"Transactions on the .kachat registry" = "Transactions sur le registre .kachat";

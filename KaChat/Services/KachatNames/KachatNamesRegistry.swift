@@ -524,6 +524,73 @@ final class KachatNamesRegistry: ObservableObject {
     }
 
 
+    /// A count or amount over the last 24 hours, the last 7 days and all time.
+    struct Totals: Equatable {
+        var last24h: UInt64
+        var last7d: UInt64
+        var total: UInt64
+    }
+
+    /// How many .kachat transactions there were and what they paid, across the registry - for
+    /// KaChat Stats and the market's Activity page. An indexer reports both (`GET /stats/names`:
+    /// fees = what each transaction paid miners, the registry's price included, since that is
+    /// how the price is paid). Read from the chain instead, the walker counts its events and
+    /// prices each registration, extension and renewal at the registry's fixed prices.
+    /// `fees` is nil where they can't be worked out (an indexer too old to record them).
+    func activityTotals() async throws -> (transactions: Totals, fees: Totals?) {
+        let m = try await prepare()
+        switch source {
+        case .indexer(let base):
+            let j: KachatNames.IndexerAPI.StatsJSON = try await Self.get(base, "/stats/names")
+            let fees = j.fees.flatMap { f -> Totals? in
+                guard let t = UInt64(f.total), let d = UInt64(f.last24h), let w = UInt64(f.last7d) else { return nil }
+                return Totals(last24h: d, last7d: w, total: t)
+            }
+            if let t = j.transactions {
+                return (Totals(last24h: t.last24h, last7d: t.last7d, total: t.total), fees)
+            }
+            // an indexer from before `transactions`: the per-kind figures, added up
+            let kinds = (j.activity ?? [:]).values
+            return (Totals(last24h: kinds.reduce(0) { $0 + $1.last24h },
+                           last7d: kinds.reduce(0) { $0 + $1.last7d },
+                           total: kinds.reduce(0) { $0 + $1.total }), fees)
+        default:
+            return Self.totals(of: chainState?.events ?? [], params: m.params)
+        }
+    }
+
+    /// Counts and prices a walker's events (`activityTotals` from the chain), one per transaction.
+    static func totals(of events: [KachatNames.Event], params: KachatNames.Params,
+                       nowMs: Int64 = KachatNames.nowMs()) -> (transactions: Totals, fees: Totals?) {
+        let d1 = nowMs - 86_400_000
+        let d7 = nowMs - 7 * 86_400_000
+        var at: [String: Int64] = [:]
+        var paid: [String: UInt64] = [:]
+        for e in events {
+            at[e.txId] = max(at[e.txId] ?? 0, e.at ?? 0)
+            guard let name = e.name, let years = e.years, years > 0 else { continue }
+            let length = name.utf8.count
+            switch e.op {
+            case "register":
+                paid[e.txId, default: 0] += params.registerCost(forLength: length, years: years)
+            case "extend", "renew":
+                paid[e.txId, default: 0] += params.renewPrice(forLength: length) * UInt64(years)
+            default:
+                break
+            }
+        }
+        var transactions = Totals(last24h: 0, last7d: 0, total: 0)
+        var fees = Totals(last24h: 0, last7d: 0, total: 0)
+        for (tx, time) in at {
+            let fee = paid[tx] ?? 0
+            transactions.total += 1
+            fees.total += fee
+            if time > d7 { transactions.last7d += 1; fees.last7d += fee }
+            if time > d1 { transactions.last24h += 1; fees.last24h += fee }
+        }
+        return (transactions, fees)
+    }
+
     /// The fixed prices (registry v4, baked into the pinned templates): sompi for a name's first
     /// period, and for every further one, by length 1, 2, 3, 4, 5+ bytes. nil until a manifest loads.
     var registerPrices: [UInt64]? { service.manifest?.params.registerPrices }

@@ -421,6 +421,9 @@ final class KachatHubModel: ObservableObject {
     @Published private(set) var mine: [KachatNames.NameInfo] = []
     @Published private(set) var myOffers: [KachatNames.OfferInfo] = []
     @Published private(set) var activity: [KachatNames.Event] = []
+    /// What .kachat transactions paid (sompi) over 24 hours, 7 days and all time; nil until
+    /// known, or where it can't be worked out.
+    @Published private(set) var fees: KachatNamesRegistry.Totals?
     @Published private(set) var loadError: String?
     @Published private(set) var loaded = false
 
@@ -489,6 +492,7 @@ final class KachatHubModel: ObservableObject {
                 myOffers = []
             }
             activity = try await registry.activity()
+            if let totals = try? await registry.activityTotals() { fees = totals.fees }
             loadError = nil
         } catch {
             loadError = error.localizedDescription
@@ -1223,6 +1227,20 @@ struct KachatLiveActivityPage: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if let fees = model.fees {
+                KachatLiveSectionHeader(title: "Fees", detail: nil)
+                HStack(spacing: 0) {
+                    feeColumn("24 Hours", fees.last24h)
+                    Divider().frame(height: 34)
+                    feeColumn("7 Days", fees.last7d)
+                    Divider().frame(height: 34)
+                    feeColumn("All Time", fees.total)
+                }
+                .padding(.vertical, 12)
+                .kachatGlass()
+                .padding(.horizontal, 16)
+                .padding(.bottom, 6)
+            }
             KachatLiveSectionHeader(title: "Recent activity", detail: "Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry.")
             if model.activity.isEmpty {
                 KachatLiveEmpty(text: model.loaded ? "Nothing yet." : nil)
@@ -1238,6 +1256,21 @@ struct KachatLiveActivityPage: View {
             }
         }
         .padding(.top, 4)
+    }
+
+    private func feeColumn(_ title: LocalizedStringKey, _ sompi: UInt64) -> some View {
+        VStack(spacing: 4) {
+            Text(verbatim: KaspaUnit.amount(sompi))
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 6)
     }
 }
 

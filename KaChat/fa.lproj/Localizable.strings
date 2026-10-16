@@ -1770,3 +1770,7 @@
 "You won't be notified about %@'s posts anymore." = "دیگر درباره پست‌های %@ به شما اطلاع داده نمی‌شود.";
 "Stop post notifications" = "خاموش کردن اعلان پست‌ها";
 "Notify me when they post" = "وقتی پست گذاشت خبرم کن";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "کارمزدها";
+"Transactions on the .kachat registry" = "تراکنش‌ها در رجیستری ‎.kachat";

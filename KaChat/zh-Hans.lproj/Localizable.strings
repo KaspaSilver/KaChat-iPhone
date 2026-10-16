@@ -1770,3 +1770,7 @@
 "You won't be notified about %@'s posts anymore." = "你将不再收到 %@ 的发帖通知。";
 "Stop post notifications" = "关闭发帖通知";
 "Notify me when they post" = "发帖时通知我";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "费用";
+"Transactions on the .kachat registry" = ".kachat 注册表上的交易";

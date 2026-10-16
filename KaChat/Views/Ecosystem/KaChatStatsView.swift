@@ -270,6 +270,9 @@ struct KaChatStatsView: View {
     @ObservedObject private var model = KaChatStatsModel.shared
     @State private var range: KaChatStatRange = .all
     @State private var showInfo = false
+    /// .kachat registry transactions over 24 hours, 7 days and all time - from the registry
+    /// itself (its indexer, or the chain), so it shows wherever names are live.
+    @State private var kachatTransactions: KachatNamesRegistry.Totals?
 
     var body: some View {
         NavigationStack {
@@ -289,13 +292,22 @@ struct KaChatStatsView: View {
                         }
                         placeholderList
                     }
+                    if let kachatTransactions {
+                        kachatCard(kachatTransactions)
+                    }
                     footer
                 }
                 .padding(.bottom, 28)
             }
             .background(Color(.systemGroupedBackground))
-            .refreshable { await model.refresh(force: true) }
-            .task { await model.refresh(force: false) }
+            .refreshable {
+                await model.refresh(force: true)
+                await loadKachatTransactions()
+            }
+            .task {
+                await model.refresh(force: false)
+                await loadKachatTransactions()
+            }
             .navigationTitle("KaChat Stats")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -478,6 +490,64 @@ struct KaChatStatsView: View {
         VStack(spacing: 0, content: content)
             .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
             .padding(.horizontal, 16)
+    }
+
+    // MARK: - .kachat
+
+    private func loadKachatTransactions() async {
+        guard KachatLive.isEnabled else { kachatTransactions = nil; return }
+        let registry = KachatNamesRegistry.shared
+        await registry.refreshIfStale()
+        if let totals = try? await registry.activityTotals() {
+            kachatTransactions = totals.transactions
+        }
+    }
+
+    /// The .kachat Domains card: how many registry transactions there were in each range.
+    private func kachatCard(_ totals: KachatNamesRegistry.Totals) -> some View {
+        card {
+            HStack(spacing: 12) {
+                Image(systemName: "at")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(Color.mint))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(".kachat Domains")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Transactions on the .kachat registry")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            Divider().padding(.leading, 60)
+            HStack(spacing: 0) {
+                kachatColumn(.day, totals.last24h)
+                Divider().frame(height: 34)
+                kachatColumn(.week, totals.last7d)
+                Divider().frame(height: 34)
+                kachatColumn(.all, totals.total)
+            }
+            .padding(.vertical, 12)
+        }
+    }
+
+    private func kachatColumn(_ column: KaChatStatRange, _ value: UInt64) -> some View {
+        VStack(spacing: 4) {
+            Text(value.formatted())
+                .font(.headline)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(column.title)
+                .font(.caption)
+                .foregroundColor(column == range ? .accentColor : .secondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - States and footer

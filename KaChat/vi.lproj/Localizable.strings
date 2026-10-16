@@ -1770,3 +1770,7 @@
 "You won't be notified about %@'s posts anymore." = "Bạn sẽ không còn được thông báo về bài viết của %@.";
 "Stop post notifications" = "Tắt thông báo bài viết";
 "Notify me when they post" = "Báo cho tôi khi người này đăng bài";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "Phí";
+"Transactions on the .kachat registry" = "Giao dịch trên sổ đăng ký .kachat";

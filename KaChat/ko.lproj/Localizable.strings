@@ -1770,3 +1770,7 @@
 "You won't be notified about %@'s posts anymore." = "이제 %@님의 게시물 알림을 받지 않습니다.";
 "Stop post notifications" = "게시물 알림 끄기";
 "Notify me when they post" = "게시하면 알려 주기";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "수수료";
+"Transactions on the .kachat registry" = ".kachat 레지스트리의 트랜잭션";

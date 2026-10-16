@@ -1770,3 +1770,7 @@
 "You won't be notified about %@'s posts anymore." = "%@-এর পোস্ট সম্পর্কে আর জানানো হবে না।";
 "Stop post notifications" = "পোস্টের নোটিফিকেশন বন্ধ করুন";
 "Notify me when they post" = "পোস্ট করলে আমাকে জানাও";
+
+/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
+"Fees" = "ফি";
+"Transactions on the .kachat registry" = "‎.kachat রেজিস্ট্রিতে লেনদেন";

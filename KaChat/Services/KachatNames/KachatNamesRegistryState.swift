@@ -1118,6 +1118,16 @@ extension KachatNames {
 
         struct EventsJSON: Decodable { let events: [EventJSON]; let next: String? }
 
+        /// `GET /stats/names`, the parts the app reads: transaction counts and fees (sompi as
+        /// strings), each over 24 hours, 7 days and all time.
+        struct StatsJSON: Decodable {
+            struct Counts: Decodable { let total: UInt64; let last24h: UInt64; let last7d: UInt64 }
+            struct Fees: Decodable { let total: String; let last24h: String; let last7d: String }
+            let transactions: Counts?
+            let activity: [String: Counts]?
+            let fees: Fees?
+        }
+
         struct OfferJSON: Decodable {
             let outpoint: OutpointJSON
             let buyer: String

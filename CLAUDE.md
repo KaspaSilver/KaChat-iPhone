@@ -292,8 +292,8 @@ Companion targets at the repo root: `KaChatNotificationService/` (push decryptio
 
 The input bubble is the text field only. Everything else is in the "+" sheet:
 
-- **1:1 order:** Pay in Kaspa, Camera, Photo, Voice Message, File (Nextcloud only), Play Chess,
-  and Send Handshake where needed.
+- **1:1 order:** Send Kaspa, Camera, Photo, Voice Message, File (Nextcloud only), Request Payment,
+  Play Chess, and Send Handshake where needed (only where first contact still needs one).
 - **Groups:** Camera, Photo, Voice Message, File. A group has no single recipient for pay or chess.
 - **On chain or via Nextcloud:** with a Nextcloud server connected, Camera / Photo / Voice Message
   open `ComposerMediaRouteStep` (`Views/Chat/ComposerMediaRoute.swift`) and ask every time. That
@@ -302,7 +302,7 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
     up to `ComposerMediaLimits.nextcloudVoiceSeconds` (5 min, app-wide).
   - On chain: compressed photos and ~10 s voice notes.
   - Paste, drop and share-extension photos go on chain.
-- **Paying:** Pay in Kaspa (and `startInPaymentMode`) opens the Send KAS sheet, not a composer
+- **Paying:** Send Kaspa (and `startInPaymentMode`) opens the Send KAS sheet, not a composer
   mode. It has an exact amount (KAS or fiat, Max), an encrypted memo (the payment payload's
   note, ≤140 chars, shown in the bubble) and `SendActionButton` (slide to send). The sender's
   bubble keeps the memo from send time, because the memo is encrypted to the recipient and can't

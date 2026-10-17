@@ -245,6 +245,9 @@ struct KaPostsView: View {
             let text: String
             let posterAddress: String
             let timestamp: Date?
+            /// The quoted author's K pubkey, when known (our own quotes): a retry of a failed
+            /// quote needs it to post the quote again.
+            var posterPubkey: String? = nil
         }
         var quoted: QuotedRef? = nil
         /// Set for replies fetched from the indexer - splits profile feeds into Posts/Replies.
@@ -2585,7 +2588,8 @@ struct KaPostsView: View {
             remoteId: target.remoteId,
             text: target.text,
             posterAddress: target.posterAddress,
-            timestamp: target.timestamp
+            timestamp: target.timestamp,
+            posterPubkey: target.posterPubkey
         )
         let localId = quotePost.id
         posts.insert(quotePost, at: 0)
@@ -3004,7 +3008,19 @@ struct KaPostsView: View {
         Task {
             do {
                 let txId: String
-                if let parent = findParent(ofCommentId: post.id) {
+                if let quoted = post.quoted {
+                    // a failed quote is retried as the quote it was, never as plain text
+                    guard let contentId = quoted.remoteId, let author = quoted.posterPubkey else {
+                        throw KaPostsAPIClient.KaPostsAPIError.badResponse
+                    }
+                    txId = try await KaPostsAPIClient.shared.submitQuote(text: post.text, contentId: contentId, quotedAuthorPubkey: author)
+                } else if let poll = post.poll {
+                    // and a failed poll as the poll
+                    txId = try await KaPostsAPIClient.shared.submitPoll(
+                        question: post.text, options: poll.options, closesAt: poll.closesAt,
+                        mentionedPubkeys: await mentionedPubkeys(in: post.text)
+                    )
+                } else if let parent = findParent(ofCommentId: post.id) {
                     guard let parentRemoteId = parent.remoteId else {
                         throw KaPostsAPIClient.KaPostsAPIError.badResponse
                     }

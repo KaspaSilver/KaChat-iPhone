@@ -297,6 +297,8 @@ struct KaPostsView: View {
     @State private var restoredComposerText: String?
     /// Thread segments handed back by Undo, stacked above the restored text.
     @State private var restoredComposerSegments: [String] = []
+    /// An undone poll's options, handed to the reopened composer.
+    @State private var restoredPollOptions: [String] = []
     /// Poster being tipped via the quick-tip sheet (amount + direct send).
     @State private var tipTarget: TipTarget?
     /// Zero-balance interception for the new-post entry point: with a CONFIRMED 0 KAS chatting
@@ -517,6 +519,8 @@ struct KaPostsView: View {
         /// its first post. `allSegments` in the composer is `threadSegments + [current text]`,
         /// so restoring splits it back that way.
         var draftSegments: [String]? = nil
+        /// An undone new poll's options, so its composer reopens as the poll it was.
+        var pollOptions: [String]? = nil
     }
     @State private var undoToast: UndoPostToast?
     @ObservedObject private var scheduler = KaPostsActionScheduler.shared
@@ -629,7 +633,8 @@ struct KaPostsView: View {
                     scheduleDelayedPost(text: text, at: date)
                 },
                 initialText: restoredComposerText ?? "",
-                initialThreadSegments: restoredComposerSegments
+                initialThreadSegments: restoredComposerSegments,
+                initialPollOptions: restoredPollOptions
             )
         }
         .sheet(item: $tipTarget) { target in
@@ -2607,7 +2612,8 @@ struct KaPostsView: View {
         label: String,
         draftText: String? = nil,
         quoteTarget: DraftPost? = nil,
-        draftSegments: [String]? = nil
+        draftSegments: [String]? = nil,
+        pollOptions: [String]? = nil
     ) {
         withAnimation(.easeOut(duration: 0.25)) {
             undoToast = UndoPostToast(
@@ -2616,7 +2622,8 @@ struct KaPostsView: View {
                 label: label,
                 draftText: draftText,
                 quoteTarget: quoteTarget,
-                draftSegments: draftSegments
+                draftSegments: draftSegments,
+                pollOptions: pollOptions
             )
         }
     }
@@ -2633,7 +2640,8 @@ struct KaPostsView: View {
             // Only compose-style actions have an optimistic CARD to remove; a cancelled
             // like/dislike/repost simply never happens (their mutation fires post-countdown),
             // and a cancelled comment removes its optimistic reply from the thread.
-            if toast.key.hasPrefix("post:") {
+            if toast.key.hasPrefix("post:") || toast.key.hasPrefix("poll:") {
+                // an undone new poll's optimistic card goes too (it stayed "pending" forever)
                 posts.removeAll { $0.id == toast.postId }
             } else if toast.key.hasPrefix("comment:") {
                 removeReply(withId: toast.postId)
@@ -2656,6 +2664,7 @@ struct KaPostsView: View {
     private func clearRestoredComposerDraft() {
         restoredComposerText = nil
         restoredComposerSegments = []
+        restoredPollOptions = []
     }
 
     /// Puts an undone draft back where it was written, so the five seconds are a chance to fix
@@ -2672,6 +2681,16 @@ struct KaPostsView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 restoredComposerText = text
                 threadReplyComposerTarget = parent
+            }
+            return
+        }
+        if toast.key.hasPrefix("poll:") {
+            // an undone poll reopens the composer as the poll: question and options
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                restoredComposerText = text
+                restoredComposerSegments = []
+                restoredPollOptions = toast.pollOptions ?? []
+                showComposer = true
             }
             return
         }
@@ -4503,7 +4522,7 @@ struct KaPostsView: View {
         let localId = newPost.id
         posts.insert(newPost, at: 0)
         let key = "poll:\(localId)"
-        showUndoToast(key: key, postId: localId, label: "Posting poll", draftText: question)
+        showUndoToast(key: key, postId: localId, label: "Posting poll", draftText: question, pollOptions: options)
         scheduler.schedule(key: key) {
             clearUndoToast(key: key)
             Task {
@@ -6814,6 +6833,8 @@ private struct KaPostComposerView: View {
     /// Prefilled when reopening a draft, or with the current text of a post being edited.
     var initialText: String = ""
     var initialThreadSegments: [String] = []
+    /// An undone poll's options: the composer reopens with Poll on and these filled in.
+    var initialPollOptions: [String] = []
     @State private var showCloseOptions = false
     @ObservedObject private var draftStore = KaPostsDraftStore.shared
     // Poll: two to four options and how long voting stays open.
@@ -7031,6 +7052,11 @@ private struct KaPostComposerView: View {
             if text.isEmpty, threadSegments.isEmpty {
                 text = initialText
                 threadSegments = initialThreadSegments
+                if !initialPollOptions.isEmpty {
+                    pollEnabled = true
+                    pollOptions = initialPollOptions.count >= 2 ? Array(initialPollOptions.prefix(4))
+                        : initialPollOptions + Array(repeating: "", count: 2 - initialPollOptions.count)
+                }
             }
             isFocused = true
         }

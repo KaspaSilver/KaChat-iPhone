@@ -273,7 +273,9 @@ struct KaPostsView: View {
     /// switching between them keeps every page already loaded (Popular just re-sorts it);
     /// switching to/from Following swaps the source and starts over.
     @State private var loadedFeedSource: FeedSource?
-    @State private var feedError: String?
+    /// A KaPosts action that failed after its countdown (delete, edit), shown as an alert. Its
+    /// predecessor `feedError` was set and never displayed, so these failures were silent.
+    @State private var actionError: String?
     /// True while the Popular tab is pulling its deep ranking window (see `deepenPopularRanking`).
     @State private var isDeepeningPopular = false
     /// Posts that arrived since the feed was last loaded, held back rather than inserted.
@@ -629,7 +631,12 @@ struct KaPostsView: View {
         }
         .sheet(item: $tipTarget) { target in
             KaPostTipSheet(address: target.address, displayName: posterDisplayName(target.address), tip: target.tip,
-                           onTipped: { countTip(target.tip) })
+                           initialError: target.failure, onTipped: { countTip(target.tip) })
+        }
+        .alert("KaPosts", isPresented: Binding(get: { actionError != nil }, set: { if !$0 { actionError = nil } })) {
+            Button("OK", role: .cancel) { actionError = nil }
+        } message: {
+            Text(actionError ?? "")
         }
         .sheet(isPresented: $showComposeFundingSheet) {
             // Zero-balance gate: presented INSTEAD of the post composer (see
@@ -1433,7 +1440,6 @@ struct KaPostsView: View {
         if reset {
             feedPage.reset()
             loadedFeedSource = source
-            feedError = nil
         }
         let epoch = feedPage.epoch
         let startCursor = reset ? nil : feedPage.cursor
@@ -1486,12 +1492,8 @@ struct KaPostsView: View {
         } catch {
             guard feedPage.epoch == epoch else { return }
             feedPage.isLoading = false
+            // shown in the feed's footer, with a retry
             feedPage.errorMessage = UserFacingError.message(for: error)
-            // A failed APPEND keeps everything already loaded on screen (the footer offers a
-            // retry); only a failed refresh surfaces as the feed-level error.
-            if reset {
-                feedError = UserFacingError.message(for: error)
-            }
             AppLog.log("[KaPosts] Feed fetch failed: %@", error.localizedDescription)
         }
     }
@@ -2507,7 +2509,7 @@ struct KaPostsView: View {
                     }
                 } catch {
                     mutatePost(id: post.id) { $0.pendingDeletion = false }
-                    feedError = "Couldn't delete the post: \(UserFacingError.message(for: error))"
+                    actionError = "Couldn't delete the post: \(UserFacingError.message(for: error))"
                     AppLog.log("[KaPosts] Delete submit failed: %@", error.localizedDescription)
                 }
             }
@@ -2567,7 +2569,7 @@ struct KaPostsView: View {
                         $0.editedAt = original?.editedAt ?? post.editedAt
                         $0.deliveryStatus = .sent
                     }
-                    feedError = "Couldn't save the edit: \(UserFacingError.message(for: error))"
+                    actionError = "Couldn't save the edit: \(UserFacingError.message(for: error))"
                     AppLog.log("[KaPosts] Edit submit failed: %@", error.localizedDescription)
                 }
             }
@@ -4132,6 +4134,8 @@ struct KaPostsView: View {
         let address: String
         /// The post being tipped; nil only for something that isn't on the network yet.
         var tip: KaPostTip? = nil
+        /// Why the instant tip that opened this didn't go out, shown in the sheet.
+        var failure: String? = nil
         var id: String { address }
     }
 
@@ -4182,8 +4186,9 @@ struct KaPostsView: View {
                 showActionToast("Tipped \(kasText) \(KaspaUnit.symbol) to \(name)", txId: txId ?? "")
             } catch {
                 AppLog.log("[KaPosts] Instant tip failed: %@", error.localizedDescription)
-                feedError = "Tip didn't send: \(UserFacingError.message(for: error))"
-                tipTarget = TipTarget(address: address, tip: tip)
+                // the amount screen opens with the reason, so the tip can be sent by hand
+                tipTarget = TipTarget(address: address, tip: tip,
+                                      failure: "Tip didn't send: \(UserFacingError.message(for: error))")
             }
         }
     }
@@ -6282,6 +6287,8 @@ private struct KaPostTipSheet: View {
     /// The post being tipped: then it is a tip that names the post, paid from the chatting
     /// address only (no From choice).
     var tip: KaPostTip? = nil
+    /// Why an instant tip just failed, if that is what opened this sheet.
+    var initialError: String? = nil
     /// Called once the tip has gone out (the post's count goes up at once).
     var onTipped: (() -> Void)? = nil
 
@@ -6422,6 +6429,7 @@ private struct KaPostTipSheet: View {
             // cancelling must leave no trace in the Chats list. The contact (and its
             // conversation) is created in send(), only once a tip is actually sent.
             contact = ContactsManager.shared.getContact(byAddress: address)
+            if errorMessage == nil, let initialError { errorMessage = initialError }
         }
         // coins picked on one address can't pay from another
         .onChange(of: source) { _ in manualUtxos = nil }

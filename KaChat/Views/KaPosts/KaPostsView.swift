@@ -566,10 +566,10 @@ struct KaPostsView: View {
                             // and find one that is not already in memory.
                             Task { await openSharedPost(txId: txId) }
                         },
-                        onOpenProfile: { address in
-                            // pubkey is nil: the profile screen resolves it from the address,
-                            // the same as a tap from a notification row.
-                            kaPostsPresent { profileTarget = PosterProfileTarget(address: address, pubkey: nil) }
+                        onOpenProfile: { address, pubkey in
+                            // the pubkey from the author's posts: without it the profile can't
+                            // load their posts, replies or counts, nor follow on chain
+                            kaPostsPresent { profileTarget = PosterProfileTarget(address: address, pubkey: pubkey) }
                         }
                     )
                 case .notifications:
@@ -4109,11 +4109,14 @@ struct KaPostsView: View {
                 // page still in flight for the previous poster discard its result.
                 posterPostsPage.reset()
                 posterRepliesPage.reset()
-                posterProfilePubkey = target.pubkey
+                // no pubkey handed over: the one the address derives (as @mentions do), so the
+                // profile still loads its posts and counts
+                let resolvedPubkey = target.pubkey ?? KaPostsAPIClient.kapostPubkey(fromAddress: address)
+                posterProfilePubkey = resolvedPubkey
                 if knsService.profileCache[address] == nil {
                     _ = await knsService.fetchProfile(for: address)
                 }
-                guard let pubkey = target.pubkey else { return }
+                guard let pubkey = resolvedPubkey else { return }
                 isLoadingPosterProfile = true
                 async let detailsFetch = try? KaPostsAPIClient.shared.fetchUserDetails(pubkey: pubkey)
                 if let details = await detailsFetch {

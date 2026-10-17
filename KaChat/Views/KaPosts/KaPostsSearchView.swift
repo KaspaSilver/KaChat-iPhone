@@ -23,7 +23,9 @@ struct KaPostsSearchView: View {
     /// shared link takes, which knows how to find a post that is not in the loaded feed. Every
     /// row here came from the indexer, so it always has one.
     var onOpenPost: (String) -> Void
-    var onOpenProfile: (String) -> Void
+    /// The author's address and K pubkey (from the posts scanned; the profile needs the pubkey
+    /// to load their posts, replies and follower counts, and to follow on chain).
+    var onOpenProfile: (String, String?) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var knsService = KNSService.shared
@@ -78,6 +80,11 @@ struct KaPostsSearchView: View {
                     ? displayName(for: lhs.address) < displayName(for: rhs.address)
                     : lhs.postCount > rhs.postCount
             }
+    }
+
+    /// An author's K pubkey, from any of their scanned posts.
+    private func pubkey(for address: String) -> String? {
+        scanned.first { $0.posterAddress == address && $0.posterPubkey?.isEmpty == false }?.posterPubkey
     }
 
     var body: some View {
@@ -174,7 +181,7 @@ struct KaPostsSearchView: View {
             List {
                 ForEach(matchingPeople, id: \.address) { person in
                     Button {
-                        onOpenProfile(person.address)
+                        onOpenProfile(person.address, pubkey(for: person.address))
                         dismiss()
                     } label: {
                         HStack(spacing: 10) {

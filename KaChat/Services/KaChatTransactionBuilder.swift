@@ -1998,14 +1998,30 @@ struct KasiaTransactionBuilder {
         )
     }
 
+    /// An output's covenant binding (transaction version 1): which input authorizes it and the
+    /// covenant it continues. Part of the v1 sighash; the app's own payments carry none.
+    struct OutputCovenant {
+        let authorizingInput: UInt16
+        let covenantId: Data
+    }
+
     /// Compute sighash for transaction input (Kaspa-specific)
     /// Uses Blake2b with "TransactionSigningHash" domain separation (as KEY, not personalization)
+    ///
+    /// Version 0 and version 1 (rusty-kaspa consensus/core/src/hashing/sighash.rs,
+    /// `calc_schnorr_signature_hash`): from version 1 the sig-op counts are left out (both the
+    /// hash of all of them and the input's own byte), and each output adds whether it carries a
+    /// covenant, then its authorizing input (u16) and covenant id (32 bytes) when it does.
+    /// `covenants` is per output (missing entries = none); only verification of received v1
+    /// transactions passes it.
     internal static func computeSighash(
         transaction: KaspaRpcTransaction,
         inputIndex: Int,
         utxoScriptPubKey: Data,
-        utxoAmount: UInt64
+        utxoAmount: UInt64,
+        covenants: [OutputCovenant?] = []
     ) throws -> Data {
+        let isV1 = transaction.version >= 1
         // Kaspa uses Blake2b-256 with KEY for domain separation (not personalization)
         var hasher = Blake2b(digestLength: 32, key: "TransactionSigningHash".data(using: .utf8))
 
@@ -2033,13 +2049,15 @@ struct KasiaTransactionBuilder {
         let seqHash = Blake2b.hash(seqData, key: "TransactionSigningHash")
         hasher.update(seqHash)
 
-        // Hash of all sig op counts
-        var sigOpData = Data()
-        for input in transaction.inputs {
-            sigOpData.append(input.sigOpCount)
+        // Hash of all sig op counts (version 0 only)
+        if !isV1 {
+            var sigOpData = Data()
+            for input in transaction.inputs {
+                sigOpData.append(input.sigOpCount)
+            }
+            let sigOpHash = Blake2b.hash(sigOpData, key: "TransactionSigningHash")
+            hasher.update(sigOpHash)
         }
-        let sigOpHash = Blake2b.hash(sigOpData, key: "TransactionSigningHash")
-        hasher.update(sigOpHash)
 
         // Current input's outpoint
         let input = transaction.inputs[inputIndex]
@@ -2068,12 +2086,14 @@ struct KasiaTransactionBuilder {
         var seq = input.sequence.littleEndian
         hasher.update(Data(bytes: &seq, count: 8))
 
-        // Sig op count
-        hasher.update(Data([input.sigOpCount]))
+        // Sig op count (version 0 only)
+        if !isV1 {
+            hasher.update(Data([input.sigOpCount]))
+        }
 
         // Hash of all outputs
         var outputsData = Data()
-        for output in transaction.outputs {
+        for (outputIndex, output) in transaction.outputs.enumerated() {
             var value = output.value.littleEndian
             outputsData.append(Data(bytes: &value, count: 8))
             var scriptVer = output.scriptPublicKey.version.littleEndian
@@ -2081,6 +2101,17 @@ struct KasiaTransactionBuilder {
             var scriptLen = UInt64(output.scriptPublicKey.script.count).littleEndian
             outputsData.append(Data(bytes: &scriptLen, count: 8))
             outputsData.append(output.scriptPublicKey.script)
+            if isV1 {
+                let covenant = outputIndex < covenants.count ? covenants[outputIndex] : nil
+                if let covenant {
+                    outputsData.append(1)
+                    var authorizing = covenant.authorizingInput.littleEndian
+                    outputsData.append(Data(bytes: &authorizing, count: 2))
+                    outputsData.append(covenant.covenantId)
+                } else {
+                    outputsData.append(0)
+                }
+            }
         }
         let outputsHash = Blake2b.hash(outputsData, key: "TransactionSigningHash")
         hasher.update(outputsHash)
@@ -2143,8 +2174,11 @@ struct KasiaTransactionBuilder {
         let previousOutpointHash: String   // tx ID of the UTXO being spent
         let previousOutpointIndex: UInt32  // output index of the UTXO
         let signatureScript: String        // hex-encoded signature script
-        let previousOutpointAddress: String // resolved address of the UTXO
-        let previousOutpointAmount: UInt64 // amount of the UTXO
+        /// The spent UTXO's address and amount: nil when the REST API didn't resolve them (and
+        /// the previous transaction couldn't be read either). Only this input's own signature
+        /// needs them; every other input contributes just its outpoint and sequence.
+        let previousOutpointAddress: String?
+        let previousOutpointAmount: UInt64?
         let sequence: UInt64
         let sigOpCount: UInt8
     }
@@ -2153,11 +2187,24 @@ struct KasiaTransactionBuilder {
     struct VerificationOutput {
         let amount: UInt64
         let scriptPublicKey: String  // hex-encoded script public key
+        /// Version 1: the output's covenant (`covenant_authorizing_input`, `covenant_id`), if any.
+        var covenantAuthorizingInput: UInt16? = nil
+        var covenantId: String? = nil
     }
 
-    /// Verify Schnorr signatures on a transaction fetched via REST API.
-    /// Returns true if all signatures are valid or if verification cannot be performed (missing fields).
-    /// Returns false only if a signature is definitively invalid.
+    enum SignatureCheck: Equatable {
+        /// every standard P2PK signature checks out
+        case valid
+        /// a signature is definitively wrong
+        case invalid
+        /// it can't be checked yet (an input's UTXO not resolved, data missing): ask again later
+        case unknown
+    }
+
+    /// Verify Schnorr signatures on a transaction fetched via REST API (versions 0 and 1).
+    /// `.invalid` only when a signature is definitively wrong; `.unknown` when a standard input
+    /// can't be checked yet because its spent UTXO isn't resolved, or the data is incomplete.
+    /// Non-standard inputs (P2SH covenant spends and the like) are not signature-checked here.
     static func verifyTransactionSignatures(
         inputs: [VerificationInput],
         outputs: [VerificationOutput],
@@ -2166,36 +2213,40 @@ struct KasiaTransactionBuilder {
         subnetworkId: Data,
         gas: UInt64,
         payload: Data
-    ) -> Bool {
-        guard !inputs.isEmpty else { return true }
+    ) -> SignatureCheck {
+        // no inputs (a coinbase): no signatures to check
+        guard !inputs.isEmpty else { return .valid }
 
-        // Reconstruct KaspaRpcTransaction from REST fields
-        var rpcInputs: [KaspaRpcTransactionInput] = []
-        for input in inputs {
-            guard let outpointIndexVal = UInt32(exactly: input.previousOutpointIndex) else {
-                return true // Cannot verify, skip gracefully
-            }
-            // Use empty signatureScript for sighash computation (sighash is computed over unsigned tx)
-            rpcInputs.append(KaspaRpcTransactionInput(
+        // Reconstruct KaspaRpcTransaction from REST fields: EVERY input (the sighash commits
+        // to all outpoints and sequences), with an empty signatureScript.
+        let rpcInputs = inputs.map { input in
+            KaspaRpcTransactionInput(
                 previousOutpoint: UTXO.Outpoint(
                     transactionId: input.previousOutpointHash,
-                    index: outpointIndexVal
+                    index: input.previousOutpointIndex
                 ),
                 signatureScript: Data(),
                 sequence: input.sequence,
                 sigOpCount: input.sigOpCount
-            ))
+            )
         }
 
         var rpcOutputs: [KaspaRpcTransactionOutput] = []
+        var covenants: [OutputCovenant?] = []
         for output in outputs {
             guard let scriptData = hexToData(output.scriptPublicKey), !scriptData.isEmpty else {
-                return true // Cannot verify without script data
+                return .unknown // Cannot verify without script data
             }
             rpcOutputs.append(KaspaRpcTransactionOutput(
                 value: output.amount,
                 scriptPublicKey: KaspaScriptPublicKey(version: 0, script: scriptData)
             ))
+            if let authorizing = output.covenantAuthorizingInput, let idHex = output.covenantId {
+                guard let id = hexToData(idHex), id.count == 32 else { return .unknown }
+                covenants.append(OutputCovenant(authorizingInput: authorizing, covenantId: id))
+            } else {
+                covenants.append(nil)
+            }
         }
 
         let rpcTransaction = KaspaRpcTransaction(
@@ -2208,21 +2259,22 @@ struct KasiaTransactionBuilder {
             payload: payload
         )
 
-        // Verify each input's signature
         for (index, input) in inputs.enumerated() {
             // 1. Parse signatureScript: 0x41 (push 65 bytes) + 64-byte Schnorr sig + 0x01 (SIGHASH_ALL)
             guard let sigScriptData = hexToData(input.signatureScript),
                   sigScriptData.count == 66,
                   sigScriptData[0] == 0x41,
                   sigScriptData[65] == 0x01 else {
-                // Non-standard signature script format; skip verification for this input
+                // Non-standard signature script (a covenant spend, another sighash type): not
+                // checked here
                 continue
             }
             let schnorrSigData = sigScriptData[1..<65]
 
-            // 2. Derive scriptPublicKey from the input's resolved address
-            guard let utxoScriptPubKey = KaspaAddress.scriptPublicKey(from: input.previousOutpointAddress) else {
-                return true // Cannot derive script; skip gracefully
+            // 2. The spent UTXO's script and amount: without them this input can't be checked yet
+            guard let address = input.previousOutpointAddress, let amount = input.previousOutpointAmount,
+                  let utxoScriptPubKey = KaspaAddress.scriptPublicKey(from: address) else {
+                return .unknown
             }
 
             // 3. Extract x-only public key (32 bytes) from P2PK scriptPublicKey
@@ -2235,14 +2287,15 @@ struct KasiaTransactionBuilder {
             }
             let xOnlyPubKeyData = utxoScriptPubKey[1..<33]
 
-            // 4. Compute sighash
+            // 4. Compute sighash (v0 or v1)
             guard let sighash = try? computeSighash(
                 transaction: rpcTransaction,
                 inputIndex: index,
                 utxoScriptPubKey: utxoScriptPubKey,
-                utxoAmount: input.previousOutpointAmount
+                utxoAmount: amount,
+                covenants: covenants
             ) else {
-                return true // Sighash computation failed; skip gracefully
+                return .unknown
             }
 
             // 5. Verify Schnorr signature using P256K
@@ -2254,16 +2307,16 @@ struct KasiaTransactionBuilder {
                 // Zero sighash bytes after verification
                 for i in sighashBytes.indices { sighashBytes[i] = 0 }
                 if !isValid {
-                    AppLog.log("[TxBuilder] Schnorr signature INVALID for input %d of tx", index)
-                    return false
+                    AppLog.log("[TxBuilder] Schnorr signature INVALID for input %d of a v%d tx", index, Int(version))
+                    return .invalid
                 }
             } catch {
                 AppLog.log("[TxBuilder] Schnorr verification error for input %d: %@", index, error.localizedDescription)
-                return true // Verification setup failed; skip gracefully
+                return .unknown
             }
         }
 
-        return true
+        return .valid
     }
 
     /// Storage mass parameter: C = SOMPI_PER_KAS * 10_000 = 1 trillion (KIP-0009)

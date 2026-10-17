@@ -145,7 +145,19 @@ extension ChatService {
         AppLog.log("[ChatService] fetchPaymentsFromKaspaAPI START - direction=%@, address=%@", direction, String(address.suffix(10)))
 
         // Fetch all transactions with pagination
-        let transactions = await fetchFullTransactionsPaginated(for: address, stopAtBlockTime: blockTime)
+        var transactions = await fetchFullTransactionsPaginated(for: address, stopAtBlockTime: blockTime)
+        // Payments held because their signatures couldn't be checked yet are read again by id
+        // (the page above may already be past them).
+        var heldTxIds: Set<String> = []
+        if incoming {
+            let present = Set(transactions.map { $0.transactionId.lowercased() })
+            for txId in heldPaymentTxIds(wallet: address) where !present.contains(txId) {
+                if let held = await fetchFullTransaction(txId: txId) {
+                    transactions.append(held)
+                    heldTxIds.insert(txId)
+                }
+            }
+        }
         AppLog.log("[ChatService] Fetched total %d transactions from Kaspa API", transactions.count)
 
         var knsHandledCount = 0
@@ -176,8 +188,9 @@ extension ChatService {
             // Get block time directly from transaction
             let txBlockTime = tx.blockTime ?? 0
 
-            // Skip transactions older than our filter time
-            if blockTime > 0 && txBlockTime > 0 && txBlockTime <= blockTime {
+            // Skip transactions older than our filter time (a held payment is due regardless)
+            if blockTime > 0 && txBlockTime > 0 && txBlockTime <= blockTime,
+               !heldTxIds.contains(tx.transactionId.lowercased()) {
                 skippedOld += 1
                 continue
             }
@@ -297,52 +310,24 @@ extension ChatService {
                 }
             }
 
-            // Verify Schnorr signatures on incoming payments from REST API
-            if incoming, let inputs = tx.inputs {
-                let verificationInputs = inputs.compactMap { input -> KasiaTransactionBuilder.VerificationInput? in
-                    guard let hash = input.previousOutpointHash,
-                          let idxStr = input.previousOutpointIndex,
-                          let idx = UInt32(idxStr),
-                          let sigScript = input.signatureScript,
-                          let addr = input.previousOutpointAddress,
-                          let amt = input.previousOutpointAmount else { return nil }
-                    return KasiaTransactionBuilder.VerificationInput(
-                        previousOutpointHash: hash,
-                        previousOutpointIndex: idx,
-                        signatureScript: sigScript,
-                        previousOutpointAddress: addr,
-                        previousOutpointAmount: amt,
-                        sequence: input.sequence?.value ?? 0,
-                        sigOpCount: input.sigOpCount?.value ?? 1
-                    )
-                }
-                let verificationOutputs = tx.outputs.map { output in
-                    KasiaTransactionBuilder.VerificationOutput(
-                        amount: output.amount,
-                        scriptPublicKey: output.scriptPublicKey ?? ""
-                    )
-                }
-                let txVersion = tx.version ?? 0
-                let txLockTime = tx.lockTime?.value ?? 0
-                let txGas = tx.gas?.value ?? 0
-                let subnetData = CryptoUtils.hexToData(tx.subnetworkId ?? "") ?? Data(repeating: 0, count: 20)
-                let payloadData = CryptoUtils.hexToData(tx.payload ?? "") ?? Data()
-
-                if !verificationInputs.isEmpty {
-                    let sigsValid = KasiaTransactionBuilder.verifyTransactionSignatures(
-                        inputs: verificationInputs,
-                        outputs: verificationOutputs,
-                        version: txVersion,
-                        lockTime: txLockTime,
-                        subnetworkId: subnetData,
-                        gas: txGas,
-                        payload: payloadData
-                    )
-                    if !sigsValid {
-                        AppLog.log("[ChatService] WARNING: Skipping payment %@ - Schnorr signature verification FAILED",
-                              String(tx.transactionId.prefix(16)))
-                        continue
-                    }
+            // Verify Schnorr signatures on incoming payments from REST API (v0 and v1). An input
+            // the API didn't resolve is looked up through its previous transaction; a payment
+            // that still can't be checked is held and checked again on later syncs, never
+            // dropped for good or shown unverified.
+            if incoming, tx.inputs?.isEmpty == false {
+                switch await verifyIncomingPaymentSignatures(tx) {
+                case .valid:
+                    releaseHeldPayment(tx.transactionId, wallet: address)
+                case .invalid:
+                    releaseHeldPayment(tx.transactionId, wallet: address)
+                    AppLog.log("[ChatService] WARNING: Skipping payment %@ - Schnorr signature verification FAILED",
+                          String(tx.transactionId.prefix(16)))
+                    continue
+                case .unknown:
+                    holdPayment(tx.transactionId, wallet: address)
+                    AppLog.log("[ChatService] Payment %@ held - its signatures can't be checked yet",
+                          String(tx.transactionId.prefix(16)))
+                    continue
                 }
             }
 
@@ -396,6 +381,104 @@ extension ChatService {
     /// Retry the SAME page on a growing pause before giving up on it. api.kaspa.org is a shared
     /// public endpoint that rate-limits, and a single 429 used to end the whole fetch.
     private static let historyPageRetryDelaysSeconds: [Double] = [0, 0.6, 2, 5]
+
+    // MARK: - Received-payment signature check (REST path)
+
+    /// Checks a received transaction's signatures (versions 0 and 1). Inputs the REST API left
+    /// unresolved get their spent output's address and amount from the previous transaction.
+    func verifyIncomingPaymentSignatures(_ tx: KaspaFullTransactionResponse) async -> KasiaTransactionBuilder.SignatureCheck {
+        guard let inputs = tx.inputs, !inputs.isEmpty else { return .valid }
+        var verificationInputs: [KasiaTransactionBuilder.VerificationInput] = []
+        for input in inputs {
+            guard let hash = input.previousOutpointHash,
+                  let idxStr = input.previousOutpointIndex,
+                  let idx = UInt32(idxStr) else {
+                return .unknown // the outpoint itself is part of every input's signature hash
+            }
+            var address = input.previousOutpointAddress
+            var amount = input.previousOutpointAmount
+            if address == nil || amount == nil,
+               let previous = await fetchFullTransaction(txId: hash, resolvePrevious: false),
+               let spent = previous.outputs.first(where: { $0.index.map { UInt32($0) } == idx })
+                ?? (Int(idx) < previous.outputs.count ? previous.outputs[Int(idx)] : nil) {
+                address = address ?? spent.scriptPublicKeyAddress
+                amount = amount ?? spent.amount
+            }
+            verificationInputs.append(KasiaTransactionBuilder.VerificationInput(
+                previousOutpointHash: hash,
+                previousOutpointIndex: idx,
+                signatureScript: input.signatureScript ?? "",
+                previousOutpointAddress: address,
+                previousOutpointAmount: amount,
+                sequence: input.sequence?.value ?? 0,
+                sigOpCount: input.sigOpCount?.value ?? 1
+            ))
+        }
+        let verificationOutputs = tx.outputs.map { output in
+            KasiaTransactionBuilder.VerificationOutput(
+                amount: output.amount,
+                scriptPublicKey: output.scriptPublicKey ?? "",
+                covenantAuthorizingInput: output.covenantAuthorizingInput,
+                covenantId: output.covenantId
+            )
+        }
+        return KasiaTransactionBuilder.verifyTransactionSignatures(
+            inputs: verificationInputs,
+            outputs: verificationOutputs,
+            version: tx.version ?? 0,
+            lockTime: tx.lockTime?.value ?? 0,
+            subnetworkId: CryptoUtils.hexToData(tx.subnetworkId ?? "") ?? Data(repeating: 0, count: 20),
+            gas: tx.gas?.value ?? 0,
+            payload: CryptoUtils.hexToData(tx.payload ?? "") ?? Data()
+        )
+    }
+
+    /// One transaction from the Kaspa REST API by id; nil when it can't be read.
+    func fetchFullTransaction(txId: String, resolvePrevious: Bool = true) async -> KaspaFullTransactionResponse? {
+        let query = resolvePrevious ? [URLQueryItem(name: "resolve_previous_outpoints", value: "light")] : []
+        guard let url = kaspaRestURL(path: "/transactions/\(txId)", queryItems: query),
+              let (data, response) = try? await URLSession.shared.data(for: Self.timedRequest(url)),
+              let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else { return nil }
+        return try? JSONDecoder().decode(KaspaFullTransactionResponse.self, from: data)
+    }
+
+    // Received payments whose signatures couldn't be checked yet, per wallet: re-read and checked
+    // on every payment sync for up to 7 days, then given up (logged). `txid -> first held (ms)`.
+    private static let heldPaymentMaxAgeMs: UInt64 = 7 * 86_400_000
+
+    private func heldPaymentsKey(wallet: String) -> String { "kachat_held_payments_\(wallet.lowercased())" }
+
+    private func heldPayments(wallet: String) -> [String: UInt64] {
+        (UserDefaults.standard.dictionary(forKey: heldPaymentsKey(wallet: wallet)) as? [String: UInt64]) ?? [:]
+    }
+
+    func heldPaymentTxIds(wallet: String) -> [String] {
+        let now = UInt64(Date().timeIntervalSince1970 * 1000)
+        var held = heldPayments(wallet: wallet)
+        let expired = held.filter { now > $0.value + Self.heldPaymentMaxAgeMs }.map(\.key)
+        if !expired.isEmpty {
+            for txId in expired {
+                held[txId] = nil
+                AppLog.log("[ChatService] Gave up on held payment %@ - signatures still uncheckable after 7 days",
+                           String(txId.prefix(16)))
+            }
+            UserDefaults.standard.set(held, forKey: heldPaymentsKey(wallet: wallet))
+        }
+        return Array(held.keys.sorted().prefix(25))
+    }
+
+    func holdPayment(_ txId: String, wallet: String) {
+        var held = heldPayments(wallet: wallet)
+        guard held[txId.lowercased()] == nil else { return }
+        held[txId.lowercased()] = UInt64(Date().timeIntervalSince1970 * 1000)
+        UserDefaults.standard.set(held, forKey: heldPaymentsKey(wallet: wallet))
+    }
+
+    func releaseHeldPayment(_ txId: String, wallet: String) {
+        var held = heldPayments(wallet: wallet)
+        guard held.removeValue(forKey: txId.lowercased()) != nil else { return }
+        UserDefaults.standard.set(held, forKey: heldPaymentsKey(wallet: wallet))
+    }
 
     func fetchFullTransactionsPaginated(
         for address: String,

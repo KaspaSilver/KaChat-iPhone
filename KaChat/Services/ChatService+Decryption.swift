@@ -642,6 +642,10 @@ struct KaspaFullTxOutput: Codable {
     let scriptPublicKey: String?  // Simple hex string, not an object
     let scriptPublicKeyAddress: String?
     let scriptPublicKeyType: String?
+    /// Version 1 transactions: the output's covenant binding (both nil without one). Part of
+    /// the v1 signature hash.
+    var covenantAuthorizingInput: UInt16? = nil
+    var covenantId: String? = nil
 
     enum CodingKeys: String, CodingKey {
         case transactionId = "transaction_id"
@@ -650,6 +654,8 @@ struct KaspaFullTxOutput: Codable {
         case scriptPublicKey = "script_public_key"
         case scriptPublicKeyAddress = "script_public_key_address"
         case scriptPublicKeyType = "script_public_key_type"
+        case covenantAuthorizingInput = "covenant_authorizing_input"
+        case covenantId = "covenant_id"
     }
 }
 

@@ -540,23 +540,25 @@ struct KaChatStatsView: View {
     /// "774,086"; from a million on, short: "1M", "1.01M", "2.5B" (rounded down, so it never
     /// shows a figure not yet reached).
     static func grouped(_ value: UInt64) -> String {
-        compact(Double(value)) ?? groupedFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+        compact(value) ?? groupedFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 
     /// Sompi as KAS with commas and at most two decimals: "21,035.5 KAS" (short from a
     /// million KAS on, like the counts).
     static func kas(_ sompi: UInt64) -> String {
         let value = NSDecimalNumber(value: sompi).dividing(by: NSDecimalNumber(value: 100_000_000))
-        let text = compact(value.doubleValue) ?? groupedFormatter.string(from: value) ?? KaspaUnit.plain(sompi)
+        let text = compact(sompi / 100_000_000) ?? groupedFormatter.string(from: value) ?? KaspaUnit.plain(sompi)
         return "\(text) \(KaspaUnit.symbol)"
     }
 
-    /// nil below a million.
-    private static func compact(_ value: Double) -> String? {
-        let units: [(Double, String)] = [(1e12, "T"), (1e9, "B"), (1e6, "M")]
+    /// nil below a million. Whole-number math: in floating point 1,150,000 / 1e6 * 100 is
+    /// 114.999..., which rounded down read "1.14M".
+    private static func compact(_ value: UInt64) -> String? {
+        let units: [(UInt64, String)] = [(1_000_000_000_000, "T"), (1_000_000_000, "B"), (1_000_000, "M")]
         guard let (size, suffix) = units.first(where: { value >= $0.0 }) else { return nil }
-        let scaled = (value / size * 100).rounded(.down) / 100
-        return (groupedFormatter.string(from: NSNumber(value: scaled)) ?? "\(scaled)") + suffix
+        let hundredths = value / (size / 100)
+        let scaled = Decimal(hundredths) / 100
+        return (groupedFormatter.string(from: NSDecimalNumber(decimal: scaled)) ?? "\(scaled)") + suffix
     }
 
     private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {

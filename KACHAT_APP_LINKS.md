@@ -51,9 +51,6 @@ Environment (`server/.env`):
 | `DESKTOP_URL` | `https://desktop.kachat.app/` | The "Use it in your Browser" button and the bar's "Open web app". |
 | `IOS_APP_IDS` | both Team IDs found in the project | `<TeamID>.com.kachat.app` entries in the AASA file. |
 | `ANDROID_SHA256` | empty | **Required for Android App Links**: the SHA-256 of the Play App Signing certificate (Play Console > Setup > App integrity). Without it Android shows the browser page with the download buttons, which still works, but never opens the app directly. |
-| `FEEDBACK_TO` | `kaspasilver@gmail.com` | Where `/feedback` sends what people write, and the address the page gives for pictures and videos. |
-| `FEEDBACK_SMTP_USER` / `FEEDBACK_SMTP_PASS` | empty | The Gmail account that sends it and its **app password** (Google Account > Security > 2-Step Verification > App passwords). Until both are set, `/feedback` only says to email `FEEDBACK_TO`. Put them in `server/.env` on the server yourself; never in the repo. |
-| `FEEDBACK_SMTP_HOST` / `FEEDBACK_SMTP_PORT` | `smtp.gmail.com` / `465` | Any SMTP server with implicit TLS and AUTH LOGIN. |
 
 ## What the site serves
 
@@ -96,14 +93,6 @@ Environment (`server/.env`):
   for the rest). Each account's answer is cached 24 h (1 min when it couldn't be reached) and a
   lookup never holds a page more than 7 s. The name is `<label>.kachat`, else the shortened
   address. No avatar shows the app's empty-avatar glyph.
-- `GET /feedback` - a text-only form (what it is about, where you use KaChat, the message up to
-  4,000 characters, an optional way to reach you). `POST /feedback` emails it to `FEEDBACK_TO`
-  over SMTP and redirects to a thank-you page; nothing is stored on the server. If sending fails,
-  the form comes back with the text kept and says to try again or email us. Pictures and videos:
-  the page says to email them to `FEEDBACK_TO`. Limits: a honeypot field, a signed form time
-  (sooner than 3 s or older than 6 h is refused), 5 an hour per client and 60 an hour in all.
-  Typed text never reaches a mail header (fixed subject choices, base64 body; Reply-To only for
-  a valid email address). No JavaScript; its own strict Content-Security-Policy.
 - `GET /.well-known/apple-app-site-association` - `applinks` for `/post/*`, `/broadcast/*`, `/u/*` and `/pay/*`
   for every `IOS_APP_IDS` entry. Served as `application/json`, no redirect - exactly what Apple
   requires. The iOS app carries `applinks:kachat.app` (and still `applinks:kachat.duckdns.org`

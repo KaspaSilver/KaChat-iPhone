@@ -673,6 +673,32 @@ const STYLE = `
   /* room */
   .room-ic { width:52px; height:52px; border-radius:13px; background:var(--teal); color:#fff; display:grid; place-items:center;
              font-size:28px; font-weight:700; flex:none; }
+  /* feedback */
+  .fb-title { margin:6px 0 6px; font-size:28px; letter-spacing:-.02em; line-height:1.2; }
+  .fb-lead { margin:0 0 18px; color:var(--muted); font-size:16px; }
+  .fb-form { display:grid; gap:18px; }
+  .fb-field { display:grid; gap:7px; }
+  .fb-label { font-size:15px; font-weight:600; }
+  .fb-opt, .fb-help { color:var(--muted); font-weight:400; font-size:13px; }
+  .fb-form textarea, .fb-form input:not([type=radio]), .fb-form select { width:100%; background:var(--cell-2); color:var(--text);
+    border:1px solid transparent; border-radius:12px; padding:12px 14px; font:inherit; font-size:16px; outline:none; }
+  .fb-form textarea { resize:vertical; min-height:150px; line-height:1.45; }
+  .fb-form select { -webkit-appearance:none; appearance:none; padding-right:36px;
+    background-image:linear-gradient(45deg, transparent 50%, #8e8e93 50%), linear-gradient(135deg, #8e8e93 50%, transparent 50%);
+    background-position:calc(100% - 20px) 52%, calc(100% - 15px) 52%; background-size:5px 5px; background-repeat:no-repeat; }
+  .fb-form textarea:focus, .fb-form input:focus, .fb-form select:focus { border-color:var(--teal); }
+  .fb-form ::placeholder { color:#6e6e73; }
+  .fb-seg { display:flex; flex-wrap:wrap; gap:8px; }
+  .fb-seg input { position:absolute; opacity:0; pointer-events:none; }
+  .fb-seg label { padding:8px 14px; border-radius:999px; background:var(--cell-2); font-size:15px; cursor:pointer; }
+  .fb-seg input:checked + label { background:var(--teal); color:#fff; font-weight:600; }
+  .fb-seg input:focus-visible + label { outline:2px solid var(--teal); outline-offset:2px; }
+  .fb-form button.btn { border:0; cursor:pointer; font:inherit; font-size:17px; font-weight:600; }
+  .fb-hp { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+  .fb-error { background:rgba(255,69,58,.14); color:#ff6961; border-radius:12px; padding:12px 14px; margin:0 0 14px; font-size:15px; }
+  .fb-note { margin-top:14px; color:var(--muted); font-size:15px; }
+  .fb-note a { color:var(--teal); }
+  .fb-media { background:var(--cell); border-radius:14px; padding:14px 16px; margin:0 0 14px; }
   .foot { border-top:.5px solid var(--sep); margin-top:36px; padding:22px 16px calc(28px + env(safe-area-inset-bottom)); text-align:center; color:var(--muted); font-size:13px; }
   .foot a { color:var(--teal); }
   @media (min-width:600px) { .badges { grid-template-columns:repeat(3,1fr); } .badge { padding:0 12px; } .badge .t { min-width:0; } }
@@ -947,6 +973,290 @@ function notFoundPage(what) {
   });
 }
 
+// ---------------------------------------------------------------- feedback
+// kachat.app/feedback: a text-only form that emails what people write to the KaChat team. Nothing
+// is stored here: a submission goes straight out over SMTP (Gmail by default, an app password in
+// FEEDBACK_SMTP_PASS), and if that fails the person keeps their text and is told to try again or
+// email us. Pictures and videos go by email (FEEDBACK_TO). No JavaScript: a plain form post.
+//
+// Abuse limits: a hidden honeypot field, a signed form time (a post sooner than 3 s after the page
+// loaded, or from a form older than 6 h, is refused), 5 posts an hour per client and 60 an hour in
+// all, and a 4,000-character message. The subject is built from fixed choices only and the body is
+// base64, so nothing typed can reach a mail header.
+const FEEDBACK_TO = process.env.FEEDBACK_TO || 'kaspasilver@gmail.com';
+const FEEDBACK_SMTP_HOST = process.env.FEEDBACK_SMTP_HOST || 'smtp.gmail.com';
+const FEEDBACK_SMTP_PORT = Number(process.env.FEEDBACK_SMTP_PORT || 465);
+const FEEDBACK_SMTP_USER = process.env.FEEDBACK_SMTP_USER || '';
+// Google shows an app password in groups of four; the spaces aren't part of it.
+const FEEDBACK_SMTP_PASS = (process.env.FEEDBACK_SMTP_PASS || '').replace(/\s+/g, '');
+// Only for a local test against a self-signed SMTP server; never set in production.
+const FEEDBACK_SMTP_INSECURE = process.env.FEEDBACK_SMTP_INSECURE === '1';
+const feedbackConfigured = () => Boolean(FEEDBACK_SMTP_USER && FEEDBACK_SMTP_PASS);
+
+const FEEDBACK_KINDS = { bug: 'Bug', idea: 'Idea', other: 'Something else' };
+const FEEDBACK_PLATFORMS = { iphone: 'iPhone / iPad', android: 'Android', web: 'Desktop / web app', extension: 'Browser extension', other: 'Other' };
+const FEEDBACK_MAX = 4000;
+const FEEDBACK_MIN = 10;
+const FEEDBACK_CONTACT_MAX = 200;
+const FEEDBACK_PER_CLIENT_PER_HOUR = 5;
+const FEEDBACK_GLOBAL_PER_HOUR = 60;
+const FEEDBACK_FORM_MIN_MS = 3000;
+const FEEDBACK_FORM_MAX_MS = 6 * 3600_000;
+const FEEDBACK_KEY = crypto.randomBytes(32);
+
+function feedbackToken(now = Date.now()) {
+  const mac = crypto.createHmac('sha256', FEEDBACK_KEY).update(String(now)).digest('hex').slice(0, 32);
+  return `${now}.${mac}`;
+}
+
+/** 'ok', 'fast' (sooner than a person types), or 'expired' (old, forged or from before a restart). */
+function feedbackTokenState(token, now = Date.now()) {
+  const [time, mac] = String(token || '').split('.');
+  const t = Number(time);
+  if (!Number.isSafeInteger(t) || !mac) return 'expired';
+  const want = crypto.createHmac('sha256', FEEDBACK_KEY).update(String(t)).digest('hex').slice(0, 32);
+  if (mac.length !== want.length || !crypto.timingSafeEqual(Buffer.from(mac), Buffer.from(want))) return 'expired';
+  if (now - t < FEEDBACK_FORM_MIN_MS) return 'fast';
+  if (now - t > FEEDBACK_FORM_MAX_MS) return 'expired';
+  return 'ok';
+}
+
+const feedbackClientWindows = new Map();
+let feedbackGlobalWindow = { start: 0, count: 0 };
+function feedbackAllowed(req) {
+  const now = Date.now();
+  if (now - feedbackGlobalWindow.start >= 3600_000) feedbackGlobalWindow = { start: now, count: 0 };
+  if (feedbackGlobalWindow.count >= FEEDBACK_GLOBAL_PER_HOUR) return false;
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const client = forwarded || req.socket.remoteAddress || '';
+  let w = feedbackClientWindows.get(client);
+  if (!w || now - w.start >= 3600_000) {
+    w = { start: now, count: 0 };
+    feedbackClientWindows.delete(client);
+    feedbackClientWindows.set(client, w);
+    if (feedbackClientWindows.size > 10_000) feedbackClientWindows.delete(feedbackClientWindows.keys().next().value);
+  }
+  if (w.count >= FEEDBACK_PER_CLIENT_PER_HOUR) return false;
+  w.count++;
+  feedbackGlobalWindow.count++;
+  return true;
+}
+
+function readForm(req, limit = 16_384) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > limit) { reject(Object.assign(new Error('too large'), { tooLarge: true })); req.destroy(); return; }
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(new URLSearchParams(Buffer.concat(chunks).toString('utf8'))));
+    req.on('error', reject);
+  });
+}
+
+// Control characters out (newlines and tabs kept in the message), trimmed.
+function cleanText(s, keepNewlines) {
+  const text = String(s || '').replace(/\r\n?/g, '\n');
+  return (keepNewlines
+    ? text.replace(/[\u0000-\u0008\u000b-\u001f\u007f​-‏‪-‮⁦-⁩﻿]/g, '')
+    : text.replace(/[\u0000-\u001f\u007f​-‏‪-‮⁦-⁩﻿]/g, ' ')).trim();
+}
+
+const EMAIL = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[A-Za-z0-9-]{1,63}(\.[A-Za-z0-9-]{1,63})+$/;
+
+/** The fields of a posted form, checked: { kind, platform, message, contact } or { error }. */
+function feedbackFromForm(form) {
+  const kind = Object.hasOwn(FEEDBACK_KINDS, form.get('kind')) ? form.get('kind') : 'other';
+  const platform = Object.hasOwn(FEEDBACK_PLATFORMS, form.get('platform')) ? form.get('platform') : 'other';
+  const message = cleanText(form.get('message'), true);
+  const contact = cleanText(form.get('contact'), false);
+  const fields = { kind, platform, message, contact };
+  if (message.length < FEEDBACK_MIN) return { ...fields, error: 'Please write a little more - at least a sentence.' };
+  if (message.length > FEEDBACK_MAX) return { ...fields, error: `Please keep it under ${FEEDBACK_MAX.toLocaleString('en-US')} characters.` };
+  if (contact.length > FEEDBACK_CONTACT_MAX) return { ...fields, error: 'The contact field is too long.' };
+  return fields;
+}
+
+function smtpEncodeHeader(s) {
+  return /^[\x20-\x7e]*$/.test(s) ? s : `=?UTF-8?B?${Buffer.from(s, 'utf8').toString('base64')}?=`;
+}
+
+function feedbackEmail({ kind, platform, message, contact }, req) {
+  const subject = `KaChat feedback: ${FEEDBACK_KINDS[kind]} (${FEEDBACK_PLATFORMS[platform]})`;
+  const body = [
+    `Type: ${FEEDBACK_KINDS[kind]}`,
+    `Platform: ${FEEDBACK_PLATFORMS[platform]}`,
+    `Contact: ${contact || '(none given)'}`,
+    `Sent: ${new Date().toISOString()} from kachat.app/feedback`,
+    `Browser: ${cleanText(req.headers['user-agent'], false).slice(0, 300) || '(unknown)'}`,
+    '',
+    message,
+    '',
+  ].join('\r\n');
+  const headers = [
+    `From: KaChat feedback <${FEEDBACK_SMTP_USER}>`,
+    `To: <${FEEDBACK_TO}>`,
+    ...(EMAIL.test(contact) ? [`Reply-To: <${contact}>`] : []),
+    `Subject: ${smtpEncodeHeader(subject)}`,
+    `Date: ${new Date().toUTCString().replace('GMT', '+0000')}`,
+    `Message-ID: <${crypto.randomUUID()}@kachat.app>`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset=utf-8',
+    'Content-Transfer-Encoding: base64',
+  ];
+  const encoded = Buffer.from(body, 'utf8').toString('base64').replace(/.{1,76}/g, '$&\r\n');
+  return `${headers.join('\r\n')}\r\n\r\n${encoded}`;
+}
+
+/** Sends one message over SMTP with implicit TLS (port 465) and AUTH LOGIN. Throws on any failure. */
+function smtpSend(raw) {
+  const tls = require('tls');
+  return new Promise((resolve, reject) => {
+    const socket = tls.connect({ host: FEEDBACK_SMTP_HOST, port: FEEDBACK_SMTP_PORT,
+                                 servername: require('net').isIP(FEEDBACK_SMTP_HOST) ? undefined : FEEDBACK_SMTP_HOST,
+                                 rejectUnauthorized: !FEEDBACK_SMTP_INSECURE });
+    const timer = setTimeout(() => fail(new Error('SMTP timed out')), 20_000);
+    let buffer = '';
+    let waiting = null;
+    function fail(error) { clearTimeout(timer); socket.destroy(); reject(error); }
+    socket.on('error', fail);
+    socket.on('data', data => {
+      buffer += data.toString('utf8');
+      // A reply is complete at a line "NNN text" (not "NNN-text").
+      const lines = buffer.split('\r\n');
+      // only whole lines: the last piece may still be arriving
+      const last = lines.slice(0, -1).findIndex(line => /^\d{3} /.test(line));
+      if (last === -1 || !waiting) return;
+      const code = Number(lines[last].slice(0, 3));
+      buffer = lines.slice(last + 1).join('\r\n');
+      const w = waiting; waiting = null; w(code, lines.slice(0, last + 1).join(' | '));
+    });
+    const expect = (want, command) => new Promise((ok, no) => {
+      waiting = (code, text) => (want.includes(code) ? ok() : no(new Error(`SMTP ${command || 'greeting'}: ${text.slice(0, 200)}`)));
+      if (command) socket.write(`${command}\r\n`);
+    });
+    (async () => {
+      await expect([220]);
+      await expect([250], 'EHLO kachat.app');
+      await expect([334], 'AUTH LOGIN');
+      await expect([334], Buffer.from(FEEDBACK_SMTP_USER).toString('base64'));
+      await expect([235], Buffer.from(FEEDBACK_SMTP_PASS).toString('base64'));
+      await expect([250], `MAIL FROM:<${FEEDBACK_SMTP_USER}>`);
+      await expect([250, 251], `RCPT TO:<${FEEDBACK_TO}>`);
+      await expect([354], 'DATA');
+      // base64 lines never start with ".", so no dot-stuffing is needed past the headers
+      await expect([250], `${raw.replace(/\r\n\./g, '\r\n..')}\r\n.`);
+      socket.write('QUIT\r\n');
+      clearTimeout(timer);
+      socket.end();
+      resolve();
+    })().catch(fail);
+  });
+}
+
+const FEEDBACK_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src https:; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
+
+function feedbackPage({ fields = {}, error = '', sent = false } = {}) {
+  const f = { kind: 'bug', platform: 'iphone', message: '', contact: '', ...fields };
+  const radios = Object.entries(FEEDBACK_KINDS).map(([value, label]) => `
+      <input type="radio" id="kind-${value}" name="kind" value="${value}"${f.kind === value ? ' checked' : ''}><label for="kind-${value}">${escapeHTML(label)}</label>`).join('');
+  const options = Object.entries(FEEDBACK_PLATFORMS).map(([value, label]) =>
+    `<option value="${value}"${f.platform === value ? ' selected' : ''}>${escapeHTML(label)}</option>`).join('');
+  const mailto = `<a href="mailto:${escapeHTML(FEEDBACK_TO)}">${escapeHTML(FEEDBACK_TO)}</a>`;
+  let body;
+  if (sent) {
+    body = `
+  <div class="card">
+    <div class="name" style="font-size:22px">Thanks, we got it</div>
+    <div class="text" style="color:var(--muted);font-size:16px">Your feedback is on its way to the KaChat team. If you left a way to reach you, we may write back.</div>
+    <div class="fb-note">Want to show us something? Email pictures or videos to ${mailto}.</div>
+  </div>
+  <a class="btn btn-gray btn-block" style="margin-top:14px" href="/feedback">Send more feedback</a>`;
+  } else if (!feedbackConfigured()) {
+    body = `
+  <div class="card">
+    <div class="name" style="font-size:22px">Send feedback</div>
+    <div class="text" style="color:var(--muted);font-size:16px">The feedback form is being set up. Until then, email your feedback, pictures or videos to ${mailto}.</div>
+  </div>`;
+  } else {
+    body = `
+  <h1 class="fb-title">Send feedback</h1>
+  <p class="fb-lead">Found a bug, have an idea, or want to tell us how KaChat works for you? Write it here and it goes straight to the KaChat team.</p>
+  <div class="fb-note fb-media">Text only here. Want to send pictures or videos? Email them to ${mailto}, and say what they show.</div>
+  ${error ? `<div class="fb-error" role="alert">${escapeHTML(error)}</div>` : ''}
+  <form class="card fb-form" method="post" action="/feedback">
+    <input type="hidden" name="t" value="${feedbackToken()}">
+    <div class="fb-hp" aria-hidden="true"><label for="website">Leave this empty</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+    <div class="fb-field">
+      <span class="fb-label">What is it about?</span>
+      <div class="fb-seg">${radios}
+      </div>
+    </div>
+    <div class="fb-field">
+      <label class="fb-label" for="platform">Where do you use KaChat?</label>
+      <select id="platform" name="platform">${options}</select>
+    </div>
+    <div class="fb-field">
+      <label class="fb-label" for="message">Your feedback</label>
+      <textarea id="message" name="message" rows="8" minlength="${FEEDBACK_MIN}" maxlength="${FEEDBACK_MAX}" required placeholder="What happened, what you expected, or what you'd like to see.">${escapeHTML(f.message)}</textarea>
+      <span class="fb-help">Text only, up to ${FEEDBACK_MAX.toLocaleString('en-US')} characters.</span>
+    </div>
+    <div class="fb-field">
+      <label class="fb-label" for="contact">How can we reach you? <span class="fb-opt">(optional)</span></label>
+      <input id="contact" name="contact" maxlength="${FEEDBACK_CONTACT_MAX}" value="${escapeHTML(f.contact)}" placeholder="Email, Telegram, X or your KaChat address" autocomplete="email">
+      <span class="fb-help">Only if you'd like a reply. Never shown publicly.</span>
+    </div>
+    <button class="btn btn-fill btn-block" type="submit">Send feedback</button>
+  </form>`;
+  }
+  return page({
+    title: 'Send feedback | KaChat',
+    description: 'Tell the KaChat team about a bug, an idea, or how the app works for you.',
+    image: OG_IMAGE,
+    canonical: `${SITE_ORIGIN}/feedback`,
+    appArgument: `${SITE_ORIGIN}/feedback`,
+    body,
+    largeImage: true,
+  });
+}
+
+async function handleFeedback(req, res) {
+  const headers = { 'cache-control': 'no-store', 'content-security-policy': FEEDBACK_CSP, 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer' };
+  const html = 'text/html; charset=utf-8';
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return send(res, 200, html, feedbackPage({ sent: new URL(req.url, SITE_ORIGIN).searchParams.get('sent') === '1' }), headers);
+  }
+  if (req.method !== 'POST') return send(res, 405, 'text/plain', 'method not allowed', { ...headers, allow: 'GET, POST' });
+  if (!feedbackConfigured()) return send(res, 503, html, feedbackPage(), headers);
+  let form;
+  try {
+    form = await readForm(req);
+  } catch (error) {
+    return send(res, error.tooLarge ? 413 : 400, html, feedbackPage({ error: 'That was too much to send. Please shorten it.' }), headers);
+  }
+  const fields = feedbackFromForm(form);
+  // A bot that filled the hidden field gets the thank-you page and nothing is sent.
+  if (form.get('website')) { res.writeHead(303, { ...headers, location: '/feedback?sent=1' }); return res.end(); }
+  if (fields.error) return send(res, 400, html, feedbackPage({ fields, error: fields.error }), headers);
+  const token = feedbackTokenState(form.get('t'));
+  if (token === 'fast') return send(res, 400, html, feedbackPage({ fields, error: 'That was quick! Please check your message and press Send again.' }), headers);
+  if (token === 'expired') return send(res, 400, html, feedbackPage({ fields, error: 'This form was open a long time. Your text is still here: press Send again.' }), headers);
+  if (!feedbackAllowed(req)) {
+    return send(res, 429, html, feedbackPage({ fields, error: `Too much feedback from here right now. Please try again in an hour, or email ${FEEDBACK_TO}.` }), { ...headers, 'retry-after': '3600' });
+  }
+  try {
+    await smtpSend(feedbackEmail(fields, req));
+  } catch (error) {
+    console.error('feedback email failed:', error.message);
+    return send(res, 502, html, feedbackPage({ fields, error: `We couldn't send it just now. Your text is still here: please try again in a few minutes, or email it to ${FEEDBACK_TO}.` }), headers);
+  }
+  // Post/Redirect/Get, so a reload doesn't send it twice.
+  res.writeHead(303, { ...headers, location: '/feedback?sent=1' });
+  res.end();
+}
+
 // ---------------------------------------------------------------- well-known
 function aasa() {
   const paths = ['/post/*', '/broadcast/*', '/u/*', '/pay/*'];
@@ -1002,6 +1312,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/.well-known/assetlinks.json') return send(res, 200, 'application/json', assetlinks(), { 'cache-control': 'public, max-age=3600' });
     if (url.pathname === '/download' || url.pathname === '/get') return storeRedirect(req, res);
     if (url.pathname === '/healthz') return send(res, 200, 'text/plain', 'ok', { 'cache-control': 'no-store' });
+    if (url.pathname === '/feedback' || url.pathname === '/feedback/') return await handleFeedback(req, res);
 
     if (parts.length === 2 && parts[0] === 'post') {
       const txid = parts[1];

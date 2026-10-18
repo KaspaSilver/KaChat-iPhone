@@ -367,9 +367,20 @@ final class PublicChatService: ObservableObject {
         !hiddenCuratedChannels.contains(PublicChatChannelName.normalize(name))
     }
 
+    /// What a default room's switch in Public Chats settings reads: on only when the room is
+    /// joined AND not switched off - i.e. it is in the list and the Chats circles row. A
+    /// language room is not joined until someone opens or switches it on, so it reads off
+    /// until then (it used to read "on" while appearing nowhere).
+    func isCuratedChannelOn(_ name: String) -> Bool {
+        let normalized = PublicChatChannelName.normalize(name)
+        return isCuratedChannelShown(normalized) && channels.contains { $0.channelName == normalized }
+    }
+
     /// Off: the room leaves the list and its notifications stop (the bell goes off, which also
-    /// takes it off the push service's watch list). On: it comes back - #kaspa and
-    /// #kachat-bugs with their bell on again, as they start; the language rooms as they were.
+    /// takes it off the push service's watch list). On: it is joined if it wasn't (the same as
+    /// joining it from the join sheet, so it appears in the list and the circles row at once)
+    /// and comes back - #kaspa and #kachat-bugs with their bell on again, as they start; the
+    /// language rooms with the bell a newly joined room gets.
     func setCuratedChannel(_ rawName: String, shown: Bool) {
         let name = PublicChatChannelName.normalize(rawName)
         guard Self.curatedChannels.contains(name) else { return }
@@ -380,6 +391,9 @@ final class PublicChatService: ObservableObject {
         }
         if let key = hiddenCuratedKey {
             UserDefaults.standard.set(Array(hiddenCuratedChannels), forKey: key)
+        }
+        if shown, !channels.contains(where: { $0.channelName == name }) {
+            joinChannel(name)
         }
         let isJoined = channels.contains { $0.channelName == name }
         if !shown, isJoined {

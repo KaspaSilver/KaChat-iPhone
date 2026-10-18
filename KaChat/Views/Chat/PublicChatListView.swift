@@ -677,14 +677,16 @@ struct PublicChatRow: View {
 }
 
 /// Public Chats settings, behind the gear at the top right of the tab: every default room with
-/// a switch. Off takes the room out of the list and silences it for good; on brings it back.
+/// a switch. On means the room is in the list and the Chats circles row (switching it on joins
+/// it); off takes it out and silences it for good.
 struct PublicChatsSettingsView: View {
     @EnvironmentObject var publicChatService: PublicChatService
     @Environment(\.dismiss) private var dismiss
 
     private func row(_ name: String) -> some View {
         Toggle(isOn: Binding(
-            get: { publicChatService.isCuratedChannelShown(name) },
+            // on = in the list and the circles row (joined, not switched off); switching on joins it
+            get: { publicChatService.isCuratedChannelOn(name) },
             set: { publicChatService.setCuratedChannel(name, shown: $0) }
         )) {
             VStack(alignment: .leading, spacing: 2) {

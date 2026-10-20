@@ -548,25 +548,27 @@ final class ContactsManager: ObservableObject {
     /// (`KNSService.showsDomainNamesAsIdentity`): no assigned name means the address, until
     /// .kachat names exist.
     func displayName(for address: String) -> String {
-        if let assigned = getContact(byAddress: address)?.assignedName { return ownSuffixed(assigned, address: address) }
-        if let saved = AddressBookManager.shared.entry(for: address)?.customName { return ownSuffixed(saved, address: address) }
-        return ownSuffixed(identityName(for: address), address: address)
+        if isOwnChattingAddress(address) { return identityName(for: address) }
+        if let assigned = getContact(byAddress: address)?.assignedName { return assigned }
+        if let saved = AddressBookManager.shared.entry(for: address)?.customName { return saved }
+        return identityName(for: address)
     }
 
     /// Same rule, when the caller already has the `Contact` in hand. A name you gave the chat
     /// wins; then the address's Address Book name; then who it is on chain.
     func displayName(for contact: Contact) -> String {
-        if let assigned = contact.assignedName { return ownSuffixed(assigned, address: contact.address) }
-        if let saved = AddressBookManager.shared.entry(for: contact.address)?.customName { return ownSuffixed(saved, address: contact.address) }
-        return ownSuffixed(identityName(for: contact.address), address: contact.address)
+        if isOwnChattingAddress(contact.address) { return identityName(for: contact.address) }
+        if let assigned = contact.assignedName { return assigned }
+        if let saved = AddressBookManager.shared.entry(for: contact.address)?.customName { return saved }
+        return identityName(for: contact.address)
     }
 
-    /// The chat with your own chatting address says so: "kaspero.kachat (Your address)" -
-    /// whatever the name resolves to (your own alias, Address Book, .kachat, the short address),
-    /// everywhere that chat is named.
-    private func ownSuffixed(_ name: String, address: String) -> String {
-        guard address.lowercased() == WalletManager.shared.currentWallet?.publicAddress.lowercased() else { return name }
-        return "\(name) \(AppLocalization.string("(Your address)"))"
+    /// Your own chatting address goes by who you are on chain - your .kachat domain, else the
+    /// short address - never a contact or Address Book name (the chat LIST names that chat
+    /// "Your Address" itself). So the self chat's header reads kaspero.kachat the moment the
+    /// domain exists, and the plain address before it.
+    private func isOwnChattingAddress(_ address: String) -> Bool {
+        address.lowercased() == WalletManager.shared.currentWallet?.publicAddress.lowercased()
     }
 
     /// Who an address is when you haven't named it yourself. On testnet that is its `.kachat`

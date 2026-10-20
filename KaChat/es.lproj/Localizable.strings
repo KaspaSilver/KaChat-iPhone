@@ -1786,5 +1786,6 @@
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ está en este iPhone, pero sus claves no. Eso ocurre tras restaurar desde una copia de seguridad, porque las claves quedan ligadas al teléfono donde se crearon. Introduce la frase de recuperación de la cuenta para iniciar sesión. Su historial en este teléfono se conserva.";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "Este iPhone tiene tu cuenta, pero no sus claves. Eso ocurre tras restaurar un teléfono desde una copia de seguridad, porque las claves de KaChat quedan ligadas al dispositivo donde se crearon. Introduce tu frase de recuperación para desbloquearla aquí. Tus mensajes en este dispositivo se conservan.";
 
-/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
-"(Your address)" = "(Tu dirección)";
+
+/* The chat list's name for the chat with yourself */
+"Your Address" = "Tu dirección";

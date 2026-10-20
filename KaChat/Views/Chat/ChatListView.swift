@@ -1759,6 +1759,11 @@ struct ConversationRow: View {
     /// conversation's copy of it: a rename in User Info shows at once.
     private var rowDisplayName: String {
         let contact = ContactsManager.shared.getContact(byAddress: conversation.contact.address) ?? conversation.contact
+        // The chat with yourself is named for what it is; who you are on chain is the chat
+        // HEADER's job (the .kachat domain, else the address - ContactsManager.displayName).
+        if contact.address.lowercased() == walletManager.currentWallet?.publicAddress.lowercased() {
+            return AppLocalization.string("Your Address")
+        }
         if let assigned = contact.assignedName { return assigned }
         if let saved = addressBook.entry(for: contact.address)?.customName { return saved }
         // On testnet: the .kachat name (read through the observed registry, so the row redraws

@@ -1786,5 +1786,6 @@
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ এই iPhone-এ আছে, কিন্তু এর চাবিগুলো নেই। ব্যাকআপ থেকে রিস্টোর করার পর এমন হয়, কারণ চাবি যে ফোনে তৈরি হয়েছিল সেটিতেই আটকে থাকে। সাইন ইন করতে এই অ্যাকাউন্টের রিকভারি বাক্যাংশ লিখুন। এই ফোনে এর ইতিহাস থেকে যাবে।";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "এই iPhone-এ আপনার অ্যাকাউন্ট আছে, কিন্তু এর চাবিগুলো নেই। ব্যাকআপ থেকে ফোন রিস্টোর করার পর এমন হয়, কারণ KaChat-এর চাবি যে ডিভাইসে তৈরি হয়েছিল সেটিতেই আটকে থাকে। এখানে খুলতে আপনার রিকভারি বাক্যাংশ লিখুন। এই ডিভাইসে আপনার বার্তাগুলো থেকে যাবে।";
 
-/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
-"(Your address)" = "(আপনার ঠিকানা)";
+
+/* The chat list's name for the chat with yourself */
+"Your Address" = "আপনার ঠিকানা";

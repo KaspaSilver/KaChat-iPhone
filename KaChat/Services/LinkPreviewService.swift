@@ -419,7 +419,7 @@ struct PaymentRequest: Equatable, Identifiable {
     private static func ownAddresses() -> Set<String> {
         let manager = WalletManager.shared
         guard let wallet = manager.currentWallet?.publicAddress.lowercased() else { return [] }
-        let key = "\(wallet)|\(manager.maxSpendingAddressIndex)"
+        let key = "\(wallet)|\(manager.maxSpendingAddressIndex)|q\(manager.maxQuantumAddressIndex)"
         if let cached = ownAddressCache, cached.key == key { return cached.addresses }
         var addresses: Set<String> = [wallet]
         addresses.formUnion(manager.allSpendingAddresses().map { $0.lowercased() })

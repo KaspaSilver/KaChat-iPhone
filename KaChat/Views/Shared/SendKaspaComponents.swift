@@ -772,6 +772,9 @@ struct SendFromSection: View {
 struct OwnAddressPicker: View {
     let title: LocalizedStringKey
     let selected: String?
+    /// The .kachat market signs its funding inputs as plain P2PK, which a quantum-safe (KIP-22)
+    /// address can't be - its picker leaves them out.
+    var excludeQuantum: Bool = false
     let onPick: (SendSource) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var entries: [SpendingAddressEntry]?
@@ -812,6 +815,7 @@ struct OwnAddressPicker: View {
             let all = await WalletManager.shared.getSpendingAddressList()
             let shown = all
                 .filter { !$0.hidden || $0.balanceSompi > 0 }
+                .filter { !excludeQuantum || !$0.isQuantum }
                 .sorted { $0.index < $1.index }
             entries = shown
             await checkUsed(shown)

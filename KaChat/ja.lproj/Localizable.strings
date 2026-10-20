@@ -1789,3 +1789,7 @@
 
 /* The chat list's name for the chat with yourself */
 "Your Address" = "自分のアドレス";
+
+/* Quantum-safe (KIP-22) addresses: the shield's two states in Manage Addresses */
+"Quantum-safe" = "量子耐性";
+"Key revealed by a spend" = "送金で鍵が公開済み";

@@ -37,6 +37,9 @@ struct ManageAddressesView: View {
     /// and shrunk per-row the moment each probe lands, so low rows resolve within a second
     /// or two of the screen opening instead of when the whole sweep ends.
     @State private var unknownUsedAddresses: Set<String> = []
+    /// Quantum (KIP-22) rows whose key is on chain (they spent once): the shield is off for
+    /// good. Seeded from the local marks, confirmed per row by the on-chain probe.
+    @State private var quantumSpentAddresses: Set<String> = []
     /// The bulk show/hide checklist, reached from the Address Actions sheet - it is one of this
     /// account's address actions, so it lives with the others rather than as an unlabelled
     /// checklist glyph in the toolbar. Same placement as Cold Storage.
@@ -326,6 +329,9 @@ struct ManageAddressesView: View {
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
+                        if entry.isQuantum {
+                            quantumShield(for: entry)
+                        }
                     }
                     Text(entry.shortAddress)
                         .font(.system(.subheadline, design: .monospaced))
@@ -363,6 +369,26 @@ struct ManageAddressesView: View {
             .padding(16)
         }
         .background(glassBackground(cornerRadius: 18))
+    }
+
+    /// The quantum (KIP-22) state of a row, told honestly:
+    /// - shield: the key has never been on chain (receiving reveals nothing) - quantum-safe.
+    /// - slashed shield: this address SPENT once, so its key is public forever; orange when
+    ///   funds sit on it again (move them to a fresh address), gray when it is empty.
+    @ViewBuilder
+    private func quantumShield(for entry: SpendingAddressEntry) -> some View {
+        let spent = quantumSpentAddresses.contains(entry.address.lowercased())
+        if spent {
+            Image(systemName: "shield.slash.fill")
+                .font(.caption2)
+                .foregroundColor(entry.balanceSompi > 0 ? .orange : .secondary)
+                .accessibilityLabel(Text("Key revealed by a spend"))
+        } else {
+            Image(systemName: "shield.fill")
+                .font(.caption2)
+                .foregroundColor(.green)
+                .accessibilityLabel(Text("Quantum-safe"))
+        }
     }
 
     /// Everything this account holds: the chatting address and every spending address, hidden
@@ -667,6 +693,22 @@ struct ManageAddressesView: View {
         unknownUsedAddresses = Set(toProbe.map(\.address))
         isLoading = false
 
+        // Quantum shields: local spend marks at once, then the chain's word per row for spends
+        // made on another device or before a restore (a spent mark is permanent - a revealed
+        // key cannot be unrevealed).
+        quantumSpentAddresses = Set(merged.filter { $0.isQuantum }.map { $0.address.lowercased() }
+            .filter { WalletManager.shared.isQuantumAddressSpentLocally($0) })
+        let shieldCandidates = merged.filter { $0.isQuantum && !quantumSpentAddresses.contains($0.address.lowercased()) }
+        if !shieldCandidates.isEmpty {
+            Task {
+                for entry in shieldCandidates {
+                    if await chatService.quantumAddressSpentState(entry.address) == true {
+                        quantumSpentAddresses.insert(entry.address.lowercased())
+                    }
+                }
+            }
+        }
+
         // Lowest indices first: they are the Generate-recycling candidates, so they should be
         // the first badges to resolve (within a second or two of the screen opening).
         //
@@ -737,10 +779,14 @@ struct ManageAddressesView: View {
             // the all-time max, which is provably fresh by construction and needs no network
             // at all. A background reload reconciles afterwards.
             let primaryIndex = walletManager.currentSpendingAddressIndex
+            // Generate makes quantum-safe (KIP-22) slots from now on: recycling considers only
+            // hidden unused QUANTUM rows, and the fresh path extends the quantum chain - the
+            // legacy chain is never grown again from here.
             let candidates = entries
                 .sorted { $0.index < $1.index }
                 .filter { entry in
-                    entry.hidden
+                    entry.isQuantum
+                        && entry.hidden
                         && entry.index != primaryIndex
                         && entry.balanceSompi == 0
                         && !entry.everUsed
@@ -780,9 +826,7 @@ struct ManageAddressesView: View {
                     entries[i].hidden = false
                 }
             } else {
-                await walletManager.generateNextSpendingAddress()
-                index = walletManager.maxSpendingAddressIndex
-                _ = await walletManager.setSpendingAddressHidden(index: index, hidden: false)
+                index = await walletManager.generateNextQuantumAddress()
                 if let address = walletManager.spendingAddress(at: index) {
                     entries.append(SpendingAddressEntry(
                         index: index,
@@ -1374,7 +1418,8 @@ struct SpendingAddressWithdrawView: View {
                     setMaxAmount()
                 }
             }
-            .navigationTitle(isCompoundMode ? "Compound UTXOs" : "Send Kaspa from Address #\(source.index)")
+            .navigationTitle(isCompoundMode ? "Compound UTXOs"
+                             : "Send Kaspa from \(WalletManager.isQuantumIndex(source.index) ? "Quantum" : "Address") #\(WalletManager.isQuantumIndex(source.index) ? source.index - WalletManager.quantumIndexBase : source.index)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -1719,7 +1764,7 @@ private struct SpendingAddressQRView: View {
                 )
                 .contentShape(Rectangle())
                 .onTapGesture { copyAddress() }
-                .navigationTitle("Address #\(entry.index)")
+                .navigationTitle(entry.displayTitle)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {

@@ -1209,7 +1209,7 @@ struct KachatMarketSourceSheet: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
             .sheet(isPresented: $showChooser) {
-                OwnAddressPicker(title: "Buy From", selected: actions.marketSource.address) { picked in
+                OwnAddressPicker(title: "Buy From", selected: actions.marketSource.address, excludeQuantum: true) { picked in
                     actions.marketSource = picked
                 }
             }

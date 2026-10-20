@@ -85,6 +85,13 @@ struct SpendingAddressEntry: Identifiable, Equatable, Codable {
     var everUsed: Bool = false
     /// User-assigned display name for this address, if any.
     var label: String?
+    /// A quantum-safe (KIP-22) slot: public index `WalletManager.quantumIndexBase + n`. Computed,
+    /// so cached entry lists from before the upgrade decode unchanged.
+    var isQuantum: Bool { index >= WalletManager.quantumIndexBase }
+    /// The row's number on its own chain ("Address #3" / "Quantum #0").
+    var displayTitle: String {
+        isQuantum ? "Quantum #\(index - WalletManager.quantumIndexBase)" : "Address #\(index)"
+    }
     /// Whether this address is hidden from the main Manage Addresses list. Enforced
     /// server-side (WalletManager.setSpendingAddressHidden refuses to hide the primary
     /// address or one with a balance) — this flag alone should never be trusted to imply
@@ -95,7 +102,7 @@ struct SpendingAddressEntry: Identifiable, Equatable, Codable {
 
     var displayLabel: String {
         let trimmed = label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? "Address #\(index)" : trimmed
+        return trimmed.isEmpty ? displayTitle : trimmed
     }
 
     var shortAddress: String {

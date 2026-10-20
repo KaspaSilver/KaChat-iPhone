@@ -2399,9 +2399,9 @@ extension ChatService {
                   let spendingPrivateKey = WalletManager.shared.spendingPrivateKey(at: spendingIndex) else {
                 throw KasiaError.keychainError("Could not derive spending address")
             }
-            // One past the highest index this wallet has EVER revealed, so change never lands
-            // on an address that has been used before.
-            let index = max(WalletManager.shared.maxSpendingAddressIndex, spendingIndex) + 1
+            // Change always lands on a brand-new quantum-safe slot (KIP-22): never an address
+            // used before, and its key stays hidden until IT spends.
+            let index = WalletManager.shared.nextFreshQuantumIndex()
             sourceAddress = spendingAddress
             sourcePrivateKey = spendingPrivateKey
             changeAddress = WalletManager.shared.spendingAddress(at: index)
@@ -2555,6 +2555,15 @@ extension ChatService {
                     payloadOverride: tipPayload
                 )
             } else {
+                // A quantum-safe source (KIP-22) spends with its redeem script pushed after the
+                // signature; nil for a quantum index means the seed is unreadable this instant.
+                var senderRedeemScript: Data?
+                if let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
+                    guard let redeem = WalletManager.shared.quantumRedeemScript(at: spendingIndex) else {
+                        throw KasiaError.keychainError("Could not derive the quantum address's key")
+                    }
+                    senderRedeemScript = redeem
+                }
                 tx = try KasiaTransactionBuilder.buildPlainTransferTx(
                     from: sourceAddress,
                     to: destinationAddress,
@@ -2562,7 +2571,8 @@ extension ChatService {
                     senderPrivateKey: sourcePrivateKey,
                     utxos: spendable,
                     extraFeeSompi: extraFeeSompi,
-                    changeAddress: changeAddress
+                    changeAddress: changeAddress,
+                    senderRedeemScript: senderRedeemScript
                 )
             }
 
@@ -2595,6 +2605,10 @@ extension ChatService {
                 await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
             }
             if !fromChattingAddress {
+                // a spend reveals the key for good: the shield comes off (KIP-22)
+                if let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
+                    WalletManager.shared.markQuantumAddressSpent(sourceAddress)
+                }
                 sendSpendingPaymentNotice(to: contact, txId: txId, amountSompi: amountSompi, memo: note)
             }
             return txId
@@ -2617,6 +2631,9 @@ extension ChatService {
                     await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
                 }
                 if !fromChattingAddress {
+                    if let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
+                        WalletManager.shared.markQuantumAddressSpent(sourceAddress)
+                    }
                     sendSpendingPaymentNotice(to: contact, txId: acceptedTxId, amountSompi: amountSompi, memo: note)
                 }
                 return acceptedTxId
@@ -2819,8 +2836,12 @@ extension ChatService {
         var freshChangeIndex: Int?
         var changeAddress: String?
         let isSelfSend = toAddress.lowercased() == fromAddress.lowercased()
-        if !isSelfSend, index == WalletManager.shared.currentSpendingAddressIndex {
-            let candidate = max(WalletManager.shared.maxSpendingAddressIndex, index) + 1
+        // A quantum source's change must NEVER return to it - the spend reveals its key, and
+        // change back would park funds on a revealed address (KIP-22). A legacy primary keeps
+        // rotating as before; both rotate onto a fresh quantum slot now. A self-send (Compound)
+        // still consolidates into the address itself, shield off.
+        if !isSelfSend, WalletManager.isQuantumIndex(index) || index == WalletManager.shared.currentSpendingAddressIndex {
+            let candidate = WalletManager.shared.nextFreshQuantumIndex()
             if let address = WalletManager.shared.spendingAddress(at: candidate) {
                 freshChangeIndex = candidate
                 changeAddress = address
@@ -2866,6 +2887,13 @@ extension ChatService {
                 resolvedManualUtxos = resolved
             }
 
+            var senderRedeemScript: Data?
+            if WalletManager.isQuantumIndex(index) {
+                guard let redeem = WalletManager.shared.quantumRedeemScript(at: index) else {
+                    throw KasiaError.keychainError("Could not derive the quantum address's key")
+                }
+                senderRedeemScript = redeem
+            }
             let tx = try KasiaTransactionBuilder.buildPlainTransferTx(
                 from: fromAddress,
                 to: toAddress,
@@ -2875,12 +2903,17 @@ extension ChatService {
                 manualUtxos: resolvedManualUtxos,
                 extraFeeSompi: extraFeeSompi,
                 changeAddress: changeAddress,
-                virtualDaaScore: vds
+                virtualDaaScore: vds,
+                senderRedeemScript: senderRedeemScript
             )
 
             AppLog.log("[ChatService] Submitting spending-address withdrawal via RPC manager...")
             let (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
             AppLog.log("[ChatService] Spending-address withdrawal submitted: \(txId) via \(endpoint)")
+            if WalletManager.isQuantumIndex(index) {
+                // the spend put this address's key on chain for good (self-sends included)
+                WalletManager.shared.markQuantumAddressSpent(fromAddress)
+            }
             if let freshChangeIndex {
                 // The primary follows its change onto the fresh address. Manage Addresses
                 // listens for this and moves its star at once.
@@ -2988,7 +3021,9 @@ extension ChatService {
             senderScriptPubKey: senderScriptPubKey,
             manualUtxos: resolvedManualUtxos,
             extraFeeSompi: extraFeeSompi,
-            virtualDaaScore: vds
+            virtualDaaScore: vds,
+            signatureScriptSize: WalletManager.isQuantumIndex(index)
+                ? KasiaTransactionBuilder.kip22SignatureScriptSize : 66
         )
     }
 
@@ -3022,7 +3057,9 @@ extension ChatService {
             senderScriptPubKey: senderScriptPubKey,
             manualUtxos: resolvedManualUtxos,
             extraFeeSompi: extraFeeSompi,
-            virtualDaaScore: vds
+            virtualDaaScore: vds,
+            signatureScriptSize: WalletManager.isQuantumIndex(index)
+                ? KasiaTransactionBuilder.kip22SignatureScriptSize : 66
         )
 
         guard totalBalance > fee else {
@@ -3324,7 +3361,9 @@ extension ChatService {
             payload: payload,
             amount: amountSompi,
             recipientScriptPubKey: recipientScriptPubKey,
-            senderScriptPubKey: senderScriptPubKey
+            senderScriptPubKey: senderScriptPubKey,
+            signatureScriptSize: sourceSpendingIndex.map(WalletManager.isQuantumIndex) == true
+                ? KasiaTransactionBuilder.kip22SignatureScriptSize : 66
         )
     }
 
@@ -3359,7 +3398,9 @@ extension ChatService {
             utxos: spendable,
             payload: payload,
             recipientScriptPubKey: recipientScriptPubKey,
-            senderScriptPubKey: senderScriptPubKey
+            senderScriptPubKey: senderScriptPubKey,
+            signatureScriptSize: sourceSpendingIndex.map(WalletManager.isQuantumIndex) == true
+                ? KasiaTransactionBuilder.kip22SignatureScriptSize : 66
         )
 
         // Leave room for a Fast / Priority / custom extra on top of the base fee.

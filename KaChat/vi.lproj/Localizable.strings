@@ -1789,3 +1789,7 @@
 
 /* The chat list's name for the chat with yourself */
 "Your Address" = "Địa chỉ của bạn";
+
+/* Quantum-safe (KIP-22) addresses: the shield's two states in Manage Addresses */
+"Quantum-safe" = "An toàn lượng tử";
+"Key revealed by a spend" = "Khóa đã lộ do một lần chi tiêu";

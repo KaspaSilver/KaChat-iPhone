@@ -510,8 +510,12 @@ struct KasiaTransactionBuilder {
         manualUtxos: [UTXO]? = nil,
         extraFeeSompi: UInt64 = 0,
         changeAddress: String? = nil,
-        virtualDaaScore: UInt64? = nil
+        virtualDaaScore: UInt64? = nil,
+        /// KIP-22 (quantum-safe) sender: its redeem script, pushed after each signature and
+        /// priced into the fee.
+        senderRedeemScript: Data? = nil
     ) throws -> KaspaRpcTransaction {
+        let signatureScriptSize = senderRedeemScript.map { 66 + canonicalPushDataSize($0.count) } ?? 66
         guard amount > 0 else {
             throw KasiaError.networkError("Amount must be greater than zero")
         }
@@ -544,7 +548,8 @@ struct KasiaTransactionBuilder {
                 recipientScriptPubKey: recipientScriptPubKey,
                 senderScriptPubKey: senderScriptPubKey,
                 extraFeeSompi: extraFeeSompi,
-                virtualDaaScore: virtualDaaScore
+                virtualDaaScore: virtualDaaScore,
+                signatureScriptSize: signatureScriptSize
             )
         } else {
             selection = try selectUtxosForPayment(
@@ -554,7 +559,8 @@ struct KasiaTransactionBuilder {
                 recipientScriptPubKey: recipientScriptPubKey,
                 senderScriptPubKey: senderScriptPubKey,
                 extraFeeSompi: extraFeeSompi,
-                virtualDaaScore: virtualDaaScore
+                virtualDaaScore: virtualDaaScore,
+                signatureScriptSize: signatureScriptSize
             )
         }
 
@@ -588,7 +594,8 @@ struct KasiaTransactionBuilder {
             payload: Data()
         )
 
-        return try signTransaction(unsignedTx, privateKey: senderPrivateKey, utxos: selection.utxos)
+        return try signTransaction(unsignedTx, privateKey: senderPrivateKey, utxos: selection.utxos,
+                                   redeemScript: senderRedeemScript)
     }
 
     /// Result of building (but not signing) a transfer — used for cold storage / watch-only
@@ -719,7 +726,8 @@ struct KasiaTransactionBuilder {
         senderScriptPubKey: Data,
         manualUtxos: [UTXO]? = nil,
         extraFeeSompi: UInt64 = 0,
-        virtualDaaScore: UInt64? = nil
+        virtualDaaScore: UInt64? = nil,
+        signatureScriptSize: Int = 66
     ) throws -> UInt64 {
         let selection: PaymentSelection
         if let manualUtxos, !manualUtxos.isEmpty {
@@ -730,7 +738,8 @@ struct KasiaTransactionBuilder {
                 recipientScriptPubKey: recipientScriptPubKey,
                 senderScriptPubKey: senderScriptPubKey,
                 extraFeeSompi: extraFeeSompi,
-                virtualDaaScore: virtualDaaScore
+                virtualDaaScore: virtualDaaScore,
+                signatureScriptSize: signatureScriptSize
             )
         } else {
             selection = try selectUtxosForPayment(
@@ -740,7 +749,8 @@ struct KasiaTransactionBuilder {
                 recipientScriptPubKey: recipientScriptPubKey,
                 senderScriptPubKey: senderScriptPubKey,
                 extraFeeSompi: extraFeeSompi,
-                virtualDaaScore: virtualDaaScore
+                virtualDaaScore: virtualDaaScore,
+                signatureScriptSize: signatureScriptSize
             )
         }
         var outputs: [KaspaRpcTransactionOutput] = [
@@ -749,17 +759,19 @@ struct KasiaTransactionBuilder {
         if selection.keepsChange(withRecipientAmount: amount) {
             outputs.append(KaspaRpcTransactionOutput(value: selection.change, scriptPublicKey: KaspaScriptPublicKey(version: 0, script: senderScriptPubKey)))
         }
-        return estimateFee(payload: Data(), inputCount: selection.utxos.count, outputs: outputs) + extraFeeSompi
+        return estimateFee(payload: Data(), inputCount: selection.utxos.count, outputs: outputs,
+                           signatureScriptSize: signatureScriptSize) + extraFeeSompi
     }
 
     /// Estimate payment fee based on payload and utxo set
-    static func estimatePaymentFee(utxos: [UTXO], payload: Data, amount: UInt64, recipientScriptPubKey: Data, senderScriptPubKey: Data) throws -> UInt64 {
+    static func estimatePaymentFee(utxos: [UTXO], payload: Data, amount: UInt64, recipientScriptPubKey: Data, senderScriptPubKey: Data, signatureScriptSize: Int = 66) throws -> UInt64 {
         let selection = try selectUtxosForPayment(
             utxos: utxos,
             amount: amount,
             payload: payload,
             recipientScriptPubKey: recipientScriptPubKey,
-            senderScriptPubKey: senderScriptPubKey
+            senderScriptPubKey: senderScriptPubKey,
+            signatureScriptSize: signatureScriptSize
         )
 
         var outputs: [KaspaRpcTransactionOutput] = [
@@ -775,7 +787,8 @@ struct KasiaTransactionBuilder {
             ))
         }
 
-        return estimateFee(payload: payload, inputCount: selection.utxos.count, outputs: outputs)
+        return estimateFee(payload: payload, inputCount: selection.utxos.count, outputs: outputs,
+                           signatureScriptSize: signatureScriptSize)
     }
 
     /// Estimate fee for send-all transaction (all UTXOs, single output, no change)
@@ -787,7 +800,8 @@ struct KasiaTransactionBuilder {
         senderScriptPubKey: Data,
         manualUtxos: [UTXO]? = nil,
         extraFeeSompi: UInt64 = 0,
-        virtualDaaScore: UInt64? = nil
+        virtualDaaScore: UInt64? = nil,
+        signatureScriptSize: Int = 66
     ) -> UInt64 {
         // With coin control active, "max" means "max spendable from the selected UTXOs", not
         // from the whole address - use exactly the manual set instead of every spendable UTXO.
@@ -797,7 +811,8 @@ struct KasiaTransactionBuilder {
             KaspaRpcTransactionOutput(value: 0, scriptPublicKey: KaspaScriptPublicKey(version: 0, script: recipientScriptPubKey)),
             KaspaRpcTransactionOutput(value: 0, scriptPublicKey: KaspaScriptPublicKey(version: 0, script: senderScriptPubKey))
         ]
-        return estimateFee(payload: payload, inputCount: spendable.count, outputs: outputs) + 3 + extraFeeSompi
+        return estimateFee(payload: payload, inputCount: spendable.count, outputs: outputs,
+                           signatureScriptSize: signatureScriptSize) + 3 + extraFeeSompi
     }
 
     /// Build the contextual message payload used by Kasia transactions
@@ -1506,7 +1521,8 @@ struct KasiaTransactionBuilder {
         recipientScriptPubKey: Data,
         senderScriptPubKey: Data,
         extraFeeSompi: UInt64 = 0,
-        virtualDaaScore: UInt64? = nil
+        virtualDaaScore: UInt64? = nil,
+        signatureScriptSize: Int = 66
     ) throws -> PaymentSelection {
         let utxos = KaPostsScheduledStore.filterReserved(utxos)
         // Sort largest first to reduce input count (lower mass). Immature coinbase is excluded up
@@ -1539,7 +1555,8 @@ struct KasiaTransactionBuilder {
                 outputs: [
                     recipientOutput,
                     KaspaRpcTransactionOutput(value: 0, scriptPublicKey: KaspaScriptPublicKey(version: 0, script: senderScriptPubKey))
-                ]
+                ],
+                signatureScriptSize: signatureScriptSize
             ) + 3 + extraFeeSompi
 
             if total <= amount || total - amount < feeWithChange {
@@ -1559,7 +1576,8 @@ struct KasiaTransactionBuilder {
             // leftover really is dust. A bigger leftover that will not fit means the send itself
             // is too small for this coin set: keep adding inputs (a smaller coin lowers the mass),
             // and refuse if none does, rather than paying the change away as fee.
-            let feeNoChange = estimateFee(payload: payload, inputCount: selected.count, outputs: [recipientOutput]) + 3 + extraFeeSompi
+            let feeNoChange = estimateFee(payload: payload, inputCount: selected.count, outputs: [recipientOutput],
+                                          signatureScriptSize: signatureScriptSize) + 3 + extraFeeSompi
             if total > amount && total - amount >= feeNoChange {
                 change = total - amount - feeNoChange
                 if change <= maxFoldedChangeSompi {
@@ -1587,7 +1605,8 @@ struct KasiaTransactionBuilder {
         recipientScriptPubKey: Data,
         senderScriptPubKey: Data,
         extraFeeSompi: UInt64 = 0,
-        virtualDaaScore: UInt64? = nil
+        virtualDaaScore: UInt64? = nil,
+        signatureScriptSize: Int = 66
     ) throws -> PaymentSelection {
         let utxos = KaPostsScheduledStore.filterReserved(utxos)
         let usable = spendableForBuild(utxos, virtualDaaScore: virtualDaaScore)
@@ -1612,7 +1631,8 @@ struct KasiaTransactionBuilder {
             outputs: [
                 recipientOutput,
                 KaspaRpcTransactionOutput(value: 0, scriptPublicKey: KaspaScriptPublicKey(version: 0, script: senderScriptPubKey))
-            ]
+            ],
+            signatureScriptSize: signatureScriptSize
         ) + 3 + extraFeeSompi
 
         if total > amount, total - amount >= feeWithChange {
@@ -1625,7 +1645,8 @@ struct KasiaTransactionBuilder {
 
         // Try without change (treat dust as fee, + buffer, + priority tip) - dust only, the same
         // rule as the greedy selector: never pay real change away to make a shape fit.
-        let feeNoChange = estimateFee(payload: payload, inputCount: usable.count, outputs: [recipientOutput]) + 3 + extraFeeSompi
+        let feeNoChange = estimateFee(payload: payload, inputCount: usable.count, outputs: [recipientOutput],
+                                      signatureScriptSize: signatureScriptSize) + 3 + extraFeeSompi
         if total > amount, total - amount >= feeNoChange {
             let leftover = total - amount - feeNoChange
             guard leftover <= maxFoldedChangeSompi else {
@@ -1772,6 +1793,10 @@ struct KasiaTransactionBuilder {
 
         return (selected, totalAmount)
     }
+
+    /// A KIP-22 (quantum-safe) input's signature script: the usual 66 bytes plus the pushed
+    /// 34-byte redeem script (`0x20 <key> OP_CHECKSIG`).
+    static let kip22SignatureScriptSize = 66 + 35
 
     /// Calculate the Toccata minimum standard fee.
     /// Fee mass is max(compute mass, normalized transient mass), where post-Toccata
@@ -1950,10 +1975,13 @@ struct KasiaTransactionBuilder {
     }
 
     /// Sign transaction inputs using Schnorr
+    /// `redeemScript`: a KIP-22 (quantum-safe P2SH) sender's redeem script, pushed after each
+    /// signature exactly as the KNS reveal and the .kachat covenants spend P2SH.
     internal static func signTransaction(
         _ transaction: KaspaRpcTransaction,
         privateKey: Data,
-        utxos: [UTXO]
+        utxos: [UTXO],
+        redeemScript: Data? = nil
     ) throws -> KaspaRpcTransaction {
         let schnorrPrivKey = try P256K.Schnorr.PrivateKey(dataRepresentation: privateKey)
         var signedInputs: [KaspaRpcTransactionInput] = []
@@ -1978,6 +2006,9 @@ struct KasiaTransactionBuilder {
             sigScript.append(0x41) // push 65 bytes
             sigScript.append(sigBytes)
             sigScript.append(0x01) // SIGHASH_ALL
+            if let redeemScript {
+                sigScript.append(try buildCanonicalPushData(redeemScript))
+            }
 
             signedInputs.append(KaspaRpcTransactionInput(
                 previousOutpoint: input.previousOutpoint,

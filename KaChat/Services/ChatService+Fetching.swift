@@ -463,6 +463,32 @@ extension ChatService {
         return paid == amount
     }
 
+    /// Whether a quantum-safe (KIP-22) address has ever SPENT - the one event that puts its key
+    /// on chain (receiving reveals nothing). true is marked locally and permanent; false means
+    /// no spend in its history; nil when the history can't be read right now. Quantum addresses
+    /// are young, so one page covers them.
+    func quantumAddressSpentState(_ address: String) async -> Bool? {
+        if WalletManager.shared.isQuantumAddressSpentLocally(address) { return true }
+        guard let url = kaspaRestURL(
+            path: "/addresses/\(address)/full-transactions",
+            queryItems: [
+                URLQueryItem(name: "limit", value: "200"),
+                URLQueryItem(name: "offset", value: "0"),
+                URLQueryItem(name: "resolve_previous_outpoints", value: "light")
+            ]
+        ), let (data, response) = try? await URLSession.shared.data(for: Self.timedRequest(url)),
+           let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+           let transactions = try? await Self.decodeOffMain([KaspaFullTransactionResponse].self, from: data) else {
+            return nil
+        }
+        let lowered = address.lowercased()
+        let spent = transactions.contains { tx in
+            (tx.inputs ?? []).contains { $0.previousOutpointAddress?.lowercased() == lowered }
+        }
+        if spent { WalletManager.shared.markQuantumAddressSpent(address) }
+        return spent
+    }
+
     /// One transaction from the Kaspa REST API by id; nil when it can't be read.
     func fetchFullTransaction(txId: String, resolvePrevious: Bool = true) async -> KaspaFullTransactionResponse? {
         let query = resolvePrevious ? [URLQueryItem(name: "resolve_previous_outpoints", value: "light")] : []

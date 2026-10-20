@@ -492,7 +492,10 @@ final class AddressActivityNotifier: ObservableObject {
         let networkKey = String(describing: network)
         let walletChanged = cachedWalletAddress != wallet.publicAddress || cachedNetworkKey != networkKey
 
+        // both chains: allSpendingAddresses covers quantum slots, and the fingerprint must move
+        // when either chain grows or a new quantum address would go unwatched
         let maxIndex = WalletManager.shared.maxSpendingAddressIndex
+            + (WalletManager.shared.maxQuantumAddressIndex + 1) * 100_000
         if walletChanged || cachedSpendingMaxIndex != maxIndex {
             spendingAddressSet = Set(WalletManager.shared.allSpendingAddresses())
             cachedSpendingMaxIndex = maxIndex

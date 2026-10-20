@@ -1790,3 +1790,7 @@
 
 /* The chat list's name for the chat with yourself */
 "Your Address" = "Your Address";
+
+/* Quantum-safe (KIP-22) addresses: the shield's two states in Manage Addresses */
+"Quantum-safe" = "Quantum-safe";
+"Key revealed by a spend" = "Key revealed by a spend";

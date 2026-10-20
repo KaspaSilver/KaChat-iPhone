@@ -1789,3 +1789,7 @@
 
 /* The chat list's name for the chat with yourself */
 "Your Address" = "आपका पता";
+
+/* Quantum-safe (KIP-22) addresses: the shield's two states in Manage Addresses */
+"Quantum-safe" = "क्वांटम-सुरक्षित";
+"Key revealed by a spend" = "खर्च से चाबी उजागर";

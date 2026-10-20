@@ -622,7 +622,11 @@ struct OwnAddressHistorySheet: View {
         if walletManager.currentWallet?.publicAddress.lowercased() == target { return .chatting }
         let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
         let balance = utxos.reduce(UInt64(0)) { $0 + $1.amount }
-        let spending = walletManager.spendingAddresses(inRange: 0..<(max(0, walletManager.maxSpendingAddressIndex) + 1))
+        var spending = walletManager.spendingAddresses(inRange: 0..<(max(0, walletManager.maxSpendingAddressIndex) + 1))
+        if walletManager.maxQuantumAddressIndex >= 0 {
+            let base = WalletManager.quantumIndexBase
+            spending.merge(walletManager.spendingAddresses(inRange: base..<(base + walletManager.maxQuantumAddressIndex + 1))) { a, _ in a }
+        }
         if let match = spending.first(where: { $0.value.lowercased() == target }) {
             return .spending(SpendingAddressEntry(
                 index: match.key,

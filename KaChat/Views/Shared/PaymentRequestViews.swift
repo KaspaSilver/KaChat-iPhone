@@ -176,9 +176,10 @@ struct CreatePaymentRequestView: View {
             .onChange(of: destination) { _ in copied = false }
             .onChange(of: chosenAddress) { _ in copied = false }
             .task {
-                // derived, not reserved: opening the screen and cancelling uses no address up
+                // derived, not reserved: opening the screen and cancelling uses no address up.
+                // The fresh slot is quantum-safe (KIP-22) now, matching what reserving returns.
                 let manager = WalletManager.shared
-                nextFreshAddress = manager.spendingAddress(at: manager.maxSpendingAddressIndex + 1)
+                nextFreshAddress = manager.spendingAddress(at: manager.nextFreshQuantumIndex())
             }
             .sheet(isPresented: $showAddressPicker) {
                 OwnAddressPicker(title: "Choose an Address", selected: chosenAddress) { picked in

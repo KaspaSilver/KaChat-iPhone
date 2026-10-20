@@ -678,7 +678,7 @@ extension WalletManager {
         guard let index = Self.ownAddressIndexCache?.map[target] else { return nil }
         let named = spendingLabels[index]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !named.isEmpty { return named }
-        return Self.isQuantumIndex(index) ? "Quantum #\(index - Self.quantumIndexBase)" : "Address #\(index)"
+        return "Address #\(Self.isQuantumIndex(index) ? index - Self.quantumIndexBase : index)"
     }
 
     private static var ownAddressIndexCache: (key: String, map: [String: Int])?

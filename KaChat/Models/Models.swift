@@ -88,9 +88,10 @@ struct SpendingAddressEntry: Identifiable, Equatable, Codable {
     /// A quantum-safe (KIP-22) slot: public index `WalletManager.quantumIndexBase + n`. Computed,
     /// so cached entry lists from before the upgrade decode unchanged.
     var isQuantum: Bool { index >= WalletManager.quantumIndexBase }
-    /// The row's number on its own chain ("Address #3" / "Quantum #0").
+    /// The row's number on its own chain, both named "Address #n" (quantum numbering starts at
+    /// 0 again; the shield is what tells the chains apart).
     var displayTitle: String {
-        isQuantum ? "Quantum #\(index - WalletManager.quantumIndexBase)" : "Address #\(index)"
+        "Address #\(isQuantum ? index - WalletManager.quantumIndexBase : index)"
     }
     /// Whether this address is hidden from the main Manage Addresses list. Enforced
     /// server-side (WalletManager.setSpendingAddressHidden refuses to hide the primary

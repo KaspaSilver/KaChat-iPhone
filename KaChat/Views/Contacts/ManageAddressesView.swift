@@ -844,7 +844,7 @@ struct ManageAddressesView: View {
             // showToast auto-dismisses on the standard timer and replaces (never stacks or
             // extends) any toast a rapid earlier press put up. The old direct assignment
             // here never scheduled a dismissal, so the success toast lingered indefinitely.
-            showToast("Spending address #\(index) is ready.")
+            showToast("Address #\(WalletManager.isQuantumIndex(index) ? index - WalletManager.quantumIndexBase : index) is ready.")
             Task { await loadEntries() }
         }
     }
@@ -1419,7 +1419,7 @@ struct SpendingAddressWithdrawView: View {
                 }
             }
             .navigationTitle(isCompoundMode ? "Compound UTXOs"
-                             : "Send Kaspa from \(WalletManager.isQuantumIndex(source.index) ? "Quantum" : "Address") #\(WalletManager.isQuantumIndex(source.index) ? source.index - WalletManager.quantumIndexBase : source.index)")
+                             : "Send Kaspa from Address #\(WalletManager.isQuantumIndex(source.index) ? source.index - WalletManager.quantumIndexBase : source.index)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -2126,8 +2126,15 @@ struct SpendingAddressTransactionHistoryView: View {
         }
         .task {
             utxoLabels = WalletManager.shared.loadSpendingUtxoLabels(address: entry.address)
-            await loadTransactions()
-            await loadUtxos()
+            // The push used to stutter: both loads fired mid-animation and their state writes
+            // re-rendered the lists under it. Let the transition land first, then load history
+            // and UTXOs side by side.
+            isLoading = true
+            isLoadingUtxos = true
+            try? await Task.sleep(nanoseconds: 420_000_000)
+            async let history: Void = loadTransactions()
+            async let coins: Void = loadUtxos()
+            _ = await (history, coins)
         }
     }
 

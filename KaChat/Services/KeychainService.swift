@@ -616,9 +616,17 @@ final class KeychainService {
         switch status {
         case errSecSuccess:
             return result as? Data
-        case errSecItemNotFound, errSecMissingEntitlement:
+        case errSecItemNotFound:
+            return nil
+        case errSecMissingEntitlement where includeAccessGroup:
+            // The access-group entitlement is the thing that's broken, not the item: let the
+            // group-less fallback look for it.
             return nil
         default:
+            // -34018 on a group-less query included: the keychain is in a bad state, which says
+            // nothing about whether the keys exist. Reading it as "no item" sent people to the
+            // recovery screen (keyMaterialStatus .missing) for keys that were still there -
+            // the same rule deviceIdentifier() already follows for the Secure Enclave key.
             throw KasiaError.keychainError("Failed to load sensitive data: \(status)")
         }
     }
@@ -668,8 +676,10 @@ final class KeychainService {
         switch status {
         case errSecSuccess:
             return result as? Data
-        case errSecItemNotFound, errSecMissingEntitlement:
+        case errSecItemNotFound:
             return nil
+        case errSecMissingEntitlement where includeAccessGroup:
+            return nil // see loadSensitiveDataRawInternal
         default:
             throw KasiaError.keychainError("Failed to load legacy private key: \(status)")
         }

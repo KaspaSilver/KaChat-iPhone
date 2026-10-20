@@ -710,6 +710,24 @@ extension WalletManager {
         return out
     }
 
+    /// `allSpendingAddresses()` plus the chatting address, lowercased - MEMOIZED per account
+    /// and chain lengths. The contract filter (`isKachatContractTransaction`) asks this per
+    /// TRANSACTION while a sync runs, and the derivation behind `allSpendingAddresses()` is a
+    /// seed decrypt plus one derivation per address, on the main actor: uncached, the launch
+    /// catch-up sync pinned the main thread at the splash screen until the watchdog killed
+    /// the app.
+    func ownAddressSetLowercased() -> Set<String> {
+        guard let wallet = currentWallet?.publicAddress.lowercased() else { return [] }
+        let key = "\(wallet)|\(maxSpendingAddressIndex)|q\(maxQuantumAddressIndex)"
+        if let cached = Self.ownAddressSetCache, cached.key == key { return cached.set }
+        var set = Set(allSpendingAddresses().map { $0.lowercased() })
+        set.insert(wallet)
+        Self.ownAddressSetCache = (key, set)
+        return set
+    }
+
+    private static var ownAddressSetCache: (key: String, set: Set<String>)?
+
     /// Hides (or shows) a spending address in Manage Addresses. Any address can be hidden -
     /// funded ones too: the person can start the list over from nothing (Address Visibility >
     /// Hide All). Nothing is lost: Profile's Manage Addresses total still counts hidden

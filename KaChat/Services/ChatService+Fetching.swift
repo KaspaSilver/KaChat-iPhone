@@ -1076,7 +1076,12 @@ extension ChatService {
         for input in transaction.inputs ?? [] where Self.isScriptAddress(input.previousOutpointAddress) {
             guard Self.isKip22Spend(input) else { return true }
         }
-        let own = ownWalletAddressesLowercased()
+        // Without a P2SH output the output rule below can never say "contract" - and the own
+        // set, memoized as it is, is not worth touching for the common all-key transaction.
+        guard transaction.outputs.contains(where: { Self.isScriptAddress($0.scriptPublicKeyAddress) }) else {
+            return false
+        }
+        let own = WalletManager.shared.ownAddressSetLowercased()
         let paidByUs = (transaction.inputs ?? []).contains { input in
             guard let address = input.previousOutpointAddress?.lowercased() else { return false }
             return own.contains(address)
@@ -1087,16 +1092,6 @@ extension ChatService {
             return !own.contains(address)
         }
         return !outside.isEmpty && outside.allSatisfy { Self.isScriptAddress($0.scriptPublicKeyAddress) }
-    }
-
-    /// Every address this wallet spends from, lowercased: the chatting address and every
-    /// revealed spending address, the quantum chain included.
-    private func ownWalletAddressesLowercased() -> Set<String> {
-        var own = Set(WalletManager.shared.allSpendingAddresses().map { $0.lowercased() })
-        if let wallet = WalletManager.shared.currentWallet {
-            own.insert(wallet.publicAddress.lowercased())
-        }
-        return own
     }
 
     /// A KIP-22 (quantum address) spend of a P2SH input: the signature script is exactly
@@ -1316,14 +1311,8 @@ extension ChatService {
         //
         // Being the recipient, or having signed one of the inputs, is what makes this ours.
         // Anything else is somebody else's transfer and must be ignored outright.
-        let myAddresses: Set<String> = {
-            var set: Set<String> = [myNormalized]
-            for address in WalletManager.shared.allSpendingAddresses() {
-                let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                if !trimmed.isEmpty { set.insert(trimmed) }
-            }
-            return set
-        }()
+        var myAddresses = WalletManager.shared.ownAddressSetLowercased()
+        myAddresses.insert(myNormalized)
         let weAreRecipient = myAddresses.contains(recipient.lowercased())
         let weSigned = (transaction.inputs ?? []).contains { input in
             guard let address = input.previousOutpointAddress?
@@ -2903,7 +2892,10 @@ extension ChatService {
             // Checked before the contact lookup, because an own address CAN also be a saved
             // contact (someone adds their own second address to try the app) and it is still
             // not a conversation.
-            if WalletManager.shared.allSpendingAddresses().contains(contactAddress) {
+            // (The memoized set also holds the chatting address; the self-chat - counterparty
+            // IS the chatting address - keeps its own handling below, exactly as before.)
+            let moveTarget = contactAddress.lowercased()
+            if moveTarget != myAddress.lowercased(), WalletManager.shared.ownAddressSetLowercased().contains(moveTarget) {
                 AppLog.log("[ChatService] Skipping payment %@ - internal move within own wallet", String(payment.txId.prefix(16)))
                 continue
             }

@@ -2235,7 +2235,10 @@ struct KasiaTransactionBuilder {
     /// Verify Schnorr signatures on a transaction fetched via REST API (versions 0 and 1).
     /// `.invalid` only when a signature is definitively wrong; `.unknown` when a standard input
     /// can't be checked yet because its spent UTXO isn't resolved, or the data is incomplete.
-    /// Non-standard inputs (P2SH covenant spends and the like) are not signature-checked here.
+    /// Checked inputs are standard P2PK and KIP-22 quantum-address P2SH spends (the sig and key
+    /// from the signature script, the key bound to the address by the redeem's hash, the sighash
+    /// over the P2SH script - the same the signer uses). Other P2SH spends (covenants) are not
+    /// signature-checked here; since 0b4e27e they are contracts and never file as payments.
     ///
     /// The verdict rule, the same on every client (audits AND-042, XP-033): a standard
     /// key-address (P2PK Schnorr) input must carry a well-formed signature - a blank, short or
@@ -2317,26 +2320,54 @@ struct KasiaTransactionBuilder {
                 return .unknown
             }
 
-            // 2. Only standard P2PK Schnorr inputs are checked here: <0x20> <32-byte key> OP_CHECKSIG
-            guard utxoScriptPubKey.count == 34,
-                  utxoScriptPubKey[0] == 32,
-                  utxoScriptPubKey[33] == 0xAC else {
-                continue // P2SH (covenant spends), ECDSA and the like
+            // 2. The input's kind, from the spent UTXO's script. Standard P2PK Schnorr
+            // (<0x20> <32-byte key> OP_CHECKSIG) and KIP-22 quantum-address P2SH spends are
+            // both checked; any other P2SH spend is a covenant, not checked here - and since
+            // 0b4e27e such a transaction is a contract and never files as a payment, while a
+            // KIP-22 spend passes the contract filter, so skipping it here would leave a
+            // forged all-quantum "payment" with no signature checked at all.
+            let spkBytes = [UInt8](utxoScriptPubKey)
+            let xOnlyPubKeyData: Data
+            let schnorrSigData: Data
+            if spkBytes.count == 34, spkBytes[0] == 32, spkBytes[33] == 0xAC {
+                // 3. A P2PK input's signature script is 0x41 (push 65) + 64-byte Schnorr sig +
+                // a sighash type byte - anything else (blank, short, another push) can't be on
+                // chain
+                guard let sigScriptData = hexToData(input.signatureScript),
+                      sigScriptData.count == 66,
+                      sigScriptData[0] == 0x41 else {
+                    AppLog.log("[TxBuilder] Malformed signature script on P2PK input %d", index)
+                    failedInput = failedInput ?? index
+                    continue
+                }
+                // a sighash type this check doesn't hash: can't be decided here
+                guard sigScriptData[65] == 0x01 else { return .unknown }
+                xOnlyPubKeyData = Data(utxoScriptPubKey[1..<33])
+                schnorrSigData = Data(sigScriptData[1..<65])
+            } else if spkBytes.count == 35, spkBytes[0] == 0xAA, spkBytes[1] == 0x20, spkBytes[34] == 0x87 {
+                // 3b. P2SH. A KIP-22 spend's signature script is 0x41 <64-byte sig>
+                // <sighash byte> then the canonical push 0x22 of the 34-byte redeem
+                // 0x20 <x-only key> 0xac (101 bytes); any other shape is a covenant spend,
+                // skipped like before.
+                guard let sigScriptData = hexToData(input.signatureScript) else { return .unknown }
+                let sb = [UInt8](sigScriptData)
+                guard sb.count == 101, sb[0] == 0x41, sb[66] == 0x22, sb[67] == 0x20, sb[100] == 0xAC else {
+                    continue
+                }
+                // The key is bound to the address by the redeem's hash: a KIP-22-shaped script
+                // whose redeem doesn't hash to this very address can't be on chain for it.
+                let redeem = Data(sb[67...100])
+                guard [UInt8](KachatNames.blake2b256(redeem)) == Array(spkBytes[2..<34]) else {
+                    AppLog.log("[TxBuilder] KIP-22 redeem doesn't hash to input %d's address", index)
+                    failedInput = failedInput ?? index
+                    continue
+                }
+                guard sb[65] == 0x01 else { return .unknown }
+                xOnlyPubKeyData = Data(sb[68...99])
+                schnorrSigData = Data(sb[1...64])
+            } else {
+                continue // ECDSA and the like: not checked here
             }
-            let xOnlyPubKeyData = utxoScriptPubKey[1..<33]
-
-            // 3. Such an input's signature script is 0x41 (push 65) + 64-byte Schnorr sig + a
-            // sighash type byte - anything else (blank, short, another push) can't be on chain
-            guard let sigScriptData = hexToData(input.signatureScript),
-                  sigScriptData.count == 66,
-                  sigScriptData[0] == 0x41 else {
-                AppLog.log("[TxBuilder] Malformed signature script on P2PK input %d", index)
-                failedInput = failedInput ?? index
-                continue
-            }
-            // a sighash type this check doesn't hash: can't be decided here
-            guard sigScriptData[65] == 0x01 else { return .unknown }
-            let schnorrSigData = sigScriptData[1..<65]
 
             // 4. Compute sighash (v0 or v1)
             guard let sighash = try? computeSighash(

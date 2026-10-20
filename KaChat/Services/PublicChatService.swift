@@ -180,16 +180,29 @@ final class PublicChatService: ObservableObject {
     /// Switch to a different wallet's public chat store. Call alongside
     /// `MessageStore.shared.setCurrentWallet` at every wallet-lifecycle transition.
     func setCurrentWallet(_ walletAddress: String?) {
-        self.walletAddress = walletAddress?.lowercased()
-        messagesByChannel = [:]
-        reactionsByChannel = [:]
-        liveViewRefCounts = [:]
+        let normalized = walletAddress?.lowercased()
+        let sameWallet = normalized == self.walletAddress
+        // A room can already be on screen when the wallet lands: a cold launch from a room's
+        // notification routes into it during loadWallet's awaits, before this ran. That room is
+        // THIS wallet's and stays open, so its viewing state survives; only a real switch to
+        // another wallet (whose screens are being torn down) resets it. Wiping it mid-view made
+        // release() skip its mark-read (no refcount), and loadReadState() below replaced the
+        // mark-read from acquire (which couldn't persist - the per-wallet key was still nil) -
+        // so a room read straight from its notification stayed "unread", and the badge came
+        // back on the next open.
+        let tearingDownOtherWallet = self.walletAddress != nil && !sameWallet
+        self.walletAddress = normalized
+        if !sameWallet {
+            messagesByChannel = [:]
+            reactionsByChannel = [:]
+            sweptChannels = []
+            // Each wallet has its own store: what one applied says nothing about the other's.
+            appliedIndexerRows = [:]
+        }
+        if tearingDownOtherWallet { liveViewRefCounts = [:] }
         loadReadState()
-        sweptChannels = []
-        // Each wallet has its own store: what one applied says nothing about the other's.
-        appliedIndexerRows = [:]
         // The store opens off the main thread now; the rooms are read once it says so.
-        let targetWallet = walletAddress?.lowercased()
+        let targetWallet = normalized
         store.setCurrentWallet(walletAddress) { [weak self] in
             guard let self else { return }
             // The store calls back on the main thread (CoreDataStoreLoader); this is the
@@ -197,6 +210,13 @@ final class PublicChatService: ObservableObject {
             MainActor.assumeIsolated {
                 guard self.walletAddress == targetWallet else { return }
                 self.refreshChannels()
+                // Rooms that were open before the wallet landed: their acquire read an empty
+                // store and its mark-read was lost to loadReadState() - reload and mark read
+                // now (persisted under the real key this time).
+                for channel in self.liveViewRefCounts.keys {
+                    self.loadMessages(for: channel)
+                    self.markChannelRead(channel)
+                }
                 self.updateScanningStateIfNeeded()
                 if UIApplication.shared.applicationState == .active { self.startForegroundSweep() }
                 self.refreshIndexerTrackedRooms()

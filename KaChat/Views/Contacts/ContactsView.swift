@@ -2703,6 +2703,10 @@ private struct KNSDomainsListView: View {
     var onCustomizeProfile: ((KNSDomain) -> Void)? = nil
 
     @ObservedObject private var nameServices = NameServicesClient.shared
+    @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
+    /// How many .kachat names this wallet holds, counted the same way the .kachat screen lists
+    /// them. nil until the first count lands (the card shows a dash, not a made-up 0).
+    @State private var kachatCount: Int?
 
     var body: some View {
         // One square card per name ending, KaChat's own first: .kachat, KNS (.kas), dotk (.k),
@@ -2725,8 +2729,44 @@ private struct KNSDomainsListView: View {
         .task(id: walletAddress) {
             await nameServices.refresh(for: walletAddress)
         }
+        // Counts again whenever the registry moves (a name inscribed, bought, transferred or
+        // lapsed behind a card shows on this screen the moment you come back to it).
+        .task(id: kachatRegistry.revision) {
+            await refreshKachatCount()
+        }
         .navigationTitle("Your Domains")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// How many names this wallet has with each service - every card says so, 0 included.
+    /// nil while the answer is not in yet (first load, or the service unreachable).
+    private func ownedCount(_ tld: NameServiceTLD) -> Int? {
+        switch tld {
+        case .kas:
+            return domains.count
+        case .k, .kaspa:
+            return nameServices.owned[tld]?.count
+        case .kachat:
+            return kachatCount
+        }
+    }
+
+    /// The same read KachatLiveDomainsTab's load() does, reduced to a count: the whole wallet's
+    /// held names for the own chatting address, the one address's otherwise.
+    private func refreshKachatCount() async {
+        guard KachatNamesService.isEnabled, KachatNamesService.isLaunched else {
+            kachatCount = 0
+            return
+        }
+        if kachatRegistry.refreshedAt == nil { await kachatRegistry.refresh() }
+        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress,
+           let own = try? await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: true) {
+            kachatCount = own.names.count
+        } else if let key = KachatNamesRegistry.keyOf(walletAddress) {
+            kachatCount = (try? await kachatRegistry.heldNames(owner: key))?.count
+        } else {
+            kachatCount = 0
+        }
     }
 
     /// The screen behind a card: the same per-service list each tab used to show.
@@ -2769,6 +2809,14 @@ private struct KNSDomainsListView: View {
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
+                    // How many you have there, 0 included; a dash until the answer is in.
+                    Text(verbatim: ownedCount(tld).map(String.init) ?? "\u{2013}")
+                        .font(.caption.weight(.bold))
+                        .foregroundColor(.accentColor)
+                        .padding(.horizontal, 10)
+                        .frame(minWidth: 28, minHeight: 22)
+                        .background(Capsule().fill(Color.accentColor.opacity(0.14)))
+                        .padding(.top, 2)
                 }
                 .padding(.horizontal, 8)
             }

@@ -405,6 +405,9 @@ struct KaPostsView: View {
     @State private var posterProfilePosts: [DraftPost] = []
     /// K pubkey of the profile currently open, so its feeds can page without the sheet's target.
     @State private var posterProfilePubkey: String?
+    /// The pubkey a profile opened without one was resolved to (02 or 03 + x-only, whichever
+    /// the indexer has data for); nil when neither has any - Follow then stays local.
+    @State private var posterProfileResolvedPubkey: String?
     @State private var posterProfileFollowers: Int?
     @State private var posterProfileFollowing: Int?
     /// Followers/Following list opened from the OPEN poster profile's counts.
@@ -1665,6 +1668,26 @@ struct KaPostsView: View {
     }
 
     /// A tapped poster's profile > Posts.
+    /// The K pubkey behind an address: "02" or "03" + its x-only key, whichever the indexer has
+    /// posts (or followers) for. Nil when neither has any.
+    static func resolveKaPostsPubkey(address: String) async -> String? {
+        guard let even = KaPostsAPIClient.kapostPubkey(fromAddress: address) else { return nil }
+        let candidates = [even, "03" + even.dropFirst(2)]
+        for candidate in candidates {
+            if let posts = try? await KaPostsAPIClient.shared.fetchUserPosts(pubkey: candidate, limit: 1, includeReplies: true).posts,
+               !posts.isEmpty {
+                return candidate
+            }
+        }
+        for candidate in candidates {
+            if let details = try? await KaPostsAPIClient.shared.fetchUserDetails(pubkey: candidate),
+               (details.followersCount ?? 0) > 0 || (details.followingCount ?? 0) > 0 {
+                return candidate
+            }
+        }
+        return nil
+    }
+
     private func loadPosterProfilePosts(pubkey: String, reset: Bool) async {
         guard !posterPostsPage.isLoading else { return }
         guard reset || (posterPostsPage.hasMore && posterPostsPage.errorMessage == nil && !posterPostsPage.stalled) else { return }
@@ -4019,7 +4042,8 @@ struct KaPostsView: View {
                             if address != WalletManager.shared.currentWallet?.publicAddress {
                                 Button {
                                     Haptics.impact(.light)
-                                    toggleFollowSubmitting(address: address, pubkey: target.pubkey)
+                                    // a handed pubkey, or one the indexer showed data for - never a guess
+                                    toggleFollowSubmitting(address: address, pubkey: target.pubkey ?? posterProfileResolvedPubkey)
                                 } label: {
                                     Text(followStore.isFollowing(address) ? "Following" : "Follow")
                                         .font(.caption.weight(.bold))
@@ -4132,9 +4156,14 @@ struct KaPostsView: View {
                 // page still in flight for the previous poster discard its result.
                 posterPostsPage.reset()
                 posterRepliesPage.reset()
-                // no pubkey handed over: the one the address derives (as @mentions do), so the
-                // profile still loads its posts and counts
-                let resolvedPubkey = target.pubkey ?? KaPostsAPIClient.kapostPubkey(fromAddress: address)
+                // No pubkey handed over: the address gives the x-only key, but a K key starts with
+                // 02 or 03 (about half of all users post with 03) - try both and keep the one the
+                // indexer has posts or followers for (XP-034).
+                var resolvedPubkey = target.pubkey
+                if resolvedPubkey == nil {
+                    resolvedPubkey = await Self.resolveKaPostsPubkey(address: address)
+                    posterProfileResolvedPubkey = resolvedPubkey
+                }
                 posterProfilePubkey = resolvedPubkey
                 if knsService.profileCache[address] == nil {
                     _ = await knsService.fetchProfile(for: address)

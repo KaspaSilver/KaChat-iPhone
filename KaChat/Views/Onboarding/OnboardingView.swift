@@ -39,6 +39,16 @@ struct OnboardingView: View {
                     actionButtonsSection(availableHeight: proxy.size.height)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Which build this phone runs, right where sign-in problems get reported from.
+                // An overlay inside the buttons' own 40pt bottom padding, so the height budget
+                // that keeps Create and Import on screen is untouched.
+                .overlay(alignment: .bottom) {
+                    Text(verbatim: "KaChat \(AppVersion.display)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 10)
+                        .allowsHitTesting(false)
+                }
                 .background(Self.pageBackground.ignoresSafeArea())
                 // The background is dark in both appearances, so the system colors drawn on top
                 // of it have to be their dark variants too - otherwise `.primary` text renders

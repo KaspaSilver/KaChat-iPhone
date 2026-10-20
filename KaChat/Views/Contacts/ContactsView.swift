@@ -1343,7 +1343,7 @@ struct ProfileView: View {
                 HStack {
                     Text("Version")
                     Spacer()
-                    Text(appVersionDisplay)
+                    Text(AppVersion.display)
                         .foregroundColor(.secondary)
                 }
                 .padding(16)
@@ -1446,27 +1446,6 @@ struct ProfileView: View {
                 Task { await walletManager.logout() }
             }
         }
-    }
-
-    /// "5.2 (2579)" through the beta cycle, plain "5.2" once the train is released. The build is
-    /// the real one in the shipped bundle (CFBundleVersion: Xcode Cloud's counter, e.g.
-    /// 202607032579, the upload's for a local archive, or the "Local Build Number" script
-    /// phase's for a build run from Xcode), shown by its last 4 digits for
-    /// easier reading - it still counts up with every build. `KaChatIsRelease` = YES drops the
-    /// parenthetical for the App Store build.
-    private var appVersionDisplay: String {
-        let info = Bundle.main.infoDictionary
-        let version = (info?["CFBundleShortVersionString"] as? String)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !version.isEmpty else { return "Unknown" }
-        let isRelease = ((info?["KaChatIsRelease"] as? String) ?? "").uppercased() == "YES"
-        let fullBuild = (info?["CFBundleVersion"] as? String)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let build = String(fullBuild.suffix(4))
-        if isRelease || build.isEmpty {
-            return version
-        }
-        return "\(version) (\(build))"
     }
 
     /// Next to the Profile title: a kachat.app link to you. Anywhere it is pasted it previews

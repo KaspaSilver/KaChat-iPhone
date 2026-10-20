@@ -1737,6 +1737,29 @@ extension KaspaAddress {
 
 /// The unit every amount is shown in: KAS on mainnet, TKAS on testnet, so a testnet amount can
 /// never be read as real KAS. Market data (the KAS price, exchange tickers) stays "KAS".
+/// The version the app shows for itself, everywhere one is shown (Profile > Version, the saved
+/// accounts screen): "5.2.2 (2581)" through the beta cycle, plain "5.2.2" once the train is
+/// released. The build is the real CFBundleVersion of the shipped bundle (Xcode Cloud's counter,
+/// a local archive's, or the "Local Build Number" script phase's for an Xcode run), shown by its
+/// last 4 digits for easier reading; `KaChatIsRelease` = YES drops the parenthetical for the
+/// App Store build.
+enum AppVersion {
+    static var display: String {
+        let info = Bundle.main.infoDictionary
+        let version = (info?["CFBundleShortVersionString"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !version.isEmpty else { return "Unknown" }
+        let isRelease = ((info?["KaChatIsRelease"] as? String) ?? "").uppercased() == "YES"
+        let fullBuild = (info?["CFBundleVersion"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let build = String(fullBuild.suffix(4))
+        if isRelease || build.isEmpty {
+            return version
+        }
+        return "\(version) (\(build))"
+    }
+}
+
 enum KaspaUnit {
     static var symbol: String { AppSettings.load().networkType == .testnet ? "TKAS" : "KAS" }
 

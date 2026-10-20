@@ -3485,6 +3485,20 @@ struct KachatSocialPreview: View {
             let myKey = "\(source?.link ?? "")#\(attempt)"
             activeKey = myKey
             guard let source else { resolved = nil; lookup = .none; return }
+            // The row scrolled back into view (a Form rebuilds its rows): the answer this
+            // screen already got shows at once - no debounce, no "Looking up" flash, no
+            // refetch. Retry (attempt > 0) still runs the full lookup.
+            if attempt == 0, let cached = resolver.cachedProfile(source) {
+                resolved = cached
+                lookup = piece(cached) == nil ? .empty : .found
+                // Still re-checked quietly (the resolver's own 5-minute freshness): a profile
+                // changed on the platform lands here without the flash.
+                let result = await resolver.resolve(source)
+                guard activeKey == myKey, case .answered(let fresh) = result, fresh != cached else { return }
+                resolved = fresh
+                lookup = piece(fresh) == nil ? .empty : .found
+                return
+            }
             lookup = .looking
             try? await Task.sleep(nanoseconds: 500_000_000)
             guard activeKey == myKey else { return }

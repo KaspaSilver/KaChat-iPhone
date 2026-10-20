@@ -164,8 +164,13 @@ struct KNSBannerImageView: View {
     @State private var lastLoadedIdentity: String?
 
     var body: some View {
+        // Already decoded in memory: shown on this very frame. A Form or List rebuilds its rows
+        // on scroll, so without this the banner flashed its placeholder every time one came back.
+        let memoryImage = KNSProfileImageDescriptor.from(raw: bannerURLString).flatMap {
+            KNSProfileImageCache.memoryImage(for: $0, maxPixelSize: nil)
+        }
         Group {
-            if let loadedImage {
+            if let loadedImage = loadedImage ?? memoryImage {
                 // The image is an OVERLAY on a fixed-size canvas, never a laid-out child.
                 //
                 // `.scaledToFill()` scales the image until it covers the frame, which for a wide

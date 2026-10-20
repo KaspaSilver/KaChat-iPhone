@@ -1216,6 +1216,13 @@ final class KachatSocialImageResolver: ObservableObject {
         KachatProfileCache.remove(Self.cacheFile)
     }
 
+    /// The stored answer for `source`, however old - read only, no lookup started. The profile
+    /// editor's preview rows use it: a Form rebuilds rows on scroll, and one scrolled back in
+    /// must show its answer again at once instead of debouncing and looking it up afresh.
+    func cachedProfile(_ source: KachatNames.SocialSource) -> KachatNames.SocialProfile? {
+        entries[source.link]?.profile
+    }
+
     /// The cached profile for `link`, starting a lookup when there is none or it is stale.
     /// Views read this in `body`; the published cache re-renders them when the lookup lands.
     func profile(for link: String?) -> KachatNames.SocialProfile? {

@@ -765,11 +765,33 @@ final class KachatNamesRegistry: ObservableObject {
             }
             targets.append(key)
         }
-        // a few at a time, the people you talk to most recently first
+        guard !targets.isEmpty else { return }
+        // One batch for everyone due (the indexer's /identity/batch), so a pass is a single
+        // request however many contacts are unnamed - and nobody waits behind the 40-cap.
+        if let found = await identitiesBatch(targets) {
+            var anyChanged = false
+            for key in targets {
+                guard let identity = found[key] else {
+                    // not in the answer (the indexer skipped it): a miss, asked again in a minute
+                    identityMisses[key] = Date()
+                    continue
+                }
+                identityMisses[key] = nil
+                if storeFetchedIdentity(identity, for: key) { anyChanged = true }
+                // one more "no name" in a row backs the next ask off further
+                unnamedAnswers[key] = identity.label == nil ? (unnamedAnswers[key] ?? 0) + 1 : nil
+            }
+            if anyChanged {
+                ContactsManager.shared.objectWillChange.send()
+                ContactsManager.shared.scheduleSharedNameSync()
+            }
+            return
+        }
+        // No batch (the chain walker - local lookups - or an indexer without the endpoint yet):
+        // a few at a time, the people you talk to most recently first.
         for key in targets.prefix(40) {
             guard UIApplication.shared.applicationState == .active else { return }
             if let found = await refreshIdentity(address: key) {
-                // one more "no name" in a row backs the next ask off further
                 unnamedAnswers[key] = found.label == nil ? (unnamedAnswers[key] ?? 0) + 1 : nil
             }
         }
@@ -789,17 +811,48 @@ final class KachatNamesRegistry: ObservableObject {
         guard NetworkType(address: key) != nil, NetworkType.isOnActiveNetwork(key),
               let found = try? await identity(address: key) else { return nil }
         identityMisses[key] = nil
+        if storeFetchedIdentity(found, for: key) {
+            ContactsManager.shared.objectWillChange.send()
+            ContactsManager.shared.scheduleSharedNameSync()
+        }
+        return found
+    }
+
+    /// Files a fetched identity in the cache; true when it changed (the caller then tells
+    /// ContactsManager, once per batch rather than per address). An unchanged answer only
+    /// stamps the entry fresh.
+    private func storeFetchedIdentity(_ found: KachatNames.Identity, for key: String) -> Bool {
         if identities[key]?.identity != found {
             objectWillChange.send()
             identities[key] = CachedIdentity(identity: found, revision: revision, at: Date())
             persistIdentities()
-            ContactsManager.shared.objectWillChange.send()
-            ContactsManager.shared.scheduleSharedNameSync()
-        } else {
-            identities[key]?.revision = revision
-            identities[key]?.at = Date()
+            return true
         }
-        return found
+        identities[key]?.revision = revision
+        identities[key]?.at = Date()
+        return false
+    }
+
+    /// Everyone at once: `POST /identity/batch` (one request and two set queries on the indexer,
+    /// against one GET per address), keyed back by lowercased address. nil when the source is
+    /// the chain walker (each lookup is local anyway) or the indexer doesn't serve the endpoint
+    /// yet - the caller falls back to per-address lookups.
+    private func identitiesBatch(_ addresses: [String]) async -> [String: KachatNames.Identity]? {
+        guard KachatNamesService.isLaunched, !addresses.isEmpty else { return nil }
+        guard (try? await prepare()) != nil, case .indexer(let base) = source else { return nil }
+        struct BatchBody: Encodable { let addresses: [String] }
+        struct BatchJSON: Decodable { let identities: [String: KachatNames.IndexerAPI.IdentityJSON] }
+        var out: [String: KachatNames.Identity] = [:]
+        // the indexer takes at most 200 per call
+        for chunk in stride(from: 0, to: addresses.count, by: 200).map({ Array(addresses[$0..<min($0 + 200, addresses.count)]) }) {
+            guard let answer: BatchJSON = try? await Self.post(base, "/identity/batch", BatchBody(addresses: chunk)) else {
+                return nil
+            }
+            for (address, identity) in answer.identities {
+                out[address.lowercased()] = identity.identity
+            }
+        }
+        return out
     }
 
     func cachedIdentity(for address: String) -> KachatNames.Identity? {
@@ -828,15 +881,9 @@ final class KachatNamesRegistry: ObservableObject {
                     return
                 }
                 self.identityMisses[key] = nil
-                if self.identities[key]?.identity != found {
-                    self.objectWillChange.send()
-                    self.identities[key] = CachedIdentity(identity: found, revision: self.revision, at: Date())
-                    self.persistIdentities()
+                if self.storeFetchedIdentity(found, for: key) {
                     ContactsManager.shared.objectWillChange.send()
                     ContactsManager.shared.scheduleSharedNameSync()
-                } else {
-                    self.identities[key]?.revision = self.revision
-                    self.identities[key]?.at = Date()
                 }
             }
         }
@@ -992,6 +1039,23 @@ final class KachatNamesRegistry: ObservableObject {
         guard let url = URL(string: base + path) else { throw KachatNames.Failure("bad indexer URL") }
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let (data, response) = try await session.data(for: request)
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard code == 200 else {
+            if code == 404 { throw KachatNames.Failure("not found") }
+            throw KachatNames.Failure("the names indexer answered \(code)")
+        }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// Off the main actor, like `get`: a JSON POST to the names indexer.
+    private nonisolated static func post<Body: Encodable, T: Decodable>(_ base: String, _ path: String, _ body: Body) async throws -> T {
+        guard let url = URL(string: base + path) else { throw KachatNames.Failure("bad indexer URL") }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
         let (data, response) = try await session.data(for: request)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard code == 200 else {

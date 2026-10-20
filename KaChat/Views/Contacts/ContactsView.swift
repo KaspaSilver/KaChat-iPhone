@@ -2702,25 +2702,42 @@ private struct KNSDomainsListView: View {
     let onRefresh: () async -> Void
     var onCustomizeProfile: ((KNSDomain) -> Void)? = nil
 
-    /// Which name service's tab is showing. `.kas` is KNS, the rest come from `NameServicesClient`.
-    @State private var selectedTLD: NameServiceTLD = .defaultTab
     @ObservedObject private var nameServices = NameServicesClient.shared
 
     var body: some View {
-        VStack(spacing: 0) {
-            // One tab per name ending, KaChat's own first: .kachat (not live yet), KNS (.kas),
-            // dotk (.k), Kaspa Names (.kaspa). The same underline tab bar as Chats / Group Chats
-            // / Public Chats: bold teal labels, a bar under the selected one.
-            UnderlineTabBar(
-                tabs: NameServiceTLD.allCases.map { (tab: $0, title: $0.suffix) },
-                selection: $selectedTLD
-            )
+        // One square card per name ending, KaChat's own first: .kachat, KNS (.kas), dotk (.k),
+        // Kaspa Names (.kaspa) - the same tile look as Kaspa Hub. Each card pushes that
+        // service's own screen (these used to be tabs on this screen).
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
+                ForEach(NameServiceTLD.allCases) { tld in
+                    NavigationLink {
+                        domainsScreen(tld)
+                    } label: {
+                        serviceCard(tld)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+        }
+        .task(id: walletAddress) {
+            await nameServices.refresh(for: walletAddress)
+        }
+        .navigationTitle("Your Domains")
+        .navigationBarTitleDisplayMode(.inline)
+    }
 
-            switch selectedTLD {
+    /// The screen behind a card: the same per-service list each tab used to show.
+    @ViewBuilder
+    private func domainsScreen(_ tld: NameServiceTLD) -> some View {
+        Group {
+            switch tld {
             case .kas:
                 knsDomainList
             case .k, .kaspa:
-                serviceNameList(selectedTLD)
+                serviceNameList(tld)
             case .kachat:
                 // Live on both networks (testnet-10, and mainnet since 2026-10-09).
                 if KachatNamesService.isEnabled {
@@ -2730,17 +2747,40 @@ private struct KNSDomainsListView: View {
                 }
             }
         }
-        .contentShape(Rectangle())
-        // A sideways swipe changes the name service, like the Chats / Group Chats pages - so the
-        // edge swipe that would leave the screen is switched off here (the back button still
-        // works, and the swipe comes back on the screens pushed from this one).
-        .simultaneousGesture(domainTabSwipe())
-        .swipeBackDisabled()
-        .task(id: walletAddress) {
-            await nameServices.refresh(for: walletAddress)
-        }
-        .navigationTitle("Your Domains")
+        .navigationTitle(tld.suffix)
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// A Kaspa Hub style square: the name ending big in the brand style, who runs it under it.
+    /// Same material, radius and hairline as the hub tiles.
+    private func serviceCard(_ tld: NameServiceTLD) -> some View {
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                VStack(spacing: 8) {
+                    Text(verbatim: tld.suffix)
+                        .font(.system(.title2, design: .rounded).weight(.heavy))
+                        .foregroundStyle(Color.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    Text(verbatim: tld.serviceName)
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .padding(.horizontal, 8)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(.regularMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 0.8)
+                    )
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     /// "Get a .kas domain at knsdomains.org" - the pinned button under each outside service's
@@ -2763,25 +2803,6 @@ private struct KNSDomainsListView: View {
             .padding(.horizontal)
             .padding(.bottom, 16)
         }
-    }
-
-    private func domainTabSwipe() -> some Gesture {
-        DragGesture(minimumDistance: 25, coordinateSpace: .global)
-            .onEnded { value in
-                let dx = value.translation.width
-                let dy = value.translation.height
-                // Decisively horizontal only, so scrolling the list never trips it.
-                guard abs(dx) > 50, abs(dx) > abs(dy) * 1.5 else { return }
-                let tabs = NameServiceTLD.allCases
-                guard let index = tabs.firstIndex(of: selectedTLD) else { return }
-                withAnimation(.easeInOut(duration: 0.22)) {
-                    if dx < 0, index + 1 < tabs.count {
-                        selectedTLD = tabs[index + 1]
-                    } else if dx > 0, index > 0 {
-                        selectedTLD = tabs[index - 1]
-                    }
-                }
-            }
     }
 
     // MARK: .kas (KNS)

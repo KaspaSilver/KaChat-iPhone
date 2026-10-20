@@ -221,6 +221,9 @@ struct PublicChatListView: View {
         Button {
             // In Select mode a tap picks the room, as on the Chats and Group Chats pages -
             // the row's own Button takes the tap before List's selection would see it.
+            // the hold that opened the room's half sheet still ends in this Button's tap
+            // (simultaneousGesture) - without this the room opened right behind the sheet
+            guard roomActionTarget == nil else { return }
             if isSelecting {
                 if roomSelection.wrappedValue.contains(channel.channelName) {
                     roomSelection.wrappedValue.remove(channel.channelName)

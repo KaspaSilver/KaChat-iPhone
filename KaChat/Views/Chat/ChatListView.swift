@@ -1004,9 +1004,11 @@ struct ChatListView: View {
                 bots: botCircles,
                 selectedGroupIDs: $selectedGroupIDs,
                 selectedRooms: $selectedPublicRooms,
-                onOpenGroup: openGroupFromCircle,
-                onOpenRoom: openRoom,
-                onOpenBot: openBotFromCircle,
+                // Each open is guarded on the hold's half sheet: the hold's touch-up still
+                // fires the circle's Button (simultaneousGesture), and opened the chat behind it.
+                onOpenGroup: { guard circleActionTarget == nil else { return }; openGroupFromCircle($0) },
+                onOpenRoom: { guard circleActionTarget == nil else { return }; openRoom($0) },
+                onOpenBot: { guard circleActionTarget == nil else { return }; openBotFromCircle($0) },
                 onLongPress: { circleActionTarget = CircleActionTarget(id: $0) }
             )
             .listRowInsets(EdgeInsets())
@@ -1027,6 +1029,11 @@ struct ChatListView: View {
             if !displayed.isEmpty {
                 ForEach(Array(displayed.enumerated()), id: \.element.id) { index, conversation in
                     Button {
+                        // The hold that opened the actions half sheet ends in a touch-up, and a
+                        // simultaneousGesture leaves the Button's tap alive - so the chat opened
+                        // right behind the sheet. A long press always presents before the finger
+                        // lifts, so the target being set IS "this touch was the hold".
+                        guard conversationActionTarget == nil else { return }
                         // List(selection:)'s native edit-mode row-selection UI never gets a
                         // chance to see this tap - our own Button label already consumes it - so
                         // toggle selection here explicitly instead of relying on that.

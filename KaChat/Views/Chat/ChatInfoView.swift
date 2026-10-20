@@ -977,15 +977,36 @@ struct ChatInfoView: View {
         }
     }
 
+    /// Set by the hold that copies a link's value: the hold's own touch-up still fires the
+    /// row's tap (simultaneousGesture), which used to open Safari right after the copy.
+    /// Consumed by that tap; cleared on its own shortly after, so a hold whose finger slid
+    /// away doesn't swallow a later, deliberate tap.
+    @State private var suppressNextLinkOpen = false
+
     @ViewBuilder
     private func profileLinkView(text: String, url: URL?, fieldName: String) -> some View {
         if let url {
-            Link(text, destination: url)
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                        copyProfileFieldValue(text, fieldName: fieldName)
+            Button {
+                guard !suppressNextLinkOpen else {
+                    suppressNextLinkOpen = false
+                    return
+                }
+                UIApplication.shared.open(url)
+            } label: {
+                Text(text)
+                    .foregroundColor(.accentColor)
+            }
+            .buttonStyle(.plain)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                    copyProfileFieldValue(text, fieldName: fieldName)
+                    suppressNextLinkOpen = true
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 2_500_000_000)
+                        suppressNextLinkOpen = false
                     }
-                )
+                }
+            )
         } else {
             Text(text)
                 .foregroundColor(.secondary)

@@ -1793,3 +1793,8 @@
 /* Quantum-safe (KIP-22) addresses: the shield's two states in Manage Addresses */
 "Quantum-safe" = "量子耐性";
 "Key revealed by a spend" = "送金で鍵が公開済み";
+
+/* Edit KaChat Profile: Clear Profile */
+"Clear Profile" = "プロフィールをクリア";
+"Profile cleared" = "プロフィールをクリアしました";
+"Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "クリアすると、あなたのアドレスから自分自身へ空のプロフィールがチェーンに書き込まれます（ネットワーク手数料のみ）。以後、KaChat はあなたのアドレスに何も表示しません。";

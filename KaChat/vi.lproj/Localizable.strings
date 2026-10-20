@@ -1793,3 +1793,8 @@
 /* Quantum-safe (KIP-22) addresses: the shield's two states in Manage Addresses */
 "Quantum-safe" = "An toàn lượng tử";
 "Key revealed by a spend" = "Khóa đã lộ do một lần chi tiêu";
+
+/* Edit KaChat Profile: Clear Profile */
+"Clear Profile" = "Xóa hồ sơ";
+"Profile cleared" = "Đã xóa hồ sơ";
+"Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "Xóa sẽ ghi một hồ sơ trống lên chuỗi từ địa chỉ của bạn đến chính nó, với phí mạng, và KaChat sẽ không hiển thị gì cho địa chỉ của bạn nữa.";

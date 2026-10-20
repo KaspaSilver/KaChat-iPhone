@@ -3591,6 +3591,7 @@ struct KachatLiveProfileEditor: View {
     @State private var activeNames: [String] = []
     @State private var loaded = false
     @State private var showSave = false
+    @State private var showClear = false
 
     private typealias Kind = KachatNames.SocialSource.Kind
 
@@ -3655,6 +3656,17 @@ struct KachatLiveProfileEditor: View {
                             input.wrappedValue = KachatSourceInput(platform: pasted.platform, handle: pasted.displayHandle)
                         }
                     }
+                // One tap empties the field; saving then writes the profile without it.
+                if !input.wrappedValue.handle.isEmpty {
+                    Button {
+                        input.wrappedValue = KachatSourceInput()
+                        lookup.wrappedValue = .none
+                    } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Clear"))
+                }
             }
             // Only while the handle names an account: no empty row, and the lookup starts when it
             // appears.
@@ -3697,6 +3709,15 @@ struct KachatLiveProfileEditor: View {
                         Text(verbatim: "linktr.ee/").foregroundColor(.secondary)
                         TextField("username", text: $linktree)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        if !linktree.isEmpty {
+                            Button {
+                                linktree = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("Clear"))
+                        }
                     }
                 } header: { Text("Links") } footer: {
                     if badLinktree {
@@ -3745,10 +3766,27 @@ struct KachatLiveProfileEditor: View {
                         Text("Saving writes your profile to the chain from your address to itself, for a network fee. Profiles are public.")
                     }
                 }
+                Section {
+                    Button(role: .destructive) {
+                        showClear = true
+                    } label: {
+                        HStack { Spacer(); Text("Clear Profile").font(.headline); Spacer() }
+                    }
+                    // Same gate as saving: a clear IS a save, of the empty record.
+                    .disabled(!loaded || !KachatNamesService.profilesEnabled)
+                } footer: {
+                    Text("Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again.")
+                }
             }
             .sheet(isPresented: $showSave) {
                 KachatProfileSaveSheet(title: "Save Profile", confirmTitle: "Save Profile", doneTitle: "Profile saved",
                                        makeProfile: { profile }, onSaved: { dismiss() })
+            }
+            // The newest record is the whole profile, so the empty record IS "this address has
+            // nothing": the indexer and every app show nothing for it from then on.
+            .sheet(isPresented: $showClear) {
+                KachatProfileSaveSheet(title: "Clear Profile", confirmTitle: "Clear Profile", doneTitle: "Profile cleared",
+                                       makeProfile: { KachatNames.Profile() }, onSaved: { dismiss() })
             }
             .onChange(of: avatarLookup) { v in if v == .found { fillEmpty(from: avatarIn) } }
             .onChange(of: bannerLookup) { v in if v == .found { fillEmpty(from: bannerIn) } }

@@ -3034,9 +3034,13 @@ struct KaPostsView: View {
                     }
                     txId = try await KaPostsAPIClient.shared.submitQuote(text: post.text, contentId: contentId, quotedAuthorPubkey: author)
                 } else if let poll = post.poll {
-                    // and a failed poll as the poll
+                    // and a failed poll as the poll - its full length again from now, so a late
+                    // retry never puts an already-closed poll on chain (IOS-093)
+                    let length = max(poll.closesAt.timeIntervalSince(post.timestamp), 60)
+                    let closesAt = Date().addingTimeInterval(length)
+                    mutatePost(id: post.id) { $0.poll?.closesAt = closesAt }
                     txId = try await KaPostsAPIClient.shared.submitPoll(
-                        question: post.text, options: poll.options, closesAt: poll.closesAt,
+                        question: post.text, options: poll.options, closesAt: closesAt,
                         mentionedPubkeys: await mentionedPubkeys(in: post.text)
                     )
                 } else if let parent = findParent(ofCommentId: post.id) {

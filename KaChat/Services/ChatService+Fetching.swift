@@ -1054,18 +1054,65 @@ extension ChatService {
 
     /// A `.kachat` registry or offer transaction (register and its commit, buy, list, extend,
     /// renew, transfer, offers, release, reclaim): it carries a `kchat:1:name:` /
-    /// `kchat:1:offer:` payload, or pays to or from a script (P2SH) address - the commit, the
-    /// name's 1 KAS bond, the gaps, an offer's locked KAS. A chat partner is always a key
-    /// address, so such a transaction is never a payment chat (it shows in the wallet history).
+    /// `kchat:1:offer:` payload, or moves a covenant's P2SH coin - the commit, the name's
+    /// 1 KAS bond, the gaps, an offer's locked KAS. Such a transaction is never a payment chat
+    /// (it shows in the wallet history).
+    ///
+    /// Since quantum (KIP-22) addresses, "P2SH" alone no longer means "contract": every
+    /// spending-address send carries P2SH change, and a payment can be PAID from a P2SH
+    /// address. So:
+    /// - a P2SH input is a covenant spend UNLESS its signature script is a KIP-22 spend of its
+    ///   own address (`isKip22Spend`);
+    /// - a P2SH output by itself proves nothing on a received payment (it is the payer's
+    ///   change). The one contract transaction without a payload is the commit, and it pays
+    ///   only the contract and the committer's own change - so only on this wallet's OWN sends
+    ///   does "every outside output is P2SH" still mean the commit, never a chat (keeps
+    ///   commits out of "sent 0.2" payment chats, 32fdaa4).
     func isKachatContractTransaction(_ transaction: KaspaFullTransactionResponse) -> Bool {
         if let payload = transaction.payload, !payload.isEmpty,
            Self.payloadHasPrefix(payload, ["kchat:1:name:", "kchat:1:offer:"]) {
             return true
         }
-        if transaction.outputs.contains(where: { Self.isScriptAddress($0.scriptPublicKeyAddress) }) {
-            return true
+        for input in transaction.inputs ?? [] where Self.isScriptAddress(input.previousOutpointAddress) {
+            guard Self.isKip22Spend(input) else { return true }
         }
-        return transaction.inputs?.contains(where: { Self.isScriptAddress($0.previousOutpointAddress) }) ?? false
+        let own = ownWalletAddressesLowercased()
+        let paidByUs = (transaction.inputs ?? []).contains { input in
+            guard let address = input.previousOutpointAddress?.lowercased() else { return false }
+            return own.contains(address)
+        }
+        guard paidByUs else { return false }
+        let outside = transaction.outputs.filter { output in
+            guard let address = output.scriptPublicKeyAddress?.lowercased() else { return true }
+            return !own.contains(address)
+        }
+        return !outside.isEmpty && outside.allSatisfy { Self.isScriptAddress($0.scriptPublicKeyAddress) }
+    }
+
+    /// Every address this wallet spends from, lowercased: the chatting address and every
+    /// revealed spending address, the quantum chain included.
+    private func ownWalletAddressesLowercased() -> Set<String> {
+        var own = Set(WalletManager.shared.allSpendingAddresses().map { $0.lowercased() })
+        if let wallet = WalletManager.shared.currentWallet {
+            own.insert(wallet.publicAddress.lowercased())
+        }
+        return own
+    }
+
+    /// A KIP-22 (quantum address) spend of a P2SH input: the signature script is exactly
+    /// `0x41 <64-byte sig> <sighash byte>` then the canonical push of the 34-byte redeem
+    /// `0x20 <x-only key> 0xac` (101 bytes in all), and the redeem hashes to the input's own
+    /// P2SH address. Anything else spending P2SH (the registry's reveal, bond, gap and offer
+    /// covenants) is a contract.
+    nonisolated static func isKip22Spend(_ input: KaspaFullTxInput) -> Bool {
+        guard let hex = input.signatureScript, hex.count == 202,
+              let script = Data(hexString: hex) else { return false }
+        let b = [UInt8](script)
+        guard b.count == 101, b[0] == 0x41, b[66] == 0x22, b[67] == 0x20, b[100] == 0xac else { return false }
+        let redeem = Data(b[67...100])
+        guard let address = input.previousOutpointAddress?.lowercased(), !address.isEmpty,
+              let expected = KachatNamesService.p2shAddress(script: KachatNames.Codec.p2shScript(redeem)) else { return false }
+        return expected.lowercased() == address
     }
 
     /// A pay-to-script-hash address (`kaspa:p...` / `kaspatest:p...`): a contract, never a chat.

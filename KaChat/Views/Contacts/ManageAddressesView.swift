@@ -547,7 +547,7 @@ struct ManageAddressesView: View {
     private func addressRowActionsSheet(_ entry: SpendingAddressEntry) -> some View {
         VStack(spacing: 12) {
             VStack(spacing: 2) {
-                Text(entry.label?.isEmpty == false ? entry.label! : "Address \(entry.index)")
+                Text(entry.displayLabel)
                     .font(.headline)
                 Text(entry.shortAddress)
                     .font(.system(.caption, design: .monospaced))
@@ -2533,9 +2533,16 @@ private struct SpendingAddressVisibilityView: View {
                 .opacity(locked ? 0.45 : 1)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
-                    Text("#\(entry.index)")
+                    // The chain-local number; the shield marks the quantum chain's rows apart
+                    // from the legacy chain's same numbers.
+                    Text("#\(entry.isQuantum ? entry.index - WalletManager.quantumIndexBase : entry.index)")
                         .font(.subheadline.weight(.bold))
                         .monospacedDigit()
+                    if entry.isQuantum {
+                        Image(systemName: "shield")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                     if let label = entry.label, !label.trimmingCharacters(in: .whitespaces).isEmpty {
                         Text(label)
                             .font(.caption)

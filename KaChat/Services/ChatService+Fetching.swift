@@ -148,12 +148,17 @@ extension ChatService {
         var transactions = await fetchFullTransactionsPaginated(for: address, stopAtBlockTime: blockTime)
         // Payments held because their signatures couldn't be checked yet are read again by id
         // (the page above may already be past them).
+        // Every held txid is due, whether it is on this page or read by id - one still on the
+        // first page used to be skipped as "older than the cursor" and never checked again
+        // (IOS-091).
         var heldTxIds: Set<String> = []
         if incoming {
+            let held = Set(heldPaymentTxIds(wallet: address))
             let present = Set(transactions.map { $0.transactionId.lowercased() })
-            for txId in heldPaymentTxIds(wallet: address) where !present.contains(txId) {
-                if let held = await fetchFullTransaction(txId: txId) {
-                    transactions.append(held)
+            heldTxIds = held.intersection(present)
+            for txId in held where !present.contains(txId) {
+                if let heldTx = await fetchFullTransaction(txId: txId) {
+                    transactions.append(heldTx)
                     heldTxIds.insert(txId)
                 }
             }
@@ -314,6 +319,7 @@ extension ChatService {
             // the API didn't resolve is looked up through its previous transaction; a payment
             // that still can't be checked is held and checked again on later syncs, never
             // dropped for good or shown unverified.
+            var confirmedByNodeOnly = false
             if incoming, tx.inputs?.isEmpty == false {
                 switch await verifyIncomingPaymentSignatures(tx) {
                 case .valid:
@@ -324,10 +330,20 @@ extension ChatService {
                           String(tx.transactionId.prefix(16)))
                     continue
                 case .unknown:
-                    holdPayment(tx.transactionId, wallet: address)
-                    AppLog.log("[ChatService] Payment %@ held - its signatures can't be checked yet",
-                          String(tx.transactionId.prefix(16)))
-                    continue
+                    // The REST answer can't settle it (a field the signature covers is missing).
+                    // Our node can: a coin from this txid paying this address the amount means
+                    // the payment is real (XP-033).
+                    if await nodeConfirmsIncomingPayment(txId: tx.transactionId, address: address, amount: totalToUs) {
+                        releaseHeldPayment(tx.transactionId, wallet: address)
+                        confirmedByNodeOnly = true
+                        AppLog.log("[ChatService] Payment %@ confirmed by the node (signatures not checkable from REST)",
+                              String(tx.transactionId.prefix(16)))
+                    } else {
+                        holdPayment(tx.transactionId, wallet: address)
+                        AppLog.log("[ChatService] Payment %@ held - its signatures can't be checked yet",
+                              String(tx.transactionId.prefix(16)))
+                        continue
+                    }
                 }
             }
 
@@ -340,7 +356,9 @@ extension ChatService {
                 blockTime: txBlockTime,
                 acceptingBlock: tx.acceptingBlockHash,
                 acceptingDaaScore: tx.acceptingBlockBlueScore,
-                messagePayload: messagePayload
+                // confirmed by the node only: the amount is proven, a memo from the REST answer
+                // is not (the payload is part of what could not be checked)
+                messagePayload: confirmedByNodeOnly ? nil : messagePayload
             )
 
             payments.append(payment)
@@ -399,7 +417,7 @@ extension ChatService {
             var amount = input.previousOutpointAmount
             if address == nil || amount == nil,
                let previous = await fetchFullTransaction(txId: hash, resolvePrevious: false),
-               let spent = previous.outputs.first(where: { $0.index.map { UInt32($0) } == idx })
+               let spent = previous.outputs.first(where: { $0.index.flatMap { UInt32(exactly: $0) } == idx })
                 ?? (Int(idx) < previous.outputs.count ? previous.outputs[Int(idx)] : nil) {
                 address = address ?? spent.scriptPublicKeyAddress
                 amount = amount ?? spent.amount
@@ -423,6 +441,7 @@ extension ChatService {
             )
         }
         return KasiaTransactionBuilder.verifyTransactionSignatures(
+            claimedTxId: tx.transactionId,
             inputs: verificationInputs,
             outputs: verificationOutputs,
             version: tx.version ?? 0,
@@ -431,6 +450,17 @@ extension ChatService {
             gas: tx.gas?.value ?? 0,
             payload: CryptoUtils.hexToData(tx.payload ?? "") ?? Data()
         )
+    }
+
+    /// Whether our node lists coins created by `txId` that pay `address` exactly `amount` (the
+    /// payment's outputs to us, still unspent). The node is a second source the REST API can't
+    /// speak for; a coin already spent can't be seen this way, so such a payment stays held.
+    func nodeConfirmsIncomingPayment(txId: String, address: String, amount: UInt64) async -> Bool {
+        guard amount > 0, let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address]) else { return false }
+        let paid = utxos
+            .filter { $0.outpoint.transactionId.lowercased() == txId.lowercased() }
+            .reduce(UInt64(0)) { $0 + $1.amount }
+        return paid == amount
     }
 
     /// One transaction from the Kaspa REST API by id; nil when it can't be read.

@@ -2205,7 +2205,16 @@ struct KasiaTransactionBuilder {
     /// `.invalid` only when a signature is definitively wrong; `.unknown` when a standard input
     /// can't be checked yet because its spent UTXO isn't resolved, or the data is incomplete.
     /// Non-standard inputs (P2SH covenant spends and the like) are not signature-checked here.
+    ///
+    /// The verdict rule, the same on every client (audits AND-042, XP-033): a standard
+    /// key-address (P2PK Schnorr) input must carry a well-formed signature - a blank, short or
+    /// wrongly pushed one cannot be on chain. A signature that fails (or is malformed) makes the
+    /// payment `.invalid` only when the REST fields rebuild the claimed transaction id, i.e. the
+    /// API described the transaction completely; otherwise a field the signature covers is
+    /// missing (lock time, sequences) and the answer is `.unknown`. A sighash type other than
+    /// SIGHASH_ALL is `.unknown` too, never a silent pass.
     static func verifyTransactionSignatures(
+        claimedTxId: String,
         inputs: [VerificationInput],
         outputs: [VerificationOutput],
         version: UInt16,
@@ -2259,33 +2268,44 @@ struct KasiaTransactionBuilder {
             payload: payload
         )
 
-        for (index, input) in inputs.enumerated() {
-            // 1. Parse signatureScript: 0x41 (push 65 bytes) + 64-byte Schnorr sig + 0x01 (SIGHASH_ALL)
-            guard let sigScriptData = hexToData(input.signatureScript),
-                  sigScriptData.count == 66,
-                  sigScriptData[0] == 0x41,
-                  sigScriptData[65] == 0x01 else {
-                // Non-standard signature script (a covenant spend, another sighash type): not
-                // checked here
-                continue
-            }
-            let schnorrSigData = sigScriptData[1..<65]
+        // Whether the REST fields describe the transaction completely: they rebuild its id.
+        func restFieldsRebuildId() -> Bool {
+            restTransactionId(
+                version: version,
+                inputs: inputs.map { (hash: $0.previousOutpointHash, index: $0.previousOutpointIndex, sequence: $0.sequence) },
+                outputs: zip(rpcOutputs, covenants).map { (amount: $0.0.value, script: $0.0.scriptPublicKey.script, covenant: $0.1) },
+                lockTime: lockTime, subnetworkId: subnetworkId, gas: gas, payload: payload
+            )?.lowercased() == claimedTxId.lowercased()
+        }
+        var failedInput: Int?
 
-            // 2. The spent UTXO's script and amount: without them this input can't be checked yet
+        for (index, input) in inputs.enumerated() {
+            // 1. The spent UTXO's script and amount: without them this input can't be checked yet
             guard let address = input.previousOutpointAddress, let amount = input.previousOutpointAmount,
                   let utxoScriptPubKey = KaspaAddress.scriptPublicKey(from: address) else {
                 return .unknown
             }
 
-            // 3. Extract x-only public key (32 bytes) from P2PK scriptPublicKey
-            // P2PK script format: <length_byte> <pubkey_bytes> OP_CHECKSIG(0xAC)
-            guard utxoScriptPubKey.count >= 34, // 1 (len) + 32 (key) + 1 (OP_CHECKSIG)
+            // 2. Only standard P2PK Schnorr inputs are checked here: <0x20> <32-byte key> OP_CHECKSIG
+            guard utxoScriptPubKey.count == 34,
                   utxoScriptPubKey[0] == 32,
-                  utxoScriptPubKey[utxoScriptPubKey.count - 1] == 0xAC else {
-                // Not a P2PK script or unexpected format; skip
-                continue
+                  utxoScriptPubKey[33] == 0xAC else {
+                continue // P2SH (covenant spends), ECDSA and the like
             }
             let xOnlyPubKeyData = utxoScriptPubKey[1..<33]
+
+            // 3. Such an input's signature script is 0x41 (push 65) + 64-byte Schnorr sig + a
+            // sighash type byte - anything else (blank, short, another push) can't be on chain
+            guard let sigScriptData = hexToData(input.signatureScript),
+                  sigScriptData.count == 66,
+                  sigScriptData[0] == 0x41 else {
+                AppLog.log("[TxBuilder] Malformed signature script on P2PK input %d", index)
+                failedInput = failedInput ?? index
+                continue
+            }
+            // a sighash type this check doesn't hash: can't be decided here
+            guard sigScriptData[65] == 0x01 else { return .unknown }
+            let schnorrSigData = sigScriptData[1..<65]
 
             // 4. Compute sighash (v0 or v1)
             guard let sighash = try? computeSighash(
@@ -2308,7 +2328,7 @@ struct KasiaTransactionBuilder {
                 for i in sighashBytes.indices { sighashBytes[i] = 0 }
                 if !isValid {
                     AppLog.log("[TxBuilder] Schnorr signature INVALID for input %d of a v%d tx", index, Int(version))
-                    return .invalid
+                    failedInput = failedInput ?? index
                 }
             } catch {
                 AppLog.log("[TxBuilder] Schnorr verification error for input %d: %@", index, error.localizedDescription)
@@ -2316,7 +2336,68 @@ struct KasiaTransactionBuilder {
             }
         }
 
-        return .valid
+        guard failedInput != nil else { return .valid }
+        // forged only when the API described the whole transaction; else something it left out
+        // (that the signature covers) is the likelier reason
+        return restFieldsRebuildId() ? .invalid : .unknown
+    }
+
+    /// The transaction id as the chain computes it, from REST fields (rusty-kaspa
+    /// consensus/core/src/hashing/tx.rs): version 0 = blake2b keyed "TransactionID" over the
+    /// encoding with signature scripts and mass commitments excluded, payload included;
+    /// version 1 = TransactionV1Id(PayloadDigest(payload) || TransactionRest(the same encoding
+    /// with the payload excluded too)), keyed BLAKE3. Output script version 0. Checked against
+    /// real mainnet txs (v0 5edbcad2..., fdcbe3d7...; v1 3ac700b8..., cd2f93b3..., 82453d24...).
+    static func restTransactionId(
+        version: UInt16,
+        inputs: [(hash: String, index: UInt32, sequence: UInt64)],
+        outputs: [(amount: UInt64, script: Data, covenant: OutputCovenant?)],
+        lockTime: UInt64,
+        subnetworkId: Data,
+        gas: UInt64,
+        payload: Data
+    ) -> String? {
+        func le<T: FixedWidthInteger>(_ value: T) -> Data {
+            var v = value.littleEndian
+            return Data(bytes: &v, count: MemoryLayout<T>.size)
+        }
+        func varBytes(_ bytes: Data) -> Data { le(UInt64(bytes.count)) + bytes }
+        var body = Data()
+        body += le(version)
+        body += le(UInt64(inputs.count))
+        for input in inputs {
+            guard let hash = hexToData(input.hash), hash.count == 32 else { return nil }
+            body += hash + le(input.index) + varBytes(Data()) + le(input.sequence)
+        }
+        body += le(UInt64(outputs.count))
+        for output in outputs {
+            body += le(output.amount) + le(UInt16(0)) + varBytes(output.script)
+            if version >= 1 {
+                if let covenant = output.covenant {
+                    body += Data([1]) + le(covenant.authorizingInput) + covenant.covenantId
+                } else {
+                    body += Data([0])
+                }
+            }
+        }
+        var subnetwork = subnetworkId
+        if subnetwork.count < 20 { subnetwork += Data(repeating: 0, count: 20 - subnetwork.count) }
+        body += le(lockTime) + subnetwork.prefix(20) + le(gas)
+        let digest: Data
+        if version == 0 {
+            var hasher = Blake2b(digestLength: 32, key: "TransactionID".data(using: .utf8))
+            hasher.update(body + varBytes(payload))
+            digest = hasher.finalize()
+        } else {
+            var payloadDigest = Blake3(domain: "PayloadDigest")
+            payloadDigest.update(payload)
+            var rest = Blake3(domain: "TransactionRest")
+            rest.update(body + varBytes(Data()))
+            var id = Blake3(domain: "TransactionV1Id")
+            id.update(payloadDigest.finalize() + rest.finalize())
+            digest = id.finalize()
+        }
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     /// Storage mass parameter: C = SOMPI_PER_KAS * 10_000 = 1 trillion (KIP-0009)

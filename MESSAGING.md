@@ -182,6 +182,32 @@ Has handshake payload?                   Regular payment
 Process as handshake                  Show in conversation
 ```
 
+### Checking a received payment read from the REST API
+
+A received payment read from the Kaspa REST API is shown only after its signatures check out,
+so a lying or broken API can't put a payment in a contact's chat. The rules, the same on every
+client (audits AND-042, XP-033, IOS-091, IOS-092):
+
+1. **Rebuild the transaction from the REST fields**, every input included (the signature hash
+   commits to all outpoints and sequences), version 0 or 1 (v1: no sig-op counts; outputs carry
+   their covenant). An input the API left unresolved gets its spent output's address and amount
+   from `GET /transactions/<previous_outpoint_hash>` (output `index`, read safely - a bad index
+   is ignored, never a crash).
+2. **Each standard key-address (P2PK Schnorr) input must carry a well-formed signature:** push
+   65 bytes, a 64-byte signature and a sighash type. A blank, short or differently pushed
+   signature script cannot be on chain and counts as a failure. A sighash type other than
+   SIGHASH_ALL can't be checked: no answer. Other inputs (P2SH covenant spends, ECDSA) are not
+   checked here.
+3. **Verdict.** All checked signatures valid: show it. A failure: forged (dropped) **only if the
+   REST fields rebuild the claimed transaction id** (v0: blake2b "TransactionID"; v1:
+   TransactionV1Id over PayloadDigest and TransactionRest), because then the API described the
+   transaction completely. If they don't, a field the signature covers is missing (the REST API
+   returns no lock time or sequences) and there is no answer.
+4. **No answer: ask the node.** If our node lists unspent coins from that txid paying our address
+   exactly the amount, the payment is real: show it, without a memo (the payload is part of what
+   could not be checked). Otherwise hold it: every held txid is due on every payment sync (on the
+   first history page or not), re-read by id and checked again, for up to 7 days.
+
 ## Payload Encryption
 
 ### Contextual Messages

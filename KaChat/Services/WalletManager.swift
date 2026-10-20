@@ -129,6 +129,13 @@ final class WalletManager: ObservableObject {
     /// only when both the private key and the seed were looked up and found absent, never on
     /// a lookup that merely failed.
     @Published private(set) var walletNeedingKeyRecovery: Wallet?
+    /// A saved account whose sign-in just failed because this device has no keys for it (its
+    /// snapshot is from another phone). The accounts screen answers with the recovery sheet -
+    /// "enter its recovery phrase" - instead of a bare error (the state after an iPhone restore,
+    /// for every account that was not the active one).
+    @Published private(set) var savedAccountNeedingKeys: SavedAccountSummary?
+
+    func clearSavedAccountNeedingKeys() { savedAccountNeedingKeys = nil }
     @Published private(set) var isLoggedOut = false
     @Published private(set) var savedAccounts: [SavedAccountSummary] = []
     /// Set by `CreateWalletView` once the user has reviewed their seed phrase and checked "I have
@@ -599,6 +606,7 @@ final class WalletManager: ObservableObject {
     @discardableResult
     func signInToSavedAccount(_ account: SavedAccountSummary) async -> Bool {
         guard savedAccounts.contains(account) else { return false }
+        savedAccountNeedingKeys = nil
 
         do {
             if let storedWallet = try keychainService.loadWallet(),
@@ -624,7 +632,9 @@ final class WalletManager: ObservableObject {
                 }
             }
             guard let snapshot = foundSnapshot else {
-                self.error = .keychainError("No local keys for this account. Re-import with seed phrase.")
+                // Not an error to read and dismiss: the accounts screen opens the recovery
+                // sheet, which explains and leads into Enter Recovery Phrase.
+                savedAccountNeedingKeys = account
                 return false
             }
 

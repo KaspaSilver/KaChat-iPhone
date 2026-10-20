@@ -1779,3 +1779,9 @@
 "Paid for registrations and renewals" = "Kayıtlar ve yenilemeler için ödenen";
 "Fees aren't available yet" = "Ücretler henüz mevcut değil";
 "Your indexer doesn't report them yet. They'll show here once it does." = "Dizinleyiciniz bunları henüz bildirmiyor. Bildirdiğinde burada görünecek.";
+
+/* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
+"Recovery Phrase Needed" = "Kurtarma ifadesi gerekli";
+"Enter Recovery Phrase" = "Kurtarma İfadesini Gir";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ bu iPhone'da, ama anahtarları yok. Anahtarlar oluşturuldukları telefona kilitli olduğundan, yedekten geri yükleme sonrasında bu olur. Giriş yapmak için hesabın kurtarma ifadesini girin. Bu telefondaki geçmişi korunur.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "Bu iPhone'da hesabınız var, ama anahtarları yok. KaChat'in anahtarları oluşturuldukları cihaza kilitli olduğundan, telefonu yedekten geri yükleme sonrasında bu olur. Burada açmak için kurtarma ifadenizi girin. Bu cihazdaki mesajlarınız korunur.";

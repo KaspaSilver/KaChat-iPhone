@@ -1779,3 +1779,9 @@
 "Paid for registrations and renewals" = "Оплачено за регистрации и продления";
 "Fees aren't available yet" = "Комиссии пока недоступны";
 "Your indexer doesn't report them yet. They'll show here once it does." = "Ваш индексатор их пока не сообщает. Они появятся здесь, когда начнёт.";
+
+/* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
+"Recovery Phrase Needed" = "Нужна фраза восстановления";
+"Enter Recovery Phrase" = "Ввести фразу восстановления";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ есть на этом iPhone, но ключей для него здесь нет. Так бывает после восстановления из резервной копии: ключи привязаны к телефону, на котором были созданы. Введите фразу восстановления аккаунта, чтобы войти. Его история на этом телефоне сохранится.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "На этом iPhone есть ваш аккаунт, но нет его ключей. Так бывает после восстановления телефона из резервной копии: ключи KaChat привязаны к устройству, на котором были созданы. Введите фразу восстановления, чтобы разблокировать его здесь. Ваши сообщения на этом устройстве сохранятся.";

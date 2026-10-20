@@ -1779,3 +1779,9 @@
 "Paid for registrations and renewals" = "المدفوع مقابل التسجيلات والتجديدات";
 "Fees aren't available yet" = "الرسوم غير متاحة بعد";
 "Your indexer doesn't report them yet. They'll show here once it does." = "المفهرس لديك لا يعرضها بعد. ستظهر هنا عندما يفعل.";
+
+/* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
+"Recovery Phrase Needed" = "مطلوب عبارة الاسترداد";
+"Enter Recovery Phrase" = "إدخال عبارة الاسترداد";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "‏%@ موجود على هذا الآيفون، لكن مفاتيحه ليست هنا. يحدث ذلك بعد الاستعادة من نسخة احتياطية، لأن المفاتيح مرتبطة بالهاتف الذي أُنشئت عليه. أدخل عبارة استرداد الحساب لتسجيل الدخول. سجلّه على هذا الهاتف محفوظ.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "هذا الآيفون فيه حسابك لكن بلا مفاتيحه. يحدث ذلك بعد استعادة الهاتف من نسخة احتياطية، لأن مفاتيح KaChat مرتبطة بالجهاز الذي أُنشئت عليه. أدخل عبارة الاسترداد لفتحه هنا. رسائلك على هذا الجهاز محفوظة.";

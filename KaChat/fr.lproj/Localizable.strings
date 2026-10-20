@@ -1780,3 +1780,9 @@
 "Paid for registrations and renewals" = "Payé pour les enregistrements et les renouvellements";
 "Fees aren't available yet" = "Les frais ne sont pas encore disponibles";
 "Your indexer doesn't report them yet. They'll show here once it does." = "Votre indexeur ne les fournit pas encore. Ils apparaîtront ici dès qu'il le fera.";
+
+/* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
+"Recovery Phrase Needed" = "Phrase de récupération requise";
+"Enter Recovery Phrase" = "Saisir la phrase de récupération";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ est sur cet iPhone, mais pas ses clés. Cela arrive après une restauration depuis une sauvegarde, car les clés sont liées au téléphone où elles ont été créées. Saisissez la phrase de récupération du compte pour vous connecter. Son historique sur ce téléphone est conservé.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "Cet iPhone contient votre compte, mais pas ses clés. Cela arrive après la restauration d'un téléphone depuis une sauvegarde, car les clés de KaChat sont liées à l'appareil où elles ont été créées. Saisissez votre phrase de récupération pour le déverrouiller ici. Vos messages sur cet appareil sont conservés.";

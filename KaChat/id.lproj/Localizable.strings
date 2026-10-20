@@ -1779,3 +1779,9 @@
 "Paid for registrations and renewals" = "Dibayar untuk pendaftaran dan perpanjangan";
 "Fees aren't available yet" = "Biaya belum tersedia";
 "Your indexer doesn't report them yet. They'll show here once it does." = "Indexer Anda belum melaporkannya. Akan muncul di sini setelah dilaporkan.";
+
+/* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
+"Recovery Phrase Needed" = "Perlu frasa pemulihan";
+"Enter Recovery Phrase" = "Masukkan Frasa Pemulihan";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ ada di iPhone ini, tetapi kuncinya tidak. Itu terjadi setelah memulihkan dari cadangan, karena kunci terikat pada ponsel tempat kunci itu dibuat. Masukkan frasa pemulihan akun ini untuk masuk. Riwayatnya di ponsel ini tetap tersimpan.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "iPhone ini punya akun Anda, tetapi tidak kuncinya. Itu terjadi setelah memulihkan ponsel dari cadangan, karena kunci KaChat terikat pada perangkat tempat kunci itu dibuat. Masukkan frasa pemulihan Anda untuk membukanya di sini. Pesan Anda di perangkat ini tetap tersimpan.";

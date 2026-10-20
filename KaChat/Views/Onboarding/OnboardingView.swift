@@ -11,6 +11,9 @@ struct OnboardingView: View {
     @State private var accountActionsTarget: SavedAccountSummary?
     @State private var isRemovingAccount = false
     @State private var signInErrorMessage: String?
+    /// A saved account this device has no keys for (tapped after an iPhone restore): the sheet
+    /// that says so and leads into Enter Recovery Phrase.
+    @State private var accountNeedingKeys: SavedAccountSummary?
     @State private var pendingRenameAccount: SavedAccountSummary?
     @State private var renameText = ""
     @State private var showAppSettings = false
@@ -107,6 +110,15 @@ struct OnboardingView: View {
                 }
             } message: {
                 Text("Enter a new name for this saved account.")
+            }
+            .sheet(item: $accountNeedingKeys) { account in
+                AccountKeysNeededSheet(account: account) {
+                    accountNeedingKeys = nil
+                    // after the sheet's dismissal animation, or the push lands on nothing
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        showImportWallet = true
+                    }
+                }
             }
             .alert(
                 "Sign In Failed",
@@ -348,7 +360,13 @@ struct OnboardingView: View {
             let didSignIn = await walletManager.signInToSavedAccount(account)
             await MainActor.run {
                 if !didSignIn {
-                    signInErrorMessage = walletManager.error?.localizedDescription ?? "Unable to sign in to this account."
+                    if let needing = walletManager.savedAccountNeedingKeys {
+                        // no keys for it on this phone: say so and offer the phrase, not an error
+                        accountNeedingKeys = needing
+                        walletManager.clearSavedAccountNeedingKeys()
+                    } else {
+                        signInErrorMessage = walletManager.error?.localizedDescription ?? "Unable to sign in to this account."
+                    }
                 }
                 signingInAccountId = nil
             }
@@ -366,6 +384,77 @@ struct OnboardingView: View {
                 pendingRemovalAccount = nil
             }
         }
+    }
+}
+
+/// "Recovery Phrase Needed" for one saved account: shown when signing in to an account whose
+/// keys are not on this phone (after an iPhone restore - keys are locked to the phone they were
+/// made on, only the active account gets the full-screen WalletRecoveryView). Explains what
+/// happened and leads straight into Enter Recovery Phrase.
+private struct AccountKeysNeededSheet: View {
+    let account: SavedAccountSummary
+    /// Closes the sheet and opens the import (seed entry) flow.
+    let onEnterPhrase: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "key.slash")
+                .font(.scaled(size: 44, weight: .semibold))
+                .foregroundColor(.accentColor)
+                .padding(.top, 28)
+            Text("Recovery Phrase Needed")
+                .font(.title3.weight(.bold))
+                .multilineTextAlignment(.center)
+            Text(String(format: AppLocalization.string("%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept."), account.displayAlias))
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            VStack(spacing: 4) {
+                Text(account.displayAlias)
+                    .font(.headline)
+                Text(account.shortPublicAddress)
+                    .font(.caption.monospaced())
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.secondary.opacity(0.12))
+            )
+            Spacer()
+            VStack(spacing: 10) {
+                Button {
+                    onEnterPhrase()
+                } label: {
+                    Text("Enter Recovery Phrase")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.accentColor)
+                        .foregroundColor(.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Not Now")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 20)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }
 

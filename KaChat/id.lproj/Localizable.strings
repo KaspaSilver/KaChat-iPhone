@@ -1785,3 +1785,6 @@
 "Enter Recovery Phrase" = "Masukkan Frasa Pemulihan";
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ ada di iPhone ini, tetapi kuncinya tidak. Itu terjadi setelah memulihkan dari cadangan, karena kunci terikat pada ponsel tempat kunci itu dibuat. Masukkan frasa pemulihan akun ini untuk masuk. Riwayatnya di ponsel ini tetap tersimpan.";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "iPhone ini punya akun Anda, tetapi tidak kuncinya. Itu terjadi setelah memulihkan ponsel dari cadangan, karena kunci KaChat terikat pada perangkat tempat kunci itu dibuat. Masukkan frasa pemulihan Anda untuk membukanya di sini. Pesan Anda di perangkat ini tetap tersimpan.";
+
+/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
+"(Your address)" = "(Alamat Anda)";

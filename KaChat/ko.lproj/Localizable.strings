@@ -1785,3 +1785,6 @@
 "Enter Recovery Phrase" = "복구 문구 입력";
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ 계정은 이 iPhone에 있지만 키가 없습니다. 키는 생성된 기기에 고정되므로 백업에서 복원하면 이렇게 됩니다. 로그인하려면 이 계정의 복구 문구를 입력하세요. 이 기기의 기록은 유지됩니다.";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "이 iPhone에 계정은 있지만 키가 없습니다. KaChat의 키는 생성된 기기에 고정되므로 백업에서 복원하면 이렇게 됩니다. 여기서 사용하려면 복구 문구를 입력하세요. 이 기기의 메시지는 유지됩니다.";
+
+/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
+"(Your address)" = "(내 주소)";

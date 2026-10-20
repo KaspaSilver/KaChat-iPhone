@@ -1785,3 +1785,6 @@
 "Enter Recovery Phrase" = "Nhập cụm từ khôi phục";
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ có trên iPhone này, nhưng khóa của nó thì không. Điều này xảy ra sau khi khôi phục từ bản sao lưu, vì khóa gắn chặt với chiếc điện thoại đã tạo ra nó. Nhập cụm từ khôi phục của tài khoản để đăng nhập. Lịch sử của nó trên điện thoại này được giữ lại.";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "iPhone này có tài khoản của bạn nhưng không có khóa của nó. Điều này xảy ra sau khi khôi phục điện thoại từ bản sao lưu, vì khóa của KaChat gắn chặt với thiết bị đã tạo ra nó. Nhập cụm từ khôi phục của bạn để mở khóa tại đây. Tin nhắn của bạn trên thiết bị này được giữ lại.";
+
+/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
+"(Your address)" = "(Địa chỉ của bạn)";

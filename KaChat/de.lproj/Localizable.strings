@@ -1733,3 +1733,6 @@
 "Enter Recovery Phrase" = "Wiederherstellungsphrase eingeben";
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ ist auf diesem iPhone, seine Schlüssel aber nicht. Das passiert nach dem Wiederherstellen aus einem Backup, weil Schlüssel an das Telefon gebunden sind, auf dem sie erstellt wurden. Gib die Wiederherstellungsphrase des Kontos ein, um dich anzumelden. Sein Verlauf auf diesem Telefon bleibt erhalten.";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "Dieses iPhone hat dein Konto, aber nicht seine Schlüssel. Das passiert nach dem Wiederherstellen aus einem Backup, weil KaChats Schlüssel an das Gerät gebunden sind, auf dem sie erstellt wurden. Gib deine Wiederherstellungsphrase ein, um es hier freizuschalten. Deine Nachrichten auf diesem Gerät bleiben erhalten.";
+
+/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
+"(Your address)" = "(Deine Adresse)";

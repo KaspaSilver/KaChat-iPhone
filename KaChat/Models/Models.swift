@@ -2089,6 +2089,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         switch self {
         case .apps: return "Kaspa Websites"
         case .chess: return "Chess Online"
+        case .kachatNames: return ".kachat Domains"
         case .kachatStats: return "KaChat Stats"
         case .kachatBots: return "KaChat Bots"
         // ChangeNOW's own capitalization, matching how the app already names it everywhere else

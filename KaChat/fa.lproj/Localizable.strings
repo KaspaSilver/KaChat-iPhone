@@ -1785,3 +1785,6 @@
 "Enter Recovery Phrase" = "واردکردن عبارت بازیابی";
 "%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "‏%@ روی این آیفون هست، اما کلیدهایش نیست. این بعد از بازیابی از نسخهٔ پشتیبان پیش می‌آید، چون کلیدها به همان گوشی‌ای قفل‌اند که روی آن ساخته شده‌اند. برای ورود، عبارت بازیابی این حساب را وارد کنید. تاریخچه‌اش روی این گوشی می‌ماند.";
 "This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "این آیفون حساب شما را دارد اما کلیدهایش را نه. این بعد از بازیابی گوشی از نسخهٔ پشتیبان پیش می‌آید، چون کلیدهای KaChat به همان دستگاهی قفل‌اند که روی آن ساخته شده‌اند. برای بازکردن آن در اینجا عبارت بازیابی خود را وارد کنید. پیام‌های شما روی این دستگاه می‌مانند.";
+
+/* Self-chat title suffix: shown after your own name/address on the chat with yourself */
+"(Your address)" = "(نشانی شما)";

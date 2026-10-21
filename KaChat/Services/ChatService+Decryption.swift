@@ -568,6 +568,27 @@ struct KaspaFullTransactionResponse: Codable {
     }
 }
 
+extension KaspaFullTransactionResponse {
+    nonisolated static let coinbaseSubnetworkId = "0100000000000000000000000000000000000000"
+
+    /// A block reward: the coinbase subnetwork, and no inputs.
+    var isCoinbase: Bool {
+        if let subnetwork = subnetworkId?.lowercased(), !subnetwork.isEmpty {
+            return subnetwork == Self.coinbaseSubnetworkId
+        }
+        return (inputs ?? []).isEmpty
+    }
+
+    /// Whether an address's history lists it. A block reward counts only once the chain accepted
+    /// it: every block carries a coinbase paying its miner, but only those the selected chain
+    /// accepts are ever applied - the rest never paid anything (a live mining address, checked
+    /// 2026-10-20: 149 of its last 200 coinbases were not accepted). Everything else is listed
+    /// as before: a payment just sent is briefly unaccepted too, and must still show.
+    var belongsInHistory: Bool {
+        !isCoinbase || isAccepted == true
+    }
+}
+
 struct KaspaFullTxInput: Codable {
     // Flat structure - API returns fields directly, not nested
     let transactionId: String?

@@ -2341,7 +2341,8 @@ struct ColdStorageAddressTransactionHistoryView: View {
         // Confirmed live against api.kaspa.org that limit=500 works fine in a single call
         // (~0.7s) - cuts this from up to 4 sequential round trips down to 1.
         let result = await ChatService.shared.fetchFullTransactionsResult(for: entry.address, pageSize: 200, maxTransactions: 200)
-        transactions = result.transactions
+        // block rewards the chain never accepted paid nothing: not history
+        transactions = result.transactions.filter(\.belongsInHistory)
         historyIncomplete = !result.complete
         isLoading = false
     }

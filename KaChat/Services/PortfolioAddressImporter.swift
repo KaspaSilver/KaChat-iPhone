@@ -237,7 +237,9 @@ enum PortfolioAddressImporter {
                 return HistoryFetchResult(transactions: all, complete: false)
             }
             if page.isEmpty { break }
-            all.append(contentsOf: page)
+            // a block reward the chain never accepted paid nothing: not a ledger row (the page's
+            // full count still decides whether there is another page)
+            all.append(contentsOf: page.filter(\.belongsInHistory))
             onProgress("Fetching transactions… (\(all.count))")
             if page.count < pageSize { break }
             offset += pageSize

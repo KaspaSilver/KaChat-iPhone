@@ -321,7 +321,19 @@ struct ChatListView: View {
             // Cold start from a profile link.
             if chatService.pendingProfileAddress != nil { openPendingProfile() }
         }
-        .onChange(of: walletManager.currentWallet?.publicAddress) { _ in loadCirclePins() }
+        .onChange(of: walletManager.currentWallet?.publicAddress) { _ in
+            loadCirclePins()
+            // An account switch keeps this view alive, so a chat, group or room open in the old
+            // account would otherwise reopen in the new one. Every account starts on its own list.
+            selectedContact = nil
+            selectedContactStartInPaymentMode = false
+            selectedGroup = nil
+            selectedPublicRoom = nil
+            linkedProfileContact = nil
+            selectedContactIDs = []
+            selectedGroupIDs = []
+            selectedPublicRooms = []
+        }
         .onAppear { loadCirclePins() }
         .safeAreaInset(edge: .bottom) {
             if editMode == .active {
@@ -1290,7 +1302,7 @@ struct ChatListView: View {
                 // Same media-envelope guard as the group search above. Cross-device placeholders
                 // are hidden from every surface, so a query matching their fixed text must not
                 // surface the conversation either.
-                !message.isSentPlaceholder &&
+                !message.isHiddenPlaceholder &&
                     message.content.utf8.count <= 4096 &&
                     message.content.range(of: query, options: .caseInsensitive) != nil
             }
@@ -1920,7 +1932,7 @@ struct ConversationRow: View {
         // Cross-device placeholders never surface anywhere (see ChatMessage.isSentPlaceholder).
         // Conversation.lastMessage already skips them; this is a defensive backstop in case a
         // placeholder's content reaches the preview through any other route.
-        if ChatMessage.isSentPlaceholder(content) { return "" }
+        if ChatMessage.isHiddenPlaceholder(content) { return "" }
         // `content.utf8.count` (not `.count`, which does a full Unicode grapheme-cluster scan)
         // - a chat's last message can be a multi-MB base64 photo/audio payload, and this cache
         // key has to be computed before the cache can even be checked. With `.count` (and the

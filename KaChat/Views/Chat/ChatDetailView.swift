@@ -415,7 +415,8 @@ struct ChatDetailView: View {
         // them added noise without information. The records stay in the store, so when an
         // archive restore later delivers the real text the message appears with content.
         // A request is read in full: Message Requests is the gate now, not a hidden thread.
-        return normalizedMessages.filter { !$0.isSentPlaceholder }
+        // Messages this account can't decrypt are hidden the same way (isHiddenPlaceholder).
+        return normalizedMessages.filter { !$0.isHiddenPlaceholder }
     }
 
     /// The memoized stages, recomputed together only when one of their inputs has changed since

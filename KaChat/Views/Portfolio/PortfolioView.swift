@@ -1218,6 +1218,17 @@ private struct KasConverterCard: View {
                 .multilineTextAlignment(.trailing)
                 .font(.scaled(size: 20, weight: .semibold))
                 .focused($focused, equals: field)
+                // The text sits at the right, so a tap usually lands left of it and the cursor
+                // started before the number ("|1"). Editing starts at the end instead. After a
+                // runloop turn, so SwiftUI's focus names which field this is.
+                .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { note in
+                    guard let textField = note.object as? UITextField else { return }
+                    DispatchQueue.main.async {
+                        guard focused == field, textField.isFirstResponder else { return }
+                        let end = textField.endOfDocument
+                        textField.selectedTextRange = textField.textRange(from: end, to: end)
+                    }
+                }
                 .onChange(of: text.wrappedValue) { newValue in
                     // Only the focused field drives; without this the derived write would bounce
                     // straight back and the two would fight each other keystroke for keystroke.

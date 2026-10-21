@@ -397,6 +397,10 @@ struct ProfileView: View {
                 isLoadingKNS = false
             }
             .onChange(of: walletManager.currentWallet?.publicAddress) { newValue in
+                // The spending balances belong to the account they were read for: cleared on a
+                // switch (a dash until the new account's land), never carried over.
+                spendingAddressBalanceSompi = nil
+                spendingTotalSompi = nil
                 guard let newValue else {
                     qrImage = nil
                     knsDomains = []
@@ -409,6 +413,7 @@ struct ProfileView: View {
                 ProfileQRCodeCache.preload(address: newValue) { image in
                     self.qrImage = image
                 }
+                scheduleBalanceRefresh()
             }
         }
     }
@@ -1284,6 +1289,9 @@ struct ProfileView: View {
     }
 
     private func loadSpendingAddressBalance() async {
+        // A read that finishes after an account switch belongs to the old account: dropped.
+        let account = walletManager.currentWallet?.publicAddress
+        func stillSameAccount() -> Bool { walletManager.currentWallet?.publicAddress == account }
         guard let address = walletManager.currentSpendingAddress() else {
             // Unresolvable this instant — show "—" rather than leaving a stale number on screen.
             spendingAddressBalanceSompi = nil
@@ -1293,6 +1301,7 @@ struct ProfileView: View {
         isLoadingSpendingBalance = true
         // A failed lookup keeps the last known figure (or the dash) rather than printing 0 KAS.
         if let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address]) {
+            guard stillSameAccount() else { return }
             spendingAddressBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
         } else {
             AppLog.log("%@", "[Contacts] Spending balance refresh failed; keeping the last known figure")
@@ -1310,6 +1319,7 @@ struct ProfileView: View {
         // vanishes because one request timed out reads as the feature being broken; a total a
         // few seconds stale does not.
         if let allUtxos = try? await NodePoolService.shared.getUtxosByAddresses(all) {
+            guard stillSameAccount() else { return }
             spendingTotalSompi = allUtxos.reduce(UInt64(0)) { $0 + $1.amount }
         }
     }

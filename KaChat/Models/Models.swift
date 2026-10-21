@@ -389,6 +389,22 @@ struct ChatMessage: Codable, Identifiable, Equatable {
         Self.isSentPlaceholder(content)
     }
 
+    /// A message this account could not decrypt - typically one encrypted for another account
+    /// that reached this contact's chat through an account mix-up. It reads as nothing, so it
+    /// is hidden like the cross-device placeholder; the record stays, and a later successful
+    /// decrypt replaces it (the dedupe prefers real content) and it appears.
+    static let unreadablePlaceholder = "[Encrypted message]"
+
+    /// Placeholders the app never shows: cross-device sends and undecryptable messages. Hidden
+    /// from the chat, the chat-list preview and search, and never counted as unread.
+    static func isHiddenPlaceholder(_ content: String) -> Bool {
+        isSentPlaceholder(content) || content == unreadablePlaceholder
+    }
+
+    var isHiddenPlaceholder: Bool {
+        Self.isHiddenPlaceholder(content)
+    }
+
     enum MessageType: String, Codable {
         case handshake
         case contextual
@@ -478,7 +494,7 @@ struct Conversation: Identifiable, Equatable {
             // the tail unchanged) rescans, so the answer is identical to the full scan's.
             if messages.count == oldValue.count + 1,
                let tail = messages.last, tail.id != oldValue.last?.id {
-                if tail.isSentPlaceholder { return }
+                if tail.isHiddenPlaceholder { return }
                 if let current = lastMessage, tail.timestamp <= current.timestamp { return }
                 lastMessage = tail
                 return
@@ -521,7 +537,7 @@ struct Conversation: Identifiable, Equatable {
     /// renders its normal empty state instead of leaking the placeholder.
     private static func newestRealMessage(in messages: [ChatMessage]) -> ChatMessage? {
         var newest: ChatMessage?
-        for message in messages where !message.isSentPlaceholder {
+        for message in messages where !message.isHiddenPlaceholder {
             if let current = newest, message.timestamp <= current.timestamp { continue }
             newest = message
         }

@@ -3378,6 +3378,8 @@ extension ChatService {
                     if !message.isOutgoing {
                         if isUserViewing {
                             conversation.unreadCount = 0
+                        } else if message.isHiddenPlaceholder {
+                            // never shown, so never unread: a badge nobody could clear
                         } else if Int64(message.blockTime) > max(readCursorByAddress[contactAddress] ?? 0, importBaselineMs) {
                             // Only bump for messages newer than the persisted read cursor (floored
                             // at the wallet-import baseline) - a re-fetched already-read message
@@ -3675,6 +3677,8 @@ extension ChatService {
 
         // Don't notify for pending messages
         guard message.deliveryStatus != .pending else { return }
+        // nor for one the chat won't show (undecryptable / cross-device placeholder)
+        guard !message.isHiddenPlaceholder else { return }
 
         // One banner per txId across the local-vs-APNs race: skip if the notification
         // extension already handled this message's push, and record this local post so a

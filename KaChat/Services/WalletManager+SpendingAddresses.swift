@@ -214,7 +214,8 @@ extension WalletManager {
 
     // MARK: - Derivation
 
-    /// Cache of derived spending ADDRESSES (never keys), persisted per wallet + network.
+    /// Cache of derived spending ADDRESSES (never keys), persisted per wallet + network in
+    /// `DerivedAddressStore` (a file each; the key is the store's name for the set).
     /// Two reasons:
     /// 1. Correctness — `spendingPrivateKey(at:)` needs the seed from the keychain, which can
     ///    transiently fail (cold launch / before protected data unlocks). Every caller that did
@@ -231,9 +232,7 @@ extension WalletManager {
     func spendingAddress(at index: Int) -> String? {
         guard index >= 0 else { return nil }
         let cacheKey = spendingAddressCacheKey()
-        if let cacheKey,
-           let cached = UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String],
-           let address = cached[String(index)] {
+        if let cacheKey, let address = DerivedAddressStore.address(cacheKey, index) {
             return address
         }
         if Self.isQuantumIndex(index) {
@@ -245,9 +244,7 @@ extension WalletManager {
         let network = SettingsViewModel.loadSettings().networkType
         let address = KaspaAddress.fromPublicKey(publicKeyData, network: network).address
         if let cacheKey {
-            var cached = (UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String]) ?? [:]
-            cached[String(index)] = address
-            UserDefaults.standard.set(cached, forKey: cacheKey)
+            DerivedAddressStore.store(cacheKey, index, address)
         }
         return address
     }
@@ -330,9 +327,7 @@ extension WalletManager {
     private func quantumAddress(at index: Int, chainKey: (key: Data, chainCode: Data)) -> String? {
         guard Self.isQuantumIndex(index) else { return nil }
         let cacheKey = spendingAddressCacheKey()
-        if let cacheKey,
-           let cached = UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String],
-           let address = cached[String(index)] {
+        if let cacheKey, let address = DerivedAddressStore.address(cacheKey, index) {
             return address
         }
         let privateKey = deriveChildKey(from: chainKey, index: UInt32(index - Self.quantumIndexBase)).key
@@ -340,9 +335,7 @@ extension WalletManager {
         let redeem = KachatNames.Codec.p2pkScript(publicKeyData)
         guard let address = KachatNamesService.p2shAddress(script: KachatNames.Codec.p2shScript(redeem)) else { return nil }
         if let cacheKey {
-            var cached = (UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String]) ?? [:]
-            cached[String(index)] = address
-            UserDefaults.standard.set(cached, forKey: cacheKey)
+            DerivedAddressStore.store(cacheKey, index, address)
         }
         return address
     }
@@ -352,9 +345,7 @@ extension WalletManager {
         // `quantumAddress(at:chainKey:)` with the m/22' node
         guard index >= 0, !Self.isQuantumIndex(index) else { return nil }
         let cacheKey = spendingAddressCacheKey()
-        if let cacheKey,
-           let cached = UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String],
-           let address = cached[String(index)] {
+        if let cacheKey, let address = DerivedAddressStore.address(cacheKey, index) {
             return address
         }
         let privateKey = deriveChildKey(from: changeKey, index: UInt32(index)).key
@@ -362,9 +353,7 @@ extension WalletManager {
         let network = SettingsViewModel.loadSettings().networkType
         let address = KaspaAddress.fromPublicKey(publicKeyData, network: network).address
         if let cacheKey {
-            var cached = (UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String]) ?? [:]
-            cached[String(index)] = address
-            UserDefaults.standard.set(cached, forKey: cacheKey)
+            DerivedAddressStore.store(cacheKey, index, address)
         }
         return address
     }
@@ -609,8 +598,8 @@ extension WalletManager {
         // Serve fully-cached ranges without touching the keychain at all.
         var result: [Int: String] = [:]
         var missing: [Int] = []
-        if let cacheKey = spendingAddressCacheKey(),
-           let cached = UserDefaults.standard.dictionary(forKey: cacheKey) as? [String: String] {
+        if let cacheKey = spendingAddressCacheKey() {
+            let cached = DerivedAddressStore.addresses(cacheKey)
             for index in range {
                 if let address = cached[String(index)] {
                     result[index] = address
@@ -692,9 +681,7 @@ extension WalletManager {
         for variant in Self.accountAddressVariants(address) {
             for network in NetworkType.allCases {
                 let key = "kachat_spending_derived_addresses_\(variant)_\(network.rawValue)"
-                if let cached = UserDefaults.standard.dictionary(forKey: key) as? [String: String] {
-                    out += cached.values
-                }
+                out += DerivedAddressStore.addresses(key).values
             }
         }
         return out
@@ -1048,6 +1035,123 @@ extension WalletManager {
         return matched.count
     }
 
+}
+
+/// Derived spending addresses (public and deterministic - never keys), one set per account and
+/// network, each in its own file under Application Support/DerivedAddresses and held in memory
+/// once read.
+///
+/// They lived in UserDefaults until 2026-10-20. One account's set had grown to ~19,000
+/// addresses (1.4 MB): every lookup copied the whole dictionary out of UserDefaults, every newly
+/// derived address rewrote all of it (a Discover pass: a thousand 1.4 MB writes), and the sets
+/// together pushed the app's UserDefaults past iOS's 4 MB limit - past which iOS refuses EVERY
+/// write the app makes (settings, spent marks, chain bounds, saved accounts), not just the big one.
+@MainActor
+enum DerivedAddressStore {
+    private static var sets: [String: [String: String]] = [:]
+    private static var dirty: Set<String> = []
+    private static var flushScheduled = false
+    private static var prepared = false
+    private static let legacyPrefix = "kachat_spending_derived_addresses_"
+    private static let movedFlag = "kachat_derived_addresses_moved_to_files_v1"
+    private static let ioQueue = DispatchQueue(label: "kachat.derived-addresses", qos: .utility)
+
+    static func address(_ key: String, _ index: Int) -> String? {
+        addresses(key)[String(index)]
+    }
+
+    static func addresses(_ key: String) -> [String: String] {
+        prepare()
+        if let set = sets[key] { return set }
+        let set = readFile(key)
+        sets[key] = set
+        return set
+    }
+
+    static func store(_ key: String, _ index: Int, _ address: String) {
+        _ = addresses(key)
+        guard sets[key]?[String(index)] != address else { return }
+        sets[key]?[String(index)] = address
+        dirty.insert(key)
+        guard !flushScheduled else { return }
+        flushScheduled = true
+        // Coalesced: a Discover pass derives hundreds in a row and writes once. Losing the
+        // last few to a kill costs nothing - they are derived again.
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            flush()
+        }
+    }
+
+    private static func flush() {
+        flushScheduled = false
+        let pending = dirty
+        dirty = []
+        for key in pending {
+            guard let set = sets[key], let url = fileURL(key),
+                  let data = try? JSONEncoder().encode(set) else { continue }
+            ioQueue.async { write(data, to: url) }
+        }
+    }
+
+    /// Moves every set still in UserDefaults (any account, either network) into its file and out
+    /// of UserDefaults - once, before the app's first other write (`WalletManager.init`), so a
+    /// domain over the 4 MB limit is back under it before anything else tries to save.
+    static func prepare() {
+        guard !prepared else { return }
+        prepared = true
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: movedFlag) else { return }
+        let domain = Bundle.main.bundleIdentifier.flatMap { defaults.persistentDomain(forName: $0) }
+            ?? defaults.dictionaryRepresentation()
+        var movedSets = 0
+        var movedAddresses = 0
+        for (key, value) in domain where key.hasPrefix(legacyPrefix) {
+            if let old = value as? [String: String] {
+                var merged = readFile(key)
+                merged.merge(old) { current, _ in current }
+                sets[key] = merged
+                // written before the UserDefaults copy goes
+                if let url = fileURL(key), let data = try? JSONEncoder().encode(merged) {
+                    write(data, to: url)
+                }
+                movedAddresses += old.count
+            }
+            defaults.removeObject(forKey: key)
+            movedSets += 1
+        }
+        defaults.set(true, forKey: movedFlag)
+        var sizeNote = "?"
+        if let id = Bundle.main.bundleIdentifier, let after = defaults.persistentDomain(forName: id),
+           let data = try? PropertyListSerialization.data(fromPropertyList: after, format: .binary, options: 0) {
+            sizeNote = "\(data.count / 1024) KB"
+        }
+        AppLog.log("[DerivedAddressStore] Moved %d sets (%d addresses) out of UserDefaults; UserDefaults now %@",
+                   movedSets, movedAddresses, sizeNote)
+    }
+
+    private static func readFile(_ key: String) -> [String: String] {
+        guard let url = fileURL(key), let data = try? Data(contentsOf: url),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return decoded
+    }
+
+    private nonisolated static func fileURL(_ key: String) -> URL? {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("DerivedAddresses", isDirectory: true)
+            .appendingPathComponent(key.replacingOccurrences(of: ":", with: "_") + ".json")
+    }
+
+    private nonisolated static func write(_ data: Data, to url: URL) {
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? data.write(to: url, options: .atomic)
+        // derivable from the seed at any time: no reason to carry the account's addresses into
+        // device backups
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var target = url
+        try? target.setResourceValues(values)
+    }
 }
 
 extension Notification.Name {

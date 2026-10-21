@@ -204,6 +204,8 @@ final class WalletManager: ObservableObject {
     private let savedAccountsKey = "kachat_saved_accounts"
 
     private init() {
+        // first: gets UserDefaults back under iOS's 4 MB limit before anything else writes
+        DerivedAddressStore.prepare()
         savedAccounts = loadSavedAccountsFromStorage()
         hasStoredWallet = !savedAccounts.isEmpty
         logPrivateKeyStorageStatus()

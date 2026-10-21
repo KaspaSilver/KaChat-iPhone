@@ -200,6 +200,15 @@ extension ChatService {
                 continue
             }
 
+            // A transaction with no inputs (a block reward) is never a chat payment, and nothing in
+            // it can be signature-checked - a lying REST server could otherwise file a made-up
+            // payment, memo included, "from" anyone (IOS-094). Rewards stay in the address
+            // history and the balance; the reward bot's pings are messages of their own.
+            if incoming, (tx.inputs ?? []).isEmpty {
+                skippedDirection += 1
+                continue
+            }
+
             // Check if we are the sender by looking at inputs
             var weAreSender = false
             var senderAddress = ""
@@ -215,16 +224,29 @@ extension ChatService {
                 }
             }
 
-            // Analyze outputs
+            // Analyze outputs. Whether an output pays us is read from its script - the signed
+            // data the signature check rebuilds - not from the unsigned address label, which a
+            // lying API could set to ours on someone else's payment (IOS-098).
+            let ourScriptHex = KaspaAddress.scriptPublicKey(from: address)?.hexString.lowercased()
+            func paysUs(_ output: KaspaFullTxOutput) -> Bool {
+                if let script = output.scriptPublicKey?.lowercased(), !script.isEmpty, let ourScriptHex {
+                    return script == ourScriptHex
+                }
+                return output.scriptPublicKeyAddress == address
+            }
             var totalToUs: UInt64 = 0
             var totalToOthers: UInt64 = 0
             var recipientAddress = ""
             var recipientAmount: UInt64 = 0
 
             for output in tx.outputs {
-                if let addr = output.scriptPublicKeyAddress, !addr.isEmpty {
+                if paysUs(output) {
+                    totalToUs += output.amount
+                } else if let addr = output.scriptPublicKeyAddress, !addr.isEmpty {
                     if addr == address {
-                        totalToUs += output.amount
+                        // labelled ours, but the script says otherwise: not ours, and not
+                        // anyone's we can name either
+                        continue
                     } else {
                         totalToOthers += output.amount
                         // For outgoing: track recipient (non-change output)
@@ -320,10 +342,14 @@ extension ChatService {
             // that still can't be checked is held and checked again on later syncs, never
             // dropped for good or shown unverified.
             var confirmedByNodeOnly = false
-            if incoming, tx.inputs?.isEmpty == false {
-                switch await verifyIncomingPaymentSignatures(tx) {
+            if incoming {
+                let verdict = await verifyIncomingPaymentSignatures(tx, myAddress: address)
+                switch verdict.check {
                 case .valid:
                     releaseHeldPayment(tx.transactionId, wallet: address)
+                    // the sender from the very inputs whose signatures were just checked - never
+                    // from a second, unchecked read (IOS-094)
+                    if let proven = verdict.sender { sender = proven }
                 case .invalid:
                     releaseHeldPayment(tx.transactionId, wallet: address)
                     AppLog.log("[ChatService] WARNING: Skipping payment %@ - Schnorr signature verification FAILED",
@@ -331,12 +357,20 @@ extension ChatService {
                     continue
                 case .unknown:
                     // The REST answer can't settle it (a field the signature covers is missing).
-                    // Our node can: a coin from this txid paying this address the amount means
-                    // the payment is real (XP-033).
-                    if await nodeConfirmsIncomingPayment(txId: tx.transactionId, address: address, amount: totalToUs) {
+                    // Our node can prove the coins: a coin from this txid paying this address
+                    // the amount means the payment is real (XP-033). It can't prove WHO paid, so
+                    // the sender must come from a second source the REST server doesn't speak
+                    // for - the KaChat indexer, which reads it from its own node (owner's call
+                    // for IOS-096). Until both agree the payment stays held.
+                    let restSender = sender == "pending_resolution" ? nil : sender
+                    if await nodeConfirmsIncomingPayment(txId: tx.transactionId, address: address, amount: totalToUs),
+                       let indexed = await indexerSender(txId: tx.transactionId, receiver: address, blockTime: txBlockTime),
+                       restSender == nil || restSender?.lowercased() == indexed {
                         releaseHeldPayment(tx.transactionId, wallet: address)
                         confirmedByNodeOnly = true
-                        AppLog.log("[ChatService] Payment %@ confirmed by the node (signatures not checkable from REST)",
+                        Self.nodeOnlyConfirmedTxIds.insert(tx.transactionId.lowercased())
+                        sender = restSender ?? indexed
+                        AppLog.log("[ChatService] Payment %@ confirmed by the node, sender by the indexer",
                               String(tx.transactionId.prefix(16)))
                     } else {
                         holdPayment(tx.transactionId, wallet: address)
@@ -404,14 +438,15 @@ extension ChatService {
 
     /// Checks a received transaction's signatures (versions 0 and 1). Inputs the REST API left
     /// unresolved get their spent output's address and amount from the previous transaction.
-    func verifyIncomingPaymentSignatures(_ tx: KaspaFullTransactionResponse) async -> KasiaTransactionBuilder.SignatureCheck {
-        guard let inputs = tx.inputs, !inputs.isEmpty else { return .valid }
+    func verifyIncomingPaymentSignatures(_ tx: KaspaFullTransactionResponse, myAddress: String)
+        async -> (check: KasiaTransactionBuilder.SignatureCheck, sender: String?) {
+        guard let inputs = tx.inputs, !inputs.isEmpty else { return (.unknown, nil) }
         var verificationInputs: [KasiaTransactionBuilder.VerificationInput] = []
         for input in inputs {
             guard let hash = input.previousOutpointHash,
                   let idxStr = input.previousOutpointIndex,
                   let idx = UInt32(idxStr) else {
-                return .unknown // the outpoint itself is part of every input's signature hash
+                return (.unknown, nil) // the outpoint itself is part of every input's signature hash
             }
             var address = input.previousOutpointAddress
             var amount = input.previousOutpointAmount
@@ -440,7 +475,7 @@ extension ChatService {
                 covenantId: output.covenantId
             )
         }
-        return KasiaTransactionBuilder.verifyTransactionSignatures(
+        let check = KasiaTransactionBuilder.verifyTransactionSignatures(
             claimedTxId: tx.transactionId,
             inputs: verificationInputs,
             outputs: verificationOutputs,
@@ -450,6 +485,30 @@ extension ChatService {
             gas: tx.gas?.value ?? 0,
             payload: CryptoUtils.hexToData(tx.payload ?? "") ?? Data()
         )
+        // On .valid every input's address was the one its signature was checked against, so the
+        // first that isn't ours is the proven sender.
+        let me = myAddress.lowercased()
+        let sender = check == .valid
+            ? verificationInputs.compactMap { $0.previousOutpointAddress }.first { $0.lowercased() != me }
+            : nil
+        return (check, sender)
+    }
+
+    /// Received payments filed on a node confirmation (no signature checked): such a payment may
+    /// never replace an existing message (IOS-096). In memory - a relaunch re-derives it.
+    static var nodeOnlyConfirmedTxIds = Set<String>()
+
+    /// The sender the KaChat indexer recorded for `txId` paid to `receiver`, lowercased - read
+    /// by the indexer from its own node, so it is a source the REST server can't speak for.
+    /// nil when the indexer has no such row (it indexes payments that carry a KaChat payload)
+    /// or names no sender. Second source for a node-confirmed payment (IOS-096).
+    func indexerSender(txId: String, receiver: String, blockTime: UInt64) async -> String? {
+        // its rows are read forward from block_time: start a little before the payment
+        let from = blockTime > 600_000 ? blockTime - 600_000 : 0
+        guard let rows = try? await apiClient.getPaymentsByReceiverOnce(address: receiver, limit: 50, blockTime: from),
+              let row = rows.first(where: { $0.txId.lowercased() == txId.lowercased() }) else { return nil }
+        let sender = row.sender.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return sender.isEmpty ? nil : sender
     }
 
     /// Whether our node lists coins created by `txId` that pay `address` exactly `amount` (the
@@ -2766,6 +2825,13 @@ extension ChatService {
                   contactAddress == myAddress ? 1 : 0)
 
             if !isOutgoing, let existing = await findLocalMessage(txId: payment.txId) {
+                if existing.isOutgoing, Self.nodeOnlyConfirmedTxIds.contains(payment.txId.lowercased()) {
+                    // no signature was checked for this one: it may never replace a message we
+                    // sent (IOS-096)
+                    AppLog.log("[ChatService] Keeping our message %@ - a node-only confirmation can't replace it",
+                          String(payment.txId.prefix(16)))
+                    continue
+                }
                 if existing.isOutgoing {
                     // Don't replace a promoted outgoing payment with an incoming classification
                     // from an async resolve - the outgoing classification is authoritative

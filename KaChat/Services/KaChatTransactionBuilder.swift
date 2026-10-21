@@ -2256,8 +2256,9 @@ struct KasiaTransactionBuilder {
         gas: UInt64,
         payload: Data
     ) -> SignatureCheck {
-        // no inputs (a coinbase): no signatures to check
-        guard !inputs.isEmpty else { return .valid }
+        // no inputs (a coinbase): nothing was checked, so nothing is vouched for (IOS-094) -
+        // the received-payment path drops such a transaction before it gets here
+        guard !inputs.isEmpty else { return .unknown }
 
         // Reconstruct KaspaRpcTransaction from REST fields: EVERY input (the sighash commits
         // to all outpoints and sequences), with an empty signatureScript.
@@ -2310,13 +2311,24 @@ struct KasiaTransactionBuilder {
                 lockTime: lockTime, subnetworkId: subnetworkId, gas: gas, payload: payload
             )?.lowercased() == claimedTxId.lowercased()
         }
+        // A signature that fails to verify is forged only when the REST fields rebuild the
+        // claimed id (XP-033: else a field it covers is missing). A signature script of a shape
+        // no accepted transaction can carry needs no such excuse - it is invalid outright
+        // (IOS-097). Every input is looked at before any "can't decide" answer, so a malformed
+        // input later in the list is never hidden behind an earlier unknown.
         var failedInput: Int?
+        var malformedInput: Int?
+        var undecided = false
+        // inputs whose signature was actually checked; a payment with none is not .valid
+        // (IOS-106: an all-ECDSA or otherwise unmodelled payment had zero checks and passed)
+        var checkedInputs = 0
 
         for (index, input) in inputs.enumerated() {
             // 1. The spent UTXO's script and amount: without them this input can't be checked yet
             guard let address = input.previousOutpointAddress, let amount = input.previousOutpointAmount,
                   let utxoScriptPubKey = KaspaAddress.scriptPublicKey(from: address) else {
-                return .unknown
+                undecided = true
+                continue
             }
 
             // 2. The input's kind, from the spent UTXO's script. Standard P2PK Schnorr
@@ -2336,19 +2348,22 @@ struct KasiaTransactionBuilder {
                       sigScriptData.count == 66,
                       sigScriptData[0] == 0x41 else {
                     AppLog.log("[TxBuilder] Malformed signature script on P2PK input %d", index)
-                    failedInput = failedInput ?? index
+                    malformedInput = malformedInput ?? index
                     continue
                 }
                 // a sighash type this check doesn't hash: can't be decided here
-                guard sigScriptData[65] == 0x01 else { return .unknown }
+                guard sigScriptData[65] == 0x01 else { undecided = true; continue }
                 xOnlyPubKeyData = Data(utxoScriptPubKey[1..<33])
                 schnorrSigData = Data(sigScriptData[1..<65])
             } else if spkBytes.count == 35, spkBytes[0] == 0xAA, spkBytes[1] == 0x20, spkBytes[34] == 0x87 {
                 // 3b. P2SH. A KIP-22 spend's signature script is 0x41 <64-byte sig>
                 // <sighash byte> then the canonical push 0x22 of the 34-byte redeem
                 // 0x20 <x-only key> 0xac (101 bytes); any other shape is a covenant spend,
-                // skipped like before.
-                guard let sigScriptData = hexToData(input.signatureScript) else { return .unknown }
+                // skipped like before. A script that is not even hex can't be on chain.
+                guard let sigScriptData = hexToData(input.signatureScript) else {
+                    malformedInput = malformedInput ?? index
+                    continue
+                }
                 let sb = [UInt8](sigScriptData)
                 guard sb.count == 101, sb[0] == 0x41, sb[66] == 0x22, sb[67] == 0x20, sb[100] == 0xAC else {
                     continue
@@ -2358,10 +2373,10 @@ struct KasiaTransactionBuilder {
                 let redeem = Data(sb[67...100])
                 guard [UInt8](KachatNames.blake2b256(redeem)) == Array(spkBytes[2..<34]) else {
                     AppLog.log("[TxBuilder] KIP-22 redeem doesn't hash to input %d's address", index)
-                    failedInput = failedInput ?? index
+                    malformedInput = malformedInput ?? index
                     continue
                 }
-                guard sb[65] == 0x01 else { return .unknown }
+                guard sb[65] == 0x01 else { undecided = true; continue }
                 xOnlyPubKeyData = Data(sb[68...99])
                 schnorrSigData = Data(sb[1...64])
             } else {
@@ -2376,7 +2391,8 @@ struct KasiaTransactionBuilder {
                 utxoAmount: amount,
                 covenants: covenants
             ) else {
-                return .unknown
+                undecided = true
+                continue
             }
 
             // 5. Verify Schnorr signature using P256K
@@ -2387,20 +2403,25 @@ struct KasiaTransactionBuilder {
                 let isValid = xonlyKey.isValid(schnorrSig, for: &sighashBytes)
                 // Zero sighash bytes after verification
                 for i in sighashBytes.indices { sighashBytes[i] = 0 }
+                checkedInputs += 1
                 if !isValid {
                     AppLog.log("[TxBuilder] Schnorr signature INVALID for input %d of a v%d tx", index, Int(version))
                     failedInput = failedInput ?? index
                 }
             } catch {
                 AppLog.log("[TxBuilder] Schnorr verification error for input %d: %@", index, error.localizedDescription)
-                return .unknown
+                undecided = true
             }
         }
 
-        guard failedInput != nil else { return .valid }
-        // forged only when the API described the whole transaction; else something it left out
-        // (that the signature covers) is the likelier reason
-        return restFieldsRebuildId() ? .invalid : .unknown
+        if malformedInput != nil { return .invalid }
+        if failedInput != nil {
+            // forged only when the API described the whole transaction; else something it left
+            // out (that the signature covers) is the likelier reason
+            return restFieldsRebuildId() ? .invalid : .unknown
+        }
+        if undecided || checkedInputs == 0 { return .unknown }
+        return .valid
     }
 
     /// The transaction id as the chain computes it, from REST fields (rusty-kaspa

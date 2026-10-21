@@ -3085,13 +3085,35 @@ struct ChatDetailView: View {
             onAmountChange: { amountText = $0 },
             focusOnAppear: true,
             onMax: {
+                // The typed memo rides in the payment, so it is priced in. A custom fee counts even
+                // before an amount is typed, and so does the speed: its extra is a multiple of the
+                // base fee, which needs an amount - with none yet, the max send itself is priced
+                // first. Without that, Max on Fast left too little for the fee it then charged.
+                let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
+                let source = paymentFrom.spendingIndex
+                let manual = paymentManualUtxos
+                let customExtra = paymentCustomExtraFeeSompi
+                let knownExtra = paymentExtraFeeSompi
+                let hasBase = paymentFeeSompi != nil
+                let multiplier = paymentFeeTier.multiplier
                 Task {
                     do {
+                        var extra = customExtra ?? knownExtra
+                        if !hasBase, customExtra == nil, multiplier > 1 {
+                            let provisional = try await chatService.estimateMaxPaymentAmount(
+                                to: contact, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: 0
+                            )
+                            let base = try await chatService.estimatePaymentFee(
+                                to: contact, amountSompi: provisional, note: note, sourceSpendingIndex: source, manualUtxos: manual
+                            )
+                            extra = base * (multiplier - 1)
+                        }
                         let maxSompi = try await chatService.estimateMaxPaymentAmount(
                             to: contact,
-                            sourceSpendingIndex: paymentFrom.spendingIndex,
-                            manualUtxos: paymentManualUtxos,
-                            extraFeeSompi: paymentExtraFeeSompi
+                            note: note,
+                            sourceSpendingIndex: source,
+                            manualUtxos: manual,
+                            extraFeeSompi: extra
                         )
                         await MainActor.run {
                             let kas = Double(maxSompi) / 100_000_000.0

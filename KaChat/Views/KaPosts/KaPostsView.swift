@@ -3060,7 +3060,7 @@ struct KaPostsView: View {
                 } else if let poll = post.poll {
                     // and a failed poll as the poll - its full length again from now, so a late
                     // retry never puts an already-closed poll on chain (IOS-093)
-                    let length = max(poll.closesAt.timeIntervalSince(post.timestamp), 60)
+                    let length = max(poll.length ?? poll.closesAt.timeIntervalSince(post.timestamp), 60)
                     let closesAt = Date().addingTimeInterval(length)
                     mutatePost(id: post.id) { $0.poll?.closesAt = closesAt }
                     txId = try await KaPostsAPIClient.shared.submitPoll(
@@ -4555,7 +4555,8 @@ struct KaPostsView: View {
         var newPost = DraftPost(text: question, timestamp: Date(), posterAddress: myAddress)
         newPost.posterPubkey = try? KaPostsAPIClient.shared.requesterPubkey()
         newPost.deliveryStatus = .pending
-        newPost.poll = KaPostPoll(options: options, counts: Array(repeating: 0, count: options.count), closesAt: closesAt, myVote: nil)
+        newPost.poll = KaPostPoll(options: options, counts: Array(repeating: 0, count: options.count), closesAt: closesAt, myVote: nil,
+                                  length: closesAt.timeIntervalSince(newPost.timestamp))
         let localId = newPost.id
         posts.insert(newPost, at: 0)
         let key = "poll:\(localId)"
@@ -5098,6 +5099,10 @@ struct KaPostPoll: Equatable {
     var counts: [Int]
     var closesAt: Date
     var myVote: Int?
+    /// How long the author chose to keep it open, for a poll posted from this device - a retry
+    /// re-opens it for exactly this long from the retry. (Re-deriving it as closesAt minus the
+    /// post's time grew it on every retry: the retry moves closesAt, the post's time stays.)
+    var length: TimeInterval? = nil
 
     var total: Int { counts.reduce(0, +) }
     var isClosed: Bool { closesAt <= Date() }

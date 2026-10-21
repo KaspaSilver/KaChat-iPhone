@@ -1669,10 +1669,12 @@ struct KaPostsView: View {
 
     /// A tapped poster's profile > Posts.
     /// The K pubkey behind an address: "02" or "03" + its x-only key, as the indexer's DATA names
-    /// it - the key on the person's posts, else on their profile - checked against the address.
-    /// Never the probe: the indexer answers a probe in either parity form (12543eb), so returning
-    /// whichever probe "had data" handed back the 02 guess for an 03 user, and Follow posted it
-    /// on chain (IOS-099). Nil when the data names no key; Follow then stays local-only.
+    /// it - the stored key on the person's posts - checked against the address. Never the probe:
+    /// the indexer answers a probe in either parity form (12543eb), so returning whichever probe
+    /// "had data" handed back the 02 guess for an 03 user, and Follow posted it on chain
+    /// (IOS-099). Not get-user-details either: it ECHOES the key it was asked with (verified
+    /// live 2026-10-21: asked with 02 it answers 02 for an 03 user). Nil when no post names the
+    /// key; Follow then stays local-only.
     static func resolveKaPostsPubkey(address: String) async -> String? {
         guard let even = KaPostsAPIClient.kapostPubkey(fromAddress: address) else { return nil }
         let xOnly = String(even.dropFirst(2)).lowercased()
@@ -1685,12 +1687,6 @@ struct KaPostsView: View {
         for candidate in candidates {
             if let posts = try? await KaPostsAPIClient.shared.fetchUserPosts(pubkey: candidate, limit: 1, includeReplies: true).posts,
                let key = posts.lazy.compactMap({ named($0.userPublicKey) }).first {
-                return key
-            }
-        }
-        for candidate in candidates {
-            if let details = try? await KaPostsAPIClient.shared.fetchUserDetails(pubkey: candidate),
-               let key = named(details.userPublicKey) {
                 return key
             }
         }

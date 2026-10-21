@@ -1998,6 +1998,12 @@ final class KNSDomainTransferService: ObservableObject {
         let sourceAddress: String
         let sourcePrivateKey: Data
         if let index = fromSpendingAddressIndex {
+            // KNS names a domain's owner by the public key in the reveal script, and a quantum
+            // (KIP-22) address keeps its key hidden behind a hash - KNS cannot move a domain out
+            // of one. Said plainly here, before anything is built or spent.
+            guard !WalletManager.isQuantumIndex(index) else {
+                throw KasiaError.apiError(AppLocalization.string("KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden."))
+            }
             guard let address = walletManager.spendingAddress(at: index),
                   let key = walletManager.spendingPrivateKey(at: index) else {
                 throw KasiaError.keychainError("Could not derive spending address key")
@@ -2048,6 +2054,12 @@ final class KNSDomainTransferService: ObservableObject {
             rawRecipient,
             walletAddress: sourceAddress
         )
+        // A domain sent to a script (P2SH) address - a quantum-safe address among them - could
+        // never be moved again: KNS identifies an owner by a public key, which such an address
+        // doesn't show.
+        if ChatService.isScriptAddress(recipientAddress) {
+            throw KasiaError.apiError(AppLocalization.string("A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead."))
+        }
 
         log("START domain=\(domain) asset=\(assetId) from=\(sourceAddress) to=\(recipientAddress)")
         isSubmitting = true

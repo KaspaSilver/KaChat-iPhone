@@ -1798,3 +1798,7 @@
 "Clear Profile" = "プロフィールをクリア";
 "Profile cleared" = "プロフィールをクリアしました";
 "Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "クリアすると、あなたのアドレスから自分自身へ空のプロフィールがチェーンに書き込まれます（ネットワーク手数料のみ）。以後、KaChat はあなたのアドレスに何も表示しません。";
+
+/* KNS domain transfers and quantum-safe (script) addresses */
+"KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS は量子耐性アドレスからドメインを移動できません。KNS はドメインの所有者を公開鍵で識別しますが、量子耐性アドレスは鍵を隠しています。";
+"A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead." = ".kas ドメインは量子耐性アドレスやその他のスクリプトアドレスには送れません。KNS が二度と移動できなくなります。通常のアドレスに送ってください。";

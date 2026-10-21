@@ -1798,3 +1798,7 @@
 "Clear Profile" = "Очистить профиль";
 "Profile cleared" = "Профиль очищен";
 "Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "Очистка записывает в цепочку пустой профиль с вашего адреса на него же за сетевую комиссию — после этого KaChat снова ничего не показывает для вашего адреса.";
+
+/* KNS domain transfers and quantum-safe (script) addresses */
+"KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS не может вывести домен с квантово-устойчивого адреса: KNS определяет владельца домена по открытому ключу, а квантово-устойчивый адрес скрывает свой ключ.";
+"A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead." = "Домен .kas нельзя отправить на квантово-устойчивый или другой скриптовый адрес: KNS больше никогда не сможет его переместить. Отправьте его на обычный адрес.";

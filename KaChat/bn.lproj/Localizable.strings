@@ -1798,3 +1798,7 @@
 "Clear Profile" = "প্রোফাইল মুছুন";
 "Profile cleared" = "প্রোফাইল মুছে ফেলা হয়েছে";
 "Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "মুছে ফেলা আপনার ঠিকানা থেকে নিজের কাছে চেইনে একটি খালি প্রোফাইল লেখে, নেটওয়ার্ক ফি-র বিনিময়ে, তারপর KaChat আপনার ঠিকানার জন্য আর কিছুই দেখায় না।";
+
+/* KNS domain transfers and quantum-safe (script) addresses */
+"KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS কোয়ান্টাম-নিরাপদ ঠিকানা থেকে ডোমেইন সরাতে পারে না: KNS একটি পাবলিক কী দিয়ে ডোমেইনের মালিক চেনে, আর কোয়ান্টাম-নিরাপদ ঠিকানা তার কী লুকিয়ে রাখে।";
+"A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead." = "একটি .kas ডোমেইন কোয়ান্টাম-নিরাপদ বা অন্য স্ক্রিপ্ট ঠিকানায় পাঠানো যায় না: KNS আর কখনো এটি সরাতে পারবে না। এর বদলে একটি সাধারণ ঠিকানায় পাঠান।";

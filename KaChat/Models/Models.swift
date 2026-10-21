@@ -59,8 +59,14 @@ struct Wallet: Codable, Equatable {
     var effectiveSpendingAddressIndex: Int { spendingAddressIndex ?? 0 }
 
     /// The highest spending-chain index ever generated/shown in Manage Addresses.
+    /// LEGACY chain only: the primary pointer counts while it is on the legacy chain. Once a
+    /// spend rotated the primary onto the quantum chain (KIP-22, index >= quantumIndexBase), the
+    /// pointer made this a million, and every legacy range loop - own-address sets, the activity
+    /// watcher, Profile's balances - tried to derive a million addresses on the main thread.
     var effectiveMaxSpendingAddressIndex: Int {
-        max(maxSpendingAddressIndex ?? 0, effectiveSpendingAddressIndex)
+        let base = WalletManager.quantumIndexBase
+        let stored = maxSpendingAddressIndex ?? 0
+        return max(stored < base ? stored : 0, effectiveSpendingAddressIndex < base ? effectiveSpendingAddressIndex : 0)
     }
 
     var shortAddress: String {

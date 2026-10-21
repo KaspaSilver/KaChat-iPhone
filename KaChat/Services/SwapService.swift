@@ -137,8 +137,11 @@ final class SwapService: ObservableObject {
         refreshToAddress()
     }
 
+    /// The legacy slot the payout will take (`generateNextSpendingAddress` at send time): one past
+    /// the legacy chain. `maxSpendingAddressIndex` already covers a legacy primary; a quantum
+    /// primary's index must not enter legacy arithmetic.
     private func nextFreshSpendingIndex() -> Int {
-        max(WalletManager.shared.maxSpendingAddressIndex, WalletManager.shared.currentSpendingAddressIndex) + 1
+        WalletManager.shared.maxSpendingAddressIndex + 1
     }
 
     func refreshToAddress() {

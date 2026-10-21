@@ -45,10 +45,13 @@ extension WalletManager {
     }
 
     var maxSpendingAddressIndex: Int {
+        // Legacy chain only. Neither a quantum primary nor a stored value in quantum space (never
+        // legitimately written) may widen it: a million-long "legacy chain" froze every range
+        // loop over it (the launch hang of 2026-10-20).
         let fallback = currentWallet?.effectiveMaxSpendingAddressIndex ?? 0
-        // a quantum primary (index >= quantumIndexBase) must never widen the legacy chain
+        let persisted = persistedMaxSpendingAddressIndex.flatMap { Self.isQuantumIndex($0) ? nil : $0 }
         let current = currentSpendingAddressIndex
-        return max(persistedMaxSpendingAddressIndex ?? fallback, current < Self.quantumIndexBase ? current : 0)
+        return max(persisted ?? fallback, current < Self.quantumIndexBase ? current : 0)
     }
 
     // MARK: - Quantum-safe chain bounds (KIP-22; see the Quantum-safe section below)

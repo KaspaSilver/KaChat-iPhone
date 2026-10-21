@@ -454,9 +454,12 @@ extension ChatService {
 
     /// Whether our node lists coins created by `txId` that pay `address` exactly `amount` (the
     /// payment's outputs to us, still unspent). The node is a second source the REST API can't
-    /// speak for; a coin already spent can't be seen this way, so such a payment stays held.
+    /// speak for - so nodes only: with every node down, getUtxosByAddresses would otherwise fall
+    /// back to that same REST API, and a lying REST server would confirm its own payment. No
+    /// node answer holds the payment; a coin already spent can't be seen this way either.
     func nodeConfirmsIncomingPayment(txId: String, address: String, amount: UInt64) async -> Bool {
-        guard amount > 0, let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address]) else { return false }
+        guard amount > 0,
+              let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address], allowRestFallback: false) else { return false }
         let paid = utxos
             .filter { $0.outpoint.transactionId.lowercased() == txId.lowercased() }
             .reduce(UInt64(0)) { $0 + $1.amount }

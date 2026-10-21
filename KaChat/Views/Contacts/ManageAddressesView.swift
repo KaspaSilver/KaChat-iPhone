@@ -2606,7 +2606,10 @@ private struct SpendingAddressVisibilityView: View {
 
     private func toggle(_ entry: SpendingAddressEntry) {
         Task {
-            let revealedMax = entries.map(\.index).max() ?? -1
+            // Per chain: a quantum slot (1,000,000+) must not hide that a legacy row lies past the
+            // legacy bound - the row would only be unhidden and the bound never extended.
+            let revealedMax = entries.filter { $0.isQuantum == entry.isQuantum }.map(\.index).max()
+                ?? (entry.isQuantum ? WalletManager.quantumIndexBase - 1 : -1)
             if entry.index > revealedMax {
                 // A derived future index from the endless pager: reveal exactly this one
                 // (indices in between stay hidden so the main list doesn't flood).

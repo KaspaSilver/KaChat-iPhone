@@ -2038,13 +2038,14 @@ struct KaPostsView: View {
 
     /// Resolve the @domain tokens in a post to the pubkeys the indexer needs in mentioned_pubkeys.
     /// Tapped @mention: resolve the KNS domain to its owner and open that user's profile.
-    /// Works for ANY KNS domain, contact or not (the pubkey derives from the owner address).
+    /// Works for ANY KNS domain, contact or not. No key is handed over: the address gives only
+    /// the x-only key, and a K key starts with 02 or 03 - the profile resolves which (XP-034), so
+    /// Follow never posts for a guessed key (9fe4dd3).
     /// Any sheet currently up (thread detail, etc.) is dismissed first - only one sheet can
     /// present at a time, so the profile waits for the dismissal animation.
     private func openMentionProfile(domain: String, signed: [String] = []) {
         Task {
             guard let address = await Self.mentionAddress(domain, signed: signed) else { return }
-            let pubkey = KaPostsAPIClient.kapostPubkey(fromAddress: address)
             let hadSheetUp = detailTarget != nil || quoteComposerTarget != nil
                 || threadQuoteComposerTarget != nil || profileQuoteComposerTarget != nil
                 || menuQuoteComposerTarget != nil || replyComposerTarget != nil
@@ -2063,7 +2064,7 @@ struct KaPostsView: View {
             menuReplyComposerTarget = nil
             showComposer = false
             DispatchQueue.main.asyncAfter(deadline: .now() + (hadSheetUp ? 0.4 : 0)) {
-                kaPostsPresent { profileTarget = PosterProfileTarget(address: address, pubkey: pubkey) }
+                kaPostsPresent { profileTarget = PosterProfileTarget(address: address, pubkey: nil) }
             }
         }
     }
@@ -4147,6 +4148,9 @@ struct KaPostsView: View {
                 replyComposerSheet(for: target)
             }
             .task(id: target.id) {
+                // The previous profile's key must not outlive it: Follow falls back to this while
+                // the new profile's key is looked up, and would post a follow for the wrong person.
+                posterProfileResolvedPubkey = nil
                 posterProfilePosts = []
                 posterProfileReplies = []
                 posterProfileFeedTab = .posts

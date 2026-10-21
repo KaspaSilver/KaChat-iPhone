@@ -408,7 +408,9 @@ final class NodePoolService: ObservableObject {
 
     /// Get UTXOs by addresses
     /// Uses ordered failover: active nodes by lowest latency first, then selector fallback.
-    func getUtxosByAddresses(_ addresses: [String]) async throws -> [UTXO] {
+    /// `allowRestFallback: false` asks nodes only - for a check whose point is a source other
+    /// than the REST API (`ChatService.nodeConfirmsIncomingPayment`).
+    func getUtxosByAddresses(_ addresses: [String], allowRestFallback: Bool = true) async throws -> [UTXO] {
         let op: OperationClass = .getUtxosByAddress
         let activeCandidates = await registry.records(inState: .active)
             .filter { $0.canHandle(op) }
@@ -469,6 +471,10 @@ final class NodePoolService: ObservableObject {
         }
 
         await updatePoolStats()
+
+        guard allowRestFallback else {
+            throw lastError ?? KasiaError.networkError("All endpoints failed")
+        }
 
         // Every gRPC endpoint failed (or none were eligible) - fall back to the Kaspa REST API
         // over HTTPS, which typically survives networks that block raw gRPC on 16110

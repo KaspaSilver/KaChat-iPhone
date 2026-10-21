@@ -29,6 +29,7 @@ struct ContentView: View {
             .easeInOut,
             value: walletManager.currentWallet != nil && !walletManager.isAwaitingSeedPhraseConfirmation
         )
+        .onAppear { LaunchTrace.mark("first screen on") }
     }
 }
 

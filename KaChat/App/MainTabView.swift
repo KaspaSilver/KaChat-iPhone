@@ -132,6 +132,7 @@ struct MainTabView: View {
         .modifier(KachatRegistrationPresenter())
         .toast(message: nextcloudService.syncStatusToast)
         .onAppear {
+            LaunchTrace.mark("main tabs on screen")
             // A hold with no guide to release it would strand the account: the branches below
             // that DON'T present a guide lift it explicitly, and this covers every other path in.
             if chatService.onboardingSyncHeld && !showWelcomeGuide && !walletManager.justCreatedNewWallet {

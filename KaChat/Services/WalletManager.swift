@@ -204,9 +204,12 @@ final class WalletManager: ObservableObject {
     private let savedAccountsKey = "kachat_saved_accounts"
 
     private init() {
+        LaunchTrace.startWatchdog()
+        LaunchTrace.mark("WalletManager.init")
         // first: gets UserDefaults back under iOS's 4 MB limit before anything else writes
         DerivedAddressStore.prepare()
         Self.trimUserDefaults()
+        LaunchTrace.mark("UserDefaults trimmed")
         savedAccounts = loadSavedAccountsFromStorage()
         hasStoredWallet = !savedAccounts.isEmpty
         logPrivateKeyStorageStatus()
@@ -265,6 +268,7 @@ final class WalletManager: ObservableObject {
         defer { isLoading = false }
 
         do {
+            LaunchTrace.mark("loadWallet: reading wallet record")
             // Try to load from keychain first
             if let wallet = try keychainService.loadWallet() {
                 if UserDefaults.standard.bool(forKey: logoutFlagKey), !force {
@@ -290,6 +294,7 @@ final class WalletManager: ObservableObject {
 
                 UserDefaults.standard.removeObject(forKey: logoutFlagKey)
                 isLoggedOut = false
+                LaunchTrace.mark("loadWallet: key material check")
                 if case .missing = keychainService.keyMaterialStatus() {
                     // The record survived but the keys did not (an iPhone restore, typically).
                     // Opening the app with an address that cannot sign or decrypt looked like a
@@ -303,9 +308,12 @@ final class WalletManager: ObservableObject {
                     return
                 }
                 walletNeedingKeyRecovery = nil
+                LaunchTrace.mark("loadWallet: reconcile")
                 let canonicalWallet = walletOnCurrentNetwork(reconcileWalletWithLocalKeyMaterialIfNeeded(wallet))
                 updateSavedAccounts(from: canonicalWallet)
+                LaunchTrace.mark("loadWallet: snapshot keys")
                 snapshotStoredWalletIfPossible()
+                LaunchTrace.mark("loadWallet: snapshot done")
                 var updated = canonicalWallet
                 if let cached = loadCachedBalance(for: canonicalWallet.publicAddress) {
                     updated.balanceSompi = cached
@@ -319,8 +327,10 @@ final class WalletManager: ObservableObject {
         NotificationCenter.default.post(name: .settingsDidChange, object: nil)
                 SharedDataManager.setPrivateKeyAvailable(true)
                 isLoading = false
+                LaunchTrace.mark("loadWallet: wallet set, switching message store")
                 // Switch MessageStore to this wallet's store
                 await MessageStore.shared.setCurrentWallet(canonicalWallet.publicAddress)
+                LaunchTrace.mark("loadWallet: services switched")
                 PublicChatService.shared.setCurrentWallet(canonicalWallet.publicAddress)
                 GroupChatService.shared.setCurrentWallet(canonicalWallet.publicAddress)
                 // Discover group invites for THIS account right away - switching accounts in-app
@@ -333,7 +343,9 @@ final class WalletManager: ObservableObject {
                 KaPostsFollowStore.shared.setCurrentWallet(canonicalWallet.publicAddress)
                 KaPostsModerationStore.shared.setCurrentWallet(canonicalWallet.publicAddress)
                 NextcloudService.shared.setCurrentWallet(canonicalWallet.publicAddress)
+                LaunchTrace.mark("loadWallet: loading messages from store")
                 await ChatService.shared.loadMessagesFromStoreIfNeeded(onlyIfEmpty: false)
+                LaunchTrace.mark("loadWallet: done")
                 Task { _ = try? await refreshBalance(force: true) }
                 return
             }
@@ -1730,5 +1742,60 @@ final class WalletManager: ObservableObject {
 
     func saveWalletOnly(_ wallet: Wallet) async throws {
         try keychainService.saveWallet(wallet)
+    }
+}
+
+/// Launch trace: timestamped steps along the launch path, plus a watchdog thread that logs
+/// when the main thread stops answering and which step it was last in - so one run's console
+/// shows where a launch hangs, without pausing in the debugger (pausing mid-XPC crashes
+/// libdispatch on resume, which is how the first hang reports misled). The watchdog runs for
+/// the first 90 seconds after launch.
+enum LaunchTrace {
+    private static let started = DispatchTime.now()
+    private static let lock = NSLock()
+    private static var currentStep = "launch"
+    private static var watchdogStarted = false
+
+    static func mark(_ step: String) {
+        lock.lock()
+        currentStep = step
+        lock.unlock()
+        AppLog.log("[Launch] +%dms %@", elapsedMs(), step)
+    }
+
+    private static func lastStep() -> String {
+        lock.lock()
+        defer { lock.unlock() }
+        return currentStep
+    }
+
+    private static func elapsedMs() -> Int {
+        Int((DispatchTime.now().uptimeNanoseconds - started.uptimeNanoseconds) / 1_000_000)
+    }
+
+    static func startWatchdog() {
+        lock.lock()
+        let already = watchdogStarted
+        watchdogStarted = true
+        lock.unlock()
+        guard !already else { return }
+        let thread = Thread {
+            let stopAt = Date().addingTimeInterval(90)
+            while Date() < stopAt {
+                let answered = DispatchSemaphore(value: 0)
+                let sent = Date()
+                DispatchQueue.main.async { answered.signal() }
+                if answered.wait(timeout: .now() + 2) == .timedOut {
+                    AppLog.log("[Launch] MAIN THREAD BLOCKED >2s at +%dms, in or after: %@", elapsedMs(), lastStep())
+                    answered.wait()
+                    AppLog.log("[Launch] main thread answered again after %.1fs (it was in or after: %@)",
+                               Date().timeIntervalSince(sent), lastStep())
+                }
+                Thread.sleep(forTimeInterval: 0.5)
+            }
+        }
+        thread.name = "kachat.launch-watchdog"
+        thread.qualityOfService = .utility
+        thread.start()
     }
 }

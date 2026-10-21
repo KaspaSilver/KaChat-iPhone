@@ -223,6 +223,7 @@ struct KaChatApp: App {
                 appDelegate.endBackgroundFlushIfNeeded()
             }
         case .active:
+            LaunchTrace.mark("scene active")
             // Cancel background fetch when app becomes active (we'll poll normally)
             BackgroundTaskManager.shared.cancelBackgroundFetch()
             // KaPosts social pings (likes/replies/quotes on your posts) - local-notification

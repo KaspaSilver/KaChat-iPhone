@@ -419,10 +419,9 @@ struct KasiaTransactionBuilder {
         guard let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: senderAddress) else {
             throw KasiaError.invalidAddress
         }
-        // A standard P2PK output script is the same size for any address, so which specific
-        // address change lands on doesn't affect fee estimation (selectUtxosForPayment below
-        // still sizes against senderScriptPubKey) - only which script the actual change output
-        // ends up using.
+        // The change output is priced at ITS OWN script: change to a fresh quantum (KIP-22)
+        // slot is a 35-byte P2SH script, a byte longer than P2PK - 11 mass grams the fee must
+        // cover, and the fee is the network minimum per gram (KaspaFeePolicy).
         let changeScriptPubKey: Data
         if let changeAddress {
             guard let script = KaspaAddress.scriptPublicKey(from: changeAddress) else {
@@ -441,7 +440,7 @@ struct KasiaTransactionBuilder {
             amount: amountToCover,
             payload: paymentPayload,
             recipientScriptPubKey: recipientScriptPubKey,
-            senderScriptPubKey: senderScriptPubKey
+            senderScriptPubKey: changeScriptPubKey
         )
 
         #if DEBUG
@@ -526,9 +525,9 @@ struct KasiaTransactionBuilder {
         guard let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: senderAddress) else {
             throw KasiaError.invalidAddress
         }
-        // A standard P2PK output script is the same size for any address, so which specific
-        // address change lands on doesn't affect fee estimation — only which script the
-        // actual change output below uses.
+        // The change output is priced at ITS OWN script: change to a fresh quantum (KIP-22)
+        // slot is a 35-byte P2SH script, a byte longer than P2PK - 11 mass grams the fee must
+        // cover, and the fee is the network minimum per gram (KaspaFeePolicy).
         let changeScriptPubKey: Data
         if let changeAddress {
             guard let script = KaspaAddress.scriptPublicKey(from: changeAddress) else {
@@ -546,7 +545,7 @@ struct KasiaTransactionBuilder {
                 amount: amount,
                 payload: Data(),
                 recipientScriptPubKey: recipientScriptPubKey,
-                senderScriptPubKey: senderScriptPubKey,
+                senderScriptPubKey: changeScriptPubKey,
                 extraFeeSompi: extraFeeSompi,
                 virtualDaaScore: virtualDaaScore,
                 signatureScriptSize: signatureScriptSize
@@ -557,7 +556,7 @@ struct KasiaTransactionBuilder {
                 amount: amount,
                 payload: Data(),
                 recipientScriptPubKey: recipientScriptPubKey,
-                senderScriptPubKey: senderScriptPubKey,
+                senderScriptPubKey: changeScriptPubKey,
                 extraFeeSompi: extraFeeSompi,
                 virtualDaaScore: virtualDaaScore,
                 signatureScriptSize: signatureScriptSize
@@ -650,7 +649,7 @@ struct KasiaTransactionBuilder {
             amount: amount,
             payload: Data(),
             recipientScriptPubKey: recipientScriptPubKey,
-            senderScriptPubKey: senderScriptPubKey,
+            senderScriptPubKey: changeScriptPubKey,
             extraFeeSompi: extraFeeSompi
         )
 

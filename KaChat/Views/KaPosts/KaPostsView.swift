@@ -1668,21 +1668,30 @@ struct KaPostsView: View {
     }
 
     /// A tapped poster's profile > Posts.
-    /// The K pubkey behind an address: "02" or "03" + its x-only key, whichever the indexer has
-    /// posts (or followers) for. Nil when neither has any.
+    /// The K pubkey behind an address: "02" or "03" + its x-only key, as the indexer's DATA names
+    /// it - the key on the person's posts, else on their profile - checked against the address.
+    /// Never the probe: the indexer answers a probe in either parity form (12543eb), so returning
+    /// whichever probe "had data" handed back the 02 guess for an 03 user, and Follow posted it
+    /// on chain (IOS-099). Nil when the data names no key; Follow then stays local-only.
     static func resolveKaPostsPubkey(address: String) async -> String? {
         guard let even = KaPostsAPIClient.kapostPubkey(fromAddress: address) else { return nil }
-        let candidates = [even, "03" + even.dropFirst(2)]
+        let xOnly = String(even.dropFirst(2)).lowercased()
+        func named(_ key: String?) -> String? {
+            guard let key = key?.lowercased(), key.count == 66,
+                  key.hasPrefix("02") || key.hasPrefix("03"), key.dropFirst(2) == xOnly else { return nil }
+            return key
+        }
+        let candidates = [even.lowercased(), "03" + xOnly]
         for candidate in candidates {
             if let posts = try? await KaPostsAPIClient.shared.fetchUserPosts(pubkey: candidate, limit: 1, includeReplies: true).posts,
-               !posts.isEmpty {
-                return candidate
+               let key = posts.lazy.compactMap({ named($0.userPublicKey) }).first {
+                return key
             }
         }
         for candidate in candidates {
             if let details = try? await KaPostsAPIClient.shared.fetchUserDetails(pubkey: candidate),
-               (details.followersCount ?? 0) > 0 || (details.followingCount ?? 0) > 0 {
-                return candidate
+               let key = named(details.userPublicKey) {
+                return key
             }
         }
         return nil

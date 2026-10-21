@@ -1765,8 +1765,15 @@ extension ChatService {
                 txId = submitted.txId
                 endpoint = submitted.endpoint
             } catch {
+                let signatureRejected = isSignatureRejection(error)
+                if signatureRejected {
+                    logSignatureRejection(pendingTxId: activePendingTxId, inputs: spentUtxos, senderScriptPubKey: senderScriptPubKey)
+                    // a chained coin whose recorded amount or script is wrong would fail every retry
+                    // until it expires: drop the pending coins this attempt used
+                    consumePendingUtxos(spentUtxos.filter { $0.blockDaaScore == 0 })
+                }
                 let shouldFallbackToConfirmed = usesUnconfirmedInputs &&
-                    (shouldRetrySendError(error) || shouldRetryNoSpendableFundsError(error))
+                    (shouldRetrySendError(error) || shouldRetryNoSpendableFundsError(error) || signatureRejected)
                 guard shouldFallbackToConfirmed else { throw error }
 
                 let confirmedOnlyUtxos = candidateUtxos.filter { $0.blockDaaScore > 0 }
@@ -2138,9 +2145,15 @@ extension ChatService {
         pruneMessageUtxoCaches(confirmed: confirmed, now: now)
         let confirmedSpendable = confirmed
             .filter { $0.blockDaaScore > 0 && !$0.isCoinbase }
+        // A pending coin is only ever signed by the chatting key, so only coins locked to the
+        // chatting address may be offered. The cache is shared and outlives an account switch;
+        // a coin locked to another address, signed with this key, is rejected by the network
+        // ("false stack entry at end of script execution"). The script was written by
+        // `addPendingOutputs` from `KaspaAddress.scriptPublicKey(from:)`, so it compares exactly.
+        let chattingScript = WalletManager.shared.currentWallet.flatMap { KaspaAddress.scriptPublicKey(from: $0.publicAddress) }
         let pendingSpendable = pendingMessageUtxos.values
             .map(\.utxo)
-            .filter { !$0.isCoinbase }
+            .filter { !$0.isCoinbase && (chattingScript == nil || $0.scriptPublicKey == chattingScript) }
 
         var merged: [UTXO] = []
         var seenOutpoints = Set<String>()
@@ -2194,6 +2207,25 @@ extension ChatService {
         let now = Date()
         reservedMessageOutpoints = reservedMessageOutpoints.filter { $0.value > now }
         pendingMessageUtxos = pendingMessageUtxos.filter { $0.value.expiresAt > now }
+    }
+
+    /// The node refused an input's signature (kaspad "failed to verify the signature script").
+    func isSignatureRejection(_ error: Error) -> Bool {
+        error.localizedDescription.lowercased().contains("signature script")
+    }
+
+    /// Every input of a rejected message, so a signature failure names its coin: amount, whether
+    /// it was pending (a chained change output) or confirmed, and whether its script is the
+    /// sender's own.
+    func logSignatureRejection(pendingTxId: String, inputs: [UTXO], senderScriptPubKey: Data) {
+        AppLog.log("[ChatService] Signature rejected for %@ - %d input(s):", String(pendingTxId.prefix(12)), inputs.count)
+        for (index, utxo) in inputs.enumerated() {
+            AppLog.log("[ChatService]   input %d %@:%d amount=%llu %@ script=%@ coinbase=%@",
+                       index, String(utxo.outpoint.transactionId.prefix(16)), Int(utxo.outpoint.index), utxo.amount,
+                       utxo.blockDaaScore == 0 ? "PENDING" : "confirmed",
+                       utxo.scriptPublicKey == senderScriptPubKey ? "sender" : "OTHER(\(utxo.scriptPublicKey.count)B)",
+                       utxo.isCoinbase ? "yes" : "no")
+        }
     }
 
     func shouldRetrySendError(_ error: Error) -> Bool {

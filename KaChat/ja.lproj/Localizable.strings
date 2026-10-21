@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "次のアドレスを準備できませんでした。もう一度お試しください。";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "量子耐性アドレス";
+"Non-Quantum Addresses" = "非量子耐性アドレス";
+"%lld of %lld shown" = "%2$lld件中%1$lld件を表示";

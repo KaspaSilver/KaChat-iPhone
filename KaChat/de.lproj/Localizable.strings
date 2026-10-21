@@ -1753,3 +1753,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "Die nächste Adresse konnte nicht vorbereitet werden. Versuche es erneut.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "Quantensichere Adressen";
+"Non-Quantum Addresses" = "Nicht quantensichere Adressen";
+"%lld of %lld shown" = "%lld von %lld angezeigt";

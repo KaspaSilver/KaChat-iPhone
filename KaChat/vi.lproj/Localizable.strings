@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "Không thể chuẩn bị địa chỉ tiếp theo. Hãy thử lại.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "Địa chỉ lượng tử";
+"Non-Quantum Addresses" = "Địa chỉ không lượng tử";
+"%lld of %lld shown" = "Hiển thị %lld/%lld";

@@ -2386,6 +2386,104 @@ struct SpendingAddressTransactionHistoryView: View {
 
 // MARK: - Bulk address visibility (toolbar checklist on Manage Addresses)
 
+/// Address Visibility: first a card per chain - Quantum Addresses and Non-Quantum Addresses -
+/// then that chain's checklist (owner's design, 2026-10-21). One pager over raw indices could
+/// never reach the quantum chain, which starts at `quantumIndexBase`. Hide All covers both.
+private struct SpendingAddressVisibilityView: View {
+    @EnvironmentObject var walletManager: WalletManager
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var entries: [SpendingAddressEntry] = []
+    @State private var isLoading = true
+    @State private var showHideAllConfirm = false
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
+                    chainCard(quantum: true)
+                    chainCard(quantum: false)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+            }
+            .navigationTitle("Address Visibility")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert("Hide All Addresses?", isPresented: $showHideAllConfirm) {
+                Button("Hide All", role: .destructive) { hideAll() }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total.")
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Hide All") { showHideAllConfirm = true }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                }
+            }
+            .task { await load() }
+        }
+    }
+
+    /// A Kaspa Hub style square: the chain, and how many of its addresses Manage Addresses shows.
+    private func chainCard(quantum: Bool) -> some View {
+        let chain = entries.filter { $0.isQuantum == quantum }
+        let shown = chain.filter { !$0.hidden }.count
+        return NavigationLink {
+            AddressVisibilityChainList(quantum: quantum, entries: $entries, isLoading: isLoading)
+        } label: {
+            Color.clear
+                .aspectRatio(1, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .overlay {
+                    VStack(spacing: 8) {
+                        Image(systemName: quantum ? "shield.fill" : "circle.grid.2x2.fill")
+                            .font(.scaled(size: 26, weight: .medium))
+                            .foregroundStyle(Color.accentColor)
+                        Text(quantum ? "Quantum Addresses" : "Non-Quantum Addresses")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                        if isLoading {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Text("\(shown) of \(chain.count) shown")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(.regularMaterial)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 0.8)
+                        )
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func load() async {
+        entries = await walletManager.getSpendingAddressList()
+        isLoading = false
+    }
+
+    /// Every revealed address hidden, both chains: the list starts from nothing.
+    private func hideAll() {
+        walletManager.hideAllSpendingAddresses()
+        entries = entries.map { var e = $0; e.hidden = true; return e }
+    }
+}
+
 /// A very compact list of EVERY revealed spending address with a toggleable checkmark per row -
 /// checked = shown on the Manage Addresses list. Built for wallets with a hundred-plus revealed
 /// addresses: tap through as many rows as you like in one sitting. Each row also shows whether
@@ -2395,19 +2493,20 @@ struct SpendingAddressTransactionHistoryView: View {
 /// Addresses actively offered to contacts as payment-pool reservations don't appear here at
 /// all: the checklist mirrors the main Addresses list, and those rows live on the Chat
 /// Privacy tab (they can't be hidden or unhidden while the offer is live anyway).
-private struct SpendingAddressVisibilityView: View {
+private struct AddressVisibilityChainList: View {
     @EnvironmentObject var walletManager: WalletManager
     @EnvironmentObject var chatService: ChatService
-    @Environment(\.dismiss) private var dismiss
 
-    @State private var entries: [SpendingAddressEntry] = []
-    @State private var isLoading = true
+    /// Which chain this list pages: the quantum chain lives at `quantumIndexBase` and up, so
+    /// one pager over raw indices never reached it (its first page was #20,000).
+    let quantum: Bool
+    @Binding var entries: [SpendingAddressEntry]
+    let isLoading: Bool
     /// Addresses currently offered to contacts as Chats Payment Privacy pool reservations.
     /// They DO appear in this checklist - always checked, with the checkbox inert and the row
     /// labeled "Chat privacy address" - so the user sees the full picture, but they can't be
     /// unchecked while the offer is live. They still stay out of the MAIN Addresses list (the
     /// Chat Privacy tab owns them); this is checklist-only visibility.
-    @State private var showHideAllConfirm = false
     /// Lazily-filled history results for zero-balance addresses (address -> ever used).
     @State private var usedByAddress: [String: Bool] = [:]
     /// Pager: 50 addresses per page, endless - pages past the revealed set derive future
@@ -2424,9 +2523,8 @@ private struct SpendingAddressVisibilityView: View {
     @State private var pageEntries: [SpendingAddressEntry] = []
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if isLoading && entries.isEmpty {
+        Group {
+            if isLoading && entries.isEmpty {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -2450,27 +2548,11 @@ private struct SpendingAddressVisibilityView: View {
             .safeAreaInset(edge: .bottom) {
                 pagerBar
             }
-            .navigationTitle("Address Visibility")
+            .navigationTitle(quantum ? "Quantum Addresses" : "Non-Quantum Addresses")
             .navigationBarTitleDisplayMode(.inline)
-            .alert("Hide All Addresses?", isPresented: $showHideAllConfirm) {
-                Button("Hide All", role: .destructive) { hideAll() }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total.")
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Hide All") { showHideAllConfirm = true }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
-                }
-            }
-            .task { await load() }
+            .onAppear { rebuildPage() }
             .onChange(of: page) { _ in rebuildPage() }
             .onChange(of: entries) { _ in rebuildPage() }
-        }
     }
 
     /// Recomputes the current page's rows: revealed indices come from the loaded entries;
@@ -2479,7 +2561,7 @@ private struct SpendingAddressVisibilityView: View {
     /// rows render unchecked.
     private func rebuildPage() {
         let byIndex = Dictionary(uniqueKeysWithValues: entries.map { ($0.index, $0) })
-        let start = page * pageSize
+        let start = (quantum ? WalletManager.quantumIndexBase : 0) + page * pageSize
         let range = start..<(start + pageSize)
         let derived = walletManager.spendingAddresses(inRange: range)
         pageEntries = range.compactMap { index -> SpendingAddressEntry? in
@@ -2582,12 +2664,6 @@ private struct SpendingAddressVisibilityView: View {
         }
     }
 
-    private func load() async {
-        entries = await walletManager.getSpendingAddressList()
-        isLoading = false
-        rebuildPage()
-    }
-
     /// One history lookup per zero-balance address, cached for the session of this sheet.
     /// A failed probe stores nothing, so the row keeps its neutral "…" badge (never a
     /// possibly-wrong "Unused") and the next appearance of the row retries.
@@ -2596,12 +2672,6 @@ private struct SpendingAddressVisibilityView: View {
         if let used = await chatService.spendingAddressUsedState(entry.address) {
             usedByAddress[entry.address] = used
         }
-    }
-
-    /// Every revealed address hidden: the list starts from nothing.
-    private func hideAll() {
-        walletManager.hideAllSpendingAddresses()
-        entries = entries.map { var e = $0; e.hidden = true; return e }
     }
 
     private func toggle(_ entry: SpendingAddressEntry) {

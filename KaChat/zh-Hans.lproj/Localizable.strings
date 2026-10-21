@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "无法准备下一个地址。请重试。";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "抗量子地址";
+"Non-Quantum Addresses" = "非抗量子地址";
+"%lld of %lld shown" = "显示 %lld / %lld";

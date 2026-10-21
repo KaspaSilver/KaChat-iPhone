@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "Impossibile preparare l'indirizzo successivo. Riprova.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "Indirizzi quantistici";
+"Non-Quantum Addresses" = "Indirizzi non quantistici";
+"%lld of %lld shown" = "%lld di %lld visibili";

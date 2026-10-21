@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "পরবর্তী ঠিকানা প্রস্তুত করা যায়নি। আবার চেষ্টা করুন।";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "কোয়ান্টাম ঠিকানা";
+"Non-Quantum Addresses" = "নন-কোয়ান্টাম ঠিকানা";
+"%lld of %lld shown" = "%2$lld-এর মধ্যে %1$lld দেখানো হচ্ছে";

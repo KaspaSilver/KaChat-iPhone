@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "Tidak dapat menyiapkan alamat berikutnya. Coba lagi.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "Alamat Kuantum";
+"Non-Quantum Addresses" = "Alamat Non-Kuantum";
+"%lld of %lld shown" = "%lld dari %lld ditampilkan";

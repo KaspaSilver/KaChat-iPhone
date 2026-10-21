@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "다음 주소를 준비하지 못했습니다. 다시 시도하세요.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "양자 내성 주소";
+"Non-Quantum Addresses" = "비양자 주소";
+"%lld of %lld shown" = "%2$lld개 중 %1$lld개 표시";

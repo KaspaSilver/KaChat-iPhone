@@ -1806,3 +1806,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "Couldn't prepare the next address. Try again.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "Quantum Addresses";
+"Non-Quantum Addresses" = "Non-Quantum Addresses";
+"%lld of %lld shown" = "%lld of %lld shown";

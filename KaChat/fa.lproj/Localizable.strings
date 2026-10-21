@@ -1805,3 +1805,8 @@
 
 /* Quantum-safe send: the next change address could not be prepared */
 "Couldn't prepare the next address. Try again." = "آماده‌سازی آدرس بعدی ممکن نشد. دوباره تلاش کنید.";
+
+/* Address Visibility: a card per chain */
+"Quantum Addresses" = "آدرس‌های کوانتومی";
+"Non-Quantum Addresses" = "آدرس‌های غیرکوانتومی";
+"%lld of %lld shown" = "%lld از %lld نمایش داده شده";

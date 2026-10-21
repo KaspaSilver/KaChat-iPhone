@@ -1770,7 +1770,11 @@ enum LaunchTrace {
     }
 
     private static func elapsedMs() -> Int {
-        Int((DispatchTime.now().uptimeNanoseconds - started.uptimeNanoseconds) / 1_000_000)
+        // `started` is a lazy static: read it BEFORE taking "now", or on the very first call it
+        // is set after "now" and the unsigned subtraction traps.
+        let start = started.uptimeNanoseconds
+        let now = DispatchTime.now().uptimeNanoseconds
+        return now > start ? Int((now - start) / 1_000_000) : 0
     }
 
     static func startWatchdog() {

@@ -206,11 +206,55 @@ final class WalletManager: ObservableObject {
     private init() {
         // first: gets UserDefaults back under iOS's 4 MB limit before anything else writes
         DerivedAddressStore.prepare()
+        Self.trimUserDefaults()
         savedAccounts = loadSavedAccountsFromStorage()
         hasStoredWallet = !savedAccounts.isEmpty
         logPrivateKeyStorageStatus()
         Task {
             await loadWallet()
+        }
+    }
+
+    /// Keeps the app's UserDefaults well under iOS's 4 MB limit - past it iOS refuses EVERY
+    /// write the app makes, settings and chain bounds included (seen on a real device,
+    /// 2026-10-20). Moves the chat-list snapshots into files, drops the payment-pool state no
+    /// code has read since Payment Privacy was removed (6333dd3), and, if iOS refused those
+    /// removals (the domain still over the limit), writes the trimmed domain back in one go.
+    /// Until the domain is healthy it logs its size and largest keys on every launch.
+    private static let defaultsTrimmedKey = "kachat_defaults_trimmed_v1"
+    private static let deadDefaultsPrefixes = ["kachat_payment_pool_state_"]
+
+    private static func trimUserDefaults() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: defaultsTrimmedKey), let id = Bundle.main.bundleIdentifier else { return }
+        let snapshots = ChatListSnapshotStore.moveOutOfUserDefaults()
+        var dropped = 0
+        for key in (defaults.persistentDomain(forName: id) ?? [:]).keys
+        where deadDefaultsPrefixes.contains(where: { key.hasPrefix($0) }) {
+            defaults.removeObject(forKey: key)
+            dropped += 1
+        }
+        guard var domain = defaults.persistentDomain(forName: id) else { return }
+        // A refused removal leaves the key in place: replace the whole domain with the trimmed
+        // copy - one write that is itself under the limit.
+        let movedPrefixes = deadDefaultsPrefixes + ["kachat_chat_list_snapshot_", "kachat_spending_derived_addresses_"]
+        let refused = domain.keys.filter { key in movedPrefixes.contains { key.hasPrefix($0) } }
+        if !refused.isEmpty {
+            refused.forEach { domain.removeValue(forKey: $0) }
+            defaults.setPersistentDomain(domain, forName: id)
+            AppLog.log("[WalletManager] UserDefaults refused %d removals; rewrote the trimmed domain", refused.count)
+        }
+        let after = defaults.persistentDomain(forName: id) ?? [:]
+        func size(_ value: Any) -> Int {
+            (try? PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0).count) ?? 0
+        }
+        let total = size(after)
+        let largest = after.map { ($0.key, size($0.value)) }.sorted { $0.1 > $1.1 }.prefix(8)
+            .map { "\($0.0)=\($0.1 / 1024)KB" }.joined(separator: ", ")
+        AppLog.log("[WalletManager] UserDefaults %d KB after trimming (moved %d snapshots, dropped %d dead keys). Largest: %@",
+                   total / 1024, snapshots, dropped, largest)
+        if total < 2_500_000 {
+            defaults.set(true, forKey: defaultsTrimmedKey)
         }
     }
 

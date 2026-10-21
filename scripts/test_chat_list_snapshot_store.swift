@@ -3,13 +3,10 @@ import Foundation
 @main
 struct ChatListSnapshotStoreTest {
     static func main() {
-        let suiteName = "ChatListSnapshotStoreTest-\(UUID().uuidString)"
-        guard let defaults = UserDefaults(suiteName: suiteName) else {
-            fputs("FAIL: could not create isolated UserDefaults\n", stderr)
-            exit(1)
-        }
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ChatListSnapshotStoreTest-\(UUID().uuidString)", isDirectory: true)
         defer {
-            defaults.removePersistentDomain(forName: suiteName)
+            try? FileManager.default.removeItem(at: directory)
         }
 
         let walletAddress = "kaspa:test-wallet"
@@ -41,8 +38,8 @@ struct ChatListSnapshotStoreTest {
             unreadCount: 3
         )
 
-        ChatListSnapshotStore.save([conversation], walletAddress: walletAddress, userDefaults: defaults)
-        let loaded = ChatListSnapshotStore.load(walletAddress: walletAddress, userDefaults: defaults)
+        ChatListSnapshotStore.save([conversation], walletAddress: walletAddress, directory: directory)
+        let loaded = ChatListSnapshotStore.load(walletAddress: walletAddress, directory: directory)
 
         expect(loaded.count == 1, "expected one cached conversation")
         expect(loaded[0].id == conversation.id, "conversation id should be preserved")
@@ -50,9 +47,9 @@ struct ChatListSnapshotStoreTest {
         expect(loaded[0].unreadCount == 3, "unread count should be preserved")
         expect(loaded[0].messages.map(\.txId) == ["tx-2"], "only the latest message should be cached")
 
-        ChatListSnapshotStore.clear(walletAddress: walletAddress, userDefaults: defaults)
+        ChatListSnapshotStore.clear(walletAddress: walletAddress, directory: directory)
         expect(
-            ChatListSnapshotStore.load(walletAddress: walletAddress, userDefaults: defaults).isEmpty,
+            ChatListSnapshotStore.load(walletAddress: walletAddress, directory: directory).isEmpty,
             "clear should remove the cached snapshot"
         )
 

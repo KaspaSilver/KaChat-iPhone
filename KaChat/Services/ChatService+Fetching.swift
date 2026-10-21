@@ -1916,6 +1916,9 @@ extension ChatService {
             guard let stashedData = stash.stashedData else { continue }
             // Decrypt the stashed data on background thread to get our alias and contact info
             if let savedData = await decryptSelfStash(stashedData, privateKey: privKey) {
+                // the decrypt may have spanned an account switch: this account's aliases must
+                // never be written into the next one's (the shared alias store)
+                guard isActiveWallet(myAddress) else { return }
                 let contact = savedData.contactAddress
                 if !contact.isEmpty { notedContacts.insert(contact) }
                 let alias = savedData.ourAlias
@@ -2897,6 +2900,8 @@ extension ChatService {
                 if !isOutgoing, let privKey = privateKey {
                     // For incoming handshakes, decrypt to extract alias
                     if let decrypted = await decryptHandshakePayload(payload, privateKey: privKey) {
+                        // same rule across an account switch as the handshake path above
+                        guard isActiveWallet(myAddress) else { return }
                         handshakeContent = decrypted.isResponse == true
                             ? "[Request accepted]"
                             : "[Request to communicate]"

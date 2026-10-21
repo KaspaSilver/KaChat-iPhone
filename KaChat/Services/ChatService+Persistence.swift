@@ -1600,10 +1600,51 @@ extension ChatService {
     }
 
     /// Ensure a routing state exists for a contact. Creates one on-demand if needed.
+    /// Whether `privateKey` is the CURRENT account's key. A sync task that started before an
+    /// account switch still holds the old account's key; routing derived from it and saved into
+    /// the shared store made the next account watch the OLD account's aliases - so with two
+    /// accounts on the same bot, each fetched the bot's messages meant for the other, which it
+    /// can't decrypt ("[Encrypted message]"). A chatting address that isn't a 32-byte Schnorr
+    /// key can't be checked this way and passes, as before.
+    func isCurrentAccountKey(_ privateKey: Data) -> Bool {
+        guard let wallet = WalletManager.shared.currentWallet,
+              let walletKey = KaspaAddress.publicKey(from: wallet.publicAddress) else { return false }
+        guard walletKey.count == 32 else { return true }
+        guard let derived = try? WalletManager.shared.deriveSchnorrPublicKey(from: privateKey) else { return false }
+        return derived == walletKey
+    }
+
+    /// Contacts whose stored routing was checked against this account's key, per account.
+    static var verifiedRoutingContacts = Set<String>()
+
     func ensureRoutingState(for address: String, privateKey: Data?) {
-        guard routingStates[address] == nil, let privKey = privateKey else { return }
+        guard let privKey = privateKey, isCurrentAccountKey(privKey) else { return }
         guard let myAlias = try? DeterministicAlias.deriveMyAlias(privateKey: privKey, theirAddress: address),
               let theirAlias = try? DeterministicAlias.deriveTheirAlias(privateKey: privKey, theirAddress: address) else {
+            return
+        }
+        if let existing = routingStates[address] {
+            // Self-heal, once per contact per account: a state an earlier build derived from
+            // another account's key is rebuilt from this one's (its legacy aliases are kept -
+            // any that aren't ours only fetch messages that can't be decrypted, which stay
+            // hidden).
+            let checked = "\(WalletManager.shared.currentWallet?.publicAddress ?? "")|\(address)"
+            guard Self.verifiedRoutingContacts.insert(checked).inserted else { return }
+            guard existing.deterministicMyAlias != myAlias || existing.deterministicTheirAlias != theirAlias else { return }
+            AppLog.log("[ChatService] Routing for %@ was derived from another account's key - rebuilt",
+                       String(address.suffix(10)))
+            routingStates[address] = ConversationRoutingState(
+                contactAddress: address,
+                deterministicMyAlias: myAlias,
+                deterministicTheirAlias: theirAlias,
+                legacyIncomingAliases: existing.legacyIncomingAliases,
+                legacyOutgoingAliases: existing.legacyOutgoingAliases,
+                mode: existing.mode,
+                peerSupportsDeterministic: existing.peerSupportsDeterministic,
+                lastLegacyIncomingAtMs: existing.lastLegacyIncomingAtMs,
+                lastDeterministicIncomingAtMs: nil
+            )
+            saveRoutingStates()
             return
         }
 

@@ -2143,23 +2143,22 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
 
     /// In the order a fresh dock places them, so `visible` can reinsert a missing one sensibly.
     /// Where they sit among the five is the person's (Customize Dock); that they are there is not.
-    static let pinnedToDock: [AppTab] = [.chats, .ecosystem, .profile]
+    static let pinnedToDock: [AppTab] = [.ecosystem, .chats, .profile]
 
     /// Tabs the user can place. Excludes the Hub (pinned) and the retired "+ More".
     static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .kachatStats, .addressBook, .kachatBots]
 
-    /// Ecosystem takes the dock slot Swap used to hold, so a default install shows exactly the
-    /// five the dock can fit - Portfolio, Storage, Chats, Ecosystem, Profile - with Swap, KaPosts,
-    /// Public Chats and the websites list still ENABLED but living inside Ecosystem rather than
-    /// competing for a dock slot.
-    static let defaultOrder: [AppTab] = [.coldStorage, .portfolio, .chats, .ecosystem, .profile, .addressBook, .kachatNames, .kachatStats, .kachatBots, .swap, .kaposts, .publicChats, .apps, .chess]
+    /// A default install shows exactly the five the dock can fit - Kaspa Hub, Portfolio, Chats,
+    /// KaPosts, Profile - with Cold Storage, Swap and the websites list still ENABLED but living
+    /// inside Kaspa Hub rather than competing for a dock slot.
+    static let defaultOrder: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile, .coldStorage, .addressBook, .kachatNames, .kachatStats, .kachatBots, .swap, .publicChats, .apps, .chess]
 
-    /// What a fresh install starts with: the three that were asked for, in that order, plus the
-    /// two that fill the dock to its cap. Everything else starts in Kaspa Hub.
-    static let defaultDock: [AppTab] = [.coldStorage, .portfolio, .chats, .ecosystem, .profile]
+    /// What a fresh install starts with (owner's order, 2026-10-20). Everything else starts in
+    /// Kaspa Hub. A saved arrangement is the person's and is never reset to this.
+    static let defaultDock: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile]
 
     /// The rest, in the order the Hub grid shows them until the user rearranges it.
-    static let defaultHub: [AppTab] = [.addressBook, .kachatNames, .kachatStats, .kachatBots, .kaposts, .swap, .apps]
+    static let defaultHub: [AppTab] = [.coldStorage, .addressBook, .kachatNames, .kachatStats, .kachatBots, .swap, .apps]
 
     /// Slots the user can actually fill: the cap minus the pinned tabs.
     static var assignableDockSlots: Int { maxDockItems - pinnedToDock.count }

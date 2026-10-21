@@ -534,7 +534,13 @@ final class WalletManager: ObservableObject {
         guard let seedPhrase = SeedPhrase(phrase: phrase, passphrase: passphrase.isEmpty ? nil : passphrase) else {
             throw KasiaError.seedPhraseParsingFailed(wordCount: words.count)
         }
-        return try await importWallet(from: seedPhrase, alias: alias, family: family)
+        let wallet = try await importWallet(from: seedPhrase, alias: alias, family: family)
+        // A restored seed finds its spending addresses by itself - legacy and quantum, the same
+        // sweep as Manage Addresses' Discover Addresses - so balances and change rotation are
+        // right without anyone knowing to tap it (owner's call, 2026-10-21). Only this path: a
+        // typed-in recovery phrase; creating or switching accounts doesn't scan.
+        Task { await self.discoverSpendingAddresses() }
+        return wallet
     }
 
     /// - Parameter removeRemoteBackup: also delete the encrypted archive on the user's

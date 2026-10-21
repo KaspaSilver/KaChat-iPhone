@@ -1802,3 +1802,6 @@
 /* KNS domain transfers and quantum-safe (script) addresses */
 "KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "لا يمكن لـ KNS نقل نطاق من عنوان مقاوم للكم: يحدد KNS مالك النطاق بمفتاح عام، والعنوان المقاوم للكم يُبقي مفتاحه مخفيًا.";
 "A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead." = "لا يمكن إرسال نطاق ‎.kas إلى عنوان مقاوم للكم أو عنوان سكربت آخر: لن يتمكن KNS من نقله مرة أخرى أبدًا. أرسله إلى عنوان عادي بدلًا من ذلك.";
+
+/* Quantum-safe send: the next change address could not be prepared */
+"Couldn't prepare the next address. Try again." = "تعذّر تجهيز العنوان التالي. حاول مرة أخرى.";

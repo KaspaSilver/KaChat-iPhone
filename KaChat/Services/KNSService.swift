@@ -2033,7 +2033,7 @@ final class KNSDomainTransferService: ObservableObject {
         var freshChangeIndex: Int?
         var changeAddress = fundingAddress
         if let index = fromSpendingAddressIndex, index == walletManager.currentSpendingAddressIndex {
-            let candidate = walletManager.nextFreshQuantumIndex()
+            let candidate = await walletManager.verifiedFreshQuantumIndex()
             if let fresh = walletManager.spendingAddress(at: candidate) {
                 freshChangeIndex = candidate
                 changeAddress = fresh

@@ -531,24 +531,37 @@ extension ChatService {
     /// are young, so one page covers them.
     func quantumAddressSpentState(_ address: String) async -> Bool? {
         if WalletManager.shared.isQuantumAddressSpentLocally(address) { return true }
-        guard let url = kaspaRestURL(
-            path: "/addresses/\(address)/full-transactions",
-            queryItems: [
-                URLQueryItem(name: "limit", value: "200"),
-                URLQueryItem(name: "offset", value: "0"),
-                URLQueryItem(name: "resolve_previous_outpoints", value: "light")
-            ]
-        ), let (data, response) = try? await URLSession.shared.data(for: Self.timedRequest(url)),
-           let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
-           let transactions = try? await Self.decodeOffMain([KaspaFullTransactionResponse].self, from: data) else {
-            return nil
-        }
+        // The whole history, a page at a time: a spend buried under later activity still
+        // revealed the key (IOS-105). A found spend is marked for good, so the walk runs once per
+        // address; a page that can't be read leaves the answer unknown, never "not spent".
         let lowered = address.lowercased()
-        let spent = transactions.contains { tx in
-            (tx.inputs ?? []).contains { $0.previousOutpointAddress?.lowercased() == lowered }
+        let pageSize = 200
+        var offset = 0
+        while offset < 50 * pageSize {
+            guard let url = kaspaRestURL(
+                path: "/addresses/\(address)/full-transactions",
+                queryItems: [
+                    URLQueryItem(name: "limit", value: "\(pageSize)"),
+                    URLQueryItem(name: "offset", value: "\(offset)"),
+                    URLQueryItem(name: "resolve_previous_outpoints", value: "light")
+                ]
+            ), let (data, response) = try? await URLSession.shared.data(for: Self.timedRequest(url)),
+               let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+               let transactions = try? await Self.decodeOffMain([KaspaFullTransactionResponse].self, from: data) else {
+                return nil
+            }
+            let spent = transactions.contains { tx in
+                (tx.inputs ?? []).contains { $0.previousOutpointAddress?.lowercased() == lowered }
+            }
+            if spent {
+                WalletManager.shared.markQuantumAddressSpent(address)
+                return true
+            }
+            if transactions.count < pageSize { return false }
+            offset += pageSize
         }
-        if spent { WalletManager.shared.markQuantumAddressSpent(address) }
-        return spent
+        // deeper than the walk goes: say so rather than claim the key is hidden
+        return nil
     }
 
     /// One transaction from the Kaspa REST API by id; nil when it can't be read.

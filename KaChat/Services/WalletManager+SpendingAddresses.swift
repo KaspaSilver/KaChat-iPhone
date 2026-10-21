@@ -400,6 +400,23 @@ extension WalletManager {
 
     /// One past every quantum slot ever revealed, in public index space - where a spend's
     /// change goes (fresh and hidden-keyed, whatever chain the spend came from).
+    /// `nextFreshQuantumIndex()`, checked on chain first (IOS-101): the chain's end on this
+    /// phone can sit below slots used elsewhere (another device, a restore that ran before the
+    /// sweep looked far enough). While the REST server says the slot has history it is skipped
+    /// and the end raised, up to 20 times; a check that can't be answered takes the slot as is,
+    /// so an unreachable server never blocks a send.
+    func verifiedFreshQuantumIndex() async -> Int {
+        var index = nextFreshQuantumIndex()
+        for _ in 0..<20 {
+            guard let address = spendingAddress(at: index),
+                  await ChatService.shared.spendingAddressUsedState(address) == true else { return index }
+            AppLog.log("[WalletManager] Quantum slot %d already has history - skipping it", index - Self.quantumIndexBase)
+            setMaxQuantumAddressIndex(index - Self.quantumIndexBase)
+            index = nextFreshQuantumIndex()
+        }
+        return index
+    }
+
     func nextFreshQuantumIndex() -> Int {
         Self.quantumIndexBase + maxQuantumAddressIndex + 1
     }
@@ -513,7 +530,7 @@ extension WalletManager {
                 return entry.index
             }
         }
-        return nextFreshQuantumIndex()
+        return await verifiedFreshQuantumIndex()
     }
 
     // MARK: - Quantum spent-state (the shield)
@@ -578,7 +595,7 @@ extension WalletManager {
         guard count > 0, let chainKey = quantumChainKey() else { return [] }
         // Fresh addresses handed to someone else are exactly what the quantum chain is for
         // (KIP-22): never revealed, never funded, key hidden until they spend.
-        let base = maxQuantumAddressIndex + 1
+        let base = await verifiedFreshQuantumIndex() - Self.quantumIndexBase
         var result: [(index: Int, address: String)] = []
         for offset in 0..<count {
             let index = Self.quantumIndexBase + base + offset
@@ -994,43 +1011,59 @@ extension WalletManager {
         return matchCount
     }
 
-    /// How deep a restore looks on the quantum chain. The chain is young and change rotation
-    /// only ever extends it one slot at a time, so a short window covers it; funded matches past
-    /// it would need a later, deeper rescan.
+    /// How many quantum slots one step of the restore sweep looks at. The sweep keeps stepping
+    /// while a window turns up any activity (IOS-101: a fixed 200 missed funds past slot 199),
+    /// up to `quantumScanLimit`.
     static let quantumScanFloor = 200
+    static let quantumScanLimit = 10_000
 
-    /// The quantum-chain (KIP-22) half of discovery: funded quantum addresses found on chain
-    /// extend `maxQuantumAddressIndex` so a restored seed shows them again. Same batched sweep
-    /// as the legacy chain, returning how many funded slots it found.
+    /// The quantum chain's restore sweep: funded slots are shown again, and the chain's end is
+    /// set past every slot that EVER saw activity - not only funded ones - so a restored wallet
+    /// never hands out an already-used (possibly key-revealed) slot as fresh change or a fresh
+    /// receive address (IOS-101). Returns how many funded slots it found.
     @discardableResult
     func discoverQuantumAddresses() async -> Int {
         guard quantumChainKey() != nil else { return 0 }
         let base = Self.quantumIndexBase
-        let window = base..<(base + Self.quantumScanFloor)
-        let derived = spendingAddresses(inRange: window)
-        let ordered = window.compactMap { index in derived[index].map { (index, $0) } }
-        guard !ordered.isEmpty else { return 0 }
+        var start = 0
+        var matched: [Int] = []
+        var highestUsed = -1
+        while start < Self.quantumScanLimit {
+            let window = (base + start)..<(base + start + Self.quantumScanFloor)
+            let derived = spendingAddresses(inRange: window)
+            let ordered = window.compactMap { index in derived[index].map { (index, $0) } }
+            guard !ordered.isEmpty else { break }
 
-        // Funded decides surfacing, exactly as on the legacy chain. The bulk-activity filter
-        // first where the REST server offers it; straight to balances otherwise.
-        var candidates = ordered
-        if let activity = await AddressActivityService.lastActivity(for: ordered.map { $0.1 }) {
-            candidates = ordered.filter { activity[$0.1] != nil }
+            // Activity decides how far the chain reaches; funds decide what is shown. Without the
+            // bulk activity answer (a REST server that doesn't serve it), only this window's
+            // balances can be read, and the sweep stops there as before.
+            let activity = await AddressActivityService.lastActivity(for: ordered.map { $0.1 })
+            let touched = activity.map { a in ordered.filter { a[$0.1] != nil } } ?? ordered
+            if let deepest = touched.map({ $0.0 }).max(), activity != nil {
+                highestUsed = max(highestUsed, deepest - base)
+            }
+            if !touched.isEmpty,
+               let utxos = try? await NodePoolService.shared.getUtxosByAddresses(touched.map { $0.1 }) {
+                let funded = Set(utxos.map { $0.address })
+                matched += touched.filter { funded.contains($0.1) }.map { $0.0 }
+            }
+            guard activity != nil, !touched.isEmpty else { break }
+            start += Self.quantumScanFloor
         }
-        guard !candidates.isEmpty,
-              let utxos = try? await NodePoolService.shared.getUtxosByAddresses(candidates.map { $0.1 }) else { return 0 }
-        let funded = Set(utxos.map { $0.address })
-        let matched = candidates.filter { funded.contains($0.1) }.map { $0.0 }
-        guard let highest = matched.max() else { return 0 }
+        if let highestFunded = matched.max() {
+            highestUsed = max(highestUsed, highestFunded - base)
+        }
+        guard highestUsed >= 0 else { return 0 }
 
         var hidden = hiddenSpendingIndices
         hidden.subtract(matched)
         let previousMax = maxQuantumAddressIndex
-        if highest - base > previousMax {
-            for index in (base + previousMax + 1)..<highest where !matched.contains(index) {
+        if highestUsed > previousMax {
+            let fundedSet = Set(matched)
+            for index in (base + previousMax + 1)...(base + highestUsed) where !fundedSet.contains(index) {
                 hidden.insert(index)
             }
-            setMaxQuantumAddressIndex(highest - base)
+            setMaxQuantumAddressIndex(highestUsed)
         }
         if hidden != hiddenSpendingIndices {
             hiddenSpendingIndices = hidden

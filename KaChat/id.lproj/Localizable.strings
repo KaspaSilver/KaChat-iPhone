@@ -1802,3 +1802,6 @@
 /* KNS domain transfers and quantum-safe (script) addresses */
 "KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS tidak dapat memindahkan domain keluar dari alamat aman-kuantum: KNS mengenali pemilik domain dari kunci publik, dan alamat aman-kuantum menyembunyikan kuncinya.";
 "A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead." = "Domain .kas tidak dapat dikirim ke alamat aman-kuantum atau alamat skrip lain: KNS tidak akan pernah bisa memindahkannya lagi. Kirim ke alamat biasa saja.";
+
+/* Quantum-safe send: the next change address could not be prepared */
+"Couldn't prepare the next address. Try again." = "Tidak dapat menyiapkan alamat berikutnya. Coba lagi.";

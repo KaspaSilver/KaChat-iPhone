@@ -1802,3 +1802,6 @@
 /* KNS domain transfers and quantum-safe (script) addresses */
 "KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS không thể chuyển tên miền ra khỏi địa chỉ an toàn lượng tử: KNS nhận diện chủ tên miền bằng khóa công khai, còn địa chỉ an toàn lượng tử giữ kín khóa của nó.";
 "A .kas domain can't be sent to a quantum-safe or other script address: KNS could never move it out again. Send it to a regular address instead." = "Không thể gửi tên miền .kas đến địa chỉ an toàn lượng tử hoặc địa chỉ script khác: KNS sẽ không bao giờ chuyển nó ra được nữa. Hãy gửi đến một địa chỉ thông thường.";
+
+/* Quantum-safe send: the next change address could not be prepared */
+"Couldn't prepare the next address. Try again." = "Không thể chuẩn bị địa chỉ tiếp theo. Hãy thử lại.";

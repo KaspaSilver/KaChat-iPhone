@@ -87,16 +87,6 @@ final class KachatNamesActions: ObservableObject {
     private var pendingWallet: String?
     private var driver: Task<Void, Never>?
 
-    /// The address the marketplace pays and buys with: claims, purchases, offers, and extend or
-    /// renew opened from the marketplace. A name claimed or bought this way belongs to that
-    /// address. The chatting address unless the person picked another with the marketplace's
-    /// balance pill (`KachatMarketSourcePill`); back to it when the marketplace closes.
-    @Published var marketSource: SendSource = .chatting {
-        didSet {
-            if case .spending(_, let address, _) = marketSource { rememberMarketAddress(address) }
-        }
-    }
-
     private init() {}
 
     private var service: KachatNamesService { KachatNamesService.shared }
@@ -257,7 +247,7 @@ final class KachatNamesActions: ObservableObject {
         case .withdraw(let o), .refund(let o):
             if let mine = try? ownerSigner(o.buyer) { return mine }
             return try signer()
-        // paid by, and (buy, offer) belonging to, the marketplace's address
+        // paid by, and (buy, offer) belonging to, the chatting address
         case .buy, .offer, .extend, .renew:
             return try buyerSigner()
         default:
@@ -287,10 +277,12 @@ final class KachatNamesActions: ObservableObject {
         }
     }
 
-    /// The marketplace's address (`marketSource`).
+    /// Who buys: claims, purchases, offers, extend and renew always pay from - and a new name
+    /// always belongs to - the chatting address (owner's call, 2026-10-21: no Buy From picker).
+    /// Names an earlier build bought from a spending address keep that owner, and the owner's
+    /// own key still signs for them (`signer(for:)`, `ownAddress(of:)`).
     func buyerSigner() throws -> Signer {
-        guard case .spending(let index, let address, _) = marketSource else { return try signer() }
-        return try spendingSigner(index: index, address: address, expected: nil)
+        try signer()
     }
 
     /// Who pays `op` (and, for a buy or an offer, who it belongs to), for the confirmation's
@@ -307,13 +299,6 @@ final class KachatNamesActions: ObservableObject {
         if let held, case .spending(_, let address)? = ownAddress(of: held) {
             return (address.lowercased(), held)
         }
-        switch op {
-        case .buy, .offer, .extend, .renew:
-            if case .spending(_, let address, _) = marketSource, let key = KachatNamesRegistry.keyOf(address) {
-                return (address.lowercased(), key)
-            }
-        default: break
-        }
         guard let me = myKey, let address = myAddress else { return nil }
         return (address, me)
     }
@@ -324,19 +309,12 @@ final class KachatNamesActions: ObservableObject {
         myAddress.map { "kachat_market_addresses.\($0)" }
     }
 
-    /// Spending addresses picked to buy with in the marketplace, per wallet: Your Domains and the
-    /// marketplace list the names and offers they hold next to the chatting address's.
+    /// Spending addresses an earlier build bought with (the retired Buy From picker), per wallet:
+    /// Your Domains and the marketplace still list the names and offers they hold next to the
+    /// chatting address's. Nothing adds to it any more.
     var marketAddresses: [String] {
         guard let key = marketAddressesKey else { return [] }
         return UserDefaults.standard.stringArray(forKey: key) ?? []
-    }
-
-    private func rememberMarketAddress(_ address: String) {
-        guard let key = marketAddressesKey else { return }
-        var list = marketAddresses
-        guard !list.contains(address.lowercased()) else { return }
-        list.append(address.lowercased())
-        UserDefaults.standard.set(list, forKey: key)
     }
 
     // MARK: - This wallet's keys (IOS-085 / XP-024)

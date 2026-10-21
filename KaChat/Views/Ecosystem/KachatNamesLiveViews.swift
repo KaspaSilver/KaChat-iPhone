@@ -1740,12 +1740,9 @@ struct KachatTxSheet<Inputs: View>: View {
         return (address, me)
     }
 
-    /// "Address #3" (or its name) for the marketplace's address, else the short address.
+    /// "Address #3" (or its name) for one of your addresses, else the short address.
     private func payerLabel(_ address: String) -> String {
-        if case .spending(_, let chosen, let label) = actions.marketSource, chosen.lowercased() == address.lowercased() {
-            return label
-        }
-        return KachatNamesRegistry.compactAddress(address)
+        WalletManager.shared.ownAddressLabel(for: address) ?? KachatNamesRegistry.compactAddress(address)
     }
     @State private var feeTier: WithdrawFeeTier = .normal
     @State private var customFee: UInt64?
@@ -2127,10 +2124,6 @@ struct KachatClaimSheet: View {
 
                     if let q = quote {
                         HStack(spacing: 8) {
-                            // the marketplace's address pays, and the name will be on it
-                            if case .spending(_, _, let label) = KachatNamesActions.shared.marketSource {
-                                SendInfoPill { Text("From: \(label)") }
-                            }
                             SendInfoPill { Text("Available: \(KaspaUnit.amount(q.spendable))") }
                             Spacer(minLength: 0)
                         }
@@ -2157,13 +2150,8 @@ struct KachatClaimSheet: View {
 
                     Group {
                         if let q = quote, !q.affordable {
-                            if case .spending = KachatNamesActions.shared.marketSource {
-                                KaspaUnit.text("Not enough KAS on this address for this name.")
-                                    .foregroundColor(.red)
-                            } else {
-                                KaspaUnit.text("Not enough KAS on your chatting address for this name.")
-                                    .foregroundColor(.red)
-                            }
+                            KaspaUnit.text("Not enough KAS on your chatting address for this name.")
+                                .foregroundColor(.red)
                         } else {
                             Text("The price goes to the miners - KaChat takes nothing. The bond and the deposit come back when you release the name.")
                                 .foregroundColor(.secondary)

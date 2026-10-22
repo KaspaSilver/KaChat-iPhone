@@ -4477,7 +4477,7 @@ struct ChatDetailView: View {
         // - Audio bytes/sec derived from opus bitrate
         // - Ensure estimates can reach maxAudioBytes at max duration
         let headerSize = 200
-        let containerOverheadPerSecond = 400
+        let containerOverheadPerSecond = 320 // ~6 B per packet + a Cluster per second (measured layout)
         let audioBytesPerSecond = Int(Double(opusBitrate) / 8.0)
         let bitrateEstimate = audioBytesPerSecond + containerOverheadPerSecond
         let targetBytesPerSecond = Int(Double(maxAudioBytes - headerSize) / maxRecordingDuration)
@@ -5059,11 +5059,16 @@ struct WebMOpusEncoder {
         let durationSeconds = Double(totalFrames) / sampleRate
         let frameDurationMs = Int64((Double(frameSize) / sampleRate) * 1000.0)
 
+        // The Info duration is what the packets actually hold - if the byte ceiling below ever
+        // trims the tail, the header no longer claims the full recording.
+        func keptDuration() -> Double {
+            min(durationSeconds, Double(packets.count) * Double(frameDurationMs) / 1000.0)
+        }
         var webmData = buildWebM(
             packets: packets,
             opusHead: opusHead,
             sampleRate: sampleRate,
-            durationSeconds: durationSeconds,
+            durationSeconds: keptDuration(),
             frameDurationMs: frameDurationMs
         )
 
@@ -5074,7 +5079,7 @@ struct WebMOpusEncoder {
                     packets: packets,
                     opusHead: opusHead,
                     sampleRate: sampleRate,
-                    durationSeconds: durationSeconds,
+                    durationSeconds: keptDuration(),
                     frameDurationMs: frameDurationMs
                 )
             }
@@ -5260,28 +5265,41 @@ struct WebMOpusEncoder {
         return data
     }
 
+    /// About a second of packets per Cluster. One Cluster per 20 ms packet (the old layout) put
+    /// ~15 bytes of container around each 15-byte Opus packet - ~1.5 KB/s, so the 31 KB cap
+    /// silently cut a 25 s note at ~20.6 s (measured by the Android session). Grouped, a packet
+    /// costs ~21 bytes: 25 s is ~26.7 KB. Every decoder in use reads several SimpleBlocks per
+    /// Cluster (ours walks them all in order; Android/Desktop use standard WebM players).
     private static func makeClusters(packets: [Data], frameDurationMs: Int64) -> Data {
         var clusters = Data()
-        var timecode: Int64 = 0
-        for packet in packets {
-            clusters.append(makeCluster(timecodeMs: timecode, packet: packet))
-            timecode += frameDurationMs
+        let perCluster = max(1, Int(1000 / max(frameDurationMs, 1)))
+        var index = 0
+        while index < packets.count {
+            let end = min(index + perCluster, packets.count)
+            clusters.append(makeCluster(
+                timecodeMs: Int64(index) * frameDurationMs,
+                packets: packets[index..<end],
+                frameDurationMs: frameDurationMs
+            ))
+            index = end
         }
         return clusters
     }
 
-    private static func makeCluster(timecodeMs: Int64, packet: Data) -> Data {
-        let timecodeElement = makeElement(id: [0xE7], uint: UInt64(timecodeMs))
-        let simpleBlock = makeSimpleBlock(packet: packet)
-        let payload = timecodeElement + simpleBlock
+    private static func makeCluster(timecodeMs: Int64, packets: ArraySlice<Data>, frameDurationMs: Int64) -> Data {
+        var payload = makeElement(id: [0xE7], uint: UInt64(timecodeMs))
+        for (offset, packet) in packets.enumerated() {
+            // relative to the Cluster's timecode: at most ~1 s, well inside the signed 16 bits
+            payload.append(makeSimpleBlock(packet: packet, relativeMs: Int16(clamping: Int64(offset) * frameDurationMs)))
+        }
         return makeElement(id: [0x1F, 0x43, 0xB6, 0x75], payload: payload)
     }
 
-    private static func makeSimpleBlock(packet: Data) -> Data {
+    private static func makeSimpleBlock(packet: Data, relativeMs: Int16) -> Data {
         var block = Data()
         block.append(0x81) // Track number 1 (VINT)
-        block.append(contentsOf: be16(0)) // Relative timecode
-        block.append(0x00) // Flags
+        block.append(contentsOf: be16(relativeMs)) // Relative timecode
+        block.append(0x80) // Flags: keyframe (every Opus packet decodes on its own); no lacing
         block.append(packet)
         return makeElement(id: [0xA3], payload: block)
     }

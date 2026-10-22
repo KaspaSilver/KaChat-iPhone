@@ -344,7 +344,11 @@ extension ChatService {
             var confirmedByNodeOnly = false
             if incoming {
                 let verdict = await verifyIncomingPaymentSignatures(tx, myAddress: address)
-                switch verdict.check {
+                // valid but no verified input names a sender: the REST label is all there is, so
+                // it goes the unknown way (node + indexer), never filed under the label (IOS-094)
+                let check: KasiaTransactionBuilder.SignatureCheck =
+                    verdict.check == .valid && verdict.sender == nil ? .unknown : verdict.check
+                switch check {
                 case .valid:
                     releaseHeldPayment(tx.transactionId, wallet: address)
                     // the sender from the very inputs whose signatures were just checked - never
@@ -475,6 +479,7 @@ extension ChatService {
                 covenantId: output.covenantId
             )
         }
+        var verifiedInputs: [Int] = []
         let check = KasiaTransactionBuilder.verifyTransactionSignatures(
             claimedTxId: tx.transactionId,
             inputs: verificationInputs,
@@ -483,13 +488,18 @@ extension ChatService {
             lockTime: tx.lockTime?.value ?? 0,
             subnetworkId: CryptoUtils.hexToData(tx.subnetworkId ?? "") ?? Data(repeating: 0, count: 20),
             gas: tx.gas?.value ?? 0,
-            payload: CryptoUtils.hexToData(tx.payload ?? "") ?? Data()
+            payload: CryptoUtils.hexToData(tx.payload ?? "") ?? Data(),
+            onVerifiedInput: { verifiedInputs.append($0) }
         )
-        // On .valid every input's address was the one its signature was checked against, so the
-        // first that isn't ours is the proven sender.
+        // The proven sender is the first input that isn't ours AMONG THOSE WHOSE SIGNATURE
+        // VERIFIED - never just the first input: ECDSA and covenant-shaped inputs are skipped
+        // unchecked, and a forger could list one first and sign a second input of their own
+        // (IOS-094, owner's choice for the run-18 reopen). No verified non-mine input, no sender.
         let me = myAddress.lowercased()
         let sender = check == .valid
-            ? verificationInputs.compactMap { $0.previousOutpointAddress }.first { $0.lowercased() != me }
+            ? verifiedInputs.lazy
+                .compactMap { verificationInputs[$0].previousOutpointAddress }
+                .first { $0.lowercased() != me }
             : nil
         return (check, sender)
     }

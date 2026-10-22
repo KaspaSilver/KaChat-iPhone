@@ -2254,7 +2254,11 @@ struct KasiaTransactionBuilder {
         lockTime: UInt64,
         subnetworkId: Data,
         gas: UInt64,
-        payload: Data
+        payload: Data,
+        /// Called with the index of every input whose signature VERIFIED. A payment's sender may
+        /// only come from these: ECDSA and covenant-shaped inputs are skipped unchecked, so the
+        /// first non-mine input can be one nobody signed (IOS-094, run 18).
+        onVerifiedInput: (Int) -> Void = { _ in }
     ) -> SignatureCheck {
         // no inputs (a coinbase): nothing was checked, so nothing is vouched for (IOS-094) -
         // the received-payment path drops such a transaction before it gets here
@@ -2407,6 +2411,8 @@ struct KasiaTransactionBuilder {
                 if !isValid {
                     AppLog.log("[TxBuilder] Schnorr signature INVALID for input %d of a v%d tx", index, Int(version))
                     failedInput = failedInput ?? index
+                } else {
+                    onVerifiedInput(index)
                 }
             } catch {
                 AppLog.log("[TxBuilder] Schnorr verification error for input %d: %@", index, error.localizedDescription)

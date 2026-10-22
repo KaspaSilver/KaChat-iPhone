@@ -391,9 +391,10 @@ extension WalletManager {
     /// address is the whole point, so nothing is ever recycled here.
     @discardableResult
     func generateNextQuantumAddress() async -> Int {
-        let quantumIndex = maxQuantumAddressIndex + 1
-        setMaxQuantumAddressIndex(quantumIndex)
-        let index = Self.quantumIndexBase + quantumIndex
+        // checked on chain first, like every other fresh quantum slot (IOS-101): a slot already
+        // used elsewhere is skipped, never handed out as new
+        let index = await verifiedFreshQuantumIndex()
+        setMaxQuantumAddressIndex(index - Self.quantumIndexBase)
         _ = await setSpendingAddressHidden(index: index, hidden: false)
         return index
     }
@@ -873,7 +874,10 @@ extension WalletManager {
     ) async -> Int {
         // Readiness check only: `spendingAddresses(inRange:)` does its own derivation, through
         // one shared change key per call rather than one per address.
-        guard spendingChangeKey() != nil else { return 0 }
+        // The sweep belongs to the account it started for: every derivation and write resolves
+        // the CURRENT account, and its awaits can span an account switch - so it stops, writing
+        // nothing, the moment another account is active (IOS-107).
+        guard let owner = currentWallet?.publicAddress, spendingChangeKey() != nil else { return 0 }
 
         var lastMatchIndex = -1
         var matchCount = 0
@@ -944,6 +948,7 @@ extension WalletManager {
                     await MainActor.run { onProgress(snapshot) }
                 }
 
+                guard currentWallet?.publicAddress == owner else { return 0 }
                 let derived = spendingAddresses(inRange: batch)
                 if derived.isEmpty { break }
 
@@ -980,6 +985,10 @@ extension WalletManager {
         // One read-modify-write of the hidden set, not one per index: it is a computed property
         // over UserDefaults, so an insert in a loop would read and rewrite the whole thing every
         // time - and this loop can now be hundreds of indices long.
+        guard currentWallet?.publicAddress == owner else {
+            AppLog.log("%@", "[WalletManager] Discovery stopped: the account changed during the sweep")
+            return 0
+        }
         let previousMax = maxSpendingAddressIndex
         var hidden = hiddenSpendingIndices
         // Anything the scan matched gets un-hidden. A previously-hidden address that now holds a
@@ -1006,7 +1015,7 @@ extension WalletManager {
             await updateSpendingBounds(maxIndex: lastMatchIndex)
         }
 
-        matchCount += await discoverQuantumAddresses()
+        matchCount += await discoverQuantumAddresses(owner: owner)
 
         return matchCount
     }
@@ -1022,8 +1031,10 @@ extension WalletManager {
     /// never hands out an already-used (possibly key-revealed) slot as fresh change or a fresh
     /// receive address (IOS-101). Returns how many funded slots it found.
     @discardableResult
-    func discoverQuantumAddresses() async -> Int {
-        guard quantumChainKey() != nil else { return 0 }
+    func discoverQuantumAddresses(owner: String? = nil) async -> Int {
+        // same account rule as the legacy sweep (IOS-107)
+        guard let owner = owner ?? currentWallet?.publicAddress,
+              currentWallet?.publicAddress == owner, quantumChainKey() != nil else { return 0 }
         let base = Self.quantumIndexBase
         var start = 0
         var matched: [Int] = []
@@ -1049,11 +1060,12 @@ extension WalletManager {
             }
             guard activity != nil, !touched.isEmpty else { break }
             start += Self.quantumScanFloor
+            guard currentWallet?.publicAddress == owner else { return 0 }
         }
         if let highestFunded = matched.max() {
             highestUsed = max(highestUsed, highestFunded - base)
         }
-        guard highestUsed >= 0 else { return 0 }
+        guard highestUsed >= 0, currentWallet?.publicAddress == owner else { return 0 }
 
         var hidden = hiddenSpendingIndices
         hidden.subtract(matched)

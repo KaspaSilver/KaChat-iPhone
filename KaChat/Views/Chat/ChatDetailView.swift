@@ -2224,7 +2224,7 @@ struct ChatDetailView: View {
         case .chess:
             chessTimeControlSheet
         case .media(let kind):
-            ComposerMediaRouteStep(kind: kind, onChoose: { viaNextcloud in
+            ComposerMediaRouteStep(kind: kind, onChainVoiceSeconds: Int(maxRecordingDuration), onChoose: { viaNextcloud in
                 showComposerPlusSheet = false
                 startMedia(kind, viaNextcloud: viaNextcloud)
             }, onBack: { composerSheetStep = .options })

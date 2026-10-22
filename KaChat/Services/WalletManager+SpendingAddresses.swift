@@ -423,6 +423,17 @@ extension WalletManager {
         return await verifiedFreshQuantumIndex(owner: owner, chainKey: quantumChainKey())
     }
 
+    /// A fresh quantum slot AND its address, both from the account active when this was called -
+    /// for change outputs, whose address must come from the same account the probe checked
+    /// (IOS-109). A spend that started on that account keeps its change there even if another
+    /// account is active by the time the probe returns. nil when the seed is unavailable.
+    func verifiedFreshQuantumSlot() async -> (index: Int, address: String)? {
+        guard let owner = currentWallet?.publicAddress, let chainKey = quantumChainKey() else { return nil }
+        let index = await verifiedFreshQuantumIndex(owner: owner, chainKey: chainKey)
+        guard let address = quantumAddress(at: index, chainKey: chainKey, owner: owner) else { return nil }
+        return (index, address)
+    }
+
     /// The probe for one account, taken when it starts (IOS-109, the sweep's rule from IOS-107):
     /// its slots are derived from that account's chain node and a used slot raises THAT
     /// account's chain end, even if another account is active when a probe returns. Once the
@@ -529,6 +540,9 @@ extension WalletManager {
     /// Without it (Profile warming the QR ahead of the tap) nothing about the list changes: an
     /// address appearing after Hide All with nobody having done anything was exactly that.
     func freshReceiveAddress(revealing: Bool = false) async -> String? {
+        // The QR is for the account active now: an answer that comes back after a switch
+        // belongs to the other account and is dropped, nothing written (IOS-109).
+        guard let owner = currentWallet?.publicAddress else { return nil }
         let chosen: (index: Int, address: String)
         // Rule 1: the pointer from last time, while it is still untouched - and quantum. A
         // legacy pointer, even unused, carries its key in the address itself (P2PK), so the QR
@@ -540,10 +554,12 @@ extension WalletManager {
             // Rule 2: the lowest quantum slot never used (recycling a hidden unused one), else a
             // brand-new slot past the chain's end.
             let index = await lowestUnusedQuantumAddress()
+            guard currentWallet?.publicAddress == owner else { return nil }
             guard let address = spendingAddress(at: index) else { return currentSpendingAddress() }
             receiveAddressIndex = index
             chosen = (index, address)
         }
+        guard currentWallet?.publicAddress == owner else { return nil }
         if revealing {
             await revealSpendingAddress(at: chosen.index)
         }
@@ -625,17 +641,19 @@ extension WalletManager {
     ///
     /// Returns an empty array (reserving nothing, bumping nothing) if derivation fails.
     func reserveFreshSpendingAddresses(count: Int) async -> [(index: Int, address: String)] {
-        guard count > 0, let chainKey = quantumChainKey() else { return [] }
+        guard count > 0, let owner = currentWallet?.publicAddress, let chainKey = quantumChainKey() else { return [] }
         // Fresh addresses handed to someone else are exactly what the quantum chain is for
-        // (KIP-22): never revealed, never funded, key hidden until they spend.
-        let base = await verifiedFreshQuantumIndex() - Self.quantumIndexBase
+        // (KIP-22): never revealed, never funded, key hidden until they spend. Probe, addresses
+        // and the raised chain end all belong to the account active at the start (IOS-109).
+        let base = await verifiedFreshQuantumIndex(owner: owner, chainKey: chainKey) - Self.quantumIndexBase
         var result: [(index: Int, address: String)] = []
         for offset in 0..<count {
             let index = Self.quantumIndexBase + base + offset
-            guard let address = quantumAddress(at: index, chainKey: chainKey) else { return [] }
+            guard let address = quantumAddress(at: index, chainKey: chainKey, owner: owner) else { return [] }
             result.append((index: index, address: address))
         }
-        setMaxQuantumAddressIndex(base + count - 1)
+        guard accountStillSaved(owner) else { return [] }
+        setMaxQuantumAddressIndex(base + count - 1, owner: owner)
         return result
     }
 

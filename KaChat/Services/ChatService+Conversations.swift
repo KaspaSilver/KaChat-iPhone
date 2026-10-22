@@ -2433,17 +2433,17 @@ extension ChatService {
             }
             // Change always lands on a brand-new quantum-safe slot (KIP-22): never an address
             // used before, and its key stays hidden until IT spends.
-            let index = await WalletManager.shared.verifiedFreshQuantumIndex()
-            let fresh = WalletManager.shared.spendingAddress(at: index)
+            // Slot and address from the account the source was derived from (IOS-109).
+            let slot = await WalletManager.shared.verifiedFreshQuantumSlot()
             // A quantum source's spend reveals its key: change back to it would park funds on a
             // revealed key (IOS-104). A legacy source may still fall back to itself.
-            if fresh == nil, WalletManager.isQuantumIndex(spendingIndex) {
+            if slot == nil, WalletManager.isQuantumIndex(spendingIndex) {
                 throw KasiaError.keychainError(AppLocalization.string("Couldn't prepare the next address. Try again."))
             }
             sourceAddress = spendingAddress
             sourcePrivateKey = spendingPrivateKey
-            changeAddress = fresh
-            freshChangeIndex = index
+            changeAddress = slot?.address
+            freshChangeIndex = slot?.index
         } else {
             guard let identityKey = WalletManager.shared.getPrivateKey() else {
                 throw KasiaError.keychainError("Could not get private key")
@@ -2879,10 +2879,9 @@ extension ChatService {
         // rotating as before; both rotate onto a fresh quantum slot now. A self-send (Compound)
         // still consolidates into the address itself, shield off.
         if !isSelfSend, WalletManager.isQuantumIndex(index) || index == WalletManager.shared.currentSpendingAddressIndex {
-            let candidate = await WalletManager.shared.verifiedFreshQuantumIndex()
-            if let address = WalletManager.shared.spendingAddress(at: candidate) {
-                freshChangeIndex = candidate
-                changeAddress = address
+            if let slot = await WalletManager.shared.verifiedFreshQuantumSlot() {
+                freshChangeIndex = slot.index
+                changeAddress = slot.address
             } else if WalletManager.isQuantumIndex(index) {
                 // never change back onto the key this spend reveals (IOS-104)
                 throw KasiaError.keychainError(AppLocalization.string("Couldn't prepare the next address. Try again."))

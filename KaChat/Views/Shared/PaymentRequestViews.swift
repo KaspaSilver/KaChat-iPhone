@@ -179,8 +179,8 @@ struct CreatePaymentRequestView: View {
                 // derived, not reserved: opening the screen and cancelling uses no address up.
                 // The fresh slot is quantum-safe (KIP-22) now, matching what reserving returns.
                 // Checked on chain (IOS-101), so the preview never shows a slot already used.
-                let manager = WalletManager.shared
-                nextFreshAddress = manager.spendingAddress(at: await manager.verifiedFreshQuantumIndex())
+                // Slot and address from the same account (IOS-109).
+                nextFreshAddress = await WalletManager.shared.verifiedFreshQuantumSlot()?.address
             }
             .sheet(isPresented: $showAddressPicker) {
                 OwnAddressPicker(title: "Choose an Address", selected: chosenAddress) { picked in

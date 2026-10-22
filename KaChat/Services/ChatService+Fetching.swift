@@ -541,6 +541,8 @@ extension ChatService {
     /// are young, so one page covers them.
     func quantumAddressSpentState(_ address: String) async -> Bool? {
         if WalletManager.shared.isQuantumAddressSpentLocally(address) { return true }
+        // the account whose address this is; the pages below can span an account switch
+        let owner = WalletManager.shared.currentWallet?.publicAddress
         // The whole history, a page at a time: a spend buried under later activity still
         // revealed the key (IOS-105). A found spend is marked for good, so the walk runs once per
         // address; a page that can't be read leaves the answer unknown, never "not spent".
@@ -564,7 +566,7 @@ extension ChatService {
                 (tx.inputs ?? []).contains { $0.previousOutpointAddress?.lowercased() == lowered }
             }
             if spent {
-                WalletManager.shared.markQuantumAddressSpent(address)
+                WalletManager.shared.markQuantumAddressSpent(address, owner: owner)
                 return true
             }
             if transactions.count < pageSize { return false }

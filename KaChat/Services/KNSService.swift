@@ -1990,7 +1990,9 @@ final class KNSDomainTransferService: ObservableObject {
         guard !isSubmitting else {
             throw KasiaError.apiError("Another KNS domain transfer is already running")
         }
-        guard walletManager.currentWallet != nil else {
+        // the account this transfer belongs to: the primary it rotates after the commit is
+        // that account's, even if another is active by then (IOS-109)
+        guard let accountAddress = walletManager.currentWallet?.publicAddress else {
             throw KasiaError.walletNotFound
         }
         // The source address is the domain's owner: it funds the commit, its pubkey goes into
@@ -2115,7 +2117,7 @@ final class KNSDomainTransferService: ObservableObject {
             // primary follows it now. Should the reveal still fail, the commit output is
             // recoverable from the source key either way, and the pointer no longer names an
             // address that just spent.
-            await walletManager.setActiveSpendingAddress(freshChangeIndex)
+            await walletManager.setActiveSpendingAddress(freshChangeIndex, owner: accountAddress)
         }
         await report(.waitingForCommit)
         ChatService.shared.registerSuppressedPaymentTxIds(

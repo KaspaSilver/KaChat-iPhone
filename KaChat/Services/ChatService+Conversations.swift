@@ -2640,12 +2640,13 @@ extension ChatService {
             clearNoInputRetryState(for: activePendingTxId)
             saveMessages()
             if let freshChangeIndex {
-                await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
+                // the account this send started on, even if another is active by now (IOS-109)
+                await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex, owner: wallet.publicAddress)
             }
             if !fromChattingAddress {
                 // a spend reveals the key for good: the shield comes off (KIP-22)
                 if let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
-                    WalletManager.shared.markQuantumAddressSpent(sourceAddress)
+                    WalletManager.shared.markQuantumAddressSpent(sourceAddress, owner: wallet.publicAddress)
                 }
                 sendSpendingPaymentNotice(to: contact, txId: txId, amountSompi: amountSompi, memo: note)
             }
@@ -2666,11 +2667,11 @@ extension ChatService {
                 clearNoInputRetryState(for: activePendingTxId)
                 saveMessages()
                 if let freshChangeIndex {
-                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex)
+                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex, owner: wallet.publicAddress)
                 }
                 if !fromChattingAddress {
                     if let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
-                        WalletManager.shared.markQuantumAddressSpent(sourceAddress)
+                        WalletManager.shared.markQuantumAddressSpent(sourceAddress, owner: wallet.publicAddress)
                     }
                     sendSpendingPaymentNotice(to: contact, txId: acceptedTxId, amountSompi: amountSompi, memo: note)
                 }
@@ -2851,6 +2852,9 @@ extension ChatService {
     /// the primary sitting on the address it had just spent from. The old primary keeps
     /// whatever it still holds, listed in Manage Addresses like any other revealed slot.
     func sendFromSpendingAddress(index: Int, toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> String {
+        // the account this send belongs to: what it writes after the network answers goes here,
+        // even if another account is active by then (IOS-109)
+        let owner = WalletManager.shared.currentWallet?.publicAddress
         guard amountSompi > 0 else {
             throw KasiaError.networkError("Amount must be greater than zero")
         }
@@ -2952,12 +2956,12 @@ extension ChatService {
             AppLog.log("[ChatService] Spending-address withdrawal submitted: \(txId) via \(endpoint)")
             if WalletManager.isQuantumIndex(index) {
                 // the spend put this address's key on chain for good (self-sends included)
-                WalletManager.shared.markQuantumAddressSpent(fromAddress)
+                WalletManager.shared.markQuantumAddressSpent(fromAddress, owner: owner)
             }
             if let freshChangeIndex {
                 // The primary follows its change onto the fresh address. Manage Addresses
                 // listens for this and moves its star at once.
-                await WalletManager.shared.setActiveSpendingAddress(freshChangeIndex)
+                await WalletManager.shared.setActiveSpendingAddress(freshChangeIndex, owner: owner)
             }
             return txId
         }

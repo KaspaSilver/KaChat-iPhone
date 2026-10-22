@@ -373,8 +373,24 @@ extension WalletManager {
 
     /// Switches which spending address is "primary" - a pure pointer change, moves no funds.
     /// Also extends `maxSpendingAddressIndex` if this index hasn't been revealed yet.
-    func setActiveSpendingAddress(_ index: Int) async {
+    ///
+    /// `owner`: the account a send started on (IOS-109 follow-up). A send that ends after the
+    /// person switched accounts moves THAT account's primary, never the newly active one's;
+    /// nothing is written once the account has been removed.
+    func setActiveSpendingAddress(_ index: Int, owner: String? = nil) async {
         guard index >= 0 else { return }
+        if let owner, owner != currentWallet?.publicAddress {
+            guard accountStillSaved(owner) else { return }
+            if Self.isQuantumIndex(index) {
+                setMaxQuantumAddressIndex(index - Self.quantumIndexBase, owner: owner)
+            } else if index > legacyMaxIndex(owner: owner) {
+                await raiseLegacyMaxIndex(index, owner: owner)
+            }
+            if let key = spendingDefaultsKey("index", owner: owner) {
+                UserDefaults.standard.set(index, forKey: key)
+            }
+            return
+        }
         let changed = index != currentSpendingAddressIndex
         // a quantum index extends its own chain; the legacy max must never see base-space values
         let newMax = (!Self.isQuantumIndex(index) && index > maxSpendingAddressIndex) ? index : nil
@@ -561,7 +577,7 @@ extension WalletManager {
         }
         guard currentWallet?.publicAddress == owner else { return nil }
         if revealing {
-            await revealSpendingAddress(at: chosen.index)
+            await revealSpendingAddress(at: chosen.index, owner: owner)
         }
         return chosen.address
     }
@@ -588,8 +604,11 @@ extension WalletManager {
     /// so the shield comes off (KIP-22). Marked the moment the app sends, and by the on-chain
     /// probe (`ChatService.quantumAddressSpentState`) for spends made elsewhere. Per wallet;
     /// never unmarked - a revealed key cannot be unrevealed.
-    func markQuantumAddressSpent(_ address: String) {
-        guard let key = spendingDefaultsKey("qspent") else { return }
+    func markQuantumAddressSpent(_ address: String, owner: String? = nil) {
+        // `owner`: the account whose address spent, when the caller started before an await
+        // the person may have switched accounts across (IOS-109 follow-up)
+        if let owner, !accountStillSaved(owner) { return }
+        guard let key = spendingDefaultsKey("qspent", owner: owner) else { return }
         var spent = UserDefaults.standard.stringArray(forKey: key) ?? []
         let lowered = address.lowercased()
         guard !spent.contains(lowered) else { return }
@@ -605,31 +624,31 @@ extension WalletManager {
     /// Reveals a specific index from the Address Visibility pager, extending the chain when the
     /// index is beyond the current max - intermediate newly-covered indices are marked hidden so
     /// checking ONE far-out row doesn't flood the main list with everything below it.
-    func revealSpendingAddress(at index: Int) async {
+    ///
+    /// `owner`: the account a send started on (IOS-109 follow-up) - its list gets the address
+    /// even if another account is active when the send ends; nil = the current account.
+    func revealSpendingAddress(at index: Int, owner: String? = nil) async {
+        guard let owner = owner ?? currentWallet?.publicAddress, accountStillSaved(owner) else { return }
+        var newlyCovered: [Int] = []
         if Self.isQuantumIndex(index) {
             let quantumIndex = index - Self.quantumIndexBase
-            let currentMax = maxQuantumAddressIndex
+            let currentMax = quantumMaxIndex(owner: owner)
             if quantumIndex > currentMax {
-                setMaxQuantumAddressIndex(quantumIndex)
-                if quantumIndex - 1 > currentMax {
-                    var hiddenSet = hiddenSpendingIndices
-                    for i in (currentMax + 1)..<quantumIndex { hiddenSet.insert(Self.quantumIndexBase + i) }
-                    hiddenSpendingIndices = hiddenSet
-                }
+                setMaxQuantumAddressIndex(quantumIndex, owner: owner)
+                newlyCovered = ((currentMax + 1)..<quantumIndex).map { Self.quantumIndexBase + $0 }
             }
-            _ = await setSpendingAddressHidden(index: index, hidden: false)
-            return
-        }
-        let currentMax = maxSpendingAddressIndex
-        if index > currentMax {
-            await updateSpendingBounds(maxIndex: index)
-            if index - 1 > currentMax {
-                var hiddenSet = hiddenSpendingIndices
-                for i in (currentMax + 1)..<index { hiddenSet.insert(i) }
-                hiddenSpendingIndices = hiddenSet
+        } else {
+            let currentMax = legacyMaxIndex(owner: owner)
+            if index > currentMax {
+                await raiseLegacyMaxIndex(index, owner: owner)
+                if index - 1 > currentMax { newlyCovered = Array((currentMax + 1)..<index) }
             }
         }
-        _ = await setSpendingAddressHidden(index: index, hidden: false)
+        // read after the await above: the hidden set is written in one go for the same account
+        var hidden = hiddenIndices(owner: owner)
+        hidden.formUnion(newlyCovered)
+        hidden.remove(index)
+        setHiddenIndices(hidden, owner: owner)
     }
 
     /// Reveals and returns `count` brand-new spending-chain slots in one step - used by Request
@@ -693,12 +712,12 @@ extension WalletManager {
         return result
     }
 
-    /// The sweep account's legacy chain end: the stored bound (never a quantum-space value), at
-    /// least the primary pointer when it is on the legacy chain.
-    private func sweepMaxSpendingAddressIndex(_ account: SpendingSweepAccount) -> Int {
-        if currentWallet?.publicAddress == account.owner { return maxSpendingAddressIndex }
+    /// An account's legacy chain end: the stored bound (never a quantum-space value), at least
+    /// the primary pointer when it is on the legacy chain.
+    private func legacyMaxIndex(owner: String) -> Int {
+        if currentWallet?.publicAddress == owner { return maxSpendingAddressIndex }
         func stored(_ suffix: String) -> Int? {
-            guard let key = spendingDefaultsKey(suffix, owner: account.owner),
+            guard let key = spendingDefaultsKey(suffix, owner: owner),
                   let value = UserDefaults.standard.object(forKey: key) as? Int,
                   !Self.isQuantumIndex(value) else { return nil }
             return value
@@ -706,13 +725,13 @@ extension WalletManager {
         return max(stored("maxIndex") ?? 0, stored("index") ?? 0)
     }
 
-    /// Raises the sweep account's legacy chain end. The current account also keeps its Wallet
-    /// record in step (`updateSpendingBounds`); another account gets the stored bound, which is
-    /// what it reads first when it is loaded again.
-    private func raiseSweepMaxSpendingAddressIndex(_ value: Int, account: SpendingSweepAccount) async {
-        if currentWallet?.publicAddress == account.owner {
+    /// Raises an account's legacy chain end. The current account also keeps its Wallet record in
+    /// step (`updateSpendingBounds`); another account gets the stored bound, which is what it
+    /// reads first when it is loaded again.
+    private func raiseLegacyMaxIndex(_ value: Int, owner: String) async {
+        if currentWallet?.publicAddress == owner {
             await updateSpendingBounds(maxIndex: value)
-        } else if let key = spendingDefaultsKey("maxIndex", owner: account.owner) {
+        } else if let key = spendingDefaultsKey("maxIndex", owner: owner) {
             UserDefaults.standard.set(value, forKey: key)
         }
     }
@@ -1098,7 +1117,7 @@ extension WalletManager {
             AppLog.log("%@", "[WalletManager] Discovery dropped: its account was removed during the sweep")
             return 0
         }
-        let previousMax = sweepMaxSpendingAddressIndex(account)
+        let previousMax = legacyMaxIndex(owner: account.owner)
         let storedHidden = hiddenIndices(owner: account.owner)
         var hidden = storedHidden
         // Anything the scan matched gets un-hidden. A previously-hidden address that now holds a
@@ -1122,7 +1141,7 @@ extension WalletManager {
         // shown, and it only ever grows: an address that held funds last month and is empty now
         // should not vanish from the list.
         if lastMatchIndex > previousMax {
-            await raiseSweepMaxSpendingAddressIndex(lastMatchIndex, account: account)
+            await raiseLegacyMaxIndex(lastMatchIndex, owner: account.owner)
         }
 
         matchCount += await discoverQuantumAddresses(account: account)

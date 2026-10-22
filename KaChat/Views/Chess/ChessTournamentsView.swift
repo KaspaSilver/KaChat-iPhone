@@ -287,7 +287,7 @@ struct ChessTournamentsView: View {
         let done = Array(service.finishedTournaments.filter { $0.isDuel == (mode == .duel) && $0.isPublic }.prefix(100))
         if done.isEmpty {
             Section {
-                Text(emptyText)
+                Text(mode == .duel ? "No finished 1v1 games yet." : "No finished tournaments yet.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             } header: {

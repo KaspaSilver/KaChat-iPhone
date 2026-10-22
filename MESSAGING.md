@@ -198,15 +198,25 @@ client (audits AND-042, XP-033, IOS-091, IOS-092):
    signature script cannot be on chain and counts as a failure. A sighash type other than
    SIGHASH_ALL can't be checked: no answer. Other inputs (P2SH covenant spends, ECDSA) are not
    checked here.
-3. **Verdict.** All checked signatures valid: show it. A failure: forged (dropped) **only if the
+3. **Verdict.** All checked signatures valid: show it, under a sender taken **only from an input
+   whose signature was actually verified** - the first verified input that isn't ours. Never the
+   first input overall: a skipped ECDSA or covenant-shaped input can be listed first by a forger
+   who signs a second input of their own (IOS-094). Valid, but no verified input names a sender
+   other than us: treat it as no answer (step 4). A failure: forged (dropped) **only if the
    REST fields rebuild the claimed transaction id** (v0: blake2b "TransactionID"; v1:
    TransactionV1Id over PayloadDigest and TransactionRest), because then the API described the
    transaction completely. If they don't, a field the signature covers is missing (the REST API
    returns no lock time or sequences) and there is no answer.
-4. **No answer: ask the node.** If our node lists unspent coins from that txid paying our address
-   exactly the amount, the payment is real: show it, without a memo (the payload is part of what
-   could not be checked). Otherwise hold it: every held txid is due on every payment sync (on the
-   first history page or not), re-read by id and checked again, for up to 7 days.
+4. **No answer: two sources.** Our node proves the coins: it must list unspent coins from that
+   txid paying our address exactly the amount. The node can't say WHO paid, so the sender comes
+   from a second source the REST server can't speak for: the KaChat indexer's
+   `GET /payments/by-receiver` row for that txid (read by the indexer from its own node). If the
+   REST answer names a sender too, it must equal the indexer's. Only when the node AND the
+   indexer agree is the payment shown, under the indexer's sender and without a memo (the
+   payload is part of what could not be checked); such a node-confirmed payment may never
+   replace a message already on file for that txid that we sent (IOS-096). Otherwise hold it:
+   every held txid is due on every payment sync (on the first history page or not), re-read by
+   id and checked again, for up to 7 days.
 
 ## Payload Encryption
 
@@ -486,6 +496,15 @@ When we receive a self-stash notification, the message might not be for us:
 - Sender could be messaging another contact
 - We decrypt and check the recipient field
 - If not for us, discard silently
+
+**Messages this account can't decrypt are stored but never shown.** A message that fails to
+decrypt (typically one encrypted for another account that reached this contact's chat through
+an account mix-up) is kept with the content `[Encrypted message]`, and a record with exactly
+that content is hidden like the cross-device placeholder `📤 Sent via another device`: not in
+the chat, not as the chat-list preview, not in search, never counted as unread, no banner. The
+record stays, so a later successful decrypt replaces it (real content wins the dedupe) and the
+message appears. The match is on the content itself (owner's decision on IOS-108: a contact
+typing exactly `[Encrypted message]` is hidden too, an accepted quirk).
 
 ## Transaction Payload Formats
 

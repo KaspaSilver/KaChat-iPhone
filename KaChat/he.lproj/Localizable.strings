@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "תמונות באיכות גבוהה יותר";
 "Up to 25 seconds, sent on chain." = "עד 25 שניות, נשלח על השרשרת.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "החודש";
+"All time" = "כל הזמנים";
+"Leaderboard period" = "תקופת טבלת המובילים";
+"Resets on the 1st of every month (UTC)." = "מתאפס ב-1 בכל חודש (UTC).";
+"Counted from %@." = "נספר מאז %@.";
+"No finished 1v1 games this month yet." = "עדיין אין משחקי 1v1 שהסתיימו החודש.";
+"No finished 1v1 games yet." = "עדיין אין משחקי 1v1 שהסתיימו.";
+"No finished tournaments this month yet." = "עדיין אין טורנירים שהסתיימו החודש.";
+"No finished tournaments yet." = "עדיין אין טורנירים שהסתיימו.";

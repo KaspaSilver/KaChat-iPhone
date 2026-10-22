@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "Fotos de mayor calidad";
 "Up to 25 seconds, sent on chain." = "Hasta 25 segundos, enviado en la cadena.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "Este mes";
+"All time" = "Histórico";
+"Leaderboard period" = "Periodo de la clasificación";
+"Resets on the 1st of every month (UTC)." = "Se reinicia el día 1 de cada mes (UTC).";
+"Counted from %@." = "Contado desde el %@.";
+"No finished 1v1 games this month yet." = "Aún no hay partidas 1v1 terminadas este mes.";
+"No finished 1v1 games yet." = "Aún no hay partidas 1v1 terminadas.";
+"No finished tournaments this month yet." = "Aún no hay torneos terminados este mes.";
+"No finished tournaments yet." = "Aún no hay torneos terminados.";

@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "Daha yüksek kaliteli fotoğraflar";
 "Up to 25 seconds, sent on chain." = "25 saniyeye kadar, zincirde gönderilir.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "Bu ay";
+"All time" = "Tüm zamanlar";
+"Leaderboard period" = "Lider tablosu dönemi";
+"Resets on the 1st of every month (UTC)." = "Her ayın 1'inde sıfırlanır (UTC).";
+"Counted from %@." = "%@ tarihinden beri sayılıyor.";
+"No finished 1v1 games this month yet." = "Bu ay henüz biten 1v1 oyunu yok.";
+"No finished 1v1 games yet." = "Henüz biten 1v1 oyunu yok.";
+"No finished tournaments this month yet." = "Bu ay henüz biten turnuva yok.";
+"No finished tournaments yet." = "Henüz biten turnuva yok.";

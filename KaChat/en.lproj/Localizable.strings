@@ -1815,3 +1815,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "Higher quality photos";
 "Up to 25 seconds, sent on chain." = "Up to 25 seconds, sent on chain.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "This month";
+"All time" = "All time";
+"Leaderboard period" = "Leaderboard period";
+"Resets on the 1st of every month (UTC)." = "Resets on the 1st of every month (UTC).";
+"Counted from %@." = "Counted from %@.";
+"No finished 1v1 games this month yet." = "No finished 1v1 games this month yet.";
+"No finished 1v1 games yet." = "No finished 1v1 games yet.";
+"No finished tournaments this month yet." = "No finished tournaments this month yet.";
+"No finished tournaments yet." = "No finished tournaments yet.";

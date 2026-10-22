@@ -362,6 +362,14 @@ struct ChessTournament: Identifiable, Equatable {
     }
 }
 
+/// Which stretch a leaderboard covers. Both start at the fresh-start cutoff
+/// (`ChessTournamentEngine.leaderboardFreshFromMs`); this month also starts on the 1st (UTC).
+enum ChessLeaderboardPeriod: String, CaseIterable, Identifiable {
+    case month
+    case allTime = "all"
+    var id: String { rawValue }
+}
+
 /// A row of the leaderboard the phone computes from what it has read.
 /// One player's record. Two boards read it: 1v1 (duel games, public and private) and
 /// Tournaments (tournaments won, then the games inside them). `wins`/`losses` are the totals

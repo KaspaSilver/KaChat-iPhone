@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "更高画质的照片";
 "Up to 25 seconds, sent on chain." = "最长 25 秒，在链上发送。";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "本月";
+"All time" = "总榜";
+"Leaderboard period" = "排行榜周期";
+"Resets on the 1st of every month (UTC)." = "每月 1 日（UTC）重置。";
+"Counted from %@." = "自 %@ 起计算。";
+"No finished 1v1 games this month yet." = "本月还没有已结束的 1v1 对局。";
+"No finished 1v1 games yet." = "还没有已结束的 1v1 对局。";
+"No finished tournaments this month yet." = "本月还没有已结束的锦标赛。";
+"No finished tournaments yet." = "还没有已结束的锦标赛。";

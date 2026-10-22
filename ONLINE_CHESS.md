@@ -155,8 +155,24 @@ games inside 1:1 chats:
   the moment it happens; winning a game inside one scores nothing until the final is won).
   Most won first, fewest lost breaking ties. A 1v1 never counts here.
 
-`wins`/`losses` in the row below are the totals over both. For the full history the KaChat
-broadcast indexer must:
+`wins`/`losses` in the row below are the totals over both.
+
+**Two periods, both fresh from one cutoff.** Each board is shown for **This month** and
+**All time**. Nothing that started before the fresh-start cutoff **`1792647960000` ms
+(2026-10-22 05:46 UTC)** counts on either: `ChessTournamentEngine.leaderboardFreshFromMs`
+in the app, `chess::LEADERBOARD_FRESH_FROM_MS` in the indexer, and the two must be equal.
+A tournament or 1v1 counts in the period it **started** in (`startedAt >= since`), with all
+of its games, even ones that end after the month rolls over:
+
+- all time: `since = cutoff`
+- this month: `since = max(cutoff, 00:00 UTC on the 1st of the current month)`, so the
+  month board resets on the 1st of every month, UTC.
+
+The app merges the indexer's board with its own (per player, the larger of each figure)
+and uses an indexer board only if its `period` and `since` match what the app computes;
+otherwise it shows its own.
+
+For the full history the KaChat broadcast indexer must:
 
 1. **Track `chess-arena`** like the curated rooms (30-day history served by `/get-broadcasts`),
    so a phone that opens Chess sees every tournament of the last month, not only what it
@@ -167,14 +183,14 @@ broadcast indexer must:
    and merges what comes back. Without it a phone only learns of a join or a move it
    happened to scan live from a block, so the other player's join is missed whenever the
    phone was locked, reconnecting, or not yet on the Chess screen when it landed.
-2. **Serve `GET /chess/leaderboard?limit=100`** →
-   `{"players":[{"address":"kaspa:…","wins":12,"losses":4,"duelWins":9,"duelLosses":3,"tournamentGameWins":3,"tournamentGameLosses":1,"tournamentsPlayed":5,"tournamentsWon":2,"tournamentsLost":3,"lastPlayedAt":<ms>}], "generatedAt":<ms>}`,
+2. **Serve `GET /chess/leaderboard?limit=100&period=month|all`** (missing `period` = `all`) →
+   `{"players":[{"address":"kaspa:…","wins":12,"losses":4,"duelWins":9,"duelLosses":3,"tournamentGameWins":3,"tournamentGameLosses":1,"tournamentsPlayed":5,"tournamentsWon":2,"tournamentsLost":3,"lastPlayedAt":<ms>}], "period":"month", "since":<ms>, "generatedAt":<ms>}`,
    sorted by `wins` desc, then `losses` asc (the phone sorts each board itself, see
    `ChessTournamentEngine.duelLeaderboard` / `tournamentLeaderboard`). Computed by replaying the arena with the
    rules above (the reference reducer is `ChessTournamentEngine.swift` in this repo; port it,
-   do not reinterpret it). Also `GET /chess/player?address=` → the same row for one player.
+   do not reinterpret it). Also `GET /chess/player?address=&period=month|all` → the same row for one player.
 3. Optional: `GET /chess/tournaments?status=open|live|done&limit=` → the lobby list
    precomputed, for phones that want it without scanning.
 
-Until (1) and (2) exist the lobby shows what the phone has scanned in-session plus whatever
-the store retains, and the leaderboard is local.
+Without (1) and (2) the lobby shows what the phone has scanned in-session plus whatever
+the store retains, and the leaderboard is local (both periods, same rules).

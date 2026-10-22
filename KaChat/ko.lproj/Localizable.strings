@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "더 높은 화질의 사진";
 "Up to 25 seconds, sent on chain." = "최대 25초, 체인으로 전송됩니다.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "이번 달";
+"All time" = "전체 기간";
+"Leaderboard period" = "리더보드 기간";
+"Resets on the 1st of every month (UTC)." = "매월 1일(UTC)에 초기화됩니다.";
+"Counted from %@." = "%@부터 집계됩니다.";
+"No finished 1v1 games this month yet." = "이번 달에 끝난 1v1 게임이 아직 없습니다.";
+"No finished 1v1 games yet." = "끝난 1v1 게임이 아직 없습니다.";
+"No finished tournaments this month yet." = "이번 달에 끝난 토너먼트가 아직 없습니다.";
+"No finished tournaments yet." = "끝난 토너먼트가 아직 없습니다.";

@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "Foto kualitas lebih tinggi";
 "Up to 25 seconds, sent on chain." = "Hingga 25 detik, dikirim di chain.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "Bulan ini";
+"All time" = "Sepanjang waktu";
+"Leaderboard period" = "Periode papan peringkat";
+"Resets on the 1st of every month (UTC)." = "Diatur ulang setiap tanggal 1 (UTC).";
+"Counted from %@." = "Dihitung sejak %@.";
+"No finished 1v1 games this month yet." = "Belum ada game 1v1 yang selesai bulan ini.";
+"No finished 1v1 games yet." = "Belum ada game 1v1 yang selesai.";
+"No finished tournaments this month yet." = "Belum ada turnamen yang selesai bulan ini.";
+"No finished tournaments yet." = "Belum ada turnamen yang selesai.";

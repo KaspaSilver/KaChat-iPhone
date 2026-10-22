@@ -10,7 +10,13 @@ final class ChessTournamentService: ObservableObject {
     static let shared = ChessTournamentService()
 
     @Published private(set) var tournaments: [String: ChessTournament] = [:]
+    /// All time (since `ChessTournamentEngine.leaderboardFreshFromMs`) and this UTC month: the
+    /// indexer's boards (all history) merged with what this phone has read (the newest rows).
     @Published private(set) var leaderboard: [ChessLeaderboardRow] = []
+    @Published private(set) var monthlyLeaderboard: [ChessLeaderboardRow] = []
+    func board(for period: ChessLeaderboardPeriod) -> [ChessLeaderboardRow] {
+        period == .month ? monthlyLeaderboard : leaderboard
+    }
     /// Chain time as this phone estimates it: wall clock, for running clocks between blocks.
     @Published private(set) var now: Int64 = Int64(Date().timeIntervalSince1970 * 1000)
     @Published var lastError: String?
@@ -56,6 +62,7 @@ final class ChessTournamentService: ObservableObject {
         arenaJoined = true
         publicChat.acquire(ChessTournamentCodec.arenaChannel)
         if let me = myAddress { resolveNames(for: [me]) }
+        refreshIndexerLeaderboards()
         historyReady = false
         Task { [weak self] in
             let deadline = Date().addingTimeInterval(8)
@@ -75,6 +82,11 @@ final class ChessTournamentService: ObservableObject {
                 guard let self else { return }
                 self.now = Int64(Date().timeIntervalSince1970 * 1000)
                 self.claimTimeoutsIfDue()
+                // The 1st of the month (UTC) came while a chess screen was up: a new month board.
+                if self.boardsMonthStart != 0, ChessTournamentEngine.utcMonthStartMs(self.now) != self.boardsMonthStart {
+                    self.recomputeLocalBoards()
+                    self.refreshIndexerLeaderboards(force: true)
+                }
             }
         }
         fastPollTask?.cancel()
@@ -119,7 +131,7 @@ final class ChessTournamentService: ObservableObject {
             let line = ChessTournamentChatLine(id: row.id, sender: row.senderAddress, text: text, blockTime: row.blockTime, game: message.g ?? "")
             return ChessPendingChatLine(id: row.id, tournament: message.t, line: line, failed: row.deliveryStatus == .failed)
         }
-        leaderboard = ChessTournamentEngine.leaderboard(from: Array(reduced.values))
+        recomputeLocalBoards()
         resolveNames(for: Set(reduced.values.flatMap(\.players)))
         // Asked to join a public room that filled first: queue into the next one, once.
         if let queued = queuedPublicRoomId, let me = myAddress, let room = reduced[queued],
@@ -233,6 +245,114 @@ final class ChessTournamentService: ObservableObject {
             .filter { $0.isStillPlaying(me, at: now) || ($0.status == .open && $0.isSeated(me, at: now)) }
             .sorted { $0.createdAt > $1.createdAt }
             .first
+    }
+
+    // MARK: - Leaderboards
+
+    private var localBoards: [ChessLeaderboardPeriod: [ChessLeaderboardRow]] = [:]
+    private var indexerBoards: [ChessLeaderboardPeriod: (since: Int64, rows: [ChessLeaderboardRow])] = [:]
+    private var boardsMonthStart: Int64 = 0
+    private var lastIndexerLeaderboardFetch: Date?
+    private var indexerLeaderboardTask: Task<Void, Never>?
+
+    private func recomputeLocalBoards() {
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        boardsMonthStart = ChessTournamentEngine.utcMonthStartMs(nowMs)
+        let all = Array(tournaments.values)
+        for period in ChessLeaderboardPeriod.allCases {
+            localBoards[period] = ChessTournamentEngine.leaderboard(
+                from: all, since: ChessTournamentEngine.periodSinceMs(period, nowMs: nowMs))
+        }
+        publishBoards()
+    }
+
+    /// Per player, each figure is the larger of the two sources: both count the same window,
+    /// the indexer has the older history and this phone the newest blocks, so neither can be
+    /// above the true count. An indexer board for another window (an old indexer without
+    /// `period`, or a month that has since rolled over) is not used.
+    private func publishBoards() {
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        func merged(_ period: ChessLeaderboardPeriod) -> [ChessLeaderboardRow] {
+            let local = localBoards[period] ?? []
+            guard let remote = indexerBoards[period],
+                  remote.since == ChessTournamentEngine.periodSinceMs(period, nowMs: nowMs) else { return local }
+            var rows = Dictionary(remote.rows.map { ($0.address, $0) }, uniquingKeysWith: { a, _ in a })
+            for r in local {
+                guard var m = rows[r.address] else { rows[r.address] = r; continue }
+                m.wins = max(m.wins, r.wins)
+                m.losses = max(m.losses, r.losses)
+                m.duelWins = max(m.duelWins, r.duelWins)
+                m.duelLosses = max(m.duelLosses, r.duelLosses)
+                m.tournamentGameWins = max(m.tournamentGameWins, r.tournamentGameWins)
+                m.tournamentGameLosses = max(m.tournamentGameLosses, r.tournamentGameLosses)
+                m.tournamentsPlayed = max(m.tournamentsPlayed, r.tournamentsPlayed)
+                m.tournamentsWon = max(m.tournamentsWon, r.tournamentsWon)
+                m.tournamentsLost = max(m.tournamentsLost, r.tournamentsLost)
+                m.lastPlayedAt = max(m.lastPlayedAt, r.lastPlayedAt)
+                rows[r.address] = m
+            }
+            return rows.values.sorted {
+                if $0.wins != $1.wins { return $0.wins > $1.wins }
+                if $0.losses != $1.losses { return $0.losses < $1.losses }
+                return $0.lastPlayedAt > $1.lastPlayedAt
+            }
+        }
+        let all = merged(.allTime)
+        let month = merged(.month)
+        if all != leaderboard { leaderboard = all }
+        if month != monthlyLeaderboard { monthlyLeaderboard = month }
+    }
+
+    private struct IndexerLeaderboardResponse: Decodable {
+        struct Player: Decodable {
+            let address: String
+            let wins, losses, duelWins, duelLosses: Int
+            let tournamentGameWins, tournamentGameLosses: Int
+            let tournamentsPlayed, tournamentsWon, tournamentsLost: Int
+            let lastPlayedAt: Int64
+        }
+        let players: [Player]
+        let period: String?
+        let since: Int64?
+    }
+
+    /// GET /chess/leaderboard?period=month|all on the arena's indexer (ONLINE_CHESS.md §6).
+    /// At most every 20 s unless forced; any failure leaves the phone's own boards in place.
+    func refreshIndexerLeaderboards(force: Bool = false) {
+        if !force, let last = lastIndexerLeaderboardFetch, Date().timeIntervalSince(last) < 20 { return }
+        var base = PublicChatService.indexerBaseURL(forChannel: ChessTournamentCodec.arenaChannel)
+        if base.hasSuffix("/") { base = String(base.dropLast()) }
+        guard !base.isEmpty else { return }
+        lastIndexerLeaderboardFetch = Date()
+        indexerLeaderboardTask?.cancel()
+        indexerLeaderboardTask = Task { [weak self] in
+            for period in ChessLeaderboardPeriod.allCases {
+                guard var components = URLComponents(string: "\(base)/chess/leaderboard") else { return }
+                components.queryItems = [
+                    URLQueryItem(name: "period", value: period.rawValue),
+                    URLQueryItem(name: "limit", value: "1000")
+                ]
+                guard let url = components.url else { return }
+                var request = URLRequest(url: url)
+                request.timeoutInterval = 15
+                guard let (data, response) = try? await URLSession.shared.data(for: request),
+                      let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+                      let decoded = try? JSONDecoder().decode(IndexerLeaderboardResponse.self, from: data),
+                      decoded.period == period.rawValue, let since = decoded.since else { continue }
+                let rows = decoded.players.map {
+                    ChessLeaderboardRow(
+                        address: $0.address, wins: $0.wins, losses: $0.losses,
+                        duelWins: $0.duelWins, duelLosses: $0.duelLosses,
+                        tournamentGameWins: $0.tournamentGameWins, tournamentGameLosses: $0.tournamentGameLosses,
+                        tournamentsPlayed: $0.tournamentsPlayed, tournamentsWon: $0.tournamentsWon,
+                        tournamentsLost: $0.tournamentsLost, lastPlayedAt: $0.lastPlayedAt)
+                }
+                guard !Task.isCancelled, let self else { return }
+                self.indexerBoards[period] = (since, rows)
+                self.publishBoards()
+                self.resolveNames(for: Set(rows.prefix(100).map(\.address)))
+            }
+        }
     }
 
     // MARK: - Names

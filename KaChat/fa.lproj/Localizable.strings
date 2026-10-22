@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "عکس‌های با کیفیت بالاتر";
 "Up to 25 seconds, sent on chain." = "تا ۲۵ ثانیه، روی زنجیره ارسال می‌شود.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "این ماه";
+"All time" = "همه زمان‌ها";
+"Leaderboard period" = "دوره جدول امتیازات";
+"Resets on the 1st of every month (UTC)." = "اول هر ماه بازنشانی می‌شود (UTC).";
+"Counted from %@." = "شمارش از %@.";
+"No finished 1v1 games this month yet." = "هنوز بازی 1v1 تمام‌شده‌ای در این ماه نیست.";
+"No finished 1v1 games yet." = "هنوز بازی 1v1 تمام‌شده‌ای نیست.";
+"No finished tournaments this month yet." = "هنوز تورنمنت تمام‌شده‌ای در این ماه نیست.";
+"No finished tournaments yet." = "هنوز تورنمنت تمام‌شده‌ای نیست.";

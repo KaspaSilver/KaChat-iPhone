@@ -265,10 +265,35 @@ enum ChessTournamentEngine {
 
     // MARK: - Leaderboard
 
-    static func leaderboard(from tournaments: [ChessTournament]) -> [ChessLeaderboardRow] {
+    /// The leaderboards started fresh at this moment (2026-10-22 05:46 UTC): anything that
+    /// started earlier never counts on either period. Must equal the indexer's
+    /// chess::LEADERBOARD_FRESH_FROM_MS.
+    static let leaderboardFreshFromMs: Int64 = 1_792_647_960_000
+
+    /// Start of the UTC calendar month containing `nowMs`, in ms.
+    static func utcMonthStartMs(_ nowMs: Int64) -> Int64 {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let date = Date(timeIntervalSince1970: TimeInterval(nowMs) / 1000)
+        let start = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+        return Int64((start.timeIntervalSince1970 * 1000).rounded())
+    }
+
+    /// The first counted start time: all time = the fresh-start cutoff; this month = the later
+    /// of the cutoff and the start of the current UTC month.
+    static func periodSinceMs(_ period: ChessLeaderboardPeriod, nowMs: Int64) -> Int64 {
+        switch period {
+        case .allTime: return leaderboardFreshFromMs
+        case .month: return max(leaderboardFreshFromMs, utcMonthStartMs(nowMs))
+        }
+    }
+
+    /// A tournament or 1v1 counts in the period it STARTED in (startedAt >= since), with every
+    /// one of its games, even ones that end after the month rolls over.
+    static func leaderboard(from tournaments: [ChessTournament], since: Int64 = leaderboardFreshFromMs) -> [ChessLeaderboardRow] {
         var rows: [String: ChessLeaderboardRow] = [:]
         func row(_ address: String) -> ChessLeaderboardRow { rows[address] ?? ChessLeaderboardRow(address: address) }
-        for tournament in tournaments where tournament.startedAt != nil {
+        for tournament in tournaments where tournament.startedAt.map({ $0 >= since }) ?? false {
             // A 1v1 is not a tournament: it counts on the 1v1 board only.
             if !tournament.isDuel {
                 for player in tournament.players {

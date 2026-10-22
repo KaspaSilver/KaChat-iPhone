@@ -1814,3 +1814,14 @@
 /* Chats: higher quality photos; longer on-chain voice notes */
 "Higher quality photos" = "Ảnh chất lượng cao hơn";
 "Up to 25 seconds, sent on chain." = "Tối đa 25 giây, gửi trên chuỗi.";
+
+/* Chess leaderboard: this month / all time */
+"This month" = "Tháng này";
+"All time" = "Mọi thời đại";
+"Leaderboard period" = "Khoảng thời gian bảng xếp hạng";
+"Resets on the 1st of every month (UTC)." = "Đặt lại vào ngày 1 mỗi tháng (UTC).";
+"Counted from %@." = "Tính từ %@.";
+"No finished 1v1 games this month yet." = "Chưa có ván 1v1 nào kết thúc trong tháng này.";
+"No finished 1v1 games yet." = "Chưa có ván 1v1 nào kết thúc.";
+"No finished tournaments this month yet." = "Chưa có giải đấu nào kết thúc trong tháng này.";
+"No finished tournaments yet." = "Chưa có giải đấu nào kết thúc.";

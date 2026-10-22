@@ -287,7 +287,7 @@ struct ChessTournamentsView: View {
         let done = Array(service.finishedTournaments.filter { $0.isDuel == (mode == .duel) && $0.isPublic }.prefix(100))
         if done.isEmpty {
             Section {
-                Text(mode == .duel ? "No finished 1v1 games yet." : "No finished tournaments yet.")
+                Text(emptyText)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             } header: {
@@ -592,8 +592,9 @@ struct ChessTournamentsView: View {
 }
 
 /// One kind's leaderboard, as rows inside the screen's list: 1v1 (wins and losses in 1v1
-/// games) or Tournaments (tournaments won, then the wins and losses inside them). What the
-/// phone has read; the indexer's version (ONLINE_CHESS.md §6) will cover all history.
+/// games) or Tournaments (tournaments won, then the wins and losses inside them), for this
+/// UTC month or all time. The indexer's boards (ONLINE_CHESS.md §6) merged with what the
+/// phone has read; both count from `ChessTournamentEngine.leaderboardFreshFromMs`.
 struct ChessLeaderboardRows: View {
     let mode: ChessTournamentsView.Mode
     @ObservedObject private var service = ChessTournamentService.shared
@@ -601,17 +602,53 @@ struct ChessLeaderboardRows: View {
     /// The player whose row was tapped: the same User Info sheet a public chat opens from an
     /// avatar's View Profile.
     @State private var profileContact: Contact?
+    @State private var period: ChessLeaderboardPeriod = .month
 
     private var rows: [ChessLeaderboardRow] {
-        mode == .duel
-            ? ChessTournamentEngine.duelLeaderboard(service.leaderboard)
-            : ChessTournamentEngine.tournamentLeaderboard(service.leaderboard)
+        let board = service.board(for: period)
+        return mode == .duel
+            ? ChessTournamentEngine.duelLeaderboard(board)
+            : ChessTournamentEngine.tournamentLeaderboard(board)
+    }
+
+    private var emptyText: LocalizedStringKey {
+        switch (mode, period) {
+        case (.duel, .month): return "No finished 1v1 games this month yet."
+        case (.duel, .allTime): return "No finished 1v1 games yet."
+        case (.tournament, .month): return "No finished tournaments this month yet."
+        case (.tournament, .allTime): return "No finished tournaments yet."
+        }
+    }
+
+    private var periodNote: String {
+        switch period {
+        case .month:
+            return String(localized: "Resets on the 1st of every month (UTC).")
+        case .allTime:
+            let since = Date(timeIntervalSince1970: TimeInterval(ChessTournamentEngine.leaderboardFreshFromMs) / 1000)
+            let day = since.formatted(.dateTime.year().month(.wide).day())
+            return String(format: String(localized: "Counted from %@."), day)
+        }
     }
 
     var body: some View {
         Section {
+            Picker("Leaderboard period", selection: $period) {
+                Text("This month").tag(ChessLeaderboardPeriod.month)
+                Text("All time").tag(ChessLeaderboardPeriod.allTime)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+        } footer: {
+            Text(periodNote)
+        }
+        .onAppear { service.refreshIndexerLeaderboards() }
+        .onChange(of: period) { _ in service.refreshIndexerLeaderboards() }
+        Section {
             if rows.isEmpty {
-                Text(mode == .duel ? "No finished 1v1 games yet." : "No finished tournaments yet.")
+                Text(emptyText)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }

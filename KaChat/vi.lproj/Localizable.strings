@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "Địa chỉ lượng tử";
 "Non-Quantum Addresses" = "Địa chỉ không lượng tử";
 "%lld of %lld shown" = "Hiển thị %lld/%lld";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "Ảnh chất lượng cao hơn";
+"Up to 25 seconds, sent on chain." = "Tối đa 25 giây, gửi trên chuỗi.";

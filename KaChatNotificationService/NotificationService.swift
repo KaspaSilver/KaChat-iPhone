@@ -1849,10 +1849,31 @@ private struct NotificationCipher {
 
         let symmetricKey = SymmetricKey(data: derivedKey)
         let plaintext = try ChaChaPoly.open(sealedBox, using: symmetricKey)
+        // the binary media frame (photo / voice note) - see the app's ContextualMediaFrame
+        if let media = mediaFrameEnvelope(plaintext) { return media }
         guard let result = String(data: plaintext, encoding: .utf8) else {
             throw CipherError.invalidPlaintext
         }
         return result
+    }
+
+    /// The app's `ContextualMediaFrame.envelopeText`, for the extension's own decrypt: a binary
+    /// media frame (0xFF 'K' 'C' 'M' 0x01 | u32 BE header length | header JSON | raw bytes)
+    /// becomes the same media-file JSON the text form carried.
+    private static func mediaFrameEnvelope(_ data: Data) -> String? {
+        let magic: [UInt8] = [0xFF, 0x4B, 0x43, 0x4D, 0x01]
+        let bytes = [UInt8](data)
+        guard bytes.count > magic.count + 4, Array(bytes[0..<magic.count]) == magic else { return nil }
+        let headerLength = bytes[magic.count..<(magic.count + 4)].reduce(0) { ($0 << 8) | Int($1) }
+        let headerStart = magic.count + 4
+        guard headerLength > 0, headerStart + headerLength <= bytes.count,
+              let header = (try? JSONSerialization.jsonObject(with: Data(bytes[headerStart..<(headerStart + headerLength)]))) as? [String: Any],
+              let mimeType = header["mimeType"] as? String, !mimeType.isEmpty else { return nil }
+        let raw = Data(bytes[(headerStart + headerLength)...])
+        guard !raw.isEmpty else { return nil }
+        let name = ((header["name"] as? String) ?? "file")
+            .replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+        return "{\"type\":\"file\",\"name\":\"\(name)\",\"size\":\(raw.count),\"mimeType\":\"\(mimeType)\",\"content\":\"data:\(mimeType);base64,\(raw.base64EncodedString())\"}"
     }
 
     private static func performECDH(privateKey: Data, ephemeralPublicKey: Data) throws -> Data {

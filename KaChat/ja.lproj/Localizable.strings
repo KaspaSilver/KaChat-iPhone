@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "量子耐性アドレス";
 "Non-Quantum Addresses" = "非量子耐性アドレス";
 "%lld of %lld shown" = "%2$lld件中%1$lld件を表示";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "高画質の写真";
+"Up to 25 seconds, sent on chain." = "最大25秒、オンチェーンで送信。";

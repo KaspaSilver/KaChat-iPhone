@@ -1758,3 +1758,7 @@
 "Quantum Addresses" = "Quantensichere Adressen";
 "Non-Quantum Addresses" = "Nicht quantensichere Adressen";
 "%lld of %lld shown" = "%lld von %lld angezeigt";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "Fotos in höherer Qualität";
+"Up to 25 seconds, sent on chain." = "Bis zu 25 Sekunden, on-chain gesendet.";

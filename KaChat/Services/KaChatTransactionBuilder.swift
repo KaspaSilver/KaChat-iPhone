@@ -1374,8 +1374,15 @@ struct KasiaTransactionBuilder {
         content: String,
         recipientPublicKey: Data
     ) throws -> Data {
-        // Encrypt raw message content (external client behavior)
-        let encrypted = try KasiaCipher.encrypt(content, recipientPublicKey: recipientPublicKey)
+        // A photo or voice note (media-file JSON with a base64 data URL) travels as the binary
+        // media frame - raw bytes, one base64 layer instead of two; everything else as UTF-8
+        // text (external client behavior).
+        let encrypted: KasiaCipher.EncryptedMessage
+        if let frame = ContextualMediaFrame.frame(forEnvelope: content) {
+            encrypted = try KasiaCipher.encrypt(data: frame, recipientPublicKey: recipientPublicKey)
+        } else {
+            encrypted = try KasiaCipher.encrypt(content, recipientPublicKey: recipientPublicKey)
+        }
 
         // Return as base64-encoded string (matching external Kasia format)
         let base64 = encrypted.toBytes().base64EncodedString()

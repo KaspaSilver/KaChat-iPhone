@@ -300,7 +300,8 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
   choice replaced the old "Send Media via Nextcloud" setting.
   - Via Nextcloud: full-quality uploads, videos from the camera or the library, and voice notes
     up to `ComposerMediaLimits.nextcloudVoiceSeconds` (5 min, app-wide).
-  - On chain: compressed photos and ~10 s voice notes.
+  - On chain: compressed photos (20 KB, 32 KB with Chats > Higher quality photos) and voice
+    notes up to ~25 s, both in the binary media frame (MESSAGING.md).
   - Paste, drop and share-extension photos go on chain.
 - **Paying:** Send Kaspa (and `startInPaymentMode`) opens the Send KAS sheet, not a composer
   mode. It has an exact amount (KAS or fiat, Max), an encrypted memo (the payment payload's

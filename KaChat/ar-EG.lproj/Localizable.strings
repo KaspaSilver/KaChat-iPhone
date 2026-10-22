@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "العناوين المقاومة للكم";
 "Non-Quantum Addresses" = "العناوين غير المقاومة للكم";
 "%lld of %lld shown" = "%lld من %lld معروضة";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "صور بجودة أعلى";
+"Up to 25 seconds, sent on chain." = "حتى 25 ثانية، تُرسل على السلسلة.";

@@ -18,11 +18,13 @@ enum ImagePrep {
 
     /// Longest edge cap in pixels before compression.
     static let chatMaxDimension: CGFloat = 1280
-    /// Target raw encoded image byte size - calibrated to land the final on-chain payload in the same
-    /// ballpark as a voice message's ~28.7KB final wire size.
-    /// The one on-chain photo budget: every chat photo is encoded to fit 15 KB. There is no
-    /// quality setting - a bigger photo goes through Nextcloud, not the chain.
-    static let defaultChatTargetBytes = 15_000
+    /// The on-chain photo budget. 20 KB since the binary media frame (ContextualMediaFrame) took
+    /// one base64 layer off: a 20 KB photo now costs what a 15 KB one did (~27 KB of payload).
+    static let defaultChatTargetBytes = 20_000
+    /// Chats > Higher quality photos: the largest photo one transaction carries with margin -
+    /// ~43 KB of payload, ~43.3 KB of transaction, ~87,000 of the 100,000 mass a standard
+    /// transaction may have at 2 grams per byte (post-Toccata transient mass).
+    static let highQualityChatTargetBytes = 32_000
     private static let maxShrinkAttempts = 4
     private static let shrinkFactor: CGFloat = 0.7
 
@@ -84,9 +86,9 @@ enum ImagePrep {
     /// Rough estimate of the final wire payload size for a picked-but-not-yet-compressed photo,
     /// used only for a live "fee so far" preview - the real send always measures actual bytes.
     static func estimatedWirePayloadSize(targetBytes: Int = defaultChatTargetBytes) -> Int {
-        // Base64 (inner, embedding raw bytes) then the whole JSON gets base64'd again for the
-        // encrypted comm payload - roughly 1.33x expansion twice.
-        Int(Double(targetBytes) * 1.33 * 1.33) + 150
+        // The binary media frame carries the raw bytes; only the payload's own base64 remains
+        // (frame header + cipher overhead ~150 bytes, then 4/3).
+        Int(Double(targetBytes + 150) * 4.0 / 3.0) + 80
     }
 
     private static func normalizedAndDownscaled(

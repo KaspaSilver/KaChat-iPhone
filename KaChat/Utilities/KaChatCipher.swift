@@ -70,6 +70,12 @@ struct KasiaCipher {
         guard let plaintextData = plaintext.data(using: .utf8) else {
             throw CipherError.invalidPlaintext
         }
+        return try encrypt(data: plaintextData, recipientPublicKey: recipientPublicKey)
+    }
+
+    /// Encrypt raw bytes - the binary media frame (`ContextualMediaFrame`) of a photo or voice
+    /// note travels this way, without a base64 layer inside the encryption.
+    static func encrypt(data plaintextData: Data, recipientPublicKey: Data) throws -> EncryptedMessage {
 
         // 1. Generate ephemeral key pair
         let ephemeralPrivateKey: P256K.KeyAgreement.PrivateKey
@@ -182,6 +188,11 @@ struct KasiaCipher {
             let symmetricKey = SymmetricKey(data: derivedKey)
             let plaintext = try ChaChaPoly.open(sealedBox, using: symmetricKey)
 
+            // A binary media frame comes back as the same media-file JSON a text-encoded one
+            // always was, so everything after decryption is unchanged.
+            if let media = ContextualMediaFrame.envelopeText(from: plaintext) {
+                return media
+            }
             guard let result = String(data: plaintext, encoding: .utf8) else {
                 throw CipherError.invalidPlaintext
             }
@@ -315,5 +326,72 @@ extension Data {
 
     var hexString: String {
         return map { String(format: "%02x", $0) }.joined()
+    }
+}
+
+/// The binary media frame (MESSAGING.md "Photos and voice notes: the binary media frame"): a
+/// 1:1 photo or voice note travels as its RAW bytes inside the encryption, not as base64 text
+/// inside JSON - the media-file JSON was base64'd twice (once into its data URL, then the whole
+/// ciphertext into the payload), so about 40% of what went on chain was encoding. Now only the
+/// payload's own base64 remains: ~33% more picture or sound for the same fee.
+///
+///   0xFF 'K' 'C' 'M' 0x01 | u32 big-endian header length | header JSON | raw file bytes
+///   header JSON: {"name":"photo.jpg","mimeType":"image/jpeg","size":12345}
+///
+/// 0xFF can never begin UTF-8 text, so a frame is told apart from every text message without
+/// ambiguity, and an app that predates it fails to decode it instead of showing garbage. On
+/// receipt it becomes exactly the media-file JSON the text form carried (`MediaFileEnvelope`).
+enum ContextualMediaFrame {
+    static let magic: [UInt8] = [0xFF, 0x4B, 0x43, 0x4D, 0x01]
+
+    /// The frame for a media-file envelope whose content is a base64 data URL of an image or
+    /// audio type; nil for anything else, which is sent as UTF-8 text as before.
+    static func frame(forEnvelope text: String) -> Data? {
+        guard text.hasPrefix("{"), text.contains("\"type\":\"file\""),
+              let json = text.data(using: .utf8),
+              let object = (try? JSONSerialization.jsonObject(with: json)) as? [String: Any],
+              object["type"] as? String == "file",
+              let content = object["content"] as? String,
+              content.hasPrefix("data:"),
+              let comma = content.firstIndex(of: ",") else { return nil }
+        let meta = content[content.index(content.startIndex, offsetBy: 5)..<comma]
+        guard meta.hasSuffix(";base64") else { return nil }
+        let mimeType = String(meta.dropLast(";base64".count))
+        let lowered = mimeType.lowercased()
+        guard lowered.hasPrefix("image/") || lowered.hasPrefix("audio/"),
+              let raw = Data(base64Encoded: String(content[content.index(after: comma)...])), !raw.isEmpty else { return nil }
+        let header: [String: Any] = [
+            "name": (object["name"] as? String) ?? "file",
+            "mimeType": mimeType,
+            "size": raw.count
+        ]
+        guard let headerData = try? JSONSerialization.data(withJSONObject: header, options: [.sortedKeys]),
+              headerData.count <= Int(UInt32.max) else { return nil }
+        var frame = Data(magic)
+        var length = UInt32(headerData.count).bigEndian
+        frame.append(Data(bytes: &length, count: 4))
+        frame.append(headerData)
+        frame.append(raw)
+        return frame
+    }
+
+    /// The media-file JSON a frame stands for; nil when `data` is not a frame.
+    static func envelopeText(from data: Data) -> String? {
+        let bytes = [UInt8](data)
+        guard bytes.count > magic.count + 4, Array(bytes[0..<magic.count]) == magic else { return nil }
+        let lengthBytes = bytes[magic.count..<(magic.count + 4)]
+        let headerLength = lengthBytes.reduce(0) { ($0 << 8) | Int($1) }
+        let headerStart = magic.count + 4
+        guard headerLength > 0, headerStart + headerLength <= bytes.count,
+              let header = (try? JSONSerialization.jsonObject(with: Data(bytes[headerStart..<(headerStart + headerLength)]))) as? [String: Any],
+              let mimeType = header["mimeType"] as? String, !mimeType.isEmpty else { return nil }
+        let raw = Data(bytes[(headerStart + headerLength)...])
+        guard !raw.isEmpty else { return nil }
+        return MediaFileEnvelope.json(
+            name: (header["name"] as? String) ?? "file",
+            size: raw.count,
+            mimeType: mimeType,
+            dataUrlContent: "data:\(mimeType);base64,\(raw.base64EncodedString())"
+        )
     }
 }

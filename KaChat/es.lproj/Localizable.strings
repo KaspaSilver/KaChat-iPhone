@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "Direcciones cuánticas";
 "Non-Quantum Addresses" = "Direcciones no cuánticas";
 "%lld of %lld shown" = "%lld de %lld visibles";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "Fotos de mayor calidad";
+"Up to 25 seconds, sent on chain." = "Hasta 25 segundos, enviado en la cadena.";

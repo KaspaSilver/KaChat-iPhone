@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "כתובות קוונטיות";
 "Non-Quantum Addresses" = "כתובות לא קוונטיות";
 "%lld of %lld shown" = "%lld מתוך %lld מוצגות";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "תמונות באיכות גבוהה יותר";
+"Up to 25 seconds, sent on chain." = "עד 25 שניות, נשלח על השרשרת.";

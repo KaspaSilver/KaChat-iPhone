@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "Квантово-устойчивые адреса";
 "Non-Quantum Addresses" = "Обычные адреса";
 "%lld of %lld shown" = "Показано %lld из %lld";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "Фото в более высоком качестве";
+"Up to 25 seconds, sent on chain." = "До 25 секунд, отправляется в блокчейн.";

@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "क्वांटम पते";
 "Non-Quantum Addresses" = "नॉन-क्वांटम पते";
 "%lld of %lld shown" = "%2$lld में से %1$lld दिखाए गए";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "उच्च गुणवत्ता वाली फ़ोटो";
+"Up to 25 seconds, sent on chain." = "25 सेकंड तक, चेन पर भेजा जाता है।";

@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "Kuantum Adresleri";
 "Non-Quantum Addresses" = "Kuantum Olmayan Adresler";
 "%lld of %lld shown" = "%2$lld adresten %1$lld tanesi gösteriliyor";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "Daha yüksek kaliteli fotoğraflar";
+"Up to 25 seconds, sent on chain." = "25 saniyeye kadar, zincirde gönderilir.";

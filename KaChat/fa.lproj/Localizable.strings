@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "آدرس‌های کوانتومی";
 "Non-Quantum Addresses" = "آدرس‌های غیرکوانتومی";
 "%lld of %lld shown" = "%lld از %lld نمایش داده شده";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "عکس‌های با کیفیت بالاتر";
+"Up to 25 seconds, sent on chain." = "تا ۲۵ ثانیه، روی زنجیره ارسال می‌شود.";

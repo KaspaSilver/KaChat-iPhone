@@ -366,7 +366,9 @@ struct ChatDetailView: View {
     @State private var pendingDustAmountSompi: UInt64 = 0
     @State private var activeChessGameId: String?
 
-    private let maxRecordingDuration: TimeInterval = 10 // seconds (on-chain payload cap)
+    /// On-chain voice notes: as long as one transaction carries with margin (~31 KB of 6 kbps
+    /// Opus in the binary media frame). Size follows length, so a short note costs what it did.
+    private let maxRecordingDuration: TimeInterval = 25 // seconds (on-chain payload cap)
 
     /// Nextcloud-uploaded voice notes aren't payload-bound - only the server carries them - so
     /// a "Record via Nextcloud" note runs to the app-wide Nextcloud ceiling.
@@ -377,8 +379,15 @@ struct ChatDetailView: View {
     /// The pending photo / voice note goes via Nextcloud: chosen in the "+" sheet, and the server
     /// is still connected.
     private var photoViaNextcloud: Bool { nextcloudPhotoRequested && nextcloudService.isConnected }
+
+    /// The on-chain photo budget for this send (Chats > Higher quality photos).
+    private var onChainPhotoTargetBytes: Int {
+        settingsViewModel.settings.higherQualityPhotos
+            ? ImagePrep.highQualityChatTargetBytes
+            : ImagePrep.defaultChatTargetBytes
+    }
     private var voiceViaNextcloud: Bool { nextcloudVoiceRequested && nextcloudService.isConnected }
-    private let maxAudioBytes: Int = 13_000
+    private let maxAudioBytes: Int = 31_000
     private let opusBitrate: Int32 = 6_000
     private let opusSampleRate: Double = 48_000
 
@@ -3925,7 +3934,7 @@ struct ChatDetailView: View {
         // on the server — so the fee shown is the link-message fee, not the envelope fee.
         let payloadSize = photoViaNextcloud
             ? Self.nextcloudLinkPayloadSize
-            : ImagePrep.estimatedWirePayloadSize()
+            : ImagePrep.estimatedWirePayloadSize(targetBytes: onChainPhotoTargetBytes)
         feeEstimateSompi = KasiaTransactionBuilder.estimateContextualMessageFee(
             payload: Data(count: payloadSize),
             inputCount: 1,
@@ -4227,8 +4236,9 @@ struct ChatDetailView: View {
         }
 
         do {
-            // On chain, a photo is always capped at ImagePrep.defaultChatTargetBytes (15 KB).
-            let preparedImage = try ImagePrep.prepareForChatMessage(image)
+            // On chain, the photo budget: 20 KB, or the largest a transaction carries with
+            // Chats > Higher quality photos on.
+            let preparedImage = try ImagePrep.prepareForChatMessage(image, targetBytes: onChainPhotoTargetBytes)
             try await chatService.sendImage(
                 to: contact,
                 imageData: preparedImage.data,

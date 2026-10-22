@@ -2404,6 +2404,9 @@ struct AppSettings: Codable {
     var messagePollInterval: TimeInterval
     var liveUpdatesEnabled: Bool
     var requirePhotoApprovalForNewContacts: Bool
+    /// Chats > Higher quality photos: on-chain photos use the largest size one transaction
+    /// carries (`ImagePrep.highQualityChatTargetBytes`) instead of the default, for a higher fee.
+    var higherQualityPhotos: Bool
     var showFeeEstimate: Bool
     /// KaPosts > Settings: the tip a tap on "Tip" sends at once, in sompi. nil = ask every time.
     var kaPostsDefaultTipSompi: UInt64?
@@ -2703,6 +2706,7 @@ struct AppSettings: Codable {
         case messagePollInterval
         case liveUpdatesEnabled
         case requirePhotoApprovalForNewContacts
+        case higherQualityPhotos
         case showFeeEstimate
         case kaPostsDefaultTipSompi
         case quickReactionEmojis
@@ -2770,6 +2774,7 @@ struct AppSettings: Codable {
         messagePollInterval: TimeInterval,
         liveUpdatesEnabled: Bool,
         requirePhotoApprovalForNewContacts: Bool = true,
+        higherQualityPhotos: Bool = false,
         showFeeEstimate: Bool = true,
         kaPostsDefaultTipSompi: UInt64? = nil,
         quickReactionEmojis: [String]? = nil,
@@ -2826,6 +2831,7 @@ struct AppSettings: Codable {
         self.messagePollInterval = messagePollInterval
         self.liveUpdatesEnabled = liveUpdatesEnabled
         self.requirePhotoApprovalForNewContacts = requirePhotoApprovalForNewContacts
+        self.higherQualityPhotos = higherQualityPhotos
         self.showFeeEstimate = showFeeEstimate
         self.kaPostsDefaultTipSompi = kaPostsDefaultTipSompi
         self.quickReactionEmojis = quickReactionEmojis
@@ -2910,6 +2916,7 @@ struct AppSettings: Codable {
         messagePollInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .messagePollInterval) ?? 10.0
         liveUpdatesEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveUpdatesEnabled) ?? false
         requirePhotoApprovalForNewContacts = try container.decodeIfPresent(Bool.self, forKey: .requirePhotoApprovalForNewContacts) ?? true
+        higherQualityPhotos = try container.decodeIfPresent(Bool.self, forKey: .higherQualityPhotos) ?? false
         showFeeEstimate = try container.decodeIfPresent(Bool.self, forKey: .showFeeEstimate) ?? true
         kaPostsDefaultTipSompi = try container.decodeIfPresent(UInt64.self, forKey: .kaPostsDefaultTipSompi)
         quickReactionEmojis = try container.decodeIfPresent([String].self, forKey: .quickReactionEmojis)
@@ -3053,6 +3060,7 @@ struct AppSettings: Codable {
         try container.encode(messagePollInterval, forKey: .messagePollInterval)
         try container.encode(liveUpdatesEnabled, forKey: .liveUpdatesEnabled)
         try container.encode(requirePhotoApprovalForNewContacts, forKey: .requirePhotoApprovalForNewContacts)
+        try container.encode(higherQualityPhotos, forKey: .higherQualityPhotos)
         try container.encode(showFeeEstimate, forKey: .showFeeEstimate)
         try container.encodeIfPresent(kaPostsDefaultTipSompi, forKey: .kaPostsDefaultTipSompi)
         try container.encodeIfPresent(quickReactionEmojis, forKey: .quickReactionEmojis)

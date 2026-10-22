@@ -219,6 +219,36 @@ Uses ECIES (Elliptic Curve Integrated Encryption Scheme, see `KasiaCipher`):
 4. ChaCha20-Poly1305 encrypt the message
 5. Output: `ephemeral_pubkey || nonce || ciphertext || tag`
 
+### Photos and voice notes: the binary media frame
+
+Since KaChat iOS 5.2.2 (2026-10-22) a 1:1 photo or voice note is NOT encrypted as its
+media-file JSON text. That JSON carried the file as a base64 data URL, and the whole ciphertext
+was base64'd again into the payload - about 40% of the bytes on chain were encoding. The
+plaintext handed to the cipher is now a binary frame holding the raw file bytes:
+
+```
+0xFF 0x4B 0x43 0x4D 0x01            magic: 0xFF "KCM" version 1
+u32, big-endian                     length of the header JSON in bytes
+header JSON (UTF-8)                 {"mimeType":"image/jpeg","name":"photo.jpg","size":20072}
+raw file bytes                      the JPEG / WebM-Opus exactly, no base64
+```
+
+- Applies to the media-file JSON (`{"type":"file",...,"content":"data:<mime>;base64,..."}`)
+  of `image/*` and `audio/*` types only. Every other message stays UTF-8 text.
+- The payload around it is unchanged: `kchat:1:comm:<alias>:<base64(encrypted)>` (or the `dm`
+  form), so indexers and push need no change.
+- Reading: decrypt to BYTES first. If they start with the magic, rebuild the media-file JSON:
+  `{"type":"file","name":"<name>","size":<raw byte count>,"mimeType":"<mime>","content":
+  "data:<mime>;base64,<base64 of raw>"}`, and treat it exactly as the text form from then on.
+  Otherwise decode UTF-8 as before. 0xFF never begins UTF-8, so the two never collide.
+- Sizes (iOS): photos are JPEG at 20 KB (the same ~27 KB of payload a 15 KB photo took before),
+  or 32 KB with Chats > Higher quality photos (~43 KB of payload, the largest a standard
+  transaction carries with margin at 2 grams of transient mass per byte). Voice notes are up to
+  25 s / 31 KB of 6 kbps Opus. A client that predates the frame fails to decode it as UTF-8 and
+  shows nothing (or "[Encrypted message]") - Android and Desktop must read it to show iOS photos.
+- iOS: `ContextualMediaFrame` (KaChatCipher.swift); sent by `encryptContextualMessage`,
+  read by `KasiaCipher.decrypt` and the push extension's `mediaFrameEnvelope`.
+
 ### Handshakes
 
 Contains:

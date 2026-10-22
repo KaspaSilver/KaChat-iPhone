@@ -1810,3 +1810,7 @@
 "Quantum Addresses" = "Alamat Kuantum";
 "Non-Quantum Addresses" = "Alamat Non-Kuantum";
 "%lld of %lld shown" = "%lld dari %lld ditampilkan";
+
+/* Chats: higher quality photos; longer on-chain voice notes */
+"Higher quality photos" = "Foto kualitas lebih tinggi";
+"Up to 25 seconds, sent on chain." = "Hingga 25 detik, dikirim di chain.";

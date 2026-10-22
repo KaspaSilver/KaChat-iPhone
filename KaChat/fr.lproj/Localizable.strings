@@ -1826,3 +1826,9 @@
 "No finished 1v1 games yet." = "Aucune partie 1v1 terminée pour l'instant.";
 "No finished tournaments this month yet." = "Aucun tournoi terminé ce mois-ci.";
 "No finished tournaments yet." = "Aucun tournoi terminé pour l'instant.";
+
+/* KaPosts: post activity cards */
+"Likes" = "J'aime";
+"Dislikes" = "Je n'aime pas";
+"Reposts" = "Republications";
+"Quotes" = "Citations";

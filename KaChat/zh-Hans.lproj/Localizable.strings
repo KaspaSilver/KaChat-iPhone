@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "还没有已结束的 1v1 对局。";
 "No finished tournaments this month yet." = "本月还没有已结束的锦标赛。";
 "No finished tournaments yet." = "还没有已结束的锦标赛。";
+
+/* KaPosts: post activity cards */
+"Likes" = "点赞";
+"Dislikes" = "点踩";
+"Reposts" = "转发";
+"Quotes" = "引用";

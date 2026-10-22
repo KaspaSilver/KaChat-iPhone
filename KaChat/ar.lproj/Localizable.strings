@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "لا توجد مباريات 1v1 منتهية بعد.";
 "No finished tournaments this month yet." = "لا توجد بطولات منتهية هذا الشهر بعد.";
 "No finished tournaments yet." = "لا توجد بطولات منتهية بعد.";
+
+/* KaPosts: post activity cards */
+"Likes" = "الإعجابات";
+"Dislikes" = "عدم الإعجاب";
+"Reposts" = "إعادات النشر";
+"Quotes" = "الاقتباسات";

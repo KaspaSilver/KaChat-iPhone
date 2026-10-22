@@ -8029,9 +8029,10 @@ struct KaPostTippersView: View {
     }
 }
 
-/// Intermediate screen behind "Post Activity": four tabs of actors (Likes, Dislikes,
-/// Reposts, Quotes), each row linking to THAT action's transaction on the explorer, plus a link
-/// to the post's own transaction. Actor identity resolves through contacts/KNS as everywhere.
+/// Intermediate screen behind "Post Activity": one square card per kind (Likes, Dislikes,
+/// Reposts, Quotes, Tips) showing its count, each opening that kind's list of people, every row
+/// linking to THAT action's transaction on the explorer; plus a link to the post's own
+/// transaction. Actor identity resolves through contacts/KNS as everywhere.
 ///
 /// Data reality: the K API exposes no per-post voter/quoter list - the only actor-level source is
 /// the requester's own notification stream, so actor lists populate for YOUR posts; other
@@ -8061,7 +8062,6 @@ struct KaPostEngagementView: View {
         let timestamp: Date
     }
 
-    @State private var selectedTab: EngagementTab = .likes
     @State private var entries: [EngagementTab: [EngagementEntry]] = [:]
     @State private var isLoading = false
     @State private var loadFailed = false
@@ -8083,43 +8083,22 @@ struct KaPostEngagementView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("", selection: $selectedTab) {
-                    ForEach(EngagementTab.allCases, id: \.self) { tab in
-                        Text(tabTitle(tab)).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-
-                if selectedTab == .tips {
-                    tipsList
-                } else if isLoading {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                } else {
-                    let rows = entries[selectedTab] ?? []
-                    if rows.isEmpty {
-                        emptyState
-                    } else {
-                        let triggerId = kaPostsPrefetchTriggerId(rows)
-                        List {
-                            ForEach(rows) { entry in
-                                entryRow(entry)
-                                    .onAppear {
-                                        guard entry.id == triggerId else { return }
-                                        Task { await loadMore() }
-                                    }
+                // One square per kind, the count big on it (0 included) - the .kachat domains
+                // cards' look. Each opens that kind's people.
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
+                        ForEach(EngagementTab.allCases, id: \.self) { tab in
+                            NavigationLink {
+                                kindScreen(tab)
+                            } label: {
+                                kindCard(tab)
                             }
-                            KaPostsLoadMoreFooter(state: page) {
-                                page.prepareManualRetry()
-                                Task { await loadMore() }
-                            }
-                            .listRowSeparator(.hidden)
+                            .buttonStyle(.plain)
                         }
-                        .listStyle(.plain)
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 16)
                 }
 
                 Divider()
@@ -8140,6 +8119,115 @@ struct KaPostEngagementView: View {
             .kaPostsStatusChrome()
             .task { await load() }
             .task { await loadTips(more: false) }
+        }
+    }
+
+    /// The people behind one card: tips with their amounts, the rest with a link to the
+    /// action's transaction.
+    @ViewBuilder
+    private func kindScreen(_ tab: EngagementTab) -> some View {
+        VStack(spacing: 0) {
+            if tab == .tips {
+                tipsList
+            } else if isLoading {
+                Spacer()
+                ProgressView()
+                Spacer()
+            } else {
+                let rows = entries[tab] ?? []
+                if rows.isEmpty {
+                    emptyState
+                } else {
+                    let triggerId = kaPostsPrefetchTriggerId(rows)
+                    List {
+                        ForEach(rows) { entry in
+                            entryRow(entry)
+                                .onAppear {
+                                    guard entry.id == triggerId else { return }
+                                    Task { await loadMore() }
+                                }
+                        }
+                        KaPostsLoadMoreFooter(state: page) {
+                            page.prepareManualRetry()
+                            Task { await loadMore() }
+                        }
+                        .listRowSeparator(.hidden)
+                    }
+                    .listStyle(.plain)
+                }
+            }
+        }
+        .navigationTitle(LocalizedStringKey(tab.rawValue))
+        .navigationBarTitleDisplayMode(.inline)
+        .kaPostsStatusChrome()
+    }
+
+    /// A square like the .kachat domains cards: the kind's icon, its count big in the middle,
+    /// the kind's name under it. A dash while the first count is still loading.
+    private func kindCard(_ tab: EngagementTab) -> some View {
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                VStack(spacing: 8) {
+                    kindIcon(tab)
+                        .frame(height: 26)
+                    Text(verbatim: countText(tab))
+                        .font(.system(size: 40, weight: .heavy, design: .rounded).monospacedDigit())
+                        .foregroundStyle(Color.accentColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                    Text(LocalizedStringKey(tab.rawValue))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .padding(.horizontal, 8)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(.regularMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 0.8)
+                    )
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    /// The same symbols and tints as the post's action bar.
+    @ViewBuilder
+    private func kindIcon(_ tab: EngagementTab) -> some View {
+        switch tab {
+        case .likes:
+            Image(systemName: "heart.fill").font(.title2).foregroundColor(.red)
+        case .dislikes:
+            Image(systemName: "hand.thumbsdown.fill").font(.title2).foregroundColor(.orange)
+        case .reposts:
+            Image(systemName: "arrow.2.squarepath").font(.title2.weight(.semibold)).foregroundColor(.accentColor)
+        case .quotes:
+            Image(systemName: "quote.bubble.fill").font(.title2).foregroundColor(.accentColor)
+        case .tips:
+            Image("KaspaLogo").resizable().scaledToFit().frame(width: 26, height: 26)
+        }
+    }
+
+    /// The card's number. Likes, dislikes and tips also have the post's own counters, so the
+    /// larger of those and the people loaded so far; reposts and quotes are counted from the
+    /// list, with a "+" while more pages are still to load.
+    private func countText(_ tab: EngagementTab) -> String {
+        if tab == .tips {
+            return tipsLoaded || post.tips > 0 ? "\(max(post.tips, tips.count))" : "\u{2013}"
+        }
+        let loaded = entries[tab]?.count ?? 0
+        let firstPageIn = !entries.isEmpty || loadFailed || post.remoteId == nil
+        switch tab {
+        case .likes: return firstPageIn || post.likes > 0 ? "\(max(post.likes, loaded))" : "\u{2013}"
+        case .dislikes: return firstPageIn || post.dislikes > 0 ? "\(max(post.dislikes, loaded))" : "\u{2013}"
+        default:
+            guard firstPageIn else { return "\u{2013}" }
+            return page.hasMore && loaded > 0 ? "\(loaded)+" : "\(loaded)"
         }
     }
 
@@ -8208,18 +8296,6 @@ struct KaPostEngagementView: View {
             tipsHasMore = false
         }
         tipsLoaded = true
-    }
-
-    private func tabTitle(_ tab: EngagementTab) -> String {
-        let count: Int
-        switch tab {
-        case .likes: count = max(post.likes, entries[.likes]?.count ?? 0)
-        case .dislikes: count = max(post.dislikes, entries[.dislikes]?.count ?? 0)
-        case .reposts: count = entries[.reposts]?.count ?? 0
-        case .quotes: count = entries[.quotes]?.count ?? 0
-        case .tips: count = max(post.tips, tips.count)
-        }
-        return count > 0 ? "\(tab.rawValue) (\(count))" : tab.rawValue
     }
 
     private func entryRow(_ entry: EngagementEntry) -> some View {

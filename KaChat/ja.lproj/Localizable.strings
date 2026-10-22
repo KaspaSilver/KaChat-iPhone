@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "まだ終了した1v1の対局がありません。";
 "No finished tournaments this month yet." = "今月はまだ終了したトーナメントがありません。";
 "No finished tournaments yet." = "まだ終了したトーナメントがありません。";
+
+/* KaPosts: post activity cards */
+"Likes" = "いいね";
+"Dislikes" = "よくないね";
+"Reposts" = "リポスト";
+"Quotes" = "引用";

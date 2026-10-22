@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "Belum ada game 1v1 yang selesai.";
 "No finished tournaments this month yet." = "Belum ada turnamen yang selesai bulan ini.";
 "No finished tournaments yet." = "Belum ada turnamen yang selesai.";
+
+/* KaPosts: post activity cards */
+"Likes" = "Suka";
+"Dislikes" = "Tidak suka";
+"Reposts" = "Repost";
+"Quotes" = "Kutipan";

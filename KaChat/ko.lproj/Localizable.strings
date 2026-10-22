@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "끝난 1v1 게임이 아직 없습니다.";
 "No finished tournaments this month yet." = "이번 달에 끝난 토너먼트가 아직 없습니다.";
 "No finished tournaments yet." = "끝난 토너먼트가 아직 없습니다.";
+
+/* KaPosts: post activity cards */
+"Likes" = "좋아요";
+"Dislikes" = "싫어요";
+"Reposts" = "리포스트";
+"Quotes" = "인용";

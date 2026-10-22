@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "Ancora nessuna partita 1v1 conclusa.";
 "No finished tournaments this month yet." = "Ancora nessun torneo concluso questo mese.";
 "No finished tournaments yet." = "Ancora nessun torneo concluso.";
+
+/* KaPosts: post activity cards */
+"Likes" = "Mi piace";
+"Dislikes" = "Non mi piace";
+"Reposts" = "Repost";
+"Quotes" = "Citazioni";

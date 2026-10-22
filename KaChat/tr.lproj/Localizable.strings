@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "Henüz biten 1v1 oyunu yok.";
 "No finished tournaments this month yet." = "Bu ay henüz biten turnuva yok.";
 "No finished tournaments yet." = "Henüz biten turnuva yok.";
+
+/* KaPosts: post activity cards */
+"Likes" = "Beğeniler";
+"Dislikes" = "Beğenmemeler";
+"Reposts" = "Yeniden paylaşımlar";
+"Quotes" = "Alıntılar";

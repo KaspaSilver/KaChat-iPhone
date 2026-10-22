@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "هنوز بازی 1v1 تمام‌شده‌ای نیست.";
 "No finished tournaments this month yet." = "هنوز تورنمنت تمام‌شده‌ای در این ماه نیست.";
 "No finished tournaments yet." = "هنوز تورنمنت تمام‌شده‌ای نیست.";
+
+/* KaPosts: post activity cards */
+"Likes" = "پسندها";
+"Dislikes" = "نپسندیدن‌ها";
+"Reposts" = "بازنشرها";
+"Quotes" = "نقل‌قول‌ها";

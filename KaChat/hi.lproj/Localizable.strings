@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "अभी तक कोई 1v1 गेम पूरा नहीं हुआ।";
 "No finished tournaments this month yet." = "इस महीने अभी तक कोई टूर्नामेंट पूरा नहीं हुआ।";
 "No finished tournaments yet." = "अभी तक कोई टूर्नामेंट पूरा नहीं हुआ।";
+
+/* KaPosts: post activity cards */
+"Likes" = "लाइक";
+"Dislikes" = "डिसलाइक";
+"Reposts" = "रीपोस्ट";
+"Quotes" = "कोट";

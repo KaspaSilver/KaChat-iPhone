@@ -1825,3 +1825,9 @@
 "No finished 1v1 games yet." = "Chưa có ván 1v1 nào kết thúc.";
 "No finished tournaments this month yet." = "Chưa có giải đấu nào kết thúc trong tháng này.";
 "No finished tournaments yet." = "Chưa có giải đấu nào kết thúc.";
+
+/* KaPosts: post activity cards */
+"Likes" = "Lượt thích";
+"Dislikes" = "Lượt không thích";
+"Reposts" = "Lượt đăng lại";
+"Quotes" = "Trích dẫn";

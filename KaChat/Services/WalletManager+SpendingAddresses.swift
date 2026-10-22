@@ -400,10 +400,14 @@ extension WalletManager {
     @discardableResult
     func generateNextQuantumAddress() async -> Int {
         // checked on chain first, like every other fresh quantum slot (IOS-101): a slot already
-        // used elsewhere is skipped, never handed out as new
-        let index = await verifiedFreshQuantumIndex()
-        setMaxQuantumAddressIndex(index - Self.quantumIndexBase)
-        _ = await setSpendingAddressHidden(index: index, hidden: false)
+        // used elsewhere is skipped, never handed out as new. The probe awaits, so the account is
+        // taken now and the slot is written to it, not to whichever is active later (IOS-109).
+        guard let owner = currentWallet?.publicAddress else { return await verifiedFreshQuantumIndex() }
+        let index = await verifiedFreshQuantumIndex(owner: owner, chainKey: quantumChainKey())
+        guard accountStillSaved(owner) else { return index }
+        setMaxQuantumAddressIndex(index - Self.quantumIndexBase, owner: owner)
+        var hidden = hiddenIndices(owner: owner)
+        if hidden.remove(index) != nil { setHiddenIndices(hidden, owner: owner) }
         return index
     }
 
@@ -415,19 +419,39 @@ extension WalletManager {
     /// and the end raised, up to 20 times; a check that can't be answered takes the slot as is,
     /// so an unreachable server never blocks a send.
     func verifiedFreshQuantumIndex() async -> Int {
-        var index = nextFreshQuantumIndex()
+        guard let owner = currentWallet?.publicAddress else { return nextFreshQuantumIndex() }
+        return await verifiedFreshQuantumIndex(owner: owner, chainKey: quantumChainKey())
+    }
+
+    /// The probe for one account, taken when it starts (IOS-109, the sweep's rule from IOS-107):
+    /// its slots are derived from that account's chain node and a used slot raises THAT
+    /// account's chain end, even if another account is active when a probe returns. Once the
+    /// account has been removed it writes nothing more.
+    private func verifiedFreshQuantumIndex(owner: String, chainKey: (key: Data, chainCode: Data)?) async -> Int {
+        var index = nextFreshQuantumIndex(owner: owner)
+        guard let chainKey else { return index }
         for _ in 0..<20 {
-            guard let address = spendingAddress(at: index),
+            guard let address = quantumAddress(at: index, chainKey: chainKey, owner: owner),
                   await ChatService.shared.spendingAddressUsedState(address) == true else { return index }
             AppLog.log("[WalletManager] Quantum slot %d already has history - skipping it", index - Self.quantumIndexBase)
-            setMaxQuantumAddressIndex(index - Self.quantumIndexBase)
-            index = nextFreshQuantumIndex()
+            guard accountStillSaved(owner) else { return index + 1 }
+            setMaxQuantumAddressIndex(index - Self.quantumIndexBase, owner: owner)
+            index = nextFreshQuantumIndex(owner: owner)
         }
         return index
     }
 
     func nextFreshQuantumIndex() -> Int {
         Self.quantumIndexBase + maxQuantumAddressIndex + 1
+    }
+
+    private func nextFreshQuantumIndex(owner: String) -> Int {
+        Self.quantumIndexBase + quantumMaxIndex(owner: owner) + 1
+    }
+
+    /// False once `owner` is neither the active account nor a saved one (it was removed).
+    private func accountStillSaved(_ owner: String) -> Bool {
+        currentWallet?.publicAddress == owner || savedAccounts.contains { $0.publicAddress == owner }
     }
 
     /// "Generate New Spending Address" - a SEQUENCE, not a single answer: every press yields
@@ -632,8 +656,7 @@ extension WalletManager {
 
     /// The sweep's results are dropped only if its account was removed meanwhile.
     private func sweepAccountStillSaved(_ account: SpendingSweepAccount) -> Bool {
-        currentWallet?.publicAddress == account.owner
-            || savedAccounts.contains { $0.publicAddress == account.owner }
+        accountStillSaved(account.owner)
     }
 
     /// `spendingAddresses(inRange:)` for the sweep's account, from its own chain nodes.

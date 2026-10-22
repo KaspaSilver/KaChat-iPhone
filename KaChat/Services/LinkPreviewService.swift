@@ -1120,7 +1120,11 @@ actor LinkPreviewService {
     private func parse(html: String, url: URL) -> LinkPreviewData? {
         let title = metaContent(property: "og:title", in: html) ?? titleTag(in: html)
         let description = metaContent(property: "og:description", in: html) ?? metaContent(name: "description", in: html)
-        let imageURLString = metaContent(property: "og:image", in: html).map { resolveURLString($0, relativeTo: url) }
+        // Entities decoded BEFORE the URL is used: an HTML attribute writes `&` as `&amp;`, and a
+        // signed CDN link (Instagram's cdninstagram `...&oh=...&oe=...`) left as `&amp;oh=` loses
+        // its signature - the CDN answered 403 to every Instagram preview image (checked
+        // 2026-10-22: raw 403, decoded 200). Desktop always decoded it, so it showed the picture.
+        let imageURLString = metaContent(property: "og:image", in: html).map { resolveURLString($0.htmlEntityDecoded, relativeTo: url) }
         let siteName = metaContent(property: "og:site_name", in: html) ?? url.host
 
         guard title != nil || description != nil || imageURLString != nil else {
@@ -1223,6 +1227,8 @@ private extension String {
     var htmlEntityDecoded: String {
         self
             .replacingOccurrences(of: "&amp;", with: "&")
+            .replacingOccurrences(of: "&#38;", with: "&")
+            .replacingOccurrences(of: "&#x26;", with: "&")
             .replacingOccurrences(of: "&quot;", with: "\"")
             .replacingOccurrences(of: "&#39;", with: "'")
             .replacingOccurrences(of: "&apos;", with: "'")

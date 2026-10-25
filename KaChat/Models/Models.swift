@@ -2012,7 +2012,7 @@ enum AppCurrency: String, Codable, CaseIterable {
     var displayName: String { "\(name) (\(code))" }
 }
 
-/// The dock (since 2026-10-24 a fixed four: Chats, Address Book, Profile, Settings - no Kaspa Hub
+/// The dock (since 2026-10-24 a fixed four: Addresses, Chats, Profile, Settings - no Kaspa Hub
 /// and no Customize Dock). `tag` is a fixed identifier per case so tag-based navigation (jumping to
 /// Chats on a notification tap) never depends on position.
 enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
@@ -2054,7 +2054,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     }
 
     /// What the dock renders, in order.
-    static let dock: [AppTab] = [.chats, .addressBook, .profile, .settings]
+    static let dock: [AppTab] = [.addressBook, .chats, .profile, .settings]
 }
 
 /// Block explorer used for "view transaction" links, matching Android's KaspaExplorer enum.

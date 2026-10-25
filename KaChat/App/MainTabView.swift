@@ -51,7 +51,7 @@ struct MainTabView: View {
     @ObservedObject private var nextcloudService = NextcloudService.shared
 
     /// The dock's TabView on its own, so `body` stays small enough for the type checker. The
-    /// dock is the fixed `AppTab.dock`: Chats, Address Book, Profile, Settings.
+    /// dock is the fixed `AppTab.dock`: Addresses, Chats, Profile, Settings.
     private var dockTabView: some View {
         TabView(selection: tabSelection) {
             ForEach(AppTab.dock) { tab in

@@ -260,8 +260,6 @@
 "Invalid domain label" = "Geçersiz alan etiketi";
 "Invalid recipient format." = "Geçersiz alıcı biçimi.";
 "It's ok, I already have a domain" = "Sorun degil, zaten bir alan adim var";
-"Join" = "Katil";
-"Join or Create a Channel" = "Kanala Katil veya Olustur";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Bir seferde sadece 5-10 KAS gonderin, bu bir sure icin sohbet ucretlerini karsilamaya yeter (KAS basina yaklasik 500 mesaj)";
 "KAS" = "KAS";
 "KAS Price" = "KAS Fiyati";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "%@ ile bağlantı kurulamadı. Tekrar denemek için aşağı çek.";
 "Settling" = "Onaylanıyor";
 "Node" = "Düğüm";
-"Translation" = "Çeviri";
 "Message Indexer" = "Mesaj dizinleyici";
 "Other Name Services" = "Diğer ad hizmetleri";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Bir adresin sahip olduğu .k ve .kaspa adlarını göstermek için kullanılır. KaChat'in kendi .kachat adları kullanıma girince burada ayarlanacak.";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 Gün";
-"Public Chats" = "Herkese Açık Sohbetler";
 "All-time only" = "Yalnızca tüm zamanlar";
 "Kinds marked \"All-time only\" aren't in this total yet." = "“Yalnızca tüm zamanlar” olarak işaretli türler henüz bu toplamda yok.";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Biriyle sohbet etmek için Sohbet Oluştur'a dokun ve Kaspa adresini ya da .kachat adını gir. İlk mesajın ona kabul edebileceği bir Mesaj İsteği olarak ulaşır. En fazla gizlilik için Özel Sohbet'i aç: zincirde sizi hiçbir şey bağlamaz ve o da seninle özel sohbet başlattığında mesajlarını görür.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Başlamak için 50 Kaspa önerilir - bir .kachat adı almaya ve bir süre sohbet etmeye yeter. 5 Kaspa yaklaşık 2500 mesaja yeter.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Herkese açık mesajlaşma kimliğin. Mesaj ücretleri ve .kachat adın için küçük bir miktar yükle - harcamayı düşündüğün parayı asla buraya gönderme.";
-"KaPosts isn't available on Testnet yet" = "KaPosts henüz Testnet'te kullanılamıyor";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "Testnet için bir KaPost dizinleyicisi yok. Mainnet'te okumak ve paylaşmak için Ayarlar > Bağlantı bölümünden Testnet'i kapatın.";
 "Nextcloud is off while Testnet is on." = "Testnet açıkken Nextcloud kapalıdır.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Nextcloud üzerinden yedekleme, eşitleme, medya ve aramalar yalnızca mainnet'te çalışır; böylece testnet mainnet yedeğinizin üzerine asla yazamaz. Ayarlar > Bağlantı bölümünden Testnet'i kapatın, Nextcloud bağlantınız olduğu gibi geri gelir.";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Bazı bağlantılar şu anda bu telefondan kontrol edilemedi. Girildiği gibi kaydedilir ve başkalarının uygulamaları yükleyebildiğinde yükler.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "Bahşiş";
 "Goes to a fresh private address they shared" = "Paylaştığı yeni özel bir adrese gider";
 "Goes to their public chatting address" = "Herkese açık sohbet adresine gider";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "%@ öğesini dock'a ekle";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "Bahşişler";
-"No tips yet." = "Henüz bahşiş yok.";
-"Who tipped this post" = "Bu gönderiye kim bahşiş verdi";
-"You'll now be notified when %@ posts." = "Artık %@ paylaşım yaptığında bildirim alacaksınız.";
-"You won't be notified about %@'s posts anymore." = "Artık %@ kişisinin gönderileri için bildirim almayacaksınız.";
-"Stop post notifications" = "Gönderi bildirimlerini kapat";
-"Notify me when they post" = "Paylaşım yapınca bana bildir";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Kurtarma ifadesi gerekli";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "Henüz biten turnuva yok.";
 
 /* KaPosts: post activity cards */
-"Likes" = "Beğeniler";
-"Dislikes" = "Beğenmemeler";
-"Reposts" = "Yeniden paylaşımlar";
-"Quotes" = "Alıntılar";

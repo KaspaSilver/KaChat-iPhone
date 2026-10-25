@@ -64,9 +64,6 @@ final class BackgroundTaskManager {
 
         let completion = OnceCompletion(task: task)
         let work = Task { @MainActor in
-            // A scheduled post only this phone holds goes out here if its time has come,
-            // whatever the fetch setting says - it is the author's own post, not a fetch.
-            await KaPostsScheduledStore.shared.sendDueLocally()
             guard !Task.isCancelled else { return false }
 
             // Check if background fetch is enabled in settings

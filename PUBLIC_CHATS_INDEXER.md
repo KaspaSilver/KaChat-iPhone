@@ -1,5 +1,8 @@
 # KaChat Public Chats Indexer — Handoff & Build Guide
 
+> **2026-10-24:** this feature was removed from the KaChat iPhone app (KaChat is now 1:1 and group
+> chats only). This file stays as the server contract; the app code it names is gone.
+
 > Naming: the feature is **Public Chats** in the app and in the Swift code (`PublicChatService`,
 > `PublicChatStore`, ...). Everything that travels or is stored keeps its original `broadcast`
 > name for compatibility: the API (`/get-broadcasts`, `watched_broadcast_channels`,

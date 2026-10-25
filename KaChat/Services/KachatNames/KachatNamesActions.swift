@@ -659,12 +659,12 @@ final class KachatNamesActions: ObservableObject {
 
     /// Combines the wallet's coins into one: a plain send of up to `maxInputsPerTransaction`
     /// largest coins to the same address (a tiny network fee), then waits until a node has the
-    /// combined coin, so the name transaction can be built from it. Never a coin a scheduled
-    /// KaPost holds or one carrying a covenant.
+    /// combined coin, so the name transaction can be built from it. Never a coin carrying a
+    /// covenant.
     @discardableResult
     func combineCoins(_ s: Signer) async throws -> String {
         let utxos = try await NodePoolService.shared.getUtxosByAddresses([s.address])
-        let plain = KaPostsScheduledStore.filterReserved(utxos)
+        let plain = utxos
             .filter { $0.covenantId == nil }
             .sorted { $0.amount > $1.amount }
             .prefix(KasiaTransactionBuilder.maxInputsPerTransaction)

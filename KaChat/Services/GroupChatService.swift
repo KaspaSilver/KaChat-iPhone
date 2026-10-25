@@ -9,7 +9,7 @@ import UserNotifications
 /// Orchestrates KaChat's group chat feature: group lifecycle (create/add/remove member, epoch
 /// rotation) and sending/receiving `gcomm` group messages.
 ///
-/// Architecturally self-contained, like `PublicChatService`: owns its own block-scan discovery
+/// Architecturally self-contained: owns its own block-scan discovery
 /// (`NodePoolService.shared.subscribeBlockAdded(client:)`) rather than threading group state through
 /// `ChatService`'s 1:1 contact/conversation machinery, so this feature can't regress existing
 /// 1:1 messaging. Reuses `ChatService`'s UTXO reservation coordination
@@ -37,7 +37,7 @@ final class GroupChatService: ObservableObject {
 
     @Published private(set) var groups: [GroupChat] = []
     @Published var groupMessages: [String: [GroupMessage]] = [:]
-    /// Mirrors `ChatService.replyingTo`/`PublicChatService.replyingTo` - set via a message's
+    /// Mirrors `ChatService.replyingTo` - set via a message's
     /// "Reply" action, consumed (wrapped into the outgoing payload, then cleared) by
     /// `sendGroupMessage`.
     @Published var replyingTo: GroupMessage?
@@ -222,7 +222,7 @@ final class GroupChatService: ObservableObject {
     private let groupLastReadAtKey = "kachat_group_last_read_at"
 
     /// Per-group set of hidden member addresses (their messages are filtered out of the thread,
-    /// same idea as `PublicChatService`'s hidden senders, but scoped per-group rather than
+    /// the same idea as hiding a sender, but scoped per-group rather than
     /// globally - a member hidden in one group shouldn't affect how they show up in another),
     /// persisted the same way as `groupCatchUpCursors`/`groupLastReadAt`.
     @Published private(set) var groupHiddenMembers: [String: Set<String>] = [:]
@@ -864,7 +864,7 @@ final class GroupChatService: ObservableObject {
     /// iOS/desktop compose `@{fullKaspaAddress}` (`GroupMentionCodec`), Android composes
     /// `@{primaryKNSDomain}` - both checked on the reply-unwrapped text so a quoted
     /// `replyToPreview` that happens to contain my mention doesn't count. The domain form
-    /// reuses the domain-mention rendering feature's own tokenizer (`KaPostsView.mentionDomains`:
+    /// reuses the domain-mention tokenizer (`KasNameText.mentionDomains`:
     /// "@" at a word boundary, lowercased, ".kas" suffix optional) against the wallet's
     /// reverse-resolved primary domain, so detection can never disagree with rendering. No
     /// wallet loaded = treat as personal (don't suppress), matching the NSE's same
@@ -877,7 +877,7 @@ final class GroupChatService: ObservableObject {
         let ownText = MessageReplyCodec.unwrappedText(content)
         if GroupMentionCodec.mentions(myAddress, in: ownText) { return true }
         if let myDomain = KNSService.shared.barePrimaryDomain(for: myAddress) {
-            return KaPostsView.mentionDomains(in: ownText).contains(myDomain)
+            return KasNameText.mentionDomains(in: ownText).contains(myDomain)
         }
         return false
     }
@@ -978,7 +978,7 @@ final class GroupChatService: ObservableObject {
     }
 
     /// Clears all local group data for the current wallet (Core Data + Keychain bags).
-    /// Call from the same wallet-reset paths that call `MessageStore`/`PublicChatStore` clearAll.
+    /// Call from the same wallet-reset paths that call `MessageStore` clearAll.
     func clearAllLocalData() {
         for group in groups {
             try? keychain.deleteGroupBag(groupId: group.id)
@@ -1580,7 +1580,7 @@ final class GroupChatService: ObservableObject {
 
     /// Live "fee: N KAS" preview while composing a group text message - builds the exact real
     /// `gcomm` payload (same crypto as an actual send) rather than a size heuristic, matching
-    /// `PublicChatService.estimatePublicChatFee(channel:content:)`. Read-only: doesn't touch
+    /// the broadcast-payload fee estimate. Read-only: doesn't touch
     /// `msgCounter` (a throwaway counter value is fine for sizing, since msg_id is a fixed 24
     /// bytes regardless of the counter's value).
     func estimateGroupMessageFee(_ text: String, for groupId: String, feeOverride: UInt64? = nil) async throws -> UInt64 {
@@ -1676,7 +1676,7 @@ final class GroupChatService: ObservableObject {
         let senderId = GroupCipher.deriveSenderId(senderAddress: wallet.publicAddress)
 
         // If replying, wrap the content in the shared reply envelope (matches
-        // ChatService.sendMessage/PublicChatService.sendPublicChat) so the quote survives even if
+        // ChatService.sendMessage) so the quote survives even if
         // the original message is later pruned.
         let payload: String
         if let reply = replyingTo {
@@ -1958,7 +1958,7 @@ final class GroupChatService: ObservableObject {
     }
 
     /// Shared self-stash send primitive for gcomm/gctl payloads - mirrors
-    /// `PublicChatService.sendPublicChatInternal`'s UTXO fetch/reserve/submit sequence exactly,
+    /// the original public-room sender's UTXO fetch/reserve/submit sequence exactly,
     /// reusing `ChatService`'s shared UTXO reservation state so group sends can't race with
     /// 1:1/public chat sends for the same UTXOs.
     private func sendSelfStashPayload(_ payloadString: String, from address: String, privateKey: Data, feeOverride: UInt64? = nil) async throws -> String {

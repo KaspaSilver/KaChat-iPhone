@@ -18,7 +18,6 @@ struct MainTabView: View {
         switch store {
         case "MessageStore": what = "your message history"
         case "GroupStore": what = "your group chats"
-        case "PublicChatStore": what = "public chat history"
         default: what = "local data"
         }
         return "KaChat couldn't open \(what) on this device. Messages will not be saved until it can. Restarting the app usually fixes this; if it keeps happening, export diagnostics from Settings and contact support.\n\n\(detail)"
@@ -39,7 +38,6 @@ struct MainTabView: View {
     /// tab is showing - a call is not a page of the chat it started from.
     @ObservedObject private var callService = CallService.shared
     @ObservedObject private var pictureInPicture = CallPictureInPicture.shared
-    /// What the Chats slot currently shows: .chats, or a masked-out tab (.kaposts/.public chats)
     @Environment(\.scenePhase) private var scenePhase
     /// Not observed. This view only CALLS into these two (start/stop polling, onboarding holds,
     /// pending routes) and renders nothing from them, but as @EnvironmentObjects every chat
@@ -53,7 +51,6 @@ struct MainTabView: View {
     // Red dot on the Profile tab while the bell (which lives on the Profile screen)
     // holds unread notifications.
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared
-    @ObservedObject private var kaPostsNotifCenter = KaPostsNotificationCenter.shared
     // Surfaces the Nextcloud silent auto-restore's one-line result ("Restored N messages...")
     // as a toast over whatever tab is showing - the automatic path has no modal by design.
     @ObservedObject private var nextcloudService = NextcloudService.shared
@@ -83,7 +80,7 @@ struct MainTabView: View {
     /// The dock's TabView on its own, so `body` stays small enough for the type checker.
     /// A new dock arrangement builds a fresh tab bar: reordering the same TabView left UIKit's
     /// tab items with the image of whatever tab held that slot before (Portfolio showing
-    /// KaPosts' pencil after Customize Dock) - the titles updated, the images did not. The key
+    /// another tab's icon after Customize Dock) - the titles updated, the images did not. The key
     /// changes only when the arrangement does.
     private var dockTabView: some View {
         TabView(selection: tabSelection) {
@@ -99,8 +96,6 @@ struct MainTabView: View {
                             // one Label with a varying image rather than two Labels behind an if.
                             if tab.usesKaspaLogo, let logo = Self.dockKaspaLogo {
                                 logo
-                            } else if tab == .chess {
-                                Image(uiImage: ChessTabIcon.image(side: 24))
                             } else if tab == .kachatNames {
                                 Image(uiImage: KachatTabIcon.image(side: 24))
                             } else {
@@ -108,9 +103,8 @@ struct MainTabView: View {
                             }
                         }
                     }
-                    // Profile hosts the notification bell, and KaPosts hosts its own - each
-                    // shows how many are waiting. Whether KaPosts is IN the dock is the user's
-                    // arrangement; when it is not, the count still waits on its own bell.
+                    // Profile hosts the notification bell and shows a dot while it holds
+                    // anything unread.
                     .badge(dockBadge(for: tab))
                     .tag(tab.tag)
             }
@@ -224,14 +218,8 @@ struct MainTabView: View {
             PendingTabRoute.pending = nil
             routeToFeature(.chats)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .openPublicChat)) { _ in
-            routeToPublicChats()
-        }
         .onReceive(NotificationCenter.default.publisher(for: .openKNSProfileEditor)) { _ in
             routeToFeature(.profile)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openKaPost)) { _ in
-            routeToKaPosts()
         }
         .onReceive(NotificationCenter.default.publisher(for: .openPortfolio)) { _ in
             // Widget tap and spending-address receipts: land on Portfolio (its data is what the
@@ -320,16 +308,8 @@ struct MainTabView: View {
             SwapView()
         case .profile:
             ProfileView()
-        case .kaposts:
-            KaPostsPageView()
-        case .publicChats:
-            NavigationStack {
-                PublicChatListView()
-            }
         case .ecosystem:
             EcosystemView()
-        case .chess:
-            ChessHomeView()
         case .kachatNames:
             KachatMarketView()
         case .addressBook:
@@ -397,14 +377,6 @@ struct MainTabView: View {
 
     // MARK: - Notification routing
 
-    /// Public Chat notification or a shared room link: the rooms are the Chats screen's Public
-    /// Chats tab now. ChatListView switches to that tab on the same signals, and the rooms
-    /// screen picks up the pending channel itself.
-    private func routeToPublicChats() { selectedTab = AppTab.chats.tag }
-
-    /// KaPosts notification or a shared-post link. KaPostsView picks up the pending txid itself.
-    private func routeToKaPosts() { routeToFeature(.kaposts) }
-
     /// Lands on a feature wherever it currently lives.
     ///
     /// Its own dock tab if it has one; otherwise Ecosystem with that section opened, which is
@@ -459,14 +431,6 @@ struct MainTabView: View {
             }
             return
         }
-        if PublicChatService.shared.pendingPublicChatNavigation != nil {
-            routeToPublicChats()
-            return
-        }
-        if KaPostsDeepLink.pendingPostTxId != nil || KaPostsDeepLink.pendingOpenNotifications {
-            routeToKaPosts()
-            return
-        }
         if chatService.pendingChatNavigation != nil ||
             chatService.pendingProfileAddress != nil ||
             GroupChatService.shared.pendingGroupNavigation != nil ||
@@ -488,7 +452,6 @@ struct MainTabView: View {
         .environmentObject(ContactsManager.shared)
         .environmentObject(ChatService.shared)
         .environmentObject(SettingsViewModel())
-        .environmentObject(PublicChatService.shared)
 }
 
 

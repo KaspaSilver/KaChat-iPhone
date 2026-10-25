@@ -83,14 +83,8 @@ struct EcosystemView: View {
             PortfolioView()
         case .coldStorage:
             NavigationStack { ColdStorageListView() }
-        case .kaposts:
-            KaPostsPageView()
-        case .publicChats:
-            NavigationStack { PublicChatListView() }
         case .swap:
             SwapView()
-        case .chess:
-            ChessHomeView()
         case .kachatNames:
             KachatMarketView()
         case .addressBook:
@@ -180,8 +174,6 @@ struct EcosystemView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 26, height: 26)
-                            } else if tab == .chess {
-                                ChessTabIcon.view(side: 26)
                             } else if tab == .kachatNames {
                                 KachatTabIcon.view(side: 30)
                             } else {
@@ -243,7 +235,7 @@ struct EcosystemView: View {
                 .opacity(0.5)
             Text("Nothing here right now")
                 .font(.headline)
-            Text("KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock.")
+            Text("Kaspa Websites and the other tools appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

@@ -21,8 +21,7 @@ struct MessageBubbleView: View {
     var onShowReactions: (() -> Void)? = nil
     let onAcceptHandshake: (() -> Void)?
     let onDeclineHandshake: (() -> Void)?
-    /// Parsed reply envelope, if `message.content` is a reply - matches public chat rooms'
-    /// `PublicChatMessageRow.replyQuote`.
+    /// Parsed reply envelope, if `message.content` is a reply.
     let replyQuote: MessageReplyContent?
     let replySenderDisplayName: String?
     let onReply: (() -> Void)?
@@ -55,8 +54,7 @@ struct MessageBubbleView: View {
     /// Tapping the reply quote (if any) jumps to and highlights the original message - nil
     /// when `replyQuote` is nil, since there's nothing to jump to.
     let onJumpToReply: (() -> Void)?
-    /// Sender's KNS avatar (or nil for plain initials), matching public chat rooms'
-    /// `PublicChatMessageRow.avatarButton`.
+    /// Sender's KNS avatar (or nil for plain initials).
     let avatarURLString: String?
     let avatarDisplayName: String
     /// Parsed chess envelope, if `message.content` is one - mirrors `replyQuote`. `chessSummary`
@@ -150,13 +148,12 @@ struct MessageBubbleView: View {
         self.onOpenPayment = onOpenPayment
     }
 
-    /// The reply's own text, or the raw content when this isn't a reply - matches public chat
-    /// rooms' `PublicChatMessageRow.displayText`.
+    /// The reply's own text, or the raw content when this isn't a reply.
     private var displayText: String {
         replyQuote?.text ?? message.content
     }
 
-    /// A link into KaChat itself (shared KaPosts post / public chat-room invite) inside this
+    /// A link into KaChat itself (a shared profile or payment request) inside this
     /// message, if any. Cached inside `KaChatInternalLink.match`, like the http-link helpers it
     /// sits next to, since this is evaluated from `body` on every visible row.
     private var internalLink: KaChatInternalLink.Match? {
@@ -266,17 +263,14 @@ struct MessageBubbleView: View {
                             )
                             .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId = message.id })
                         } else if let internalLink {
-                            // A link back into KaChat (shared KaPosts post / public chat-room
-                            // invite) is claimed here BEFORE the generic link branch below -
-                            // the universal-link form is a perfectly ordinary https URL, so
-                            // without this it would be scraped over the network like a
-                            // stranger's link instead of previewing as the post it is.
+                            // A link back into KaChat (a shared profile or payment request) is
+                            // claimed here BEFORE the generic link branch below - the
+                            // universal-link form is a perfectly ordinary https URL, so without
+                            // this it would be scraped over the network like a stranger's link.
                             //
                             // The card is the WHOLE message, even when the link arrived with
-                            // text around it. KaPosts' own share text quotes the post above the
-                            // link, so keeping the bubble drew the post twice - once as a
-                            // truncated quote, once as the card under it. The full text is still
-                            // what Copy, reply and forward carry.
+                            // text around it. The full text is still what Copy, reply and
+                            // forward carry.
                             KaChatInternalLinkCardView(
                                 match: internalLink,
                                 txId: message.txId,
@@ -323,7 +317,7 @@ struct MessageBubbleView: View {
                     // Only the plain-text-bubble case (no media, and not itself entirely a link,
                     // both handled inside the Group above) gets this extra preview card below it.
                     // An internal KaChat link wins over an external one in the same message, so
-                    // a post/room mentioned alongside other text still previews natively.
+                    // a profile mentioned alongside other text still previews natively.
                     // A call invite carries the caller's Nextcloud URL inside its JSON; that is
                     // plumbing for the callee's phone, not a link the person shared, so it must
                     // never grow a preview card under the "Incoming voice call" line.
@@ -1170,13 +1164,13 @@ struct MessageBubbleView: View {
 }
 
 /// The preview card for a link that points back INSIDE KaChat (`KaChatInternalLink`): a shared
-/// KaPosts post or a public chat-room invite. Deliberately NOT a `LinkPreviewCardView`: that card
+/// profile or a payment request. Deliberately NOT a `LinkPreviewCardView`: that card
 /// scrapes the URL's server for Open Graph metadata, which for our own links would mean a
 /// pointless network round trip (and, for a stranger's message, a tap-to-load placeholder) to
 /// learn something the app already knows. Everything here is built locally, and a tap routes
 /// in-app through `KaChatLinkRouter` instead of handing the URL to Safari.
 ///
-/// Used by 1:1 bubbles (`MessageBubbleView`) and public chat rows (`PublicChatChannelView`).
+/// Used by 1:1 bubbles (`MessageBubbleView`).
 struct KaChatInternalLinkCardView: View {
     let match: KaChatInternalLink.Match
     /// The owning message's transaction id, for the shared "View in Explorer" action - matches
@@ -1189,26 +1183,9 @@ struct KaChatInternalLinkCardView: View {
     var onDoubleTap: (() -> Void)?
 
     @EnvironmentObject private var settingsViewModel: SettingsViewModel
-    /// Observed, not read once: a post resolves off the chain a moment after the card first
-    /// draws, and the card has to redraw as the real post when it lands.
-    @ObservedObject private var kaPostCache = KaPostLinkPreviewCache.shared
-
-    private var kaPostId: String? {
-        guard case .kaPost(let txId) = match.link else { return nil }
-        return txId
-    }
-
-    /// The post behind a shared link - author and text - once it has been recorded by a KaPosts
-    /// surface or resolved from the chain. Nil until then, which is the neutral card below.
-    private var kaPostEntry: KaPostLinkPreviewCache.Entry? {
-        guard let kaPostId else { return nil }
-        return kaPostCache.entry(for: kaPostId)
-    }
 
     private var iconName: String {
         switch match.link {
-        case .kaPost: return "square.and.pencil"          // AppTab.kaposts.icon
-        case .publicChatRoom: return "dot.radiowaves.left.and.right" // AppTab.publicChats.icon
         case .profile: return "person.crop.circle"
         case .paymentRequest: return "arrow.up.circle"
         }
@@ -1216,15 +1193,6 @@ struct KaChatInternalLinkCardView: View {
 
     private var eyebrow: String {
         switch match.link {
-        case .kaPost:
-            // A reply or a quote is still a KaPosts post, but saying which one it is explains
-            // why the text may read as half a conversation.
-            switch kaPostEntry?.action {
-            case "reply": return "KaPosts reply"
-            case "quote": return "KaPosts quote"
-            default: return "KaPosts"
-            }
-        case .publicChatRoom: return "Public Chat Room"
         case .profile: return "KaChat Profile"
         case .paymentRequest: return "Payment Request"
         }
@@ -1232,10 +1200,6 @@ struct KaChatInternalLinkCardView: View {
 
     private var title: String {
         switch match.link {
-        case .kaPost:
-            return kaPostEntry?.authorName ?? "KaPosts post"
-        case .publicChatRoom(let channel):
-            return "#\(channel)"
         case .profile(let address):
             if let domain = KNSService.shared.identityInfo(for: address)?.primaryDomain {
                 return domain
@@ -1248,21 +1212,6 @@ struct KaChatInternalLinkCardView: View {
 
     private var subtitle: String {
         switch match.link {
-        case .kaPost:
-            guard let entry = kaPostEntry else { return "Tap to open this post in KaChat." }
-            // A quote with no added comment is a repost: there is no text to show, so say what
-            // it is rather than leaving the card looking half-loaded.
-            return entry.snippet.isEmpty
-                ? (entry.action == "quote" ? "Reposted a post." : "Tap to open this post in KaChat.")
-                : entry.snippet
-        case .publicChatRoom(let channel):
-            // Curated rooms and rooms already in the list just open; anything else is created
-            // and added to the user's channel list on tap, so say so before they tap.
-            let known = PublicChatService.curatedChannels.contains(channel)
-                || PublicChatService.shared.channels.contains { $0.channelName == channel }
-            return known
-                ? "Tap to open this KaChat public chat room."
-                : "Tap to join this KaChat public chat room."
         case .profile(let address):
             let isContact = ContactsManager.shared.contacts.contains { $0.address.lowercased() == address }
             return isContact ? "Tap to open your chat." : "Tap to start a chat on KaChat."
@@ -1281,27 +1230,14 @@ struct KaChatInternalLinkCardView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            // A resolved post shows its AUTHOR, the same avatar the KaPosts feed draws for them
-            // (KNS, falling back to their initial, and to the device contact photo where there is
-            // one). The KaPosts glyph is for a post that hasn't resolved yet, and for room
-            // invites, which have no author at all.
-            if let entry = kaPostEntry, let address = entry.authorAddress, !address.isEmpty {
-                KNSAvatarView(
-                    avatarURLString: entry.authorAvatarURL,
-                    fallbackText: entry.authorName ?? "",
-                    size: 40,
-                    contactAddress: address
-                )
-            } else {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.18))
-                    Image(systemName: iconName)
-                        .font(.scaled(size: 18, weight: .semibold))
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 40, height: 40)
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.accentColor.opacity(0.18))
+                Image(systemName: iconName)
+                    .font(.scaled(size: 18, weight: .semibold))
+                    .foregroundColor(.accentColor)
             }
+            .frame(width: 40, height: 40)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(eyebrow)
@@ -1316,7 +1252,7 @@ struct KaChatInternalLinkCardView: View {
                 Text(subtitle)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .lineLimit(kaPostEntry?.snippet.isEmpty == false ? 6 : 3)
+                    .lineLimit(3)
                     .multilineTextAlignment(.leading)
             }
 
@@ -1344,10 +1280,6 @@ struct KaChatInternalLinkCardView: View {
         .onTapGesture(count: 2) { onDoubleTap?() }
         .onTapGesture { KaChatLinkRouter.open(match.link) }
         .messageActions(title: "KaChat Link", preview: match.url.absoluteString) { linkActions }
-        .task(id: kaPostId) {
-            guard let kaPostId else { return }
-            await kaPostCache.load(postId: kaPostId)
-        }
     }
 
     private var linkActions: [MessageAction] {
@@ -1374,9 +1306,8 @@ struct LinkifiedMessageTextView: UIViewRepresentable {
     /// bubble - without this, the link's own tap recognizer (which `cancelsTouchesInView`)
     /// silently swallowed the touch before the bubble's ancestor double-tap gesture ever saw it.
     var onLinkDoubleTap: () -> Void = {}
-    /// When false, tapping a link does nothing - only the long-press menu can open it. Used in
-    /// public chat rooms, where links can come from anonymous public senders, so opening one
-    /// should always require a deliberate long-press rather than a single accidental tap.
+    /// When false, tapping a link does nothing - only the long-press menu can open it, so opening
+    /// one requires a deliberate long-press rather than a single accidental tap.
     var tapOpensLink: Bool = true
 
     func makeUIView(context: Context) -> UITextView {
@@ -1651,7 +1582,6 @@ struct LinkifiedMessageTextView: UIViewRepresentable {
 
 /// Full text of a message too long to render inline (see `MessageBubbleView.inlineTextTruncationThreshold`)
 /// - a plain scrollable, selectable text view, matching iMessage's "tap to see more" detail sheet.
-/// Shared with `PublicChatChannelView`'s room bubble, not just private-chat messages.
 struct FullMessageTextView: View {
     let text: String
     let onCopy: () -> Void

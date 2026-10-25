@@ -1,12 +1,11 @@
 import SwiftUI
 import AVFoundation
 
-/// Records a short voice message for a public chat channel, reusing the exact same Opus/WebM
-/// encoding pipeline as 1:1 chat's voice messages (`WebMOpusEncoder`, `ChatDetailView.swift`) so
-/// the wire format is identical - a cap of 10s / ~13KB keeps it well inside a single self-stash
-/// transaction's payload.
+/// Records a short voice message for a group chat, reusing the exact same Opus/WebM encoding
+/// pipeline as 1:1 chat's voice messages (`WebMOpusEncoder`, `ChatDetailView.swift`) so the wire
+/// format is identical - the cap keeps it well inside a single transaction's payload.
 @MainActor
-final class PublicChatAudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
+final class VoiceNoteRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     enum State: Equatable {
         case idle
         case recording
@@ -145,108 +144,5 @@ final class PublicChatAudioRecorder: NSObject, ObservableObject, AVAudioRecorder
         try? FileManager.default.removeItem(at: outputURL)
         state = .idle
         return (data, "voice.webm", "audio/webm")
-    }
-}
-
-/// Plays back a single voice message's decoded audio. One instance per message bubble (matches
-/// Android's per-bubble `MediaPlayer` - no single "now playing" registry there either).
-@MainActor
-final class PublicChatAudioPlayer: NSObject, ObservableObject, AVAudioPlayerDelegate {
-    @Published private(set) var isPlaying = false
-    @Published private(set) var isReady = false
-    @Published private(set) var durationText = "0:00"
-
-    private var player: AVAudioPlayer?
-    private var decodedURL: URL?
-    private var isPreparing = false
-
-    func prepare(data: Data) {
-        guard player == nil, !isPreparing else { return }
-        isPreparing = true
-        Task.detached { [weak self] in
-            guard let self else { return }
-            do {
-                let decoded = try WebMOpusDecoder.decodeToPCMFile(data: data)
-                let player = try AVAudioPlayer(contentsOf: decoded.url, fileTypeHint: AVFileType.caf.rawValue)
-                await MainActor.run {
-                    self.decodedURL = decoded.url
-                    player.delegate = self
-                    self.player = player
-                    self.durationText = Self.formatDuration(player.duration)
-                    self.isReady = true
-                    self.isPreparing = false
-                }
-            } catch {
-                AppLog.log("[PublicChatAudioPlayer] Failed to decode voice message: %@", error.localizedDescription)
-                await MainActor.run { self.isPreparing = false }
-            }
-        }
-    }
-
-    func toggle() {
-        guard let player else { return }
-        if isPlaying {
-            player.pause()
-            isPlaying = false
-        } else {
-            try? AVAudioSession.sharedInstance().setCategory(.playback)
-            try? AVAudioSession.sharedInstance().setActive(true)
-            if player.currentTime >= player.duration { player.currentTime = 0 }
-            player.play()
-            isPlaying = true
-        }
-    }
-
-    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        Task { @MainActor [weak self] in
-            self?.isPlaying = false
-        }
-    }
-
-    private static func formatDuration(_ duration: TimeInterval) -> String {
-        let total = max(0, Int(duration.isFinite ? duration : 0))
-        return String(format: "%d:%02d", total / 60, total % 60)
-    }
-
-    deinit {
-        if let decodedURL {
-            try? FileManager.default.removeItem(at: decodedURL)
-        }
-    }
-}
-
-/// A compact play/pause + duration bubble for a voice message, styled to match the surrounding
-/// text bubble's colors rather than Android's Material look.
-struct PublicChatAudioBubble: View {
-    let data: Data
-    let isOwnMessage: Bool
-    @StateObject private var player = PublicChatAudioPlayer()
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Button {
-                player.toggle()
-            } label: {
-                Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.scaled(size: 26))
-            }
-            .disabled(!player.isReady)
-
-            Text(player.durationText)
-                .font(.caption)
-                .monospacedDigit()
-
-            if !player.isReady {
-                ProgressView()
-                    .controlSize(.mini)
-            }
-        }
-        .foregroundColor(isOwnMessage ? .white : .primary)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .frame(minWidth: 130, alignment: .leading)
-        .task {
-            player.prepare(data: data)
-        }
     }
 }

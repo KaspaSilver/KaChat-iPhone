@@ -240,21 +240,6 @@ final class KaChatCoreTests: XCTestCase {
         XCTAssertFalse(KasiaTransactionBuilder.fitsStorageMass(inputAmounts: [20_000_000], outputAmounts: [19_800_000, 0]))
     }
 
-    // MARK: - Translation offer
-
-    func testShortRepliesInAnotherLanguageAreDetected() {
-        // A real reply that showed no Translate link: eleven letters, one short of the old hard
-        // floor, though the recognizer scores it Vietnamese at 1.00.
-        XCTAssertEqual(PostTranslationService.detectedLanguage(of: "đang rất hóng")?.languageCode?.identifier, "vi")
-        // Short non-Latin text never needed a floor; the script answers by itself.
-        XCTAssertEqual(PostTranslationService.detectedLanguage(of: "ありがとう")?.languageCode?.identifier, "ja")
-        XCTAssertEqual(PostTranslationService.detectedLanguage(of: "спасибо")?.languageCode?.identifier, "ru")
-        XCTAssertEqual(PostTranslationService.detectedLanguage(of: "danke schön")?.languageCode?.identifier, "de")
-        // What the floors are for: a coin-flip and a two-letter greeting stay unidentified.
-        XCTAssertNil(PostTranslationService.detectedLanguage(of: "gm"))
-        XCTAssertNil(PostTranslationService.detectedLanguage(of: "🚀🚀🚀"))
-    }
-
     // MARK: - Conversation model
 
     func testLastMessageSkipsPlaceholdersAndFollowsWrites() {

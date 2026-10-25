@@ -334,13 +334,13 @@ struct WelcomeGuideView: View {
                 .padding(.horizontal, 24)
 
             if settingsViewModel.settings.childModeEnabled {
-                Text("Simple Mode is on. Chats, Group Chats, Portfolio and Cold Storage are available; Swaps, KaPosts and Public Chats are hidden. Manage this in Settings > Security > Simple Mode.")
+                Text("Simple Mode is on. Chats, Group Chats, Portfolio and Cold Storage are available; Swaps and the .kachat market are hidden. Manage this in Settings > Security > Simple Mode.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             } else {
-                Text("Simple Mode is a smaller KaChat: just Chats, Group Chats, Portfolio and Cold Storage. Swaps, KaPosts and Public Chats stay hidden until the password unlocks them.")
+                Text("Simple Mode is a smaller KaChat: just Chats, Group Chats, Portfolio and Cold Storage. Swaps and the .kachat market stay hidden until the password unlocks them.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

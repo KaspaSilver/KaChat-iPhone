@@ -132,8 +132,6 @@ struct MenuVisibilityView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: size, height: size)
-        } else if tab == .chess {
-            ChessTabIcon.view(side: size)
         } else if tab == .kachatNames {
             KachatTabIcon.view(side: size)
         } else {

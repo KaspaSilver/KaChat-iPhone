@@ -384,7 +384,7 @@ struct ChildModeSettingsView: View {
         } header: {
             Text("What stays available")
         } footer: {
-            Text("While Simple Mode is on, Swaps, KaPosts and Public Chats are removed everywhere - the dock, the Chats-tab cycle, links and notifications. Face ID never unlocks Simple Mode; only the password does.")
+            Text("While Simple Mode is on, Swaps and the .kachat market are removed everywhere - the dock, Kaspa Hub and links. Face ID never unlocks Simple Mode; only the password does.")
         }
     }
 }

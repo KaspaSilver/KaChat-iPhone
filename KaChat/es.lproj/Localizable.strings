@@ -260,8 +260,6 @@
 "Invalid domain label" = "Etiqueta de dominio no válida";
 "Invalid recipient format." = "Formato de destinatario no válido.";
 "It's ok, I already have a domain" = "Esta bien, ya tengo un dominio";
-"Join" = "Unirse";
-"Join or Create a Channel" = "Unirse o crear un canal";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Envia solo 5-10 KAS a la vez, es suficiente para cubrir comisiones de chat por un tiempo (unos 500 mensajes por KAS)";
 "KAS" = "KAS";
 "KAS Price" = "Precio de KAS";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "No se pudo contactar con %@. Desliza hacia abajo para reintentar.";
 "Settling" = "Confirmándose";
 "Node" = "Nodo";
-"Translation" = "Traducción";
 "Message Indexer" = "Indexador de mensajes";
 "Other Name Services" = "Otros servicios de nombres";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Se usa para mostrar los nombres .k y .kaspa que posee una dirección. Los nombres .kachat de KaChat se configurarán aquí cuando se lancen.";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 días";
-"Public Chats" = "Chats públicos";
 "All-time only" = "Solo total";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Los tipos marcados como «Solo total» aún no están en este total.";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Para chatear con alguien, pulsa Crear chat e introduce su dirección de Kaspa o su nombre .kachat. Tu primer mensaje le llega como una solicitud de mensaje que puede aceptar. Para la máxima privacidad, activa Chat privado: nada os vincula en la cadena y verá tus mensajes cuando también inicie un chat privado contigo.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Se recomiendan 50 Kaspa para empezar: suficiente para reclamar un nombre .kachat y chatear un tiempo. 5 Kaspa alcanzan para unos 2500 mensajes.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Tu identidad pública de mensajería. Cárgala con una cantidad pequeña para pagar las comisiones de los mensajes y tu nombre .kachat; nunca envíes aquí dinero que pienses gastar.";
-"KaPosts isn't available on Testnet yet" = "KaPosts aún no está disponible en Testnet";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "No hay un indexador de KaPost para testnet. Desactiva Testnet en Ajustes > Conexión para leer y publicar en mainnet.";
 "Nextcloud is off while Testnet is on." = "Nextcloud está desactivado mientras Testnet esté activado.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Las copias de seguridad, la sincronización, los archivos y las llamadas con Nextcloud solo funcionan en mainnet, así testnet nunca puede sobrescribir tu copia de mainnet. Desactiva Testnet en Ajustes > Conexión y tu conexión con Nextcloud volverá tal como estaba.";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Algunos enlaces no se pudieron comprobar desde este teléfono ahora mismo. Se guardan tal como se escribieron y las apps de los demás los cargarán cuando puedan.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "Propina";
 "Goes to a fresh private address they shared" = "Va a una dirección privada nueva que compartió";
 "Goes to their public chatting address" = "Va a su dirección pública de chat";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "Añadir %@ a tu dock";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "Propinas";
-"No tips yet." = "Aún no hay propinas.";
-"Who tipped this post" = "Quién dio propina a esta publicación";
-"You'll now be notified when %@ posts." = "Ahora recibirás un aviso cuando %@ publique.";
-"You won't be notified about %@'s posts anymore." = "Ya no recibirás avisos de las publicaciones de %@.";
-"Stop post notifications" = "Desactivar avisos de publicaciones";
-"Notify me when they post" = "Avísame cuando publique";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Se necesita la frase de recuperación";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "Aún no hay torneos terminados.";
 
 /* KaPosts: post activity cards */
-"Likes" = "Me gusta";
-"Dislikes" = "No me gusta";
-"Reposts" = "Reposts";
-"Quotes" = "Citas";

@@ -2030,13 +2030,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     case chats
     case swap
     case profile
-    case kaposts
-    /// Displayed as "Public Chats"; the raw value stays `broadcasts` because it is PERSISTED
-    /// in `tabOrder` (see `ecosystem` below).
-    case publicChats = "broadcasts"
     case apps
-    /// Chess tournaments (5.1) - Kaspa Hub > Chess Online. See ONLINE_CHESS.md.
-    case chess
     /// .kachat names (5.2) - Kaspa Hub > .kachat: the marketplace for KaChat's own names
     /// (claim, buy and sell, trustless). UI only until the name service is built.
     case kachatNames
@@ -2066,12 +2060,9 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .chats: return "Chats"
         case .swap: return "Swap"
         case .profile: return "Profile"
-        case .kaposts: return "KaPosts"
-        case .publicChats: return "Public Chats"
         // Short enough for a dock label. `ecosystemTitle` carries the full name, which is what
         // the Ecosystem grid and the screen itself show.
         case .apps: return "Websites"
-        case .chess: return "Chess"
         case .kachatNames: return ".kachat"
         case .addressBook: return "Address Book"
         case .kachatBots: return "Bots"
@@ -2087,10 +2078,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .chats: return "bubble.left.and.bubble.right"
         case .swap: return "arrow.left.arrow.right"
         case .profile: return "person.crop.circle"
-        case .kaposts: return "square.and.pencil"
-        case .publicChats: return "dot.radiowaves.left.and.right"
         case .apps: return "globe"
-        case .chess: return "checkerboard.rectangle"
         // Drawn as the ".kachat" wordmark (KachatTabIcon) wherever tabs are drawn; this symbol
         // is only the fallback for anything that has not been taught about it.
         case .kachatNames: return "at"
@@ -2113,7 +2101,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     var ecosystemTitle: String {
         switch self {
         case .apps: return "Kaspa Websites"
-        case .chess: return "Chess Online"
         case .kachatNames: return ".kachat Domains"
         case .kachatBots: return "KaChat Bots"
         // ChangeNOW's own capitalization, matching how the app already names it everywhere else
@@ -2130,11 +2117,8 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .portfolio: return 3
         case .coldStorage: return 4
         case .swap: return 5
-        case .kaposts: return 6
         case .more: return 7
-        case .publicChats: return 8
         case .apps: return 9
-        case .chess: return 11
         case .kachatNames: return 12
         case .addressBook: return 14
         case .kachatBots: return 15
@@ -2155,16 +2139,15 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     static let pinnedToDock: [AppTab] = [.ecosystem, .chats, .profile]
 
     /// Tabs the user can place. Excludes the Hub (pinned) and the retired "+ More".
-    static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .addressBook, .kachatBots]
+    static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .apps, .kachatNames, .addressBook, .kachatBots]
 
-    /// A default install shows exactly the five the dock can fit - Kaspa Hub, Portfolio, Chats,
-    /// KaPosts, Profile - with Cold Storage, Swap and the websites list still ENABLED but living
-    /// inside Kaspa Hub rather than competing for a dock slot.
-    static let defaultOrder: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile, .coldStorage, .addressBook, .kachatNames, .kachatBots, .swap, .publicChats, .apps, .chess]
+    /// A default install shows Kaspa Hub, Portfolio, Chats and Profile in the dock, with Cold
+    /// Storage, Swap and the websites list still ENABLED but living inside Kaspa Hub.
+    static let defaultOrder: [AppTab] = [.ecosystem, .portfolio, .chats, .profile, .coldStorage, .addressBook, .kachatNames, .kachatBots, .swap, .apps]
 
     /// What a fresh install starts with (owner's order, 2026-10-20). Everything else starts in
     /// Kaspa Hub. A saved arrangement is the person's and is never reset to this.
-    static let defaultDock: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile]
+    static let defaultDock: [AppTab] = [.ecosystem, .portfolio, .chats, .profile]
 
     /// The rest, in the order the Hub grid shows them until the user rearranges it.
     static let defaultHub: [AppTab] = [.coldStorage, .addressBook, .kachatNames, .kachatBots, .swap, .apps]
@@ -2173,10 +2156,9 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     static var assignableDockSlots: Int { maxDockItems - pinnedToDock.count }
 
     /// The dock renders at most this many items (the iPhone tab bar's hard limit); anything past
-    /// it falls off rather than letting the system TabView spawn its own "More" list. KaPosts and
-    /// Public Chats drop out first (in that order) when over the cap - they stay reachable by
-    /// Ecosystem (see `ecosystemSections(from:)`). Anything enabled that doesn't fit simply
-    /// tail-drops out of the dock and is reached through Ecosystem instead.
+    /// it falls off rather than letting the system TabView spawn its own "More" list. Anything
+    /// enabled that doesn't fit simply tail-drops out of the dock and is reached through
+    /// Ecosystem instead (see `ecosystemSections(from:)`).
     static let maxDockItems = 5
 
     /// `settings.tabOrder`, resolved into real cases with any missing/unknown entries (a fresh
@@ -2192,29 +2174,18 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
 
     /// True when this tab is enabled (not hidden) in settings, independent of dock capacity.
     ///
-    /// Simple Mode (Settings > Security) hard-hides Swaps, KaPosts and Public Chats here - this is
-    /// the single choke point every dock consumer flows through (`visible`, `ecosystemSections`),
-    /// so while it's on those tabs can't render in the dock NOR appear inside Ecosystem,
-    /// regardless of dock settings.
+    /// Simple Mode (Settings > Security) hard-hides Swap here - this is the single choke point
+    /// every dock consumer flows through (`visible`, `ecosystemSections`), so while it's on that
+    /// tab can't render in the dock NOR appear inside Ecosystem, regardless of dock settings.
     func isEnabled(in settings: AppSettings) -> Bool {
-        if settings.childModeEnabled {
-            switch self {
-            case .swap, .kaposts, .publicChats: return false
-            default: break
-            }
-        }
+        if settings.childModeEnabled, self == .swap { return false }
         switch self {
         case .portfolio: return !settings.hidePortfolioTab
         case .coldStorage: return !settings.hideColdStorageTab
         // Off app-wide for now (`SwapFeature`) - this is the choke point, so the dock, Kaspa
         // Hub and Customize Dock all drop it.
         case .swap: return SwapFeature.enabled && !settings.hideSwapTab
-        case .kaposts: return !settings.hideKaPostsTab
-        // Public Chats (the public chat rooms) moved INTO the Chats screen as its third tab in
-        // 5.0. The case stays so saved dock/hub blobs still decode; it never renders on its own.
-        case .publicChats: return false
         case .apps: return !settings.hideAppsTab
-        case .chess: return !settings.hideChessTab && !settings.childModeEnabled
         // A marketplace - buying and selling with real KAS - so Simple Mode hides it, like Swap.
         case .kachatNames: return !settings.childModeEnabled
         // Your own saved addresses; nothing in it to keep from Simple Mode.
@@ -2231,8 +2202,7 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
 
     /// The resolved order, filtered down to only the tabs the user hasn't hidden and clamped to
     /// the dock capacity - what MainTabView actually renders and what the Menu Visibility preview
-    /// strip shows. When over capacity, KaPosts drops out first (it stays reachable via re-tapping
-    /// Chats); after that the tail of the order falls off.
+    /// strip shows. When over capacity, the tail of the order falls off.
     /// What the dock actually renders, in order.
     ///
     /// Read from `settings.dockTabs` - the user's placement - rather than derived by taking the
@@ -2352,14 +2322,42 @@ enum NotificationMode: String, Codable, CaseIterable {
 // MARK: - Mentions
 
 /// @mentions are built on .kas (KNS) names - the autocomplete offers a person's primary .kas
-/// domain, KaPosts resolves `@name.kas` to its owner, groups swap it for their address. 5.2 turns
+/// domain and groups swap it for their address. 5.2 turns
 /// them off app-wide until they are rebuilt on KaChat's own .kachat names. Every mention entry
 /// point checks this; flipping it back on restores them as they were. While off: no @
-/// suggestions, no mentions sent (posts carry none, group text is not encoded), no mention
-/// links in posts, and no "only notify if I'm mentioned" (a stored choice is kept, not applied).
+/// suggestions, no mentions sent (group text is not encoded), and no "only notify if I'm mentioned" (a stored choice is kept, not applied).
 /// Mentions other clients already sent still display.
 enum MentionsFeature {
     static let enabled = false
+}
+
+/// How .kas names are shown and found in text. These lived on the KaPosts feed until KaPosts
+/// left the app (2026-10-24); group chats and the notification feed still use them.
+enum KasNameText {
+    /// A name as it is SHOWN: a KNS domain keeps its ".kas" everywhere in the app. Aliases pass
+    /// through as the user wrote them.
+    static func display(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Every @domain in `text`: "@" at a word boundary, lowercased, ".kas" suffix optional (and
+    /// dropped), each once, in order.
+    static func mentionDomains(in text: String) -> [String] {
+        let ns = text as NSString
+        guard let regex = try? NSRegularExpression(
+            pattern: "(^|[\\s(\\[{<\"'])@([a-z0-9-]+(?:\\.[a-z0-9-]+)*)",
+            options: [.caseInsensitive]
+        ) else { return [] }
+        var seen = Set<String>()
+        var out: [String] = []
+        regex.enumerateMatches(in: text, options: [], range: NSRange(location: 0, length: ns.length)) { match, _, _ in
+            guard let match = match, match.numberOfRanges >= 3 else { return }
+            var domain = ns.substring(with: match.range(at: 2)).lowercased()
+            if domain.hasSuffix(".kas") { domain = String(domain.dropLast(4)) }
+            if !domain.isEmpty, seen.insert(domain).inserted { out.append(domain) }
+        }
+        return out
+    }
 }
 
 // MARK: - Settings Models
@@ -2379,19 +2377,6 @@ struct AppSettings: Codable {
     /// Deliberately not gated by Simple Mode - these are wallet notifications, and Portfolio /
     /// Cold Storage remain available there.
     var addressActivityNotificationsEnabled: Bool
-    /// Settings > Notifications > KaPosts: per-event-type gates for KaPosts notification
-    /// pings (all default ON). Mapped from the K notifications API's `contentType` /
-    /// `voteType` fields via `shouldNotifyKaPostsAction` - a disabled type is silently
-    /// skipped, never queued. Orthogonal to Simple Mode (which suppresses ALL KaPosts pings).
-    var kaPostsNotifyLikes: Bool
-    var kaPostsNotifyReposts: Bool
-    var kaPostsNotifyFollows: Bool
-    var kaPostsNotifyDislikes: Bool
-    var kaPostsNotifyComments: Bool
-    /// Being named used to be unswitchable on the theory that a mention is always about you.
-    /// It is - but a busy account can be mentioned constantly, and "always about you" is a
-    /// reason to make the choice available, not a reason to make it for them.
-    var kaPostsNotifyMentions: Bool
     var messagePollInterval: TimeInterval
     var liveUpdatesEnabled: Bool
     var requirePhotoApprovalForNewContacts: Bool
@@ -2399,8 +2384,6 @@ struct AppSettings: Codable {
     /// carries (`ImagePrep.highQualityChatTargetBytes`) instead of the default, for a higher fee.
     var higherQualityPhotos: Bool
     var showFeeEstimate: Bool
-    /// KaPosts > Settings: the tip a tap on "Tip" sends at once, in sompi. nil = ask every time.
-    var kaPostsDefaultTipSompi: UInt64?
     /// Optional (unlike most fields here) - this struct has no custom `init(from:)`, so a newly
     /// added *required* field would fail this whole struct's decode for anyone with a
     /// pre-existing settings blob saved before it existed, silently resetting every other setting
@@ -2415,18 +2398,12 @@ struct AppSettings: Codable {
     var hidePortfolioTab: Bool
     var hideSwapTab: Bool
     var hideColdStorageTab: Bool
-    var hideKaPostsTab: Bool
     /// RETIRED (4.0): the "+ More" dock item is gone (`AppTab.isEnabled` hard-hides `.more`).
     /// Kept only so existing saved blobs that contain the key keep decoding/encoding cleanly.
     var hideMoreItem: Bool
-    /// Public Chats isn't a tab (it's an entry row inside the Chats list, see `ChatListView`'s
-    /// `chatsTabContent`) but is still user-hideable from Settings > Customization > Menu, so it
-    /// gets its own flag here rather than a case in `AppTab`.
-    var hidePublicChats: Bool
     /// Apps (ecosystem link bubbles) as a dock tab. Hidden (default) = the Apps row lives on
     /// the Profile screen instead; toggled on = dock tab, Profile row disappears.
     var hideAppsTab: Bool
-    var hideChessTab: Bool
     var hideEcosystemTab: Bool
     /// Raw values of `AppTab`, in display order - user-customizable via Settings > Customization
     /// > Menu's drag-to-reorder preview strip.
@@ -2441,8 +2418,8 @@ struct AppSettings: Codable {
 
     // Security
     /// Simple Mode (Settings > Security): while on, the app is strictly Chats, Group Chats,
-    /// Portfolio and Cold Storage - Swaps, KaPosts and Public Chats are removed from every access
-    /// point (dock, Ecosystem, deep links, notifications, push registration). Turning it
+    /// Portfolio and Cold Storage - Swap and the .kachat market are removed from every access
+    /// point (dock, Ecosystem, deep links). Turning it
     /// OFF is validated against the salted password hash in the Keychain (see ChildModeService) -
     /// this flag alone is just the fast-path gate the UI reads.
     var childModeEnabled: Bool
@@ -2469,21 +2446,12 @@ struct AppSettings: Codable {
 
     // Connection settings
     var indexerURL: String
-    /// K social-network indexer powering KaPosts (reusing the already-running public K indexer).
-    var kaPostIndexerURL: String
-    /// KaChat-owned public chat indexer (tracks #kaspa and #kachat-bugs history) - served from
-    /// the same box/domain as the KaPosts indexer.
-    var publicChatIndexerURL: String
     var pushIndexerURL: String
-    /// Server-side KaPost translation (see `TRANSLATION_SERVICE.md`). Its own field rather than
-    /// riding on `kaPostIndexerURL`, so someone running their own translator does not have to run
-    /// their own KaPosts indexer as well - and the reverse.
-    var translationServiceURL: String
     /// The Kaspa Name Service endpoint. Fixed to the current network's default, never stored and
     /// never user-editable.
     ///
-    /// It used to be an editable field with no empty-string fallback (unlike the KaPosts and
-    /// public chat indexer fields, which fall back to their defaults). Saving Connection Settings
+    /// It used to be an editable field with no empty-string fallback (unlike the indexer
+    /// fields, which fall back to their defaults). Saving Connection Settings
     /// with that field blank wrote "" straight through, and an empty base URL builds a
     /// scheme-less URL that URLSession rejects with NSURLErrorUnsupportedURL (-1002) - so every
     /// KNS call failed until it was typed back in by hand.
@@ -2518,29 +2486,19 @@ struct AppSettings: Codable {
 
     // Default URLs per network
     static let defaultIndexerURL = "https://kachat.duckdns.org"
-    static let defaultKaPostIndexerURL = "https://kachat.duckdns.org"
-    static let defaultPublicChatIndexerURL = defaultKaPostIndexerURL
     /// The testnet-10 KaChat indexer (Kaspa-Quick-Start's `kachat-testnet` publish target): chat,
-    /// push, KaPosts, public chats and `.kachat` names, all on one name with the mainnet route split.
+    /// push and `.kachat` names, all on one name with the mainnet route split.
     /// Port 7443: 443 on that address is answered by another proxy (the gift service's certificate).
     static let defaultTestnetIndexerURL = "https://tnkachat.duckdns.org:7443"
-    /// Retired default - the public K social indexer (`mainnet.kaspatalk.net`). KaPosts now
-    /// runs on KaChat's own indexer, which enforces two-way KaChat-only exclusivity server-side
-    /// and is a fresh network with no relation to the K social graph. Anyone still on the old
-    /// default is migrated in `SettingsViewModel.load()`.
-    static let legacyDefaultKaPostIndexerURL = "https://mainnet.kaspatalk.net"
     /// Retired default - `indexer.kasia.fyi` doesn't run the group-chat REST endpoints
     /// (`/group-messages/...`, `/group-control/...`). See `AppSettings.load()`'s one-time migration.
     static let legacyDefaultIndexerURL = "https://indexer.kasia.fyi"
     /// The previous shipped default (the community `indexer.kasia.wtf`), now replaced by KaChat's
     /// own indexer (`kachat.duckdns.org`). Swept in `SettingsViewModel.load()` like kasia.fyi.
     static let legacyDefaultIndexerURLKasiaWtf = "https://indexer.kasia.wtf"
-    /// Our own push service (chat/group push + the public chat/KaPosts extensions - see
-    /// PUSH_EXTENSIONS.md). Superseded the community indexer.kasia.wtf once kachat.duckdns.org
+    /// Our own push service (chat and group push - see PUSH_NOTIFICATIONS.md). Superseded the community indexer.kasia.wtf once kachat.duckdns.org
     /// went live.
     static let defaultPushIndexerURL = "https://kachat.duckdns.org"
-    /// Server-side KaPost translation - same box as the KaPosts indexer by default.
-    static let defaultTranslationServiceURL = "https://kachat.duckdns.org"
     static let defaultKNSMainnetURL = "https://api.knsdomains.org/mainnet/api/v1"
     static let defaultKNSTestnetURL = "https://api.knsdomains.org/tn10/api/v1"
     static let defaultKaspaMainnetURL = "https://api.kaspa.org"
@@ -2576,10 +2534,7 @@ struct AppSettings: Codable {
     var currentConnectionProfile: ConnectionProfile {
         ConnectionProfile(
             indexerURL: indexerURL,
-            kaPostIndexerURL: kaPostIndexerURL,
-            publicChatIndexerURL: publicChatIndexerURL,
             pushIndexerURL: pushIndexerURL,
-            translationServiceURL: translationServiceURL,
             kaspaRestAPIURL: kaspaRestAPIURL,
             trustedNodeAddress: trustedNodeAddress,
             savedNodeAddresses: savedNodeAddresses
@@ -2595,10 +2550,7 @@ struct AppSettings: Codable {
         connectionProfiles[networkType.rawValue] = currentConnectionProfile
         let next = connectionProfiles[network.rawValue] ?? .defaults(for: network)
         indexerURL = next.indexerURL
-        kaPostIndexerURL = next.kaPostIndexerURL
-        publicChatIndexerURL = next.publicChatIndexerURL
         pushIndexerURL = next.pushIndexerURL
-        translationServiceURL = next.translationServiceURL
         kaspaRestAPIURL = next.kaspaRestAPIURL
         trustedNodeAddress = next.trustedNodeAddress
         savedNodeAddresses = next.savedNodeAddresses
@@ -2623,36 +2575,25 @@ struct AppSettings: Codable {
             incomingNotificationSoundEnabled: true,
             incomingNotificationVibrationEnabled: true,
             addressActivityNotificationsEnabled: true,
-            kaPostsNotifyLikes: true,
-            kaPostsNotifyReposts: true,
-            kaPostsNotifyFollows: true,
-            kaPostsNotifyDislikes: true,
-            kaPostsNotifyComments: true,
-            kaPostsNotifyMentions: true,
             messagePollInterval: 10.0,
             liveUpdatesEnabled: false,
             requirePhotoApprovalForNewContacts: true,
             showFeeEstimate: true,
-            kaPostsDefaultTipSompi: nil,
             quickReactionEmojis: defaultQuickReactionEmojis,
             appearance: .system,
             language: .system,
             currency: .usDollar,
             // Fresh-install dock: EVERYTHING on. The dock renders as many as fit
-            // (maxDockItems) - Portfolio, Storage, Chats, Ecosystem, Profile - and Swap,
-            // KaPosts, Public Chats and the websites list are reached through Ecosystem rather
-            // than competing for a slot. Existing users are
+            // (maxDockItems) and Swap and the websites list are reached through Ecosystem
+            // rather than competing for a slot. Existing users are
             // unaffected: their saved settings decode with their own explicit values (or the ??
             // fallbacks in init(from:) for keys that predate them). "+ More" no longer exists
             // as a dock item.
             hidePortfolioTab: false,
             hideSwapTab: false,
             hideColdStorageTab: false,
-            hideKaPostsTab: false,
             hideMoreItem: true,
-            hidePublicChats: false,
             hideAppsTab: false,
-            hideChessTab: false,
             hideEcosystemTab: false,
             tabOrder: AppTab.defaultOrder.map { $0.rawValue },
             dockTabs: AppTab.defaultDock.map { $0.rawValue },
@@ -2664,10 +2605,7 @@ struct AppSettings: Codable {
             biometricSpendingKeyEnabled: true,
             swapDisclaimerAgreed: false,
             indexerURL: defaultIndexerURL,
-            kaPostIndexerURL: defaultKaPostIndexerURL,
-            publicChatIndexerURL: defaultPublicChatIndexerURL,
             pushIndexerURL: defaultPushIndexerURL,
-            translationServiceURL: defaultTranslationServiceURL,
             kaspaRestAPIURL: defaultKaspaMainnetURL,
             kaspaExplorer: .default,
             trustedNodeAddress: defaultTrustedNodeAddress,
@@ -2688,18 +2626,11 @@ struct AppSettings: Codable {
         case incomingNotificationSoundEnabled
         case incomingNotificationVibrationEnabled
         case addressActivityNotificationsEnabled
-        case kaPostsNotifyLikes
-        case kaPostsNotifyReposts
-        case kaPostsNotifyFollows
-        case kaPostsNotifyDislikes
-        case kaPostsNotifyComments
-        case kaPostsNotifyMentions
         case messagePollInterval
         case liveUpdatesEnabled
         case requirePhotoApprovalForNewContacts
         case higherQualityPhotos
         case showFeeEstimate
-        case kaPostsDefaultTipSompi
         case quickReactionEmojis
         case appearance
         case language
@@ -2707,11 +2638,8 @@ struct AppSettings: Codable {
         case hidePortfolioTab
         case hideSwapTab
         case hideColdStorageTab
-        case hideKaPostsTab
         case hideMoreItem
-        case hidePublicChats = "hideBroadcasts"
         case hideAppsTab
-        case hideChessTab
         case hideEcosystemTab
         case tabOrder
         case dockTabs
@@ -2723,10 +2651,7 @@ struct AppSettings: Codable {
         case swapDisclaimerAgreed
         case verboseAPILogging
         case indexerURL
-        case kaPostIndexerURL
-        case publicChatIndexerURL = "broadcastIndexerURL"
         case pushIndexerURL
-        case translationServiceURL
         case kaspaRestAPIURL
         case kaspaExplorer
         case trustedNodeAddress
@@ -2756,18 +2681,11 @@ struct AppSettings: Codable {
         incomingNotificationSoundEnabled: Bool = true,
         incomingNotificationVibrationEnabled: Bool = true,
         addressActivityNotificationsEnabled: Bool = true,
-        kaPostsNotifyLikes: Bool = true,
-        kaPostsNotifyReposts: Bool = true,
-        kaPostsNotifyFollows: Bool = true,
-        kaPostsNotifyDislikes: Bool = true,
-        kaPostsNotifyComments: Bool = true,
-        kaPostsNotifyMentions: Bool = true,
         messagePollInterval: TimeInterval,
         liveUpdatesEnabled: Bool,
         requirePhotoApprovalForNewContacts: Bool = true,
         higherQualityPhotos: Bool = false,
         showFeeEstimate: Bool = true,
-        kaPostsDefaultTipSompi: UInt64? = nil,
         quickReactionEmojis: [String]? = nil,
         appearance: AppAppearance = .system,
         language: AppLanguage = .system,
@@ -2775,11 +2693,8 @@ struct AppSettings: Codable {
         hidePortfolioTab: Bool = false,
         hideSwapTab: Bool = false,
         hideColdStorageTab: Bool = false,
-        hideKaPostsTab: Bool = false,
         hideMoreItem: Bool = true,
-        hidePublicChats: Bool = false,
         hideAppsTab: Bool = false,
-        hideChessTab: Bool = false,
         hideEcosystemTab: Bool = false,
         tabOrder: [String] = AppTab.defaultOrder.map { $0.rawValue },
         dockTabs: [String] = AppTab.defaultDock.map { $0.rawValue },
@@ -2791,10 +2706,7 @@ struct AppSettings: Codable {
         swapDisclaimerAgreed: Bool = false,
         verboseAPILogging: Bool = false,
         indexerURL: String,
-        kaPostIndexerURL: String = AppSettings.defaultKaPostIndexerURL,
-        publicChatIndexerURL: String = AppSettings.defaultPublicChatIndexerURL,
         pushIndexerURL: String,
-        translationServiceURL: String = AppSettings.defaultTranslationServiceURL,
         kaspaRestAPIURL: String,
         kaspaExplorer: KaspaExplorer = .default,
         trustedNodeAddress: String = AppSettings.defaultTrustedNodeAddress,
@@ -2813,18 +2725,11 @@ struct AppSettings: Codable {
         self.incomingNotificationSoundEnabled = incomingNotificationSoundEnabled
         self.incomingNotificationVibrationEnabled = incomingNotificationVibrationEnabled
         self.addressActivityNotificationsEnabled = addressActivityNotificationsEnabled
-        self.kaPostsNotifyLikes = kaPostsNotifyLikes
-        self.kaPostsNotifyReposts = kaPostsNotifyReposts
-        self.kaPostsNotifyFollows = kaPostsNotifyFollows
-        self.kaPostsNotifyDislikes = kaPostsNotifyDislikes
-        self.kaPostsNotifyComments = kaPostsNotifyComments
-        self.kaPostsNotifyMentions = kaPostsNotifyMentions
         self.messagePollInterval = messagePollInterval
         self.liveUpdatesEnabled = liveUpdatesEnabled
         self.requirePhotoApprovalForNewContacts = requirePhotoApprovalForNewContacts
         self.higherQualityPhotos = higherQualityPhotos
         self.showFeeEstimate = showFeeEstimate
-        self.kaPostsDefaultTipSompi = kaPostsDefaultTipSompi
         self.quickReactionEmojis = quickReactionEmojis
         self.appearance = appearance
         self.language = language
@@ -2832,11 +2737,8 @@ struct AppSettings: Codable {
         self.hidePortfolioTab = hidePortfolioTab
         self.hideSwapTab = hideSwapTab
         self.hideColdStorageTab = hideColdStorageTab
-        self.hideKaPostsTab = hideKaPostsTab
         self.hideMoreItem = hideMoreItem
-        self.hidePublicChats = hidePublicChats
         self.hideAppsTab = hideAppsTab
-        self.hideChessTab = hideChessTab
         self.hideEcosystemTab = hideEcosystemTab
         self.tabOrder = tabOrder
         self.dockTabs = dockTabs
@@ -2848,10 +2750,7 @@ struct AppSettings: Codable {
         self.swapDisclaimerAgreed = swapDisclaimerAgreed
         self.verboseAPILogging = verboseAPILogging
         self.indexerURL = indexerURL
-        self.kaPostIndexerURL = kaPostIndexerURL
-        self.publicChatIndexerURL = publicChatIndexerURL
         self.pushIndexerURL = pushIndexerURL
-        self.translationServiceURL = translationServiceURL
         self.kaspaRestAPIURL = kaspaRestAPIURL
         self.kaspaExplorer = kaspaExplorer
         self.trustedNodeAddress = trustedNodeAddress
@@ -2896,20 +2795,13 @@ struct AppSettings: Codable {
         incomingNotificationSoundEnabled = try container.decodeIfPresent(Bool.self, forKey: .incomingNotificationSoundEnabled) ?? true
         incomingNotificationVibrationEnabled = try container.decodeIfPresent(Bool.self, forKey: .incomingNotificationVibrationEnabled) ?? true
         addressActivityNotificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .addressActivityNotificationsEnabled) ?? true
-        kaPostsNotifyLikes = try container.decodeIfPresent(Bool.self, forKey: .kaPostsNotifyLikes) ?? true
-        kaPostsNotifyReposts = try container.decodeIfPresent(Bool.self, forKey: .kaPostsNotifyReposts) ?? true
-        kaPostsNotifyFollows = try container.decodeIfPresent(Bool.self, forKey: .kaPostsNotifyFollows) ?? true
-        kaPostsNotifyDislikes = try container.decodeIfPresent(Bool.self, forKey: .kaPostsNotifyDislikes) ?? true
-        kaPostsNotifyComments = try container.decodeIfPresent(Bool.self, forKey: .kaPostsNotifyComments) ?? true
         // Defaults ON, and an older settings file with no such key decodes as ON - a switch
         // appearing for the first time must not silently mute anything.
-        kaPostsNotifyMentions = try container.decodeIfPresent(Bool.self, forKey: .kaPostsNotifyMentions) ?? true
         messagePollInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .messagePollInterval) ?? 10.0
         liveUpdatesEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveUpdatesEnabled) ?? false
         requirePhotoApprovalForNewContacts = try container.decodeIfPresent(Bool.self, forKey: .requirePhotoApprovalForNewContacts) ?? true
         higherQualityPhotos = try container.decodeIfPresent(Bool.self, forKey: .higherQualityPhotos) ?? false
         showFeeEstimate = try container.decodeIfPresent(Bool.self, forKey: .showFeeEstimate) ?? true
-        kaPostsDefaultTipSompi = try container.decodeIfPresent(UInt64.self, forKey: .kaPostsDefaultTipSompi)
         quickReactionEmojis = try container.decodeIfPresent([String].self, forKey: .quickReactionEmojis)
         appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .system
@@ -2917,19 +2809,13 @@ struct AppSettings: Codable {
         hidePortfolioTab = try container.decodeIfPresent(Bool.self, forKey: .hidePortfolioTab) ?? false
         hideSwapTab = try container.decodeIfPresent(Bool.self, forKey: .hideSwapTab) ?? false
         hideColdStorageTab = try container.decodeIfPresent(Bool.self, forKey: .hideColdStorageTab) ?? false
-        // Seeding for EXISTING users (blobs saved before these keys existed): KaPosts and
-        // Public Chats land ENABLED. With a full dock they don't get a slot, and are reached
-        // through Ecosystem instead - see AppTab.ecosystemSections.
-        hideKaPostsTab = try container.decodeIfPresent(Bool.self, forKey: .hideKaPostsTab) ?? false
         hideMoreItem = try container.decodeIfPresent(Bool.self, forKey: .hideMoreItem) ?? false
-        hidePublicChats = try container.decodeIfPresent(Bool.self, forKey: .hidePublicChats) ?? false
         // Defaults to SHOWN. It used to default to hidden because it competed for a dock slot;
         // it now lives in Ecosystem, where it costs nothing, so an install that predates this key
         // should have it rather than not.
         hideAppsTab = try container.decodeIfPresent(Bool.self, forKey: .hideAppsTab) ?? false
-        hideChessTab = try container.decodeIfPresent(Bool.self, forKey: .hideChessTab) ?? false
-        // Defaults to SHOWN for everyone, new and existing: Ecosystem is where Swap, KaPosts,
-        // Public Chats and the websites list live now, so hiding it by default would strand them.
+        // Defaults to SHOWN for everyone, new and existing: Ecosystem is where Swap and the
+        // websites list live now, so hiding it by default would strand them.
         hideEcosystemTab = try container.decodeIfPresent(Bool.self, forKey: .hideEcosystemTab) ?? false
         tabOrder = try container.decodeIfPresent([String].self, forKey: .tabOrder) ?? AppTab.defaultOrder.map { $0.rawValue }
         // Absent on every blob saved before placement existed; the one-time migration below
@@ -2949,21 +2835,6 @@ struct AppSettings: Codable {
         } else {
             indexerURL = try container.decodeIfPresent(String.self, forKey: .indexerURL) ?? AppSettings.defaultIndexerURL
         }
-        // Old-default migration: stored values pointing at superseded default hosts follow the
-        // default forward; custom URLs are untouched.
-        let storedKaPostIndexer = try container.decodeIfPresent(String.self, forKey: .kaPostIndexerURL) ?? AppSettings.defaultKaPostIndexerURL
-        let supersededIndexerDefaults = ["https://kaposts.duckdns.org", "https://mainnet.kaspatalk.net"]
-        kaPostIndexerURL = supersededIndexerDefaults.contains(storedKaPostIndexer)
-            ? AppSettings.defaultKaPostIndexerURL : storedKaPostIndexer
-        let storedPublicChatIndexer = try container.decodeIfPresent(String.self, forKey: .publicChatIndexerURL) ?? ""
-        publicChatIndexerURL = storedPublicChatIndexer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || storedPublicChatIndexer == "https://kaposts.duckdns.org"
-            ? AppSettings.defaultPublicChatIndexerURL : storedPublicChatIndexer
-
-        let storedTranslation = try container.decodeIfPresent(String.self, forKey: .translationServiceURL) ?? ""
-        translationServiceURL = storedTranslation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ? AppSettings.defaultTranslationServiceURL : storedTranslation
-
         if let customPushIndexer = try container.decodeIfPresent(String.self, forKey: .pushIndexerURL),
            !customPushIndexer.isEmpty,
            customPushIndexer != "https://indexer.kasia.wtf" {
@@ -2996,10 +2867,7 @@ struct AppSettings: Codable {
                     ? AppSettings.defaultTestnetIndexerURL : stored
             }
             indexerURL = try testnetIndexer(.indexerURL)
-            kaPostIndexerURL = try testnetIndexer(.kaPostIndexerURL)
-            publicChatIndexerURL = try testnetIndexer(.publicChatIndexerURL)
             pushIndexerURL = try testnetIndexer(.pushIndexerURL)
-            translationServiceURL = try container.decodeIfPresent(String.self, forKey: .translationServiceURL) ?? ""
         }
         // The same for the stashed testnet profile, used when switching back to testnet.
         if var stashed = connectionProfiles[NetworkType.testnet.rawValue] {
@@ -3007,8 +2875,6 @@ struct AppSettings: Codable {
                 value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? AppSettings.defaultTestnetIndexerURL : value
             }
             stashed.indexerURL = filled(stashed.indexerURL)
-            stashed.kaPostIndexerURL = filled(stashed.kaPostIndexerURL)
-            stashed.publicChatIndexerURL = filled(stashed.publicChatIndexerURL)
             stashed.pushIndexerURL = filled(stashed.pushIndexerURL)
             connectionProfiles[NetworkType.testnet.rawValue] = stashed
         }
@@ -3042,18 +2908,11 @@ struct AppSettings: Codable {
         try container.encode(incomingNotificationSoundEnabled, forKey: .incomingNotificationSoundEnabled)
         try container.encode(incomingNotificationVibrationEnabled, forKey: .incomingNotificationVibrationEnabled)
         try container.encode(addressActivityNotificationsEnabled, forKey: .addressActivityNotificationsEnabled)
-        try container.encode(kaPostsNotifyLikes, forKey: .kaPostsNotifyLikes)
-        try container.encode(kaPostsNotifyReposts, forKey: .kaPostsNotifyReposts)
-        try container.encode(kaPostsNotifyFollows, forKey: .kaPostsNotifyFollows)
-        try container.encode(kaPostsNotifyDislikes, forKey: .kaPostsNotifyDislikes)
-        try container.encode(kaPostsNotifyComments, forKey: .kaPostsNotifyComments)
-        try container.encode(kaPostsNotifyMentions, forKey: .kaPostsNotifyMentions)
         try container.encode(messagePollInterval, forKey: .messagePollInterval)
         try container.encode(liveUpdatesEnabled, forKey: .liveUpdatesEnabled)
         try container.encode(requirePhotoApprovalForNewContacts, forKey: .requirePhotoApprovalForNewContacts)
         try container.encode(higherQualityPhotos, forKey: .higherQualityPhotos)
         try container.encode(showFeeEstimate, forKey: .showFeeEstimate)
-        try container.encodeIfPresent(kaPostsDefaultTipSompi, forKey: .kaPostsDefaultTipSompi)
         try container.encodeIfPresent(quickReactionEmojis, forKey: .quickReactionEmojis)
         try container.encode(appearance, forKey: .appearance)
         try container.encode(language, forKey: .language)
@@ -3061,11 +2920,8 @@ struct AppSettings: Codable {
         try container.encode(hidePortfolioTab, forKey: .hidePortfolioTab)
         try container.encode(hideSwapTab, forKey: .hideSwapTab)
         try container.encode(hideColdStorageTab, forKey: .hideColdStorageTab)
-        try container.encode(hideKaPostsTab, forKey: .hideKaPostsTab)
         try container.encode(hideMoreItem, forKey: .hideMoreItem)
-        try container.encode(hidePublicChats, forKey: .hidePublicChats)
         try container.encode(hideAppsTab, forKey: .hideAppsTab)
-        try container.encode(hideChessTab, forKey: .hideChessTab)
         try container.encode(hideEcosystemTab, forKey: .hideEcosystemTab)
         try container.encode(tabOrder, forKey: .tabOrder)
         try container.encode(dockTabs, forKey: .dockTabs)
@@ -3077,8 +2933,6 @@ struct AppSettings: Codable {
         try container.encode(swapDisclaimerAgreed, forKey: .swapDisclaimerAgreed)
         try container.encode(verboseAPILogging, forKey: .verboseAPILogging)
         try container.encode(indexerURL, forKey: .indexerURL)
-        try container.encode(kaPostIndexerURL, forKey: .kaPostIndexerURL)
-        try container.encode(publicChatIndexerURL, forKey: .publicChatIndexerURL)
         try container.encode(pushIndexerURL, forKey: .pushIndexerURL)
         try container.encode(kaspaRestAPIURL, forKey: .kaspaRestAPIURL)
         try container.encode(kaspaExplorer, forKey: .kaspaExplorer)
@@ -3111,22 +2965,6 @@ struct AppSettings: Codable {
     var notificationsEnabled: Bool {
         get { notificationMode != .disabled }
         set { notificationMode = newValue ? .remotePush : .disabled }
-    }
-
-    /// Per-event-type gate for KaPosts notification pings, keyed off the K notifications
-    /// API's fields (see KaPostsAPIClient.KNotification / KaPostsNotificationService.postLocal):
-    /// `contentType` is "vote" (with `voteType` "upvote"/"downvote"), "reply", "quote"
-    /// (K's repost mechanism - quotes-with-text included), or "follow". Unknown kinds always
-    /// notify rather than silently vanishing behind a toggle that doesn't name them.
-    func shouldNotifyKaPostsAction(contentType: String?, voteType: String?) -> Bool {
-        switch contentType {
-        case "vote": return voteType == "downvote" ? kaPostsNotifyDislikes : kaPostsNotifyLikes
-        case "reply": return kaPostsNotifyComments
-        case "quote": return kaPostsNotifyReposts
-        case "follow": return kaPostsNotifyFollows
-        case "mention": return kaPostsNotifyMentions
-        default: return true
-        }
     }
 
     var backgroundFetchEnabled: Bool {
@@ -3296,25 +3134,19 @@ enum EndpointOrigin: Int, Codable {
 /// One network's connection settings - see `AppSettings.connectionProfiles`.
 struct ConnectionProfile: Codable, Equatable {
     var indexerURL: String
-    var kaPostIndexerURL: String
-    var publicChatIndexerURL: String
     var pushIndexerURL: String
-    var translationServiceURL: String
     var kaspaRestAPIURL: String
     var trustedNodeAddress: String
     var savedNodeAddresses: [SavedNodeAddress]
 
     /// What a network starts with. Testnet: the public testnet REST API, automatic node
-    /// discovery, and KaChat's testnet-10 indexer for chat, push, KaPosts and public chats.
+    /// discovery, and KaChat's testnet-10 indexer for chat and push.
     static func defaults(for network: NetworkType) -> ConnectionProfile {
         switch network {
         case .mainnet:
             return ConnectionProfile(
                 indexerURL: AppSettings.defaultIndexerURL,
-                kaPostIndexerURL: AppSettings.defaultKaPostIndexerURL,
-                publicChatIndexerURL: AppSettings.defaultPublicChatIndexerURL,
                 pushIndexerURL: AppSettings.defaultPushIndexerURL,
-                translationServiceURL: AppSettings.defaultTranslationServiceURL,
                 kaspaRestAPIURL: AppSettings.defaultKaspaMainnetURL,
                 trustedNodeAddress: AppSettings.defaultTrustedNodeAddress,
                 savedNodeAddresses: []
@@ -3322,10 +3154,7 @@ struct ConnectionProfile: Codable, Equatable {
         case .testnet:
             return ConnectionProfile(
                 indexerURL: AppSettings.defaultTestnetIndexerURL,
-                kaPostIndexerURL: AppSettings.defaultTestnetIndexerURL,
-                publicChatIndexerURL: AppSettings.defaultTestnetIndexerURL,
                 pushIndexerURL: AppSettings.defaultTestnetIndexerURL,
-                translationServiceURL: AppSettings.defaultTranslationServiceURL,
                 kaspaRestAPIURL: AppSettings.defaultKaspaTestnetURL,
                 trustedNodeAddress: "",
                 savedNodeAddresses: []
@@ -3513,7 +3342,7 @@ struct GrpcEndpoint: Codable, Identifiable, Equatable {
 // Single-admin, epoch-based group messaging - see GroupCipher.swift for the crypto and
 // GroupChatService for the orchestration layer. Secret key material (GroupBag) lives in
 // Keychain only (never synced anywhere); non-secret roster/message metadata lives in
-// GroupStore's local-only Core Data store (mirrors PublicChatStore's pattern).
+// GroupStore's local-only Core Data store.
 
 /// A member of a group chat.
 struct GroupMember: Codable, Identifiable, Equatable, Hashable {

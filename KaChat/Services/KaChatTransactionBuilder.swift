@@ -1449,8 +1449,7 @@ struct KasiaTransactionBuilder {
         senderScriptPubKey: Data,
         feeOverride: UInt64? = nil
     ) throws -> ContextualSelection {
-        // A coin a scheduled post is waiting to spend is not available (KaPostsScheduledStore).
-        let spendable = KaPostsScheduledStore.filterReserved(utxos).filter { !$0.isCoinbase }
+        let spendable = utxos.filter { !$0.isCoinbase }
         let pending = spendable
             .filter { $0.blockDaaScore == 0 }
             .sorted { $0.amount > $1.amount }
@@ -1530,7 +1529,6 @@ struct KasiaTransactionBuilder {
         virtualDaaScore: UInt64? = nil,
         signatureScriptSize: Int = 66
     ) throws -> PaymentSelection {
-        let utxos = KaPostsScheduledStore.filterReserved(utxos)
         // Sort largest first to reduce input count (lower mass). Immature coinbase is excluded up
         // front (mature coinbase is kept only when a virtual DAA score is supplied).
         let sorted = spendableForBuild(utxos, virtualDaaScore: virtualDaaScore).sorted { $0.amount > $1.amount }
@@ -1614,7 +1612,6 @@ struct KasiaTransactionBuilder {
         virtualDaaScore: UInt64? = nil,
         signatureScriptSize: Int = 66
     ) throws -> PaymentSelection {
-        let utxos = KaPostsScheduledStore.filterReserved(utxos)
         let usable = spendableForBuild(utxos, virtualDaaScore: virtualDaaScore)
         guard !usable.isEmpty else {
             throw KasiaError.networkError("Insufficient funds for payment")
@@ -1671,7 +1668,6 @@ struct KasiaTransactionBuilder {
         minOutputAmount: UInt64,
         maxInputs: Int
     ) throws -> MessageCompactionSelection {
-        let utxos = KaPostsScheduledStore.filterReserved(utxos)
         let boundedMaxInputs = max(2, maxInputs)
         let spendable = utxos.filter { !$0.isCoinbase }
         let confirmed = spendable
@@ -1768,7 +1764,7 @@ struct KasiaTransactionBuilder {
         // Every available UTXO as its own input (the external Kasia app's behaviour), largest
         // first and at most `maxInputsPerTransaction`: past ~89 inputs the node rejects the
         // transaction as over-mass with an opaque error (IOS-009).
-        let utxos = Array(KaPostsScheduledStore.filterReserved(utxos)
+        let utxos = Array(utxos
             .filter { !$0.isCoinbase }
             .sorted { $0.amount > $1.amount }
             .prefix(maxInputsPerTransaction))

@@ -260,8 +260,6 @@
 "Invalid domain label" = "無効なドメインラベル";
 "Invalid recipient format." = "受信者の形式が無効です。";
 "It's ok, I already have a domain" = "大丈夫、すでにドメインを持っています";
-"Join" = "参加";
-"Join or Create a Channel" = "チャンネルに参加または作成";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "一度に5〜10 KASだけ送信してください。それでしばらくの間のチャット手数料をまかなうのに十分です（KASあたり約500メッセージ）";
 "KAS" = "KAS";
 "KAS Price" = "KAS価格";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "%@ に接続できません。下に引いて再試行してください。";
 "Settling" = "確定待ち";
 "Node" = "ノード";
-"Translation" = "翻訳";
 "Message Indexer" = "メッセージインデクサ";
 "Other Name Services" = "その他のネームサービス";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "アドレスが所有する .k と .kaspa の名前を表示するために使います。KaChat 独自の .kachat 名は開始後ここで設定されます。";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7日間";
-"Public Chats" = "パブリックチャット";
 "All-time only" = "全期間のみ";
 "Kinds marked \"All-time only\" aren't in this total yet." = "「全期間のみ」の種類は、まだこの合計に含まれていません。";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "誰かとチャットするには「チャットを作成」を押し、相手の Kaspa アドレスか .kachat 名を入力します。最初のメッセージは、相手が承認できるメッセージリクエストとして届きます。プライバシーを最大にするにはプライベートチャットをオンに。チェーン上で二人を結ぶものはなく、相手もあなたとプライベートチャットを始めるとメッセージが見えます。";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "始めるには 50 Kaspa がおすすめです。.kachat 名を取得してしばらくチャットできます。5 Kaspa で約 2500 件のメッセージを送れます。";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "メッセージ用の公開 ID です。メッセージ手数料と .kachat 名の支払い用に少額を入れてください。使う予定のお金はここに送らないでください。";
-"KaPosts isn't available on Testnet yet" = "KaPosts はまだテストネットでは利用できません";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "テストネット用の KaPost インデクサーはありません。メインネットで閲覧・投稿するには、設定 > 接続 でテストネットをオフにしてください。";
 "Nextcloud is off while Testnet is on." = "テストネットがオンの間、Nextcloud はオフになります。";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Nextcloud を使ったバックアップ、同期、メディア、通話はメインネットでのみ動作するため、テストネットがメインネットのバックアップを上書きすることはありません。設定 > 接続 でテストネットをオフにすると、Nextcloud の接続は元どおりに戻ります。";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "いくつかのリンクを今このスマートフォンから確認できませんでした。入力どおりに保存され、ほかの人のアプリが読み込めるときに読み込みます。";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "チップ";
 "Goes to a fresh private address they shared" = "相手が共有した新しいプライベートアドレスに送られます";
 "Goes to their public chatting address" = "相手の公開チャットアドレスに送られます";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "%@ をドックに追加";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "チップ";
-"No tips yet." = "まだチップはありません。";
-"Who tipped this post" = "この投稿にチップを送った人";
-"You'll now be notified when %@ posts." = "%@ が投稿すると通知されるようになりました。";
-"You won't be notified about %@'s posts anymore." = "%@ の投稿は今後通知されません。";
-"Stop post notifications" = "投稿の通知をオフ";
-"Notify me when they post" = "投稿したら通知する";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "リカバリーフレーズが必要です";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "まだ終了したトーナメントがありません。";
 
 /* KaPosts: post activity cards */
-"Likes" = "いいね";
-"Dislikes" = "よくないね";
-"Reposts" = "リポスト";
-"Quotes" = "引用";

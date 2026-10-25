@@ -260,8 +260,6 @@
 "Invalid domain label" = "অবৈধ ডোমেন লেবেল৷";
 "Invalid recipient format." = "অবৈধ প্রাপক বিন্যাস।";
 "It's ok, I already have a domain" = "ঠিক আছে, আমার ইতিমধ্যে একটি ডোমেইন আছে";
-"Join" = "যোগ দিন";
-"Join or Create a Channel" = "চ্যানেলে যোগ দিন বা তৈরি করুন";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "একবারে মাত্র ৫-১০ KAS পাঠান, এটি কিছু সময়ের জন্য চ্যাট ফি কভার করার জন্য যথেষ্ট (প্রতি KAS-এ প্রায় ৫০০ বার্তা)";
 "KAS" = "KAS";
 "KAS Price" = "KAS মূল্য";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "%@-এ পৌঁছানো যায়নি। আবার চেষ্টা করতে নিচে টানুন।";
 "Settling" = "নিশ্চিত হচ্ছে";
 "Node" = "নোড";
-"Translation" = "অনুবাদ";
 "Message Indexer" = "বার্তা ইনডেক্সার";
 "Other Name Services" = "অন্যান্য নাম পরিষেবা";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "কোনো ঠিকানার মালিকানাধীন .k ও .kaspa নাম দেখাতে ব্যবহৃত হয়। KaChat-এর নিজস্ব .kachat নাম চালু হলে এখানে সেট হবে।";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "৭ দিন";
-"Public Chats" = "পাবলিক চ্যাট";
 "All-time only" = "শুধু সর্বকাল";
 "Kinds marked \"All-time only\" aren't in this total yet." = "“শুধু সর্বকাল” চিহ্নিত ধরনগুলো এখনো এই মোটে নেই।";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "কারও সঙ্গে চ্যাট করতে চ্যাট তৈরি করুন চাপুন এবং তাদের Kaspa ঠিকানা বা .kachat নাম লিখুন। আপনার প্রথম মেসেজ তাদের কাছে মেসেজ অনুরোধ হিসেবে যায়, যা তারা গ্রহণ করতে পারে। সর্বোচ্চ গোপনীয়তার জন্য প্রাইভেট চ্যাট চালু করুন: চেইনে আপনাদের কিছুই যুক্ত করে না, আর তারাও আপনার সঙ্গে প্রাইভেট চ্যাট শুরু করলে আপনার মেসেজ দেখতে পাবে।";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "শুরু করতে ৫০ Kaspa সুপারিশ করা হয় - একটি .kachat নাম নেওয়া ও কিছুদিন চ্যাট করার জন্য যথেষ্ট। ৫ Kaspa দিয়ে প্রায় ২৫০০ মেসেজ পাঠানো যায়।";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "আপনার পাবলিক মেসেজিং পরিচয়। মেসেজ ফি ও আপনার .kachat নামের জন্য অল্প কিছু টাকা রাখুন - যে টাকা খরচ করতে চান তা কখনো এখানে পাঠাবেন না।";
-"KaPosts isn't available on Testnet yet" = "KaPosts এখনও টেস্টনেটে উপলব্ধ নয়";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "টেস্টনেটের জন্য কোনো KaPost ইনডেক্সার নেই। মেইননেটে পড়তে ও পোস্ট করতে সেটিংস > সংযোগ থেকে টেস্টনেট বন্ধ করুন।";
 "Nextcloud is off while Testnet is on." = "টেস্টনেট চালু থাকলে Nextcloud বন্ধ থাকে।";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Nextcloud-এর মাধ্যমে ব্যাকআপ, সিঙ্ক, মিডিয়া ও কল শুধু মেইননেটে কাজ করে, তাই টেস্টনেট কখনো আপনার মেইননেট ব্যাকআপ মুছে লিখতে পারে না। সেটিংস > সংযোগ থেকে টেস্টনেট বন্ধ করলে আপনার Nextcloud সংযোগ আগের মতো ফিরে আসবে।";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "এই মুহূর্তে এই ফোন থেকে কিছু লিংক যাচাই করা যায়নি। এগুলো যেমন লেখা হয়েছে তেমনই সংরক্ষিত হবে, আর অন্যদের অ্যাপ সম্ভব হলে সেগুলো লোড করবে।";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "টিপ";
 "Goes to a fresh private address they shared" = "তাদের শেয়ার করা একটি নতুন ব্যক্তিগত ঠিকানায় যায়";
 "Goes to their public chatting address" = "তাদের সর্বজনীন চ্যাটিং ঠিকানায় যায়";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "%@ ডকে যোগ করুন";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "টিপ";
-"No tips yet." = "এখনও কোনো টিপ নেই।";
-"Who tipped this post" = "কে এই পোস্টে টিপ দিয়েছে";
-"You'll now be notified when %@ posts." = "%@ পোস্ট করলে এখন আপনাকে জানানো হবে।";
-"You won't be notified about %@'s posts anymore." = "%@-এর পোস্ট সম্পর্কে আর জানানো হবে না।";
-"Stop post notifications" = "পোস্টের নোটিফিকেশন বন্ধ করুন";
-"Notify me when they post" = "পোস্ট করলে আমাকে জানাও";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "রিকভারি বাক্যাংশ দরকার";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "এখনো কোনো টুর্নামেন্ট শেষ হয়নি।";
 
 /* KaPosts: post activity cards */
-"Likes" = "লাইক";
-"Dislikes" = "ডিসলাইক";
-"Reposts" = "রিপোস্ট";
-"Quotes" = "উদ্ধৃতি";

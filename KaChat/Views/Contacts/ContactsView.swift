@@ -131,7 +131,7 @@ struct ProfileView: View {
             // Pinned large-title header: the system .large title scrolls away with the content,
             // so the title lives here as fixed chrome instead - same font/weight/leading inset
             // as the system large title, with the content sliding underneath through the
-            // material (same pinned pattern as PublicChatChannelView's top notice). The nav bar
+            // material. The nav bar
             // itself runs .inline, where the principal balance view already occupies the title
             // slot - identical to what the bar showed mid-scroll before.
             .safeAreaInset(edge: .top, spacing: 0) {
@@ -163,8 +163,8 @@ struct ProfileView: View {
                     balanceToolbarView
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    // Global notification center: KaPosts activity, group @mentions, live
-                    // public chats. A plain red DOT (no count) signals unread.
+                    // Global notification center: group @mentions and wallet activity. A plain
+                    // red DOT (no count) signals unread.
                     Button {
                         showNotifCenter = true
                     } label: {
@@ -251,8 +251,8 @@ struct ProfileView: View {
             .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
-            // Posted by the KaPosts profile's Edit KNS Profile button, which routes here rather
-            // than rebuilding an editor this screen's state already drives.
+            // Posted from elsewhere in the app to open the editor this screen's state already
+            // drives, rather than rebuilding it.
             .onReceive(NotificationCenter.default.publisher(for: .openKNSProfileEditor)) { _ in
                 showKNSEditor = true
             }
@@ -421,7 +421,7 @@ struct ProfileView: View {
     private var balanceToolbarView: some View {
         let sompi = walletManager.currentWallet?.balanceSompi
         let exact = sompi.map(formatKaspaExact) ?? "--"
-        // Kaspa logo + bold, matching the KaPosts/Chats balance style.
+        // Kaspa logo + bold, matching the Chats balance style.
         return HStack(spacing: 6) {
             Image("KaspaLogo")
                 .resizable()
@@ -613,7 +613,7 @@ struct ProfileView: View {
         showToast("Account renamed.")
     }
 
-    /// KaPosts-style hero: KNS banner (gradient fallback), overlapping avatar, display name and
+    /// Profile hero: KNS banner (gradient fallback), overlapping avatar, display name and
     /// bio. The name is what other people see you as: your domain name, else your short address
     /// ("kaspa:xxxx....xxxx") - never the account name, which is only your own label for it.
     /// Testnet only: the `.kachat` label of the wallet's address (nil on mainnet, or without one).
@@ -648,7 +648,7 @@ struct ProfileView: View {
             if KNSService.showsDomainNamesAsIdentity,
                let domain = knsPrimaryDomain ?? knsProfileInfo?.domainName,
                !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                return KaPostsView.displayKasName(domain)
+                return KasNameText.display(domain)
             }
             return Contact.generateDefaultAlias(from: wallet.publicAddress)
         }()
@@ -5515,7 +5515,7 @@ struct ProfileAppsView: View {
 /// so there's no slide-down to dismiss).
 ///
 /// While the browser is up, the app powers down like it was backgrounded: node discovery
-/// pauses, the chat poll timer stops, the KaPosts notification poller stops, and (in
+/// pauses, the chat poll timer stops, and (in
 /// remote-push mode) the UTXO subscription is released so notifications arrive via push -
 /// exactly the closed-app path. All of it resumes when the X is tapped.
 struct InAppBrowserScreen: View {
@@ -5530,7 +5530,6 @@ struct InAppBrowserScreen: View {
         Task { @MainActor in
             await NodePoolService.shared.pauseDiscovery()
             ChatService.shared.stopPollingTimerOnly()
-            KaPostsNotificationService.shared.stop()
             if AppSettings.load().notificationMode == .remotePush {
                 ChatService.shared.pauseUtxoSubscriptionForRemotePush()
             }
@@ -5541,7 +5540,6 @@ struct InAppBrowserScreen: View {
         Task { @MainActor in
             await NodePoolService.shared.resumeDiscovery()
             ChatService.shared.startPolling()
-            KaPostsNotificationService.shared.start()
             if AppSettings.load().notificationMode == .remotePush {
                 await ChatService.shared.resumeUtxoSubscriptionForRemotePush()
             }

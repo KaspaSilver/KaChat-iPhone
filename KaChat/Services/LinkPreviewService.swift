@@ -12,21 +12,19 @@ import CryptoKit
 ///
 /// | Target         | Custom scheme                  | Universal link                                    |
 /// |----------------|--------------------------------|---------------------------------------------------|
-/// | KaPosts post     | `kachat://kapost/<txid>`       | `https://kachat.app/post/<txid>`                  |
-/// | Public Chat room | `kachat://broadcast/<channel>` | `https://kachat.app/broadcast/<channel>`          |
 /// | Profile          | `kachat://profile/<address>`   | `https://kachat.app/u/<address>`                  |
 /// | Payment request  | `kachat://pay/<address>?amount=<KAS>&memo=<text>[&chat=1]&by=<address>&sig=<hex>` | `https://kachat.app/pay/<address>?…` |
 ///
-/// `<channel>` is the NORMALIZED room name with no leading `#` (see `PublicChatChannelName`).
 /// `<address>` is a full Kaspa address; in the universal form a mainnet address may drop its
 /// `kaspa:` prefix (the app writes it without, so the link reads cleanly), and a missing
 /// prefix means mainnet.
-/// Everything a pasted link carries is attacker-controlled, so `parse` re-validates the channel
-/// name from scratch (`normalizeAndValidateChannel`) rather than trusting the URL's text - a
-/// malformed or hostile name is rejected outright, never joined.
+/// Everything a pasted link carries is attacker-controlled, so `parse` re-validates every
+/// address from scratch rather than trusting the URL's text.
+///
+/// KaPosts (`/post/`, `kachat://kapost/`) and Public Chat room (`/broadcast/`,
+/// `kachat://broadcast/`) links are no longer internal: those features left the app on
+/// 2026-10-24, so such a link is an ordinary web link to kachat.app.
 enum KaChatInternalLink: Equatable {
-    case kaPost(txId: String)
-    case publicChatRoom(channel: String)
     /// Someone's KaChat profile: opens their User Info (yours too, for your own link).
     case profile(address: String)
     /// A request to be paid: opens Send Kaspa with the address, amount and memo filled in
@@ -34,8 +32,8 @@ enum KaChatInternalLink: Equatable {
     case paymentRequest(PaymentRequest)
 
     /// The universal-link host - the only host the app ever writes into a share. With KaChat
-    /// installed iOS opens these links in the app; without it, kachat.app shows the post (or
-    /// the room invite) with the download buttons, and unfurls a preview in every chat app
+    /// installed iOS opens these links in the app; without it, kachat.app shows the profile or
+    /// request with the download buttons, and unfurls a preview in every chat app
     /// (see KACHAT_APP_LINKS.md).
     static let universalLinkHost = "kachat.app"
     /// Links from before kachat.app: still opened, never written.
@@ -50,11 +48,9 @@ enum KaChatInternalLink: Equatable {
         return URL(string: KaChatInternalLink.profile(address: normalized).universalLinkString)
     }
 
-    /// The form the share sheets emit, matching KaPosts' existing share text (`KaPostsView`).
+    /// The `kachat://` form of the link.
     var shareLinkString: String {
         switch self {
-        case .kaPost(let txId): return "kachat://kapost/\(txId)"
-        case .publicChatRoom(let channel): return "kachat://broadcast/\(channel)"
         case .profile(let address): return "kachat://profile/\(address)"
         case .paymentRequest(let request): return "kachat://pay/\(request.linkTail)"
         }
@@ -64,31 +60,12 @@ enum KaChatInternalLink: Equatable {
     /// falls back to the web/App Store for people who don't have KaChat installed.
     var universalLinkString: String {
         switch self {
-        case .kaPost(let txId): return "https://\(Self.universalLinkHost)/post/\(txId)"
-        case .publicChatRoom(let channel): return "https://\(Self.universalLinkHost)/broadcast/\(channel)"
         case .profile(let address):
             let path = address.hasPrefix("kaspa:") ? String(address.dropFirst("kaspa:".count)) : address
             return "https://\(Self.universalLinkHost)/u/\(path)"
         case .paymentRequest(let request):
             return "https://\(Self.universalLinkHost)/pay/\(request.linkTail)"
         }
-    }
-
-
-    /// The share sheet's text for a public chat-room invite - one human line and the kachat.app
-    /// link. Only the https form goes out: it previews everywhere and opens the app when it
-    /// is installed, and a bare `kachat://` line previews nowhere. Single definition so the
-    /// room screen's Share button and the list row's share menu can't drift apart.
-    static func publicChatRoomShareText(channel: String) -> String {
-        // Through the same gate an INCOMING link goes through, so a share can never emit a link
-        // this app would refuse to open (and a stray leading "#" is stripped, not doubled).
-        let normalized = normalizeAndValidateChannel(channel) ?? PublicChatChannelName.normalize(channel)
-        let link = KaChatInternalLink.publicChatRoom(channel: normalized)
-        return """
-        Join #\(normalized) on KaChat.
-
-        \(link.universalLinkString)
-        """
     }
 
     // MARK: Parsing
@@ -102,11 +79,9 @@ enum KaChatInternalLink: Equatable {
         switch scheme {
         case "kachat":
             // kachat://<target>/<payload> - exactly one payload component, so a link with extra
-            // path segments (kachat://public chat/a/b) is rejected rather than silently truncated.
+            // path segments (kachat://profile/a/b) is rejected rather than silently truncated.
             guard let host = url.host?.lowercased(), parts.count == 1, let payload = parts.first else { return nil }
             switch host {
-            case "kapost": return kaPostLink(rawTxId: payload)
-            case "broadcast": return publicChatLink(rawChannel: payload)
             case "profile": return profileLink(rawAddress: payload)
             case "pay": return PaymentRequest(rawAddress: payload, url: url).map { .paymentRequest($0) }
             default: return nil
@@ -116,8 +91,6 @@ enum KaChatInternalLink: Equatable {
             if host.hasPrefix("www.") { host.removeFirst(4) }
             guard host == universalLinkHost || legacyUniversalLinkHosts.contains(host), parts.count == 2 else { return nil }
             switch parts[0].lowercased() {
-            case "post": return kaPostLink(rawTxId: parts[1])
-            case "broadcast": return publicChatLink(rawChannel: parts[1])
             case "u": return profileLink(rawAddress: parts[1])
             case "pay": return PaymentRequest(rawAddress: parts[1], url: url).map { .paymentRequest($0) }
             default: return nil
@@ -125,17 +98,6 @@ enum KaChatInternalLink: Equatable {
         default:
             return nil
         }
-    }
-
-    /// A KaPosts id is a Kaspa transaction id (hex), but the id charset is the indexer's to
-    /// define, so this stays deliberately tolerant: alphanumerics plus `-`/`_` only, bounded
-    /// length. That is strict enough to rule out path traversal, embedded schemes and query
-    /// smuggling while never rejecting a legitimate id.
-    private static func kaPostLink(rawTxId: String) -> KaChatInternalLink? {
-        let id = rawTxId.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard id.count >= 8, id.count <= 128 else { return nil }
-        guard id.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") }) else { return nil }
-        return .kaPost(txId: id)
     }
 
     /// A pasted address is attacker-controlled like everything else in a link: it has to be a
@@ -147,42 +109,6 @@ enum KaChatInternalLink: Equatable {
         let raw = rawAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         guard raw.count <= 100, let address = KaspaAddress.onActiveNetwork(raw) else { return nil }
         return .profile(address: address)
-    }
-
-    private static func publicChatLink(rawChannel: String) -> KaChatInternalLink? {
-        guard let channel = normalizeAndValidateChannel(rawChannel) else { return nil }
-        return .publicChatRoom(channel: channel)
-    }
-
-    /// The single gate every pasted/scanned room name passes through before it can be joined or
-    /// opened. Beyond `PublicChatChannelName`'s own rules (non-empty, <= 36 chars, no whitespace,
-    /// no colon) this rejects:
-    /// - URL-structural characters (`/ \ ? # % @`), which can only come from a malformed link;
-    /// - `..`, so no path-traversal-looking name ever reaches the store's file/key paths;
-    /// - control characters and Unicode bidi/zero-width formatting, the classic way to make a
-    ///   room invite *render* as a different room than the one it actually joins.
-    /// A leading `#` is tolerated and stripped (people paste "#kaspa"), matching the contract's
-    /// "normalized channel name with no leading #".
-    static func normalizeAndValidateChannel(_ rawChannel: String) -> String? {
-        var raw = rawChannel.trimmingCharacters(in: .whitespacesAndNewlines)
-        while raw.hasPrefix("#") { raw.removeFirst() }
-        let normalized = PublicChatChannelName.normalize(raw)
-        guard PublicChatChannelName.isValid(normalized) else { return nil }
-        guard !normalized.contains("..") else { return nil }
-        let structural: Set<Character> = ["/", "\\", "?", "#", "%", "@", "\"", "'", "<", ">"]
-        guard !normalized.contains(where: { structural.contains($0) }) else { return nil }
-        guard !normalized.unicodeScalars.contains(where: isDisallowedScalar) else { return nil }
-        return normalized
-    }
-
-    private static func isDisallowedScalar(_ scalar: Unicode.Scalar) -> Bool {
-        if scalar.properties.generalCategory == .control || scalar.properties.generalCategory == .format {
-            return true
-        }
-        switch scalar.value {
-        case 0x200B...0x200F, 0x202A...0x202E, 0x2066...0x2069, 0xFEFF: return true
-        default: return false
-        }
     }
 
     // MARK: Detection inside message text
@@ -204,11 +130,11 @@ enum KaChatInternalLink: Equatable {
     /// universal form is matched here too so it is claimed as INTERNAL before the generic
     /// preview path can fetch it over the network.
     private static let pattern =
-        #"(?:kachat://(?:kapost|broadcast|profile|pay)/|https?://(?:www\.)?kachat\.(?:app|duckdns\.org)/(?:post|broadcast|u|pay)/)[^\s<>"']+"#
+        #"(?:kachat://(?:profile|pay)/|https?://(?:www\.)?kachat\.(?:app|duckdns\.org)/(?:u|pay)/)[^\s<>"']+"#
 
     private static let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
 
-    /// Trailing prose punctuation is not part of the link ("... open kachat://broadcast/kaspa.").
+    /// Trailing prose punctuation is not part of the link ("... open kachat://profile/<address>.").
     private static let trailingTrim = CharacterSet(charactersIn: ".,;:!?)]}'\"")
 
     private final class MatchBox: NSObject {
@@ -447,127 +373,6 @@ final class PaymentRequestRouter: ObservableObject {
     static let shared = PaymentRequestRouter()
     @Published var pending: PaymentRequest?
     private init() {}
-}
-
-/// The author and text behind a `kachat://kapost/<txid>` link, so a shared post previews in a
-/// chat as the post itself rather than as a URL.
-///
-/// Resolved from the transaction the post IS, and deliberately still so now that the indexer
-/// answers single ids (`get-post?id=`, see `KaPostsAPIClient.fetchPost`): a preview card needs the
-/// author and the text, nothing viewer-specific, and the chain answers for a post of any age
-/// without depending on the indexer having caught up. The post id is the transaction id, and the
-/// payload holds the same bytes the indexer read. See `KaPostsProtocol.parseChainPayload`. The
-/// author's name then comes from the KNS profile cache every other KaPosts surface fills.
-///
-/// An earlier version of this type was a cache with a `record` hand-off for posts already on
-/// screen, and nothing ever called it - so every one of these cards read "KaPosts post / Tap to
-/// open this post in KaChat", forever. One resolution path now, and it answers for any post.
-///
-/// This is the one internal link that goes to the network, and it goes to Kaspa's own REST API
-/// with a transaction id - never to the link's host. A pasted KaChat link is still never scraped
-/// like a stranger's URL (see `KaChatInternalLink`).
-@MainActor
-final class KaPostLinkPreviewCache: ObservableObject {
-    static let shared = KaPostLinkPreviewCache()
-
-    struct Entry: Equatable {
-        /// KNS domain, contact alias, or shortened address of the poster.
-        let authorName: String?
-        let authorAddress: String?
-        /// The author's KNS avatar, once their profile has been fetched.
-        let authorAvatarURL: String?
-        /// Already trimmed to a card-sized snippet. Empty for a comment-free quote.
-        let snippet: String
-        /// "post", "reply" or "quote" - the card says which.
-        let action: String
-    }
-
-    /// Bounded FIFO eviction, matching `LinkPreviewService`'s cache convention.
-    @Published private(set) var entries: [String: Entry] = [:]
-    private var order: [String] = []
-    private var inFlight: Set<String> = []
-    /// Ids the chain had nothing for. Retrying on every scroll would hammer the REST API for a
-    /// post that is never going to resolve (a mistyped link, a pruned node, another app's tx).
-    private var unresolvable: Set<String> = []
-    private let limit = 512
-    private static let snippetMaxLength = 240
-
-    private init() {}
-
-    func entry(for postId: String) -> Entry? { entries[postId] }
-
-    /// Resolves a post id that nothing has recorded. Safe to call on every render: an entry
-    /// already held, a fetch already running and an id already known to be unresolvable all
-    /// return immediately.
-    func load(postId: String) async {
-        guard !postId.isEmpty, entries[postId] == nil,
-              !inFlight.contains(postId), !unresolvable.contains(postId) else { return }
-        // Simple Mode hides KaPosts entirely, and the router no-ops these links - so there is
-        // nothing to preview, and no reason to spend a request finding out.
-        guard !AppSettings.load().childModeEnabled else { return }
-        inFlight.insert(postId)
-        defer { inFlight.remove(postId) }
-
-        guard let record = await KaPostChainReader.fetch(txId: postId) else {
-            unresolvable.insert(postId)
-            return
-        }
-        let address = KaPostsAPIClient.kaspaAddress(fromPubkey: record.authorPubkey)
-        // Paint the post immediately with whatever name is already known, then upgrade it if the
-        // author has a KNS domain nobody has looked up yet. The text is the point of the card;
-        // holding it back for a name lookup would leave the URL sitting there for another
-        // round trip.
-        store(postId: postId, entry: Entry(
-            authorName: Self.knownName(for: address),
-            authorAddress: address,
-            authorAvatarURL: address.flatMap { KNSService.shared.profileCache[$0]?.avatarURL },
-            snippet: Self.snippet(from: record.message),
-            action: record.action
-        ))
-        guard let address, !address.isEmpty, KNSService.shared.profileCache[address] == nil else { return }
-        _ = await KNSService.shared.fetchProfile(for: address)
-        guard let current = entries[postId] else { return }
-        store(postId: postId, entry: Entry(
-            authorName: Self.knownName(for: address),
-            authorAddress: address,
-            authorAvatarURL: KNSService.shared.profileCache[address]?.avatarURL,
-            snippet: current.snippet,
-            action: current.action
-        ))
-    }
-
-    private func store(postId: String, entry: Entry) {
-        if entries[postId] == nil {
-            order.append(postId)
-            if order.count > limit, !order.isEmpty {
-                entries.removeValue(forKey: order.removeFirst())
-            }
-        }
-        entries[postId] = entry
-    }
-
-    /// The same name KaPosts itself shows: a contact alias first, then the KNS domain, then the
-    /// tail of the address.
-    private static func knownName(for address: String?) -> String? {
-        guard let address, !address.isEmpty else { return nil }
-        if let alias = ContactsManager.shared.getContact(byAddress: address)?.alias,
-           !alias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return KaPostsView.displayKasName(alias)
-        }
-        if let domain = KNSService.shared.profileCache[address]?.domainName,
-           !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return KaPostsView.displayKasName(domain)
-        }
-        return String(address.suffix(10))
-    }
-
-    private static func snippet(from text: String) -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.count > snippetMaxLength
-            ? String(trimmed.prefix(snippetMaxLength)) + "\u{2026}"
-            : trimmed
-    }
-
 }
 
 /// Open Graph metadata scraped from a message link, for rendering a rich preview card.

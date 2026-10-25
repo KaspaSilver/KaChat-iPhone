@@ -1,5 +1,8 @@
 # KaPosts Indexer — Handoff & Build Guide
 
+> **2026-10-24:** this feature was removed from the KaChat iPhone app (KaChat is now 1:1 and group
+> chats only). This file stays as the server contract; the app code it names is gone.
+
 **Audience:** the AI/engineer on the server box that will build and host the KaChat-owned
 KaPosts indexer. This doc is the starting context: what the iOS app (branch `KaChat4.0i`)
 already speaks, what the public K indexer gives us today, and exactly what the new indexer

@@ -51,6 +51,7 @@ final class SharedDataManager {
         static let verboseAPILogging = "shared_verbose_api_logging"
         static let groupMentionsOnlyNotifications = "shared_group_mentions_only"
         static let groupSilentNotifications = "shared_group_silent"
+        /// RETIRED with KaPosts: only ever removed now.
         static let kaPostsNotificationKinds = "shared_kaposts_notify_kinds"
         /// Mirror of `AppSettings.kaspaRestAPIURL` for the Notification Service Extension. A
         /// push for anything over 3.5KB carries no encrypted payload (see PUSH_NOTIFICATIONS.md),
@@ -206,16 +207,6 @@ final class SharedDataManager {
         // Groups with "Only Notify if I'm Mentioned" on - the NSE checks this after decrypting a
         // group_message push, to decide whether to suppress it when the text doesn't mention the
         // wallet's own address (already shared separately via `syncWalletAddressForExtension`).
-        // The five KaPosts switches, so the extension can drop a push the reader turned off.
-        let s = AppSettings.load()
-        sharedDefaults?.set([
-            "likes": s.kaPostsNotifyLikes,
-            "dislikes": s.kaPostsNotifyDislikes,
-            "comments": s.kaPostsNotifyComments,
-            "reposts": s.kaPostsNotifyReposts,
-            "follows": s.kaPostsNotifyFollows,
-            "mentions": s.kaPostsNotifyMentions,
-        ], forKey: Keys.kaPostsNotificationKinds)
         if let silentData = try? JSONEncoder().encode(GroupChatService.shared.groupSilentNotifications) {
             sharedDefaults?.set(silentData, forKey: Keys.groupSilentNotifications)
         }
@@ -280,17 +271,9 @@ final class SharedDataManager {
     /// that moment can still return the pre-save cached copy (the cache only invalidates on the
     /// `.settingsDidChange` post, which happens after this runs in the save paths).
     static func syncNotificationSettingsForExtension(_ settings: AppSettings = AppSettings.load()) {
-        // The KaPosts switches ride with every settings save (and the launch sync), so the
-        // extension's copy can never lag the app's - it used to be written only by the groups
-        // sync, which runs on backgrounding and on the switches themselves.
-        sharedDefaults?.set([
-            "likes": settings.kaPostsNotifyLikes,
-            "dislikes": settings.kaPostsNotifyDislikes,
-            "comments": settings.kaPostsNotifyComments,
-            "reposts": settings.kaPostsNotifyReposts,
-            "follows": settings.kaPostsNotifyFollows,
-            "mentions": settings.kaPostsNotifyMentions,
-        ], forKey: Keys.kaPostsNotificationKinds)
+        // The KaPosts switches are gone with KaPosts (2026-10-24); clear what an older build
+        // left for the extension.
+        sharedDefaults?.removeObject(forKey: Keys.kaPostsNotificationKinds)
         sharedDefaults?.set(settings.incomingNotificationSoundEnabled, forKey: Keys.incomingNotificationSoundEnabled)
         sharedDefaults?.set(settings.incomingNotificationVibrationEnabled, forKey: Keys.incomingNotificationVibrationEnabled)
         sharedDefaults?.set(settings.verboseAPILogging, forKey: Keys.verboseAPILogging)

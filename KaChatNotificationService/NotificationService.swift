@@ -74,47 +74,16 @@ class NotificationService: UNNotificationServiceExtension {
             return
         }
 
-        // Public Chat-room pushes (thread-id `public chat:<channel>`, see PUSH_EXTENSIONS.md §2).
-        // They carry none of the tx_id/sender/type keys the 1:1 pipeline below needs, so
-        // without this they'd fall straight through the guard untouched. Public Chat content is
-        // public and unencrypted - there is nothing to decrypt - but it IS the raw on-chain
-        // message body, which for a reply/voice/photo/reaction is a JSON envelope
-        // (`MessageReplyCodec` & co. in the main app). Run it through the same friendly-preview
-        // rules 1:1 bodies get, so a reply shows the reply's text and a media/reaction envelope
-        // shows its placeholder instead of raw JSON on the lock screen.
-        if request.content.threadIdentifier.hasPrefix("broadcast:") {
-            // An edit changes an earlier message in place - nothing to announce (the spec asks
-            // the server not to push these at all; this is the backstop).
-            if isEditEnvelope(content.body) {
-                content.title = ""
-                content.subtitle = ""
-                content.body = ""
-                content.sound = nil
-                content.badge = nil
-                content.interruptionLevel = .passive
-                contentHandler(content)
-                return
-            }
-            content.body = publicChatPreviewText(for: content.body)
-            contentHandler(content)
-            return
-        }
-
-        // KaPosts pushes (thread-id `kaposts`, see PUSH_EXTENSIONS.md §3). Like public chats they
-        // carry none of the 1:1 keys, so they fall through the guard below untouched - which is
-        // why the five Settings switches never suppressed a single push. Drop the ones the reader
-        // switched off; everything else passes through unchanged.
-        if request.content.threadIdentifier == "kaposts" {
-            if !kaPostsPushAllowed(userInfo: userInfo, body: content.body) {
-                // Delivered with no alert rather than not at all: a suppressed push still
-                // belongs in the in-app Notifications list when the app next opens.
-                content.title = ""
-                content.subtitle = ""
-                content.body = ""
-                content.sound = nil
-                contentHandler(content)
-                return
-            }
+        // Public Chats (thread-id `broadcast:<channel>`) and KaPosts (`kaposts`) left the app on
+        // 2026-10-24 and it no longer registers for them, but a push can still race that
+        // re-registration: deliver it silently rather than announce a feature that is gone.
+        if request.content.threadIdentifier.hasPrefix("broadcast:") || request.content.threadIdentifier.hasPrefix("kaposts") {
+            content.title = ""
+            content.subtitle = ""
+            content.body = ""
+            content.sound = nil
+            content.badge = nil
+            content.interruptionLevel = .passive
             contentHandler(content)
             return
         }
@@ -895,45 +864,6 @@ class NotificationService: UNNotificationServiceExtension {
     }
 
     /// Mirrors `SharedDataManager.syncGroupsForExtension`'s `groupMentionsOnlyNotifications` sync.
-    /// Which kinds of KaPosts activity the reader still wants pushed.
-    ///
-    /// The server pushes every kind to any device registered with a `kaposts_pubkey` - it has no
-    /// idea what the reader switched off, because nothing ever told it (see PUSH_EXTENSIONS.md
-    /// §3, where per-kind registration is now specified as the proper fix). Until it does, the
-    /// filtering has to happen here or the five switches in Settings are decoration.
-    ///
-    /// `kaposts_kind` is the field the server should send. Failing that, the body is matched
-    /// against the exact English phrases the contract specifies - they are server-generated and
-    /// not localized, so this is a fixed set, not a guess about wording.
-    private func kaPostsPushAllowed(userInfo: [AnyHashable: Any], body: String) -> Bool {
-        let kinds = UserDefaults(suiteName: appGroupIdentifier)?
-            .dictionary(forKey: "shared_kaposts_notify_kinds") as? [String: Bool] ?? [:]
-        guard !kinds.isEmpty else { return true }
-
-        let key: String
-        if let explicit = userInfo["kaposts_kind"] as? String {
-            switch explicit {
-            case "vote_up": key = "likes"
-            case "vote_down": key = "dislikes"
-            case "reply": key = "comments"
-            case "quote", "repost": key = "reposts"
-            case "follow": key = "follows"
-            case "mention": key = "mentions"
-            default: return true
-            }
-        } else {
-            let lowered = body.lowercased()
-            if lowered.contains("disliked your") { key = "dislikes" }
-            else if lowered.contains("liked your") { key = "likes" }
-            else if lowered.contains("replied to your") { key = "comments" }
-            else if lowered.contains("quoted your") || lowered.contains("reposted your") { key = "reposts" }
-            else if lowered.contains("followed you") { key = "follows" }
-            else if lowered.contains("mentioned you") { key = "mentions" }
-            else { return true }
-        }
-        return kinds[key] ?? true
-    }
-
     /// Groups the user silenced outright. Read the same way as mentions-only.
     private func isSilentEnabled(groupId: String) -> Bool {
         guard let defaults = UserDefaults(suiteName: appGroupIdentifier),
@@ -966,7 +896,7 @@ class NotificationService: UNNotificationServiceExtension {
     /// A mention arrives in one of TWO cross-platform wire forms: iOS/desktop compose
     /// `@{fullKaspaAddress}` (see the main app's `GroupMentionCodec` doc comment), Android
     /// composes `@{primaryKNSDomain}`. This checks both. The domain check is a local mirror of
-    /// the main app's mention tokenizer (`KaPostsView.mentionDomains` - this target doesn't
+    /// the main app's mention tokenizer (`KasNameText.mentionDomains` - this target doesn't
     /// compile that file): token after "@" at a word boundary, lowercased, optional ".kas"
     /// suffix stripped, compared against the wallet's own reverse-resolved primary domain the
     /// main app shares via `SharedDataManager.syncOwnKNSDomainForExtension`. No wallet address

@@ -260,8 +260,6 @@
 "Invalid domain label" = "Invalid domain label";
 "Invalid recipient format." = "Invalid recipient format.";
 "It's ok, I already have a domain" = "It's ok, I already have a domain";
-"Join" = "Join";
-"Join or Create a Channel" = "Join or Create a Channel";
 "This address is for chatting and KNS profile creation. Funding it with around 50 Kaspa is enough to create a KNS profile and send messages for a long time." = "This address is for chatting and KNS profile creation. Funding it with around 50 Kaspa is enough to create a KNS profile and send messages for a long time.";
 "This address should be used for everything not related to chatting or KNS profile creation." = "This address should be used for everything not related to chatting or KNS profile creation.";
 "KAS" = "KAS";
@@ -727,7 +725,6 @@
 "Couldn't reach %@. Pull down to try again." = "Couldn't reach %@. Pull down to try again.";
 "Settling" = "Settling";
 "Node" = "Node";
-"Translation" = "Translation";
 "Message Indexer" = "Message Indexer";
 "Other Name Services" = "Other Name Services";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch.";
@@ -767,7 +764,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 Days";
-"Public Chats" = "Public Chats";
 "All-time only" = "All-time only";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Kinds marked \"All-time only\" aren't in this total yet.";
 
@@ -894,7 +890,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend.";
-"KaPosts isn't available on Testnet yet" = "KaPosts isn't available on Testnet yet";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet.";
 "Nextcloud is off while Testnet is on." = "Nextcloud is off while Testnet is on.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was.";
@@ -1264,7 +1259,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "Tip";
 "Goes to a fresh private address they shared" = "Goes to a fresh private address they shared";
 "Goes to their public chatting address" = "Goes to their public chatting address";
 
@@ -1715,13 +1709,6 @@
 "Add %@ to your dock" = "Add %@ to your dock";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "Tips";
-"No tips yet." = "No tips yet.";
-"Who tipped this post" = "Who tipped this post";
-"You'll now be notified when %@ posts." = "You'll now be notified when %@ posts.";
-"You won't be notified about %@'s posts anymore." = "You won't be notified about %@'s posts anymore.";
-"Stop post notifications" = "Stop post notifications";
-"Notify me when they post" = "Notify me when they post";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Recovery Phrase Needed";
@@ -1770,7 +1757,3 @@
 "No finished tournaments yet." = "No finished tournaments yet.";
 
 /* KaPosts: post activity cards */
-"Likes" = "Likes";
-"Dislikes" = "Dislikes";
-"Reposts" = "Reposts";
-"Quotes" = "Quotes";

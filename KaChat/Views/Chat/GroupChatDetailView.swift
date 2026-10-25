@@ -43,10 +43,9 @@ enum GroupMentionCodec {
 /// Group chat thread view - mirrors 1:1 chat's look (avatars, "+" send-mode menu, photo/audio
 /// bubbles via the same `MediaFile`/`LazyImageBubble`/`LazyAudioBubble` components
 /// `MessageBubbleView.swift` uses) with two deliberate differences: no in-thread payments (the
-/// group protocol has no shared-wallet/escrow concept, same reason public chat rooms don't support
-/// them - "Pay in Kaspa" isn't in the "+" menu here), and audio recording reuses
-/// `PublicChatAudioRecorder`'s simpler engine (public chat already proved out group-shaped media
-/// without 1:1's payment-integrated fee-estimation machinery).
+/// group protocol has no shared-wallet/escrow concept - "Pay in Kaspa" isn't in the "+" menu
+/// here), and audio recording uses `VoiceNoteRecorder`'s simpler engine, without 1:1's
+/// payment-integrated fee-estimation machinery.
 struct GroupChatDetailView: View {
     /// Hoisted out of the body chain - an inline service call in .onChange tipped the
     /// compiler's type-check budget for this (large) body expression.
@@ -108,7 +107,7 @@ struct GroupChatDetailView: View {
     @State private var scrollViewReference = ScrollViewReference()
     @Environment(\.dismiss) private var dismiss
 
-    /// Tap-a-reply-quote-to-jump-to-original - mirrors `ChatDetailView`/`PublicChatChannelView`'s
+    /// Tap-a-reply-quote-to-jump-to-original - mirrors `ChatDetailView`'s
     /// identical pair. `pendingJumpToTxId` is set from inside a message row (no `ScrollViewProxy`
     /// in scope there) and consumed by an `.onChange` inside the `ScrollViewReader` closure, which
     /// does have the proxy.
@@ -158,7 +157,7 @@ struct GroupChatDetailView: View {
     @State private var systemLineClock = Date()
 
     // Avatar menu destinations - "View Profile"/"Open Chat"/"Pay in Kaspa" for a tapped member,
-    // matching PublicChatChannelView's identical avatarButton pattern.
+    // the same avatarButton pattern as 1:1.
     @State private var openContact: Contact?
     @State private var openContactInPaymentMode = false
     @State private var profileContact: Contact?
@@ -191,13 +190,13 @@ struct GroupChatDetailView: View {
     /// With a Nextcloud server linked, the "+" sheet's Camera / Photo / Voice Message rows ask
     /// on chain or via Nextcloud, and File appears. Mirrors 1:1 chat's `ChatDetailView`.
     @ObservedObject private var nextcloudService = NextcloudService.shared
-    @StateObject private var recorder = PublicChatAudioRecorder()
+    @StateObject private var recorder = VoiceNoteRecorder()
 
     /// Nextcloud-uploaded voice notes aren't payload-bound - only the server carries them - so
     /// a "Record via Nextcloud" note runs to the app-wide Nextcloud ceiling, mirroring
     /// `ChatDetailView.effectiveMaxRecordingDuration`.
     private var effectiveMaxRecordingDuration: TimeInterval {
-        voiceViaNextcloud ? ComposerMediaLimits.nextcloudVoiceSeconds : PublicChatAudioRecorder.maxDuration
+        voiceViaNextcloud ? ComposerMediaLimits.nextcloudVoiceSeconds : VoiceNoteRecorder.maxDuration
     }
 
     private var photoViaNextcloud: Bool { nextcloudPhotoRequested && nextcloudService.isConnected }
@@ -1169,7 +1168,7 @@ struct GroupChatDetailView: View {
         feeEstimateSompi = groupChatService.estimateGroupMediaFee(rawBytes: rawBytes)
     }
 
-    /// Raw encoded-Opus-bytes/sec estimate for `PublicChatAudioRecorder`'s fixed 6kbps/48kHz
+    /// Raw encoded-Opus-bytes/sec estimate for `VoiceNoteRecorder`'s fixed 6kbps/48kHz
     /// config (bitrate/8 + WebM container overhead) - matches `ChatDetailView.estimateEncodedSize`'s
     /// identical heuristic for the same recorder settings.
     private func updateRecordingFeeEstimate(elapsedSeconds: TimeInterval) {
@@ -2387,8 +2386,8 @@ private struct GroupMessageBubbleRow: View {
     /// pattern of resolving names in the parent rather than this row re-deriving them from the
     /// group roster's frozen `displayName` snapshot.
     let senderDisplayName: String
-    /// Own avatar, shown on outgoing messages - matches public chat's `PublicChatMessageRow`
-    /// showing `avatarButton` on both sides depending on `isOwnMessage`.
+    /// Own avatar, shown on outgoing messages - `avatarButton` shows on both sides depending on
+    /// `isOwnMessage`.
     let myAvatarURLString: String?
     let replySenderDisplayName: String?
     let onCopy: (String, ToastStyle) -> Void
@@ -2492,7 +2491,7 @@ private struct GroupMessageBubbleRow: View {
         return GroupMentionCodec.decodeForDisplay(raw, members: group.members, resolveDisplayName: resolveDisplayName(for:))
     }
 
-    /// A link back into KaChat (shared KaPosts post / public chat-room invite) in this message.
+    /// A link back into KaChat (a shared profile or payment request) in this message.
     /// Same rule as 1:1 (`MessageBubbleView.internalLink`), and it has to be claimed BEFORE the
     /// generic link path: the universal-link form is an ordinary https URL, so without this a
     /// shared post would be scraped over the network like a stranger's link instead of
@@ -2517,7 +2516,7 @@ private struct GroupMessageBubbleRow: View {
 
     /// Build the message text as an AttributedString where each @mention renders as the KNS domain,
     /// accent-coloured and TAPPABLE (a `kachat-mention://<address>` link the bubble's OpenURLAction
-    /// resolves to a 1:1 chat). Mirrors `KaPostsView.linkified`, but opens a chat, not a profile.
+    /// resolves to a 1:1 chat).
     private func mentionAttributedContent() -> AttributedString {
         // Swap each @address → @label (longest address first for safety), like decodeForDisplay.
         var display = replyQuote?.text ?? message.content
@@ -2648,9 +2647,8 @@ private struct GroupMessageBubbleRow: View {
                         )
                         .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId.wrappedValue = message.id })
                     } else if let internalLink {
-                        // A link into KaChat: the post/invite card IS the message, exactly as in
-                        // 1:1 chats and public chat rooms - text around the link is not drawn,
-                        // since KaPosts' own share text quotes the post above it.
+                        // A link into KaChat: the card IS the message, exactly as in 1:1 chats -
+                        // text around the link is not drawn.
                         KaChatInternalLinkCardView(
                             match: internalLink,
                             txId: message.txId,
@@ -2813,8 +2811,7 @@ private struct GroupMessageBubbleRow: View {
     }
 
     /// The sender's avatar. Tapping it opens the sender half sheet - View Profile / Open Chat /
-    /// Pay in Kaspa / Copy Address / Mute / Hide - presented by the parent, the same shape as
-    /// `PublicChatChannelView`'s. This was a popup `Menu` of bare labels; the sheet has room to
+    /// Pay in Kaspa / Copy Address / Mute / Hide - presented by the parent. This was a popup `Menu` of bare labels; the sheet has room to
     /// say what each option does, and one sheet serves every row.
     private var avatarButton: some View {
         Button {

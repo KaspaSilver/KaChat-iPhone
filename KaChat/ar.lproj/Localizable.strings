@@ -260,8 +260,6 @@
 "Invalid domain label" = "تسمية المجال غير صالحة";
 "Invalid recipient format." = "تنسيق المستلم غير صالح.";
 "It's ok, I already have a domain" = "لا بأس، لدي نطاق بالفعل";
-"Join" = "انضمام";
-"Join or Create a Channel" = "الانضمام إلى قناة أو إنشاؤها";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "أرسل فقط 5-10 KAS في كل مرة، فهذا كافٍ لتغطية رسوم الدردشة لفترة (حوالي 500 رسالة لكل KAS)";
 "KAS" = "KAS";
 "KAS Price" = "سعر KAS";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "تعذّر الوصول إلى %@. اسحب للأسفل لإعادة المحاولة.";
 "Settling" = "قيد التأكيد";
 "Node" = "العقدة";
-"Translation" = "الترجمة";
 "Message Indexer" = "مفهرس الرسائل";
 "Other Name Services" = "خدمات أسماء أخرى";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "يُستخدم لعرض أسماء .k و.kaspa التي يملكها عنوان. ستُضبط أسماء .kachat الخاصة بـ KaChat هنا عند إطلاقها.";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 أيام";
-"Public Chats" = "المحادثات العامة";
 "All-time only" = "الإجمالي فقط";
 "Kinds marked \"All-time only\" aren't in this total yet." = "الأنواع المعلّمة «الإجمالي فقط» غير مشمولة في هذا المجموع بعد.";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "للدردشة مع شخص ما، اضغط إنشاء محادثة وأدخل عنوان Kaspa الخاص به أو اسم ‎.kachat. تصل رسالتك الأولى إليه كطلب رسالة يمكنه قبوله. لأقصى خصوصية، فعّل المحادثة الخاصة: لا شيء يربطكما على السلسلة، وسيرى رسائلك عندما يبدأ هو أيضًا محادثة خاصة معك.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "يُنصح بـ 50 Kaspa للبدء - ما يكفي للحصول على اسم ‎.kachat والدردشة لفترة. تكفي 5 Kaspa لنحو 2500 رسالة.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "هويتك العامة للمراسلة. موّلها بمبلغ صغير لدفع رسوم الرسائل واسم ‎.kachat الخاص بك - لا ترسل إلى هنا أبدًا أموالًا تنوي إنفاقها.";
-"KaPosts isn't available on Testnet yet" = "منشورات KaPosts غير متاحة على الشبكة التجريبية بعد";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "لا يوجد مفهرس KaPost للشبكة التجريبية. أوقف الشبكة التجريبية من الإعدادات > الاتصال للقراءة والنشر على الشبكة الرئيسية.";
 "Nextcloud is off while Testnet is on." = "Nextcloud متوقف أثناء تشغيل الشبكة التجريبية.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "النسخ الاحتياطي والمزامنة والوسائط والمكالمات عبر Nextcloud تعمل على الشبكة الرئيسية فقط، فلا يمكن للشبكة التجريبية أبدًا الكتابة فوق نسختك الاحتياطية الرئيسية. أوقف الشبكة التجريبية من الإعدادات > الاتصال وسيعود اتصال Nextcloud كما كان.";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "تعذّر التحقق من بعض الروابط من هذا الهاتف الآن. ستُحفظ كما أُدخلت، وتحمّلها تطبيقات الآخرين عندما تستطيع.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "إكرامية";
 "Goes to a fresh private address they shared" = "تذهب إلى عنوان خاص جديد شاركه";
 "Goes to their public chatting address" = "تذهب إلى عنوان الدردشة العام الخاص به";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "إضافة %@ إلى الشريط";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "الإكراميات";
-"No tips yet." = "لا توجد إكراميات بعد.";
-"Who tipped this post" = "من أرسل إكرامية لهذا المنشور";
-"You'll now be notified when %@ posts." = "سيصلك إشعار عندما ينشر %@.";
-"You won't be notified about %@'s posts anymore." = "لن يصلك إشعار بمنشورات %@ بعد الآن.";
-"Stop post notifications" = "إيقاف إشعارات المنشورات";
-"Notify me when they post" = "أعلمني عندما ينشر";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "مطلوب عبارة الاسترداد";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "لا توجد بطولات منتهية بعد.";
 
 /* KaPosts: post activity cards */
-"Likes" = "الإعجابات";
-"Dislikes" = "عدم الإعجاب";
-"Reposts" = "إعادات النشر";
-"Quotes" = "الاقتباسات";

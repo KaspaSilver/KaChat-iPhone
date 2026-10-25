@@ -260,8 +260,6 @@
 "Invalid domain label" = "Label domain tidak valid";
 "Invalid recipient format." = "Format penerima tidak valid.";
 "It's ok, I already have a domain" = "Tidak apa-apa, saya sudah punya domain";
-"Join" = "Gabung";
-"Join or Create a Channel" = "Gabung atau Buat Saluran";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Cukup kirim 5-10 KAS sekaligus, itu sudah cukup untuk menutupi biaya obrolan beberapa lama (sekitar 500 pesan per KAS)";
 "KAS" = "KAS";
 "KAS Price" = "Harga KAS";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "Tidak dapat menjangkau %@. Tarik ke bawah untuk mencoba lagi.";
 "Settling" = "Sedang dikonfirmasi";
 "Node" = "Node";
-"Translation" = "Terjemahan";
 "Message Indexer" = "Pengindeks Pesan";
 "Other Name Services" = "Layanan Nama Lain";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Dipakai untuk menampilkan nama .k dan .kaspa yang dimiliki sebuah alamat. Nama .kachat milik KaChat akan diatur di sini setelah diluncurkan.";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 Hari";
-"Public Chats" = "Obrolan Publik";
 "All-time only" = "Hanya sepanjang waktu";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Jenis bertanda “Hanya sepanjang waktu” belum termasuk dalam total ini.";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Untuk mengobrol dengan seseorang, tekan Buat Obrolan dan masukkan alamat Kaspa atau nama .kachat mereka. Pesan pertamamu sampai sebagai Permintaan Pesan yang bisa mereka terima. Untuk privasi maksimal, aktifkan Obrolan Privat: tidak ada yang menghubungkan kalian di chain, dan mereka melihat pesanmu setelah juga memulai obrolan privat denganmu.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Disarankan 50 Kaspa untuk memulai - cukup untuk mengklaim nama .kachat dan mengobrol untuk sementara. 5 Kaspa cukup untuk sekitar 2500 pesan.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Identitas pesan publikmu. Isi dengan sedikit dana untuk membayar biaya pesan dan nama .kachat-mu - jangan pernah mengirim uang ke sini yang ingin kamu belanjakan.";
-"KaPosts isn't available on Testnet yet" = "KaPosts belum tersedia di Testnet";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "Belum ada indexer KaPost untuk testnet. Matikan Testnet di Pengaturan > Koneksi untuk membaca dan memposting di mainnet.";
 "Nextcloud is off while Testnet is on." = "Nextcloud nonaktif selama Testnet aktif.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Cadangan, sinkronisasi, media, dan panggilan lewat Nextcloud hanya berjalan di mainnet, jadi testnet tidak akan pernah menimpa cadangan mainnet Anda. Matikan Testnet di Pengaturan > Koneksi dan koneksi Nextcloud Anda kembali seperti semula.";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Beberapa tautan belum bisa diperiksa dari ponsel ini sekarang. Tautan disimpan sesuai yang dimasukkan, dan aplikasi orang lain akan memuatnya saat bisa.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "Tip";
 "Goes to a fresh private address they shared" = "Dikirim ke alamat pribadi baru yang mereka bagikan";
 "Goes to their public chatting address" = "Dikirim ke alamat chat publik mereka";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "Tambahkan %@ ke dock";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "Tip";
-"No tips yet." = "Belum ada tip.";
-"Who tipped this post" = "Siapa yang memberi tip pada postingan ini";
-"You'll now be notified when %@ posts." = "Anda sekarang akan diberi tahu saat %@ memposting.";
-"You won't be notified about %@'s posts anymore." = "Anda tidak akan lagi diberi tahu tentang postingan %@.";
-"Stop post notifications" = "Matikan notifikasi postingan";
-"Notify me when they post" = "Beri tahu saat dia memposting";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Perlu frasa pemulihan";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "Belum ada turnamen yang selesai.";
 
 /* KaPosts: post activity cards */
-"Likes" = "Suka";
-"Dislikes" = "Tidak suka";
-"Reposts" = "Repost";
-"Quotes" = "Kutipan";

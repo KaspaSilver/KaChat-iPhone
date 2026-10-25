@@ -1179,8 +1179,8 @@ private struct QuickReactionSlotSelection: Identifiable {
 
 /// Top-level Settings > Notifications hub: a category list (same row style as the main
 /// Settings screen) splitting notification prefs by feature - Chats (the pre-existing
-/// mode/sound/vibration page, moved here intact from Settings > Chats), Wallet (own-address
-/// receive activity), and KaPosts (per-event-type ping toggles).
+/// mode/sound/vibration page, moved here intact from Settings > Chats) and Wallet (own-address
+/// receive activity).
 struct NotificationsHubPage: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @EnvironmentObject var pushManager: PushNotificationManager
@@ -1199,7 +1199,7 @@ struct NotificationsHubPage: View {
         Form {
             // The master switch, at the top of the screen it governs. It used to live inside
             // Chats, which read as a chats-only setting - it is not: push carries wallet
-            // activity, group mentions, public chats and KaPosts too, so it belongs above the
+            // activity and group mentions too, so it belongs above the
             // per-feature pages rather than inside one of them.
             //
             // A toggle rather than the old Mode picker of two cases, and the registration
@@ -1331,88 +1331,6 @@ struct WalletNotificationSettingsView: View {
             }
         }
         .navigationTitle("Wallet")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-/// Settings > Notifications > KaPosts: per-event-type gates for KaPosts pings, mapped from
-/// the K notifications API's action kinds (see AppSettings.shouldNotifyKaPostsAction).
-/// Disabled types are silently skipped - never queued for later. Orthogonal to Simple Mode,
-/// which suppresses all KaPosts pings regardless of these.
-struct KaPostsNotificationSettingsView: View {
-    @EnvironmentObject var settingsViewModel: SettingsViewModel
-
-    var body: some View {
-        Form {
-            Section {
-                Toggle("Likes", isOn: $settingsViewModel.settings.kaPostsNotifyLikes)
-                    .onChange(of: settingsViewModel.settings.kaPostsNotifyLikes) { _ in
-                        settingsViewModel.saveSettings()
-                        // The extension reads these from the App Group; without this the switch
-                        // only ever changed a value nothing downstream could see.
-                        SharedDataManager.syncGroupsForExtension()
-                        // And the server reads them from the registration (PUSH_EXTENSIONS.md
-                        // §3). KaPosts pushes carry no mutable-content, so the extension never
-                        // runs for them and nothing on the device can stop a background push;
-                        // only a re-registration carrying the new switch does.
-                        Task { await PushNotificationManager.shared.forceReregister(reason: "kaposts notification kinds changed") }
-                    }
-                Toggle("Reposts", isOn: $settingsViewModel.settings.kaPostsNotifyReposts)
-                    .onChange(of: settingsViewModel.settings.kaPostsNotifyReposts) { _ in
-                        settingsViewModel.saveSettings()
-                        // The extension reads these from the App Group; without this the switch
-                        // only ever changed a value nothing downstream could see.
-                        SharedDataManager.syncGroupsForExtension()
-                        // And the server reads them from the registration (PUSH_EXTENSIONS.md
-                        // §3). KaPosts pushes carry no mutable-content, so the extension never
-                        // runs for them and nothing on the device can stop a background push;
-                        // only a re-registration carrying the new switch does.
-                        Task { await PushNotificationManager.shared.forceReregister(reason: "kaposts notification kinds changed") }
-                    }
-                Toggle("Follows", isOn: $settingsViewModel.settings.kaPostsNotifyFollows)
-                    .onChange(of: settingsViewModel.settings.kaPostsNotifyFollows) { _ in
-                        settingsViewModel.saveSettings()
-                        // The extension reads these from the App Group; without this the switch
-                        // only ever changed a value nothing downstream could see.
-                        SharedDataManager.syncGroupsForExtension()
-                        // And the server reads them from the registration (PUSH_EXTENSIONS.md
-                        // §3). KaPosts pushes carry no mutable-content, so the extension never
-                        // runs for them and nothing on the device can stop a background push;
-                        // only a re-registration carrying the new switch does.
-                        Task { await PushNotificationManager.shared.forceReregister(reason: "kaposts notification kinds changed") }
-                    }
-                Toggle("Dislikes", isOn: $settingsViewModel.settings.kaPostsNotifyDislikes)
-                    .onChange(of: settingsViewModel.settings.kaPostsNotifyDislikes) { _ in
-                        settingsViewModel.saveSettings()
-                        // The extension reads these from the App Group; without this the switch
-                        // only ever changed a value nothing downstream could see.
-                        SharedDataManager.syncGroupsForExtension()
-                        // And the server reads them from the registration (PUSH_EXTENSIONS.md
-                        // §3). KaPosts pushes carry no mutable-content, so the extension never
-                        // runs for them and nothing on the device can stop a background push;
-                        // only a re-registration carrying the new switch does.
-                        Task { await PushNotificationManager.shared.forceReregister(reason: "kaposts notification kinds changed") }
-                    }
-                Toggle("Comments", isOn: $settingsViewModel.settings.kaPostsNotifyComments)
-                    .onChange(of: settingsViewModel.settings.kaPostsNotifyComments) { _ in
-                        settingsViewModel.saveSettings()
-                        // The extension reads these from the App Group; without this the switch
-                        // only ever changed a value nothing downstream could see.
-                        SharedDataManager.syncGroupsForExtension()
-                        // And the server reads them from the registration (PUSH_EXTENSIONS.md
-                        // §3). KaPosts pushes carry no mutable-content, so the extension never
-                        // runs for them and nothing on the device can stop a background push;
-                        // only a re-registration carrying the new switch does.
-                        Task { await PushNotificationManager.shared.forceReregister(reason: "kaposts notification kinds changed") }
-                    }
-                Toggle("Mentions", isOn: $settingsViewModel.settings.kaPostsNotifyMentions)
-                    .onChange(of: settingsViewModel.settings.kaPostsNotifyMentions) { _ in
-                        settingsViewModel.saveSettings()
-                        SharedDataManager.syncGroupsForExtension()
-                    }
-            }
-        }
-        .navigationTitle("KaPosts")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -1924,9 +1842,6 @@ struct ConnectionSettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var indexerURL: String = ""
-    @State private var kaPostIndexerURL: String = ""
-    @State private var translationServiceURL: String = ""
-    @State private var publicChatIndexerURL: String = ""
     @State private var pushIndexerURL: String = ""
     @State private var kaspaRestAPIURL: String = ""
     @State private var trustedNodeValidationError: String?
@@ -1988,42 +1903,6 @@ struct ConnectionSettingsView: View {
             Text("Message Indexer")
         } footer: {
             Text("Message indexer service for chat functionality")
-        }
-
-        Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("KaPost Indexer URL")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                TextField(indexerPlaceholder(AppSettings.defaultKaPostIndexerURL), text: $kaPostIndexerURL)
-                    .font(.system(.body, design: .monospaced))
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                httpsInlineError(for: kaPostIndexerURL)
-            }
-        } header: {
-            Text("KaPost Indexer")
-        } footer: {
-            Text("K social network indexer that powers KaPosts feeds")
-        }
-
-        Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Public Chats Indexer URL")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                TextField(indexerPlaceholder(AppSettings.defaultPublicChatIndexerURL), text: $publicChatIndexerURL)
-                    .font(.system(.body, design: .monospaced))
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                httpsInlineError(for: publicChatIndexerURL)
-            }
-        } header: {
-            Text("Public Chats Indexer")
-        } footer: {
-            Text("KaChat public chat history indexer for #kaspa and #kachat-bugs")
         }
 
         Section {
@@ -2162,28 +2041,6 @@ struct ConnectionSettingsView: View {
     }
 
     @ViewBuilder
-    private var translationSections: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Translation Service URL")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                TextField(AppSettings.defaultTranslationServiceURL, text: $translationServiceURL)
-                    .font(.system(.body, design: .monospaced))
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                httpsInlineError(for: translationServiceURL)
-            }
-        } header: {
-            Text("Translation Service")
-        } footer: {
-            Text("Translates KaPosts written in another language. Runs on the KaPost indexer's box by default; point this at your own if you host one (see TRANSLATION_SERVICE.md).")
-        }
-
-    }
-
-    @ViewBuilder
     private var domainsSections: some View {
         // .kachat first: it is what every address field resolves before anything else.
         Section {
@@ -2268,15 +2125,14 @@ struct ConnectionSettingsView: View {
     }
 
     /// One tab per kind of connection, so the page stays short as the app talks to more
-    /// services: indexers, the Kaspa node, translation, name services, the block explorer.
+    /// services: indexers, the Kaspa node, name services, the block explorer.
     private enum ConnectionTab: String, CaseIterable {
-        case indexer, node, translation, domains, explorer
+        case indexer, node, domains, explorer
 
         var title: String {
             switch self {
             case .indexer: return "Indexer"
             case .node: return "Node"
-            case .translation: return "Translation"
             case .domains: return "Domains"
             case .explorer: return "Explorer"
             }
@@ -2296,7 +2152,6 @@ struct ConnectionSettingsView: View {
                 switch selectedTab {
                 case .indexer: indexerSections
                 case .node: nodeSections
-                case .translation: translationSections
                 case .domains: domainsSections
                 case .explorer: explorerSections
                 }
@@ -2371,9 +2226,6 @@ struct ConnectionSettingsView: View {
 
     private func loadCurrentSettings() {
         indexerURL = settingsViewModel.settings.indexerURL
-        kaPostIndexerURL = settingsViewModel.settings.kaPostIndexerURL
-        translationServiceURL = settingsViewModel.settings.translationServiceURL
-        publicChatIndexerURL = settingsViewModel.settings.publicChatIndexerURL
         pushIndexerURL = settingsViewModel.settings.pushIndexerURL
         kaspaRestAPIURL = settingsViewModel.settings.kaspaRestAPIURL
     }
@@ -2390,7 +2242,7 @@ struct ConnectionSettingsView: View {
     /// https:// (Decision 3A).
     @discardableResult
     private func saveSettings() -> Bool {
-        let allFields = [indexerURL, kaPostIndexerURL, translationServiceURL, publicChatIndexerURL, pushIndexerURL, kaspaRestAPIURL]
+        let allFields = [indexerURL, pushIndexerURL, kaspaRestAPIURL]
         guard !allFields.contains(where: isCleartextHTTP) else {
             showToast(Self.httpsRequiredError, style: .error)
             return false
@@ -2404,9 +2256,6 @@ struct ConnectionSettingsView: View {
         // server being down, which is exactly how the KNS field broke.
         let defaults = ConnectionProfile.defaults(for: settingsViewModel.settings.networkType)
         settingsViewModel.settings.indexerURL = normalizedOrDefault(indexerURL, defaults.indexerURL)
-        settingsViewModel.settings.kaPostIndexerURL = normalizedOrDefault(kaPostIndexerURL, defaults.kaPostIndexerURL)
-        settingsViewModel.settings.translationServiceURL = normalizedOrDefault(translationServiceURL, defaults.translationServiceURL)
-        settingsViewModel.settings.publicChatIndexerURL = normalizedOrDefault(publicChatIndexerURL, defaults.publicChatIndexerURL)
         settingsViewModel.settings.pushIndexerURL = normalizedOrDefault(pushIndexerURL, defaults.pushIndexerURL)
         settingsViewModel.settings.kaspaRestAPIURL = normalizedOrDefault(kaspaRestAPIURL, defaults.kaspaRestAPIURL)
         settingsViewModel.saveSettings()
@@ -2624,7 +2473,7 @@ struct ConnectionStatusIndicator: View {
 }
 
 /// Kaspa-logo chatting-address balance for navigation bars - shared by the main pages
-/// (KaPosts, Public Chats, Cold Storage, Portfolio, Swap) so the centered header reads
+/// (Cold Storage, Portfolio, Swap) so the centered header reads
 /// identically across tabs. Chats keeps its own tap-to-copy variant.
 struct BalanceToolbarLabel: View {
     @EnvironmentObject var walletManager: WalletManager
@@ -3915,7 +3764,7 @@ struct ChatRestoreProgressModal: View {
         return text
     }
 
-    /// Same glass card treatment the app's other overlays use (see PublicChatChannelView).
+    /// Same glass card treatment the app's other overlays use.
     private func glassBackground(cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .fill(.regularMaterial)
@@ -4167,7 +4016,7 @@ struct IncomingResyncProgressModal: View {
         }
     }
 
-    /// Same glass card treatment the app's other overlays use (see PublicChatChannelView).
+    /// Same glass card treatment the app's other overlays use.
     private func glassBackground(cornerRadius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
             .fill(.regularMaterial)

@@ -1,5 +1,8 @@
 # KaPosts: make reply threads complete
 
+> **2026-10-24:** this feature was removed from the KaChat iPhone app (KaChat is now 1:1 and group
+> chats only). This file stays as the server contract; the app code it names is gone.
+
 > **STATUS: DELIVERED.** Both endpoints are live on `kachat.duckdns.org` and verified against a
 > real reply: `get-post?id=<txid>` returns `{post: KPost}`, and `get-thread?id=<txid>` returns
 > `{ancestors: [KPost], post: KPost}` with the chain root-first and the requested post carrying

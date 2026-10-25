@@ -1,5 +1,8 @@
 # KaChat Post Translation Service — Handoff & Build Guide
 
+> **2026-10-24:** this feature was removed from the KaChat iPhone app (KaChat is now 1:1 and group
+> chats only). This file stays as the server contract; the app code it names is gone.
+
 **Audience:** the AI/engineer on the server box. This doc specifies a translation endpoint that
 serves the KaChat apps (iOS and Android) so a reader can translate a KaPost written in another
 language. It runs on the same host as the KaPosts indexer by default (`kachat.duckdns.org`), but

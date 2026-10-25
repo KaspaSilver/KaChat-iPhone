@@ -267,9 +267,6 @@ final class ContactsManager: ObservableObject {
         loadContacts()
         // Right after the contacts load: its one-time migration reads their old phone-contact names.
         AddressBookManager.shared.setActiveWalletAddress(normalizedAddress)
-        // The coins scheduled KaPosts hold, for every builder from launch on - not first when
-        // the KaPosts page renders, and never the previous wallet's (IOS-064).
-        KaPostsScheduledStore.shared.reloadForCurrentWallet()
         loadDeletedAddresses()
 
         if normalizedAddress == nil {

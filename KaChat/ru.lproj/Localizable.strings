@@ -260,8 +260,6 @@
 "Invalid domain label" = "Неверная метка домена";
 "Invalid recipient format." = "Неверный формат получателя.";
 "It's ok, I already have a domain" = "Ничего, у меня уже есть домен";
-"Join" = "Присоединиться";
-"Join or Create a Channel" = "Присоединиться к каналу или создать его";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Отправляйте всего 5-10 KAS за раз, этого хватит для оплаты комиссий чата на некоторое время (около 500 сообщений на KAS)";
 "KAS" = "KAS";
 "KAS Price" = "Цена KAS";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "Не удалось связаться с %@. Потяните вниз, чтобы повторить.";
 "Settling" = "Подтверждается";
 "Node" = "Узел";
-"Translation" = "Перевод";
 "Message Indexer" = "Индексатор сообщений";
 "Other Name Services" = "Другие сервисы имён";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Показывает имена .k и .kaspa, которыми владеет адрес. Собственные имена .kachat появятся здесь после запуска.";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 дней";
-"Public Chats" = "Публичные чаты";
 "All-time only" = "Только за всё время";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Виды с пометкой «Только за всё время» пока не входят в этот итог.";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Чтобы написать кому-то, нажмите «Создать чат» и введите его адрес Kaspa или имя .kachat. Ваше первое сообщение придёт ему как запрос на переписку, который можно принять. Для максимальной приватности включите «Приватный чат»: в блокчейне вас ничто не связывает, а ваши сообщения станут видны, когда собеседник тоже начнёт приватный чат с вами.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Для начала рекомендуется 50 Kaspa — этого хватит, чтобы получить имя .kachat и какое-то время общаться. 5 Kaspa хватает примерно на 2500 сообщений.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Ваша публичная личность для переписки. Пополните её небольшой суммой на комиссии за сообщения и на имя .kachat — никогда не отправляйте сюда деньги, которые собираетесь тратить.";
-"KaPosts isn't available on Testnet yet" = "KaPosts пока недоступен в тестовой сети";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "Для тестовой сети нет индексатора KaPost. Выключите тестовую сеть в Настройки > Подключение, чтобы читать и публиковать в основной сети.";
 "Nextcloud is off while Testnet is on." = "Nextcloud отключён, пока включена тестовая сеть.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Резервные копии, синхронизация, медиа и звонки через Nextcloud работают только в основной сети, поэтому тестовая сеть никогда не перезапишет вашу резервную копию. Выключите тестовую сеть в Настройки > Подключение, и подключение к Nextcloud вернётся как было.";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Некоторые ссылки сейчас не удалось проверить с этого телефона. Они сохраняются как введены, а приложения других людей загрузят их, когда смогут.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "Чаевые";
 "Goes to a fresh private address they shared" = "Уйдут на новый приватный адрес, которым он поделился";
 "Goes to their public chatting address" = "Уйдут на его публичный адрес для чатов";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "Добавить %@ в док";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "Чаевые";
-"No tips yet." = "Чаевых пока нет.";
-"Who tipped this post" = "Кто отправил чаевые за этот пост";
-"You'll now be notified when %@ posts." = "Теперь вы будете получать уведомления о новых постах %@.";
-"You won't be notified about %@'s posts anymore." = "Вы больше не будете получать уведомления о постах %@.";
-"Stop post notifications" = "Отключить уведомления о постах";
-"Notify me when they post" = "Уведомлять о новых постах";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Нужна фраза восстановления";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "Ещё нет завершённых турниров.";
 
 /* KaPosts: post activity cards */
-"Likes" = "Лайки";
-"Dislikes" = "Дизлайки";
-"Reposts" = "Репосты";
-"Quotes" = "Цитаты";

@@ -260,8 +260,6 @@
 "Invalid domain label" = "Nhãn tên miền không hợp lệ";
 "Invalid recipient format." = "Định dạng người nhận không hợp lệ.";
 "It's ok, I already have a domain" = "Không sao, tôi đã có tên miền rồi";
-"Join" = "Tham gia";
-"Join or Create a Channel" = "Tham gia hoặc tạo kênh";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Chi gui 5-10 KAS moi lan, du de trang trai phi tro chuyen trong mot thoi gian (khoang 500 tin nhan moi KAS)";
 "KAS" = "KAS";
 "KAS Price" = "Giá KAS";
@@ -726,7 +724,6 @@
 "Couldn't reach %@. Pull down to try again." = "Không thể kết nối %@. Kéo xuống để thử lại.";
 "Settling" = "Đang xác nhận";
 "Node" = "Node";
-"Translation" = "Dịch";
 "Message Indexer" = "Trình lập chỉ mục tin nhắn";
 "Other Name Services" = "Dịch vụ tên khác";
 "Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Dùng để hiển thị các tên .k và .kaspa mà một địa chỉ sở hữu. Tên .kachat của KaChat sẽ được đặt ở đây khi ra mắt.";
@@ -766,7 +763,6 @@
 
 /* 5.2: range and section labels */
 "7 Days" = "7 ngày";
-"Public Chats" = "Trò chuyện công khai";
 "All-time only" = "Chỉ toàn thời gian";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Các loại có nhãn “Chỉ toàn thời gian” chưa được tính vào tổng này.";
 
@@ -893,7 +889,6 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Để trò chuyện với ai đó, nhấn Tạo cuộc trò chuyện và nhập địa chỉ Kaspa hoặc tên .kachat của họ. Tin nhắn đầu tiên của bạn đến với họ dưới dạng Yêu cầu nhắn tin để họ chấp nhận. Để riêng tư nhất, bật Trò chuyện riêng tư: không có gì liên kết hai bạn trên chuỗi, và họ sẽ thấy tin nhắn khi cũng bắt đầu trò chuyện riêng tư với bạn.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Nên có 50 Kaspa để bắt đầu - đủ để nhận một tên .kachat và trò chuyện một thời gian. 5 Kaspa đủ cho khoảng 2500 tin nhắn.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Danh tính nhắn tin công khai của bạn. Nạp một ít để trả phí tin nhắn và tên .kachat - đừng bao giờ gửi vào đây số tiền bạn định chi tiêu.";
-"KaPosts isn't available on Testnet yet" = "KaPosts chưa khả dụng trên Testnet";
 "There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "Chưa có trình lập chỉ mục KaPost cho testnet. Tắt Testnet trong Cài đặt > Kết nối để đọc và đăng trên mainnet.";
 "Nextcloud is off while Testnet is on." = "Nextcloud tắt khi Testnet đang bật.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Sao lưu, đồng bộ, tệp phương tiện và cuộc gọi qua Nextcloud chỉ hoạt động trên mainnet, nên testnet không bao giờ ghi đè bản sao lưu mainnet của bạn. Tắt Testnet trong Cài đặt > Kết nối và kết nối Nextcloud sẽ trở lại như cũ.";
@@ -1263,7 +1258,6 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Hiện chưa thể kiểm tra một số liên kết từ điện thoại này. Chúng được lưu đúng như đã nhập và ứng dụng của người khác sẽ tải khi có thể.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Tip" = "Tiền tip";
 "Goes to a fresh private address they shared" = "Gửi tới một địa chỉ riêng mới mà họ đã chia sẻ";
 "Goes to their public chatting address" = "Gửi tới địa chỉ trò chuyện công khai của họ";
 
@@ -1714,13 +1708,6 @@
 "Add %@ to your dock" = "Thêm %@ vào dock";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
-"Tips" = "Tiền tip";
-"No tips yet." = "Chưa có tiền tip.";
-"Who tipped this post" = "Ai đã tip cho bài viết này";
-"You'll now be notified when %@ posts." = "Từ giờ bạn sẽ được thông báo khi %@ đăng bài.";
-"You won't be notified about %@'s posts anymore." = "Bạn sẽ không còn được thông báo về bài viết của %@.";
-"Stop post notifications" = "Tắt thông báo bài viết";
-"Notify me when they post" = "Báo cho tôi khi người này đăng bài";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Cần cụm từ khôi phục";
@@ -1769,7 +1756,3 @@
 "No finished tournaments yet." = "Chưa có giải đấu nào kết thúc.";
 
 /* KaPosts: post activity cards */
-"Likes" = "Lượt thích";
-"Dislikes" = "Lượt không thích";
-"Reposts" = "Lượt đăng lại";
-"Quotes" = "Trích dẫn";

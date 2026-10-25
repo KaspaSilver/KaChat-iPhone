@@ -90,26 +90,20 @@ extension AppSettings {
         hidePortfolioTab = overlay.hiddenTabs.contains(AppTab.portfolio.rawValue)
         hideColdStorageTab = overlay.hiddenTabs.contains(AppTab.coldStorage.rawValue)
         hideSwapTab = overlay.hiddenTabs.contains(AppTab.swap.rawValue)
-        hideKaPostsTab = overlay.hiddenTabs.contains(AppTab.kaposts.rawValue)
-        hidePublicChats = overlay.hiddenTabs.contains(AppTab.publicChats.rawValue)
         hideAppsTab = overlay.hiddenTabs.contains(AppTab.apps.rawValue)
-        hideChessTab = overlay.hiddenTabs.contains(AppTab.chess.rawValue)
         hideMoreItem = overlay.hiddenTabs.contains(AppTab.more.rawValue)
     }
 
     func dockOverlay() -> DockOverlay {
         // Raw hide flags, NOT AppTab.isEnabled: isEnabled also applies the Simple Mode mask
-        // (Swap/KaPosts/Public Chats forced off), and baking that mask into the persisted
+        // (Swap forced off), and baking that mask into the persisted
         // per-account overlay would leave those tabs hidden even after Simple Mode is turned
         // back off. The overlay must only ever record the user's own dock choices.
         var hidden: [String] = []
         if hidePortfolioTab { hidden.append(AppTab.portfolio.rawValue) }
         if hideColdStorageTab { hidden.append(AppTab.coldStorage.rawValue) }
         if hideSwapTab { hidden.append(AppTab.swap.rawValue) }
-        if hideKaPostsTab { hidden.append(AppTab.kaposts.rawValue) }
-        if hidePublicChats { hidden.append(AppTab.publicChats.rawValue) }
         if hideAppsTab { hidden.append(AppTab.apps.rawValue) }
-        if hideChessTab { hidden.append(AppTab.chess.rawValue) }
         if hideMoreItem { hidden.append(AppTab.more.rawValue) }
         return DockOverlay(tabOrder: tabOrder, hiddenTabs: hidden, dockTabs: dockTabs, hubTabs: hubTabs)
     }
@@ -141,28 +135,8 @@ extension AppSettings {
             settings.indexerURL = defaultIndexerURL
             save(settings)
         }
-        // One-time migration for anyone still pointed at the public K social indexer
-        // (mainnet.kaspatalk.net) - KaPosts now runs on KaChat's own indexer. Users who set a
-        // custom KaPost indexer URL keep it; only the old shipped default is moved.
-        if settings.kaPostIndexerURL == legacyDefaultKaPostIndexerURL {
-            settings.kaPostIndexerURL = defaultKaPostIndexerURL
-            save(settings)
-        }
-        // One-time 4.0 dock rules: EVERY existing user gets KaPosts/Public Chats enabled.
-        // The decode fallbacks cover production 3.0 users (their blobs lack these keys), but
-        // 4.0 TestFlight builds already wrote hideKaPostsTab = true into saved blobs via the
-        // old defaults - this sentinel-guarded pass flips them once. The dock cap then does
-        // the right thing: full dock -> KaPosts/Public Chats cycle behind Chats. ("+More" no
-        // longer exists as a dock item, so hideMoreItem isn't touched anymore.)
-        let dockRulesKey = "kachat_dock_40_rules_applied"
-        if !userDefaults.bool(forKey: dockRulesKey) {
-            settings.hideKaPostsTab = false
-            settings.hidePublicChats = false
-            userDefaults.set(true, forKey: dockRulesKey)
-            save(settings)
-        }
         // One-time 4.1 dock rules: Ecosystem replaces Swap's dock slot and takes over holding
-        // KaPosts, Public Chats and the websites list, so every existing user is moved onto the new
+        // the websites list, so every existing user is moved onto the new
         // arrangement rather than only new installs getting it. Their per-tab on/off choices are
         // untouched - only the ORDER is reset, which is what decides who gets a dock slot.
         let ecosystemRulesKey = "kachat_dock_41_ecosystem_applied"

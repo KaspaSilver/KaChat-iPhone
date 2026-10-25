@@ -2028,7 +2028,8 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var label: String {
         switch self {
         case .chats: return "Chats"
-        case .addressBook: return "Address Book"
+        // "Addresses", as in the KaChat wallet app (owner's call, 2026-10-24).
+        case .addressBook: return "Addresses"
         case .profile: return "Profile"
         case .settings: return "Settings"
         }

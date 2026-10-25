@@ -52,8 +52,10 @@ struct AddressBookView: View {
                                 prompt: Text("Search names and addresses"))
                 }
             }
-            .navigationTitle("Address Book")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Addresses")
+            // Large, so "Addresses" shows under the bar (the balance holds the bar's middle),
+            // as the other tabs show their titles.
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     ConnectionStatusIndicator()
@@ -61,25 +63,13 @@ struct AddressBookView: View {
                 ToolbarItem(placement: .principal) {
                     BalanceToolbarLabel()
                 }
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
-                        showImportExport = true
-                    } label: {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                    }
-                    .accessibilityLabel(Text("Import or export"))
-                    Button {
-                        showAdd = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .accessibilityLabel(Text("Add Address"))
-                }
             }
+            // Add and Import / Export live behind one floating + (like Chats'), not in the bar.
+            .overlay(alignment: .bottomTrailing) { actionsButton }
             .sheet(isPresented: $showAdd) {
                 AddressBookEntryEditor(address: nil) { _ in }
             }
-            .sheet(isPresented: $showImportExport) { importExportSheet }
+            .sheet(isPresented: $showImportExport) { actionsSheet }
             .sheet(item: $exportFile) { file in
                 AddressBookShareSheet(fileURL: file.url)
             }
@@ -102,14 +92,46 @@ struct AddressBookView: View {
         }
     }
 
-    // MARK: Import / export
+    // MARK: Add / import / export
 
-    private var importExportSheet: some View {
+    /// The floating glass "+" in the bottom-right corner, opening the actions half sheet - the
+    /// same button Chats uses for New.
+    private var actionsButton: some View {
+        Button {
+            Haptics.impact(.light)
+            showImportExport = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.scaled(size: 22, weight: .semibold))
+                .foregroundColor(.accentColor)
+                .frame(width: 56, height: 56)
+                .background(
+                    Circle()
+                        .fill(.regularMaterial)
+                        .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
+                        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 5)
+                )
+        }
+        .padding(.trailing, 20)
+        .padding(.bottom, 16)
+        .accessibilityLabel(Text("Add, import or export"))
+    }
+
+    /// What the + offers: add an address, or import / export the whole list.
+    private var actionsSheet: some View {
         VStack(spacing: 12) {
-            Text("Import or Export")
+            Text("Addresses")
                 .font(.headline)
                 .padding(.top, 20)
                 .padding(.bottom, 4)
+            ActionSheetRow(
+                title: "Add Address",
+                subtitle: "Save a Kaspa address with a name you'll recognize.",
+                systemImage: "plus"
+            ) {
+                showImportExport = false
+                DispatchQueue.main.async { showAdd = true }
+            }
             ActionSheetRow(
                 title: "Import File",
                 subtitle: "Add addresses from an Address Book export.",
@@ -155,7 +177,7 @@ struct AddressBookView: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .presentationDetents([.height(nextcloud.isConnected ? 450 : 330)])
+        .presentationDetents([.height(nextcloud.isConnected ? 510 : 390)])
         .presentationDragIndicator(.visible)
     }
 
@@ -808,7 +830,7 @@ struct AddressBookPickerSheet: View {
                                 prompt: Text("Search names and addresses"))
                 }
             }
-            .navigationTitle("Address Book")
+            .navigationTitle("Addresses")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -1146,6 +1146,8 @@
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "دفترچه نشانی";
+"Addresses" = "آدرس‌ها";
+"Save a Kaspa address with a name you'll recognize." = "یک آدرس کسپا را با نامی که می‌شناسید ذخیره کنید.";
 "Add to Address Book" = "افزودن به دفترچه نشانی";
 "Search names and addresses" = "جستجوی نام‌ها و نشانی‌ها";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts." = "نشانی‌های Kaspa که استفاده می‌کنید را با نامی که می‌شناسید ذخیره کنید. آن‌ها در KaChat می‌مانند، فقط برای این کیف پول، و هرگز به مخاطبین گوشی شما نمی‌روند.";

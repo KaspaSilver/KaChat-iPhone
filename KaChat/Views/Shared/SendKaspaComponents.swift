@@ -91,7 +91,7 @@ struct SendRecipientCard: View {
                         }
                         .buttonStyle(.plain)
                         .foregroundColor(.accentColor)
-                        .accessibilityLabel(Text("Address Book"))
+                        .accessibilityLabel(Text("Addresses"))
                     }
                 }
                 AddressResolutionCard(address: resolvedAddress ?? (isValidAddress ? trimmed : nil), domain: resolvedName)

@@ -1146,6 +1146,8 @@
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "Livro de endereços";
+"Addresses" = "Endereços";
+"Save a Kaspa address with a name you'll recognize." = "Salve um endereço Kaspa com um nome que você reconheça.";
 "Add to Address Book" = "Adicionar ao livro de endereços";
 "Search names and addresses" = "Buscar nomes e endereços";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts." = "Salve os endereços Kaspa que você usa com um nome que você reconheça. Eles ficam no KaChat, só para esta carteira, e nunca vão para os contatos do seu telefone.";

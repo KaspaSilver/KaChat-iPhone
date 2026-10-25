@@ -1146,6 +1146,8 @@
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "주소록";
+"Addresses" = "주소";
+"Save a Kaspa address with a name you'll recognize." = "알아보기 쉬운 이름으로 Kaspa 주소를 저장하세요.";
 "Add to Address Book" = "주소록에 추가";
 "Search names and addresses" = "이름과 주소 검색";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts." = "자주 쓰는 Kaspa 주소를 알아보기 쉬운 이름으로 저장하세요. KaChat 안에만, 이 지갑 전용으로 저장되며 휴대폰 연락처에는 절대 들어가지 않습니다.";

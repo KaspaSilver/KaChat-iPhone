@@ -70,6 +70,7 @@
 		CSEX00010001000100000007 /* ChatService+Reactions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSEX00010001000000000007 /* ChatService+Reactions.swift */; };
 		CSEX00010001000100000008 /* ChatService+PaymentPools.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSEX00010001000000000008 /* ChatService+PaymentPools.swift */; };
 		DA0001B0000000000000001 /* DeviceAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0001A0000000000000001 /* DeviceAuth.swift */; };
+		DECI00010001000100000001 /* DecimalInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = DECI00010001000000000001 /* DecimalInput.swift */; };
 		DTAL00010001000100000001 /* DeterministicAlias.swift in Sources */ = {isa = PBXBuildFile; fileRef = DTAL00010001000000000001 /* DeterministicAlias.swift */; };
 		E81000012D4C000100000001 /* KaChatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000002D4C000100000001 /* KaChatApp.swift */; };
 		E81000032D4C000100000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000022D4C000100000002 /* ContentView.swift */; };
@@ -279,6 +280,7 @@
 		CSEX00010001000000000008 /* ChatService+PaymentPools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatService+PaymentPools.swift"; sourceTree = "<group>"; };
 		KBOT001A000000000000001 /* KaChatBot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaChatBot.swift; sourceTree = "<group>"; };
 		DA0001A0000000000000001 /* DeviceAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAuth.swift; sourceTree = "<group>"; };
+		DECI00010001000000000001 /* DecimalInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecimalInput.swift; sourceTree = "<group>"; };
 		DTAL00010001000000000001 /* DeterministicAlias.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeterministicAlias.swift; sourceTree = "<group>"; };
 		E80000002D4C000000000000 /* KaChat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KaChat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E81000002D4C000100000001 /* KaChatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaChatApp.swift; sourceTree = "<group>"; };
@@ -768,6 +770,7 @@
 				KPRQ00010001000000000001 /* PaymentRequestViews.swift */,
 				OBC00010001000000000001 /* OutgoingBubbleColor.swift */,
 				ARC0001A000000000000001 /* AddressResolutionCard.swift */,
+				DECI00010001000000000001 /* DecimalInput.swift */,
 				RS0001A0000000000000001 /* RevealableSecureField.swift */,
 				KNAV000100010000000001 /* KNSAvatarView.swift */,
 				FEESHIM0001000000000001 /* FeeShimmerOverlay.swift */,
@@ -1142,6 +1145,7 @@
 				KPRQ00010001000100000001 /* PaymentRequestViews.swift in Sources */,
 				OBC00010001000000000002 /* OutgoingBubbleColor.swift in Sources */,
 				ARC0001B000000000000001 /* AddressResolutionCard.swift in Sources */,
+				DECI00010001000100000001 /* DecimalInput.swift in Sources */,
 				RS0001B0000000000000001 /* RevealableSecureField.swift in Sources */,
 				E8F100152D4C0001000001FF /* QRScannerView.swift in Sources */,
 				KNAV00010001000100000001 /* KNSAvatarView.swift in Sources */,

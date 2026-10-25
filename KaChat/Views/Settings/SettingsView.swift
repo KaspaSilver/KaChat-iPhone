@@ -618,9 +618,8 @@ fileprivate func settingsCategoryRow<Destination: View>(
 // (see AppSettingsView) can host the SAME views without a wallet loaded. The in-account
 // SettingsView embeds them unchanged, so there's exactly one source of truth per page.
 
-/// Security page: biometric toggles + Simple Mode. All fields live in the global AppSettings
-/// blob / device Keychain - nothing here needs an active account, which is exactly why Child
-/// Mode is reachable from the accounts list (a parent can manage it without unlocking anything).
+/// Security page: the biometric toggles. All fields live in the global AppSettings blob -
+/// nothing here needs an active account, so it is reachable from the accounts list too.
 struct SecuritySettingsPage: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @ObservedObject private var walletManager = WalletManager.shared
@@ -667,24 +666,6 @@ struct SecuritySettingsPage: View {
                     reason: "Unlock to change the private key biometric lock",
                     isOn: $settingsViewModel.settings.biometricSpendingKeyEnabled
                 )
-
-                NavigationLink {
-                    ChildModeSettingsView()
-                } label: {
-                    HStack {
-                        Label {
-                            Text("Simple Mode")
-                                .foregroundColor(.primary)
-                        } icon: {
-                            Image(systemName: "lock.shield")
-                                .foregroundColor(.accentColor)
-                        }
-                        Spacer()
-                        Text(settingsViewModel.settings.childModeEnabled ? "On" : "Off")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
             }
         }
         .navigationTitle("Security")
@@ -1031,8 +1012,7 @@ struct DiagnosticsSettingsPage: View {
 
 /// The app-wide settings tier, reachable from the accounts list's gear button when no account
 /// is active. Contains ONLY settings that apply to the entire install: Customization
-/// (Appearance/Language/Currency - not the per-account dock), Security (including Simple Mode -
-/// deliberately manageable without unlocking any account), Connection endpoints, and
+/// (Appearance/Language/Currency), Security (the biometric toggles), Connection endpoints, and
 /// Diagnostics. Everything account-specific (dock, chats, contacts, storage, chat history,
 /// notifications, danger zone) intentionally lives only in the in-account SettingsView.
 struct AppSettingsView: View {

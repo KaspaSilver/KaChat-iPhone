@@ -59,8 +59,6 @@
 		CH0002B0000000000000001 /* ChessGameService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH0002A0000000000000001 /* ChessGameService.swift */; };
 		CH0003B0000000000000001 /* ChessGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH0003A0000000000000001 /* ChessGameView.swift */; };
 		CHAD00010001000100000001 /* ChattingAddressPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CHAD00010001000000000001 /* ChattingAddressPickerView.swift */; };
-		CM0001B0000000000000001 /* ChildModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CM0001A0000000000000001 /* ChildModeService.swift */; };
-		CM0002B0000000000000001 /* ChildModeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CM0002A0000000000000001 /* ChildModeSettingsView.swift */; };
 		OSL0001B000000000000001 /* OpenSourceLicensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OSL0001A000000000000001 /* OpenSourceLicensesView.swift */; };
 		CPTV00010001000100000001 /* ComposerTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPTV00010001000000000001 /* ComposerTextView.swift */; };
 		CSEX00010001000100000001 /* ChatService+PushAndSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSEX00010001000000000001 /* ChatService+PushAndSync.swift */; };
@@ -269,8 +267,6 @@
 		CH0002A0000000000000001 /* ChessGameService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessGameService.swift; sourceTree = "<group>"; };
 		CH0003A0000000000000001 /* ChessGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessGameView.swift; sourceTree = "<group>"; };
 		CHAD00010001000000000001 /* ChattingAddressPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChattingAddressPickerView.swift; sourceTree = "<group>"; };
-		CM0001A0000000000000001 /* ChildModeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChildModeService.swift; sourceTree = "<group>"; };
-		CM0002A0000000000000001 /* ChildModeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChildModeSettingsView.swift; sourceTree = "<group>"; };
 		OSL0001A000000000000001 /* OpenSourceLicensesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSourceLicensesView.swift; sourceTree = "<group>"; };
 		CPTV00010001000000000001 /* ComposerTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerTextView.swift; sourceTree = "<group>"; };
 		CSEX00010001000000000001 /* ChatService+PushAndSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatService+PushAndSync.swift"; sourceTree = "<group>"; };
@@ -623,7 +619,6 @@
 				GN0001A0000000000000001 /* GlobalNotificationCenter.swift */,
 				AB0001A0000000000000001 /* AppTabBadge.swift */,
 				CH0002A0000000000000001 /* ChessGameService.swift */,
-				CM0001A0000000000000001 /* ChildModeService.swift */,
 				LPRVA0000000000000001 /* LinkPreviewService.swift */,
 				KCNMGRP00000000000000001 /* KachatNames */,
 			);
@@ -751,7 +746,6 @@
 			isa = PBXGroup;
 			children = (
 				E810001C2D4C00010000000F /* SettingsView.swift */,
-				CM0002A0000000000000001 /* ChildModeSettingsView.swift */,
 				OSL0001A000000000000001 /* OpenSourceLicensesView.swift */,
 			);
 			path = Settings;
@@ -1131,8 +1125,6 @@
 				GN0001B0000000000000001 /* GlobalNotificationCenter.swift in Sources */,
 				AB0001B0000000000000001 /* AppTabBadge.swift in Sources */,
 				CH0002B0000000000000001 /* ChessGameService.swift in Sources */,
-				CM0001B0000000000000001 /* ChildModeService.swift in Sources */,
-				CM0002B0000000000000001 /* ChildModeSettingsView.swift in Sources */,
 				OSL0001B000000000000001 /* OpenSourceLicensesView.swift in Sources */,
 				4D3D20012F72000200000002 /* MessageTextRenderPlan.swift in Sources */,
 				4D3D20032F72000300000002 /* MessageImageSharePayload.swift in Sources */,

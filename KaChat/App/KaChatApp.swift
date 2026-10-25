@@ -501,6 +501,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         Task.detached(priority: .utility) { CacheManager.sweepStaleTempFiles() }
         Task.detached(priority: .utility) { RetiredFeatureCleanup.runOnce() }
         Task { await RetiredFeatureCleanup.runOnceV2() }
+        RetiredFeatureCleanup.runOnceV3()
         // Set notification delegate to handle foreground notifications
         UNUserNotificationCenter.current().delegate = self
         registerNotificationCategories()
@@ -975,6 +976,20 @@ enum RetiredFeatureCleanup {
         // Renewal reminders for .kachat names still scheduled on this phone.
         await KachatNameReminders.removeEverything()
         defaults.set(true, forKey: doneKeyV2)
+    }
+
+    private static let doneKeyV3 = "kachat_retired_features_cleaned_v3"
+
+    /// Simple Mode left on 2026-10-24: its Keychain password record, its attempt counters and the
+    /// onboarding's "Who will use KaChat?" marker go once.
+    static func runOnceV3() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: doneKeyV3) else { return }
+        try? KeychainService.shared.deleteChildModePasswordRecord()
+        for key in ["kachat_simple_mode_failed_attempts", "kachat_simple_mode_locked_until", "kachat_user_type_choice_state"] {
+            defaults.removeObject(forKey: key)
+        }
+        defaults.set(true, forKey: doneKeyV3)
     }
 }
 

@@ -55,10 +55,9 @@ struct OnboardingView: View {
                 // black on near-black in light mode. Scoped to this subtree.
                 .environment(\.colorScheme, .dark)
             }
-            // App-wide settings (Security incl. Simple Mode, Appearance/Language/Currency,
-            // Connection, Diagnostics) - reachable with NO account active, so a parent can
-            // manage Simple Mode without unlocking anything. Account-tier settings stay in
-            // the in-account Settings sheet.
+            // App-wide settings (Security, Appearance/Language/Currency, Connection,
+            // Diagnostics) - reachable with NO account active. Account-tier settings stay in
+            // the in-account Settings tab.
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {

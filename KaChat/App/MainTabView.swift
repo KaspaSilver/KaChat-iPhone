@@ -25,9 +25,6 @@ struct MainTabView: View {
     /// Debounces the off-chat-tab discovery pause/resume so rapid tab-flipping can't thrash it.
     @State private var tabWorkTask: Task<Void, Never>?
     @State private var showWelcomeGuide = false
-    /// The guide is being re-presented because a first run was interrupted (app killed) before
-    /// the Adult/Child step was answered - jump straight back to that step.
-    @State private var resumeGuideAtUserType = false
     /// 4.0 "what's new" wizard: shown on every entry into the app until the user taps
     /// Don't Show Again (persisted per device).
     /// Blocking progress while the post-onboarding sync runs.
@@ -92,23 +89,13 @@ struct MainTabView: View {
             if walletManager.justCreatedNewWallet {
                 walletManager.justCreatedNewWallet = false
                 // Persisted BEFORE presenting: justCreatedNewWallet is in-memory only, so an
-                // app kill mid-wizard would otherwise be a permanent way past the mandatory
-                // Adult/Child step - the pending markers make the next launch re-present it.
-                // The onboarding-run marker covers devices where Adult/Child was already
-                // answered for a prior account ("chosen" never downgrades), so an interrupted
-                // IMPORT wizard re-presents exactly like an interrupted create does.
-                WelcomeGuideView.markUserTypePending()
+                // app kill mid-wizard would otherwise never bring the guide back - the pending
+                // marker makes the next launch re-present it, for a create or an import alike.
                 WelcomeGuideView.markOnboardingRunPending()
                 showWelcomeGuide = true
-            } else if WelcomeGuideView.isUserTypePending {
-                // First-run guide was interrupted before the Adult/Child choice: bring the
-                // wizard back at that step, on every launch, until it's answered.
-                resumeGuideAtUserType = true
-                showWelcomeGuide = true
             } else if WelcomeGuideView.isOnboardingRunPending {
-                // Onboarding run interrupted AFTER the Adult/Child choice was already settled
-                // (e.g. an import on a device that answered it for a prior account): re-present
-                // the full guide from the top, still as an unskippable onboarding run.
+                // Onboarding run interrupted: re-present the full guide from the top, still as
+                // an unskippable onboarding run.
                 showWelcomeGuide = true
             } else {
                 // No setup guide is coming, so nothing is waiting on it - lift any hold rather
@@ -133,7 +120,6 @@ struct MainTabView: View {
             WelcomeGuideView(
                 onFinished: {
                     showWelcomeGuide = false
-                    resumeGuideAtUserType = false
                     // Everything the account owns starts syncing now, behind a sheet - a
                     // half-synced chat list invites taps on chats whose history has not landed.
                     if chatService.onboardingSyncHeld {
@@ -141,7 +127,6 @@ struct MainTabView: View {
                         showInitialSyncProgress = true
                     }
                 },
-                startAtUserType: resumeGuideAtUserType,
                 // MainTabView only ever presents the guide for account onboarding (fresh
                 // create/import or a kill/relaunch re-present) - Help replays live in
                 // ContactsView, which leaves this false. Onboarding runs are fully unskippable.

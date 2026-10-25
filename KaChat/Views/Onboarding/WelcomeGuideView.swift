@@ -7,55 +7,18 @@ import SwiftUI
 /// simple static content plus at most one piece of live state (no per-step async work to gate on).
 struct WelcomeGuideView: View {
     let onFinished: () -> Void
-    /// Re-presentation after an interrupted first run (app killed before the Adult/Child step
-    /// was answered): jump straight back to the choice instead of replaying from Welcome.
-    var startAtUserType: Bool = false
     /// EXPLICIT presentation context, set by the presenter - never inferred from persisted
     /// markers. True for every account-onboarding run (MainTabView's cover after a create OR
     /// import, including kill/relaunch re-presents); false only for Profile > Help replays
     /// (ContactsView). Drives skippability end to end: onboarding runs have no Skip button and
-    /// no interactive dismissal all the way to Finish; replays keep both. Previously this was
-    /// inferred from the Adult/Child pending marker, which broke on devices that had already
-    /// answered Adult/Child for a prior account: an import-triggered run then presented with the
-    /// marker "chosen", looked like a replay, and became skippable.
+    /// no interactive dismissal all the way to Finish; replays keep both.
     var isOnboardingRun: Bool = false
-
-    // MARK: - Adult/Child choice persistence
-    //
-    // The "Who will use KaChat?" step must be unskippable on first run: no Skip until it's
-    // answered, and an app kill/relaunch mid-wizard must bring the wizard back (the
-    // auto-present trigger, WalletManager.justCreatedNewWallet, is in-memory only and lost on
-    // relaunch). Tri-state marker in UserDefaults:
-    //   nil       - legacy install that predates the step (never forced through it)
-    //   "pending" - first-run guide was presented but the choice not yet answered
-    //   "chosen"  - answered (Adult, or Child with password set) - never downgraded
-    static let userTypeChoiceStateKey = "kachat_user_type_choice_state"
-
-    /// First-run guide was shown but the Adult/Child step never answered - MainTabView
-    /// re-presents the guide (at that step) on every launch until it is.
-    static var isUserTypePending: Bool {
-        UserDefaults.standard.string(forKey: userTypeChoiceStateKey) == "pending"
-    }
-
-    /// Called right before the first-run auto-present. Never downgrades an already-made choice
-    /// (a second account created later on the same device re-shows the guide, but the
-    /// device-level Adult/Child answer stands and Skip stays available).
-    static func markUserTypePending() {
-        guard UserDefaults.standard.string(forKey: userTypeChoiceStateKey) != "chosen" else { return }
-        UserDefaults.standard.set("pending", forKey: userTypeChoiceStateKey)
-    }
-
-    static func markUserTypeChosen() {
-        UserDefaults.standard.set("chosen", forKey: userTypeChoiceStateKey)
-    }
 
     // MARK: - Onboarding-run pending marker (kill/relaunch re-present)
     //
-    // The Adult/Child pending marker alone cannot re-present an interrupted onboarding run on a
-    // device that already answered Adult/Child for a PRIOR account: markUserTypePending never
-    // downgrades "chosen", so a killed import/second-create wizard would simply never come back.
-    // This separate marker tracks "an onboarding run was presented but not finished" for exactly
-    // that case. Set only by MainTabView's first-run presentation (never by Help replays, so a
+    // The auto-present trigger (WalletManager.justCreatedNewWallet) is in-memory only, so a
+    // killed import/create wizard would never come back on its own. This marker tracks "an
+    // onboarding run was presented but not finished". Set only by MainTabView's first-run presentation (never by Help replays, so a
     // replay can neither set nor trigger it), cleared by the guide's Finish button - the only
     // way out of an onboarding run, since those are fully unskippable.
     static let onboardingRunPendingKey = "kachat_onboarding_wizard_pending"
@@ -77,9 +40,6 @@ struct WelcomeGuideView: View {
 
     private enum Step: Int, CaseIterable {
         case welcome
-        /// "Who will use KaChat?" - Adult continues as normal, Child sets a password and turns
-        /// Simple Mode on from first launch. Deliberately placed BEFORE the language step.
-        case userType
         case language
         case currency
         case fees
@@ -96,16 +56,7 @@ struct WelcomeGuideView: View {
         case autoDiscover
     }
 
-    private enum UserTypeChoice: Equatable {
-        case adult
-        case child
-    }
-
     @State private var step: Step = .welcome
-    @State private var userTypeChoice: UserTypeChoice = .adult
-    @State private var childPasswordInput = ""
-    @State private var childPasswordConfirm = ""
-    @State private var childSetupError: String?
     @State private var nodeChoice: NodeChoice = .defaultNode
     @State private var ownNodeInput = ""
     @State private var nodeValidationError: String?
@@ -116,13 +67,11 @@ struct WelcomeGuideView: View {
         walletManager.currentWallet?.publicAddress ?? ""
     }
 
-    /// One step back. The Adult/Child step is skipped on the way back — its choice
-    /// (including turning Simple Mode on) applies the moment it's made.
+    /// One step back.
     private func goBack() {
         let target: Step?
         switch step {
         case .welcome: target = nil
-        case .userType, .language: target = .welcome
         default: target = Step(rawValue: step.rawValue - 1)
         }
         if let target {
@@ -154,9 +103,6 @@ struct WelcomeGuideView: View {
         // ever hosted in a sheet this keeps drag-to-dismiss off for the whole onboarding run.
         .interactiveDismissDisabled(isOnboardingRun)
         .onAppear {
-            if startAtUserType, isOnboardingRun {
-                step = .userType
-            }
             nodeChoice = currentNodeChoiceFromSettings()
             ownNodeInput = settingsViewModel.settings.trustedNodeAddress == AppSettings.defaultTrustedNodeAddress
                 ? "" : settingsViewModel.settings.trustedNodeAddress
@@ -173,10 +119,7 @@ struct WelcomeGuideView: View {
                 body: "Let's walk through the basics so you're ready to send your first message.",
                 buttonTitle: "Next",
                 extra: { EmptyView() }
-            ) { step = .userType }
-
-        case .userType:
-            userTypeStep
+            ) { step = .language }
 
         case .language:
             languageStep
@@ -312,170 +255,6 @@ struct WelcomeGuideView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
-    }
-
-    // MARK: - Who-will-use step (Simple Mode)
-
-    /// Adult continues untouched; Child sets a free-form password (stored salted-hashed in the
-    /// Keychain, see ChildModeService) and Simple Mode turns ON immediately - persisted via
-    /// saveSettings() right here at the step, not deferred to the end of the guide, so the
-    /// choice survives no matter what the rest of the wizard writes (or whether it finishes).
-    /// When the guide is REPLAYED (Profile > Help) with Simple Mode already on, the step is
-    /// informational only - offering "Adult" there would be a password-free way out.
-    private var userTypeStep: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            Image(systemName: "lock.shield")
-                .font(.scaled(size: 56))
-                .foregroundColor(.accentColor)
-            Text("How do you want KaChat?")
-                .font(.title2.weight(.bold))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-
-            if settingsViewModel.settings.childModeEnabled {
-                Text("Simple Mode is on. Manage this in Settings > Security > Simple Mode.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-            } else {
-                Text("Simple Mode keeps KaChat to chats and group chats, behind a password only you know.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-
-                ScrollView {
-                    VStack(spacing: 10) {
-                        userTypeRow(
-                            choice: .adult,
-                            icon: "person.fill",
-                            title: "Full",
-                            subtitle: "The full app, everything available."
-                        )
-                        userTypeRow(
-                            choice: .child,
-                            icon: "square.grid.2x2",
-                            title: "Simple",
-                            subtitle: "Chats and group chats, behind a password."
-                        )
-
-                        if userTypeChoice == .child {
-                            VStack(alignment: .leading, spacing: 8) {
-                                RevealableSecureField("Password", text: $childPasswordInput)
-                                    .padding(10)
-                                    .background(Color(.systemGray6))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                RevealableSecureField("Confirm password", text: $childPasswordConfirm)
-                                    .padding(10)
-                                    .background(Color(.systemGray6))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                Text("4 digits, 8 digits, or anything you like - just don't forget it. It's needed to turn Simple Mode off.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal, 4)
-                            .onChange(of: childPasswordInput) { _ in childSetupError = nil }
-                            .onChange(of: childPasswordConfirm) { _ in childSetupError = nil }
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 4)
-                }
-                // The option list claims the leftover height BEFORE the two Spacers do.
-                // Without this the VStack split the slack three ways, which on an iPhone SE
-                // (and worse with the keyboard up for the child password fields) left the
-                // list a ~100pt viewport with the Child rows mostly out of sight.
-                .layoutPriority(1)
-
-                if let childSetupError {
-                    Text(childSetupError)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                }
-            }
-
-            Spacer()
-            guideBottomBar { applyUserTypeChoice() }
-        }
-    }
-
-    private func userTypeRow(choice: UserTypeChoice, icon: String, title: String, subtitle: String) -> some View {
-        Button {
-            userTypeChoice = choice
-            childSetupError = nil
-        } label: {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: userTypeChoice == choice ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(userTypeChoice == choice ? .accentColor : .secondary)
-                Image(systemName: icon)
-                    .foregroundColor(.accentColor)
-                    .frame(width: 22)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LocalizedStringKey(title))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.primary)
-                    Text(LocalizedStringKey(subtitle))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.leading)
-                }
-                Spacer()
-            }
-            .padding(12)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func applyUserTypeChoice() {
-        // Replay with Simple Mode already on: purely informational, just continue. Still counts
-        // as answered - Simple Mode being on IS the standing choice.
-        if settingsViewModel.settings.childModeEnabled {
-            markUserTypeAnswered()
-            step = .language
-            return
-        }
-        switch userTypeChoice {
-        case .adult:
-            markUserTypeAnswered()
-            step = .language
-        case .child:
-            let password = childPasswordInput
-            guard !password.isEmpty else {
-                childSetupError = "Enter a password first."
-                return
-            }
-            guard password == childPasswordConfirm else {
-                childSetupError = "Passwords don't match."
-                return
-            }
-            do {
-                try ChildModeService.shared.setPassword(password)
-            } catch {
-                childSetupError = "Couldn't save the password. Please try again."
-                return
-            }
-            settingsViewModel.settings.childModeEnabled = true
-            settingsViewModel.saveSettings()
-            childPasswordInput = ""
-            childPasswordConfirm = ""
-            childSetupError = nil
-            markUserTypeAnswered()
-            Haptics.success()
-            step = .language
-        }
-    }
-
-    /// The Adult/Child step is answered: persist the marker so relaunches stop re-presenting
-    /// the wizard. (Skip stays hidden regardless on a first run - the whole guide is mandatory
-    /// there; the marker only governs the kill/relaunch re-present.)
-    private func markUserTypeAnswered() {
-        Self.markUserTypeChosen()
     }
 
     /// The guide is done: the one-shot import marker (funding step's "Change Chatting Address"

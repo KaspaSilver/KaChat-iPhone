@@ -558,8 +558,8 @@ final class WalletManager: ObservableObject {
             }
         }
 
-        // The Secure Enclave key wraps every saved account's snapshot (and the device id, the
-        // Simple Mode password record and .kachat commit salts): it goes only with the last
+        // The Secure Enclave key wraps every saved account's snapshot (and the device id and
+        // .kachat commit salts): it goes only with the last
         // account. Otherwise only this account's keys and snapshot are removed.
         let otherAccountsRemain = savedAccounts.contains { saved in
             walletAddressToDelete.map { !Self.isSameAccount(saved.publicAddress, $0) } ?? true

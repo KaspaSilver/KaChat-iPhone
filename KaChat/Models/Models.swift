@@ -2173,7 +2173,6 @@ struct AppSettings: Codable {
     /// any of the wallet's own NON-chatting addresses (the spending chain, Manage Addresses)
     /// receives Kaspa from an external source. Gates both the live
     /// UTXO-subscription path and the foreground catch-up diff (see AddressActivityNotifier).
-    /// Deliberately not gated by Simple Mode - these are wallet notifications.
     var addressActivityNotificationsEnabled: Bool
     var messagePollInterval: TimeInterval
     var liveUpdatesEnabled: Bool
@@ -2195,11 +2194,6 @@ struct AppSettings: Codable {
     var currency: AppCurrency
 
     // Security
-    /// Simple Mode (Settings > Security): a parent-password lock kept from before the app was cut
-    /// down to chats (2026-10-24); the features it hid are gone from the app. Turning it
-    /// OFF is validated against the salted password hash in the Keychain (see ChildModeService) -
-    /// this flag alone is just the fast-path gate the UI reads.
-    var childModeEnabled: Bool
     var biometricSeedPhraseEnabled: Bool
     var biometricAccountLoginEnabled: Bool
     /// Gates the "Export" button on a spending address's own screen (Manage Addresses > tap an
@@ -2357,7 +2351,6 @@ struct AppSettings: Codable {
             appearance: .system,
             language: .system,
             currency: .usDollar,
-            childModeEnabled: false,
             biometricSeedPhraseEnabled: true,
             // Account-login biometrics are opt-in (off by default) on every platform.
             biometricAccountLoginEnabled: false,
@@ -2393,7 +2386,6 @@ struct AppSettings: Codable {
         case appearance
         case language
         case currency
-        case childModeEnabled
         case biometricSeedPhraseEnabled
         case biometricAccountLoginEnabled
         case biometricSpendingKeyEnabled
@@ -2438,7 +2430,6 @@ struct AppSettings: Codable {
         appearance: AppAppearance = .system,
         language: AppLanguage = .system,
         currency: AppCurrency = .usDollar,
-        childModeEnabled: Bool = false,
         biometricSeedPhraseEnabled: Bool = true,
         biometricAccountLoginEnabled: Bool = false,
         biometricSpendingKeyEnabled: Bool = true,
@@ -2472,7 +2463,6 @@ struct AppSettings: Codable {
         self.appearance = appearance
         self.language = language
         self.currency = currency
-        self.childModeEnabled = childModeEnabled
         self.biometricSeedPhraseEnabled = biometricSeedPhraseEnabled
         self.biometricAccountLoginEnabled = biometricAccountLoginEnabled
         self.biometricSpendingKeyEnabled = biometricSpendingKeyEnabled
@@ -2534,7 +2524,6 @@ struct AppSettings: Codable {
         appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .system
         currency = try container.decodeIfPresent(AppCurrency.self, forKey: .currency) ?? .usDollar
-        childModeEnabled = try container.decodeIfPresent(Bool.self, forKey: .childModeEnabled) ?? false
         biometricSeedPhraseEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricSeedPhraseEnabled) ?? true
         biometricAccountLoginEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricAccountLoginEnabled) ?? false
         biometricSpendingKeyEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricSpendingKeyEnabled) ?? true
@@ -2628,7 +2617,6 @@ struct AppSettings: Codable {
         try container.encode(appearance, forKey: .appearance)
         try container.encode(language, forKey: .language)
         try container.encode(currency, forKey: .currency)
-        try container.encode(childModeEnabled, forKey: .childModeEnabled)
         try container.encode(biometricSeedPhraseEnabled, forKey: .biometricSeedPhraseEnabled)
         try container.encode(biometricAccountLoginEnabled, forKey: .biometricAccountLoginEnabled)
         try container.encode(biometricSpendingKeyEnabled, forKey: .biometricSpendingKeyEnabled)

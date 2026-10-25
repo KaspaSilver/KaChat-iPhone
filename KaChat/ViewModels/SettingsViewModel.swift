@@ -131,12 +131,7 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func resetToDefaults() {
-        // Simple Mode survives a settings reset (Danger Zone account wipe) - its password record
-        // lives in the Keychain and outlives UserDefaults, so the flag must not silently drop
-        // back to off without the password ever being entered.
-        let childModeEnabled = settings.childModeEnabled
         settings = .default
-        settings.childModeEnabled = childModeEnabled
         saveSettings()
     }
 

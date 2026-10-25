@@ -11,7 +11,8 @@ Store 4+ rating. The dock is a fixed four: Chats, Address Book, Profile, Setting
 Customize Dock). The KaChat bots are always circles in the row above the chats, beside the groups.
 Removed from the app: KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments), KaChat
 Stats, Portfolio, Cold Storage (KasSigner), Kaspa Websites, Swap, the `.kachat` market (claim, buy,
-sell, offers, name notifications) and the home-screen widget. The wallet features live in the KaChat
+sell, offers, name notifications), the home-screen widget and Simple Mode (with the onboarding's
+"Who will use KaChat?" step). The wallet features live in the KaChat
 wallet app. Kept: 1:1 chess inside a chat, sending and receiving KAS in chats and from Profile,
 `.kachat` name lookup and Edit KaChat Profile. Their server docs below are kept as contracts for the
 indexer and the apps that took the features over. Don't add them back here.

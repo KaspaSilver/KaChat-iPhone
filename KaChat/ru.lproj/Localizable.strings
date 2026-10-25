@@ -1258,6 +1258,9 @@
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Льготный период до %@";
+"Expires %@" = "Истекает %@";
+"Expired" = "Истекло";
+"No .kachat names yet" = "Пока нет имён .kachat";
 
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = "Реестр .kachat обновляется. Имена снова откроются здесь, когда новый реестр заработает.";

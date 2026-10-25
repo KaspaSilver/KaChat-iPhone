@@ -1039,3 +1039,102 @@ struct KachatProfileSaveSheet: View {
         }
     }
 }
+
+// MARK: - Your Domains > .kachat
+
+/// Your Domains > .kachat: the names this wallet holds, each with when it expires (or, in its
+/// grace period, when that ends). Read-only - buying, renewing, selling and transferring them
+/// happens in KaChat Wallet since the market left this app (2026-10-24).
+struct KachatOwnedNamesList: View {
+    let walletAddress: String
+    @ObservedObject private var registry = KachatNamesRegistry.shared
+    @ObservedObject private var service = KachatNamesService.shared
+    @State private var names: [KachatNames.NameInfo] = []
+    @State private var loaded = false
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                if !loaded {
+                    ProgressView().padding(.vertical, 24)
+                } else if service.registryUpgrading {
+                    // the bundled manifest is for the previous registry: calm, no error
+                    VStack(spacing: 10) {
+                        Image(systemName: "hammer")
+                            .font(.system(size: 40, weight: .semibold))
+                            .foregroundColor(.accentColor)
+                        Text("Setting up")
+                            .font(.headline)
+                        Text("The .kachat registry is being upgraded. Names open here again once the new registry is live.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                } else if names.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "at.circle")
+                            .font(.system(size: 44, weight: .semibold))
+                            .foregroundColor(.accentColor)
+                        Text("No .kachat names yet")
+                            .font(.headline)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                } else {
+                    ForEach(names) { n in
+                        DomainNameCardView(title: n.display, badge: Self.badge(for: n, graceMs: registry.graceMs),
+                                           footnote: Self.expiryLine(for: n, graceMs: registry.graceMs))
+                    }
+                }
+                Text("Buy, renew, sell and transfer .kachat names in KaChat Wallet.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 4)
+            }
+            .padding()
+        }
+        .refreshable { await registry.refresh() }
+        .task(id: registry.revision) {
+            await load()
+            // a name that lapses while this is open leaves right then
+            await registry.dropLapsed(from: names) { names = $0 }
+        }
+    }
+
+    /// The card's bottom-right corner: when the name expires - or, once it has, when its grace
+    /// period ends (renew before then to keep it).
+    static func expiryLine(for n: KachatNames.NameInfo, graceMs: Int64) -> String? {
+        switch n.status(graceMs: graceMs) {
+        case .active: return String(format: AppLocalization.string("Expires %@"), KachatLive.day(n.expiresAt))
+        case .grace: return String(format: AppLocalization.string("Grace ends %@"), KachatLive.day(n.expiresAt + graceMs))
+        case .lapsed: return nil
+        }
+    }
+
+    /// The card badge: Listed, or Expired (in grace).
+    static func badge(for n: KachatNames.NameInfo, graceMs: Int64) -> String? {
+        switch n.status(graceMs: graceMs) {
+        case .active: return n.isListed ? AppLocalization.string("Listed") : nil
+        case .grace: return AppLocalization.string("Expired")
+        case .lapsed: return nil
+        }
+    }
+
+    /// Your own list (the chatting address's) holds the names on every address of this wallet;
+    /// any other address lists its own. Lapsed names aren't yours any more and aren't listed.
+    private func load() async {
+        guard let key = KachatNamesRegistry.keyOf(walletAddress) else { loaded = true; return }
+        if registry.refreshedAt == nil { await registry.refresh() }
+        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress,
+           let own = try? await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: true) {
+            names = own.names
+        } else {
+            names = (try? await registry.heldNames(owner: key)) ?? []
+        }
+        loaded = true
+    }
+}

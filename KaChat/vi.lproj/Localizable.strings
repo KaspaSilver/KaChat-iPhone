@@ -1258,6 +1258,9 @@
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Hết ân hạn %@";
+"Expires %@" = "Hết hạn %@";
+"Expired" = "Đã hết hạn";
+"No .kachat names yet" = "Chưa có tên .kachat";
 
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = "Sổ đăng ký .kachat đang được nâng cấp. Tên sẽ mở lại ở đây khi sổ đăng ký mới hoạt động.";

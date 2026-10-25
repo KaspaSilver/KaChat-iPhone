@@ -45,6 +45,9 @@ struct ProfileView: View {
     @State private var kachatBioSource: String?
     @State private var kachatLinktree: String?
     @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
+    /// The account's .kachat names for the Your Domains count - the same set its .kachat card
+    /// lists (in grace included, lapsed not). 0 where the registry isn't launched.
+    @State private var kachatOwnedCount = 0
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
     @State private var showMoreProfileInfo = false
     @State private var spendingAddressBalanceSompi: UInt64?
@@ -501,8 +504,8 @@ struct ProfileView: View {
                     Label("Your Domains", systemImage: "at")
                         .foregroundColor(.primary)
                     Spacer()
-                    // Every name the account owns with KNS, .k and .kaspa.
-                    Text("\(knsDomains.count + (nameServices.ownerAddress == walletAddress.lowercased() ? nameServices.totalOwned : 0))")
+                    // Every name the account owns: .kachat, KNS, .k and .kaspa.
+                    Text("\(kachatOwnedCount + knsDomains.count + (nameServices.ownerAddress == walletAddress.lowercased() ? nameServices.totalOwned : 0))")
                         .foregroundColor(.secondary)
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -517,7 +520,24 @@ struct ProfileView: View {
             .task(id: walletAddress) {
                 await NameServicesClient.shared.refresh(for: walletAddress)
             }
+            // Reloads whenever the registry moves (a name bought, renewed or transferred lands).
+            .task(id: "\(walletAddress)-\(kachatRegistry.revision)") {
+                await loadKachatOwnedCount(walletAddress)
+            }
         }
+    }
+
+    private func loadKachatOwnedCount(_ address: String) async {
+        guard KachatNamesService.isLaunched, let key = KachatNamesRegistry.keyOf(address) else {
+            kachatOwnedCount = 0
+            return
+        }
+        await kachatRegistry.refreshIfStale(maxAge: 300)
+        // the same names Your Domains lists: a lapsed one isn't yours any more
+        guard let names = try? await kachatRegistry.heldNames(owner: key) else { return }
+        kachatOwnedCount = names.count
+        // and one that lapses while Profile is open comes off the count right then
+        await kachatRegistry.dropLapsed(from: names) { kachatOwnedCount = $0.count }
     }
 
     /// Entry to the Help screen: every guide in one place.
@@ -2651,14 +2671,18 @@ private struct KNSDomainsListView: View {
     var onCustomizeProfile: ((KNSDomain) -> Void)? = nil
 
     @ObservedObject private var nameServices = NameServicesClient.shared
+    @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
+    /// How many .kachat names this wallet holds, counted the same way the .kachat card lists
+    /// them. nil until the first count lands (the card shows a dash, not a made-up 0).
+    @State private var kachatCount: Int?
 
     var body: some View {
-        // One square card per name ending: KNS (.kas), dotk (.k), Kaspa Names (.kaspa). .kachat
-        // names are managed in the KaChat wallet app since 2026-10-24. Each card pushes that
-        // service's own screen (these used to be tabs on this screen).
+        // One square card per name ending, KaChat's own first: .kachat, KNS (.kas), dotk (.k),
+        // Kaspa Names (.kaspa). Each card pushes that service's own screen. The .kachat one
+        // lists your names; buying, renewing and selling them happens in KaChat Wallet.
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
-                ForEach(NameServiceTLD.allCases.filter { $0 != .kachat }) { tld in
+                ForEach(NameServiceTLD.allCases) { tld in
                     NavigationLink {
                         domainsScreen(tld)
                     } label: {
@@ -2673,6 +2697,11 @@ private struct KNSDomainsListView: View {
         .task(id: walletAddress) {
             await nameServices.refresh(for: walletAddress)
         }
+        // Counts again whenever the registry moves (a name bought, renewed or transferred in
+        // KaChat Wallet shows here the moment you come back).
+        .task(id: kachatRegistry.revision) {
+            await refreshKachatCount()
+        }
         .navigationTitle("Your Domains")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -2686,7 +2715,25 @@ private struct KNSDomainsListView: View {
         case .k, .kaspa:
             return nameServices.owned[tld]?.count
         case .kachat:
-            return nil
+            return kachatCount
+        }
+    }
+
+    /// The same read `KachatOwnedNamesList` does, reduced to a count: the whole wallet's held
+    /// names for the own chatting address, the one address's otherwise.
+    private func refreshKachatCount() async {
+        guard KachatNamesService.isEnabled, KachatNamesService.isLaunched else {
+            kachatCount = 0
+            return
+        }
+        if kachatRegistry.refreshedAt == nil { await kachatRegistry.refresh() }
+        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress,
+           let own = try? await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: true) {
+            kachatCount = own.names.count
+        } else if let key = KachatNamesRegistry.keyOf(walletAddress) {
+            kachatCount = (try? await kachatRegistry.heldNames(owner: key))?.count
+        } else {
+            kachatCount = 0
         }
     }
 
@@ -2700,8 +2747,7 @@ private struct KNSDomainsListView: View {
             case .k, .kaspa:
                 serviceNameList(tld)
             case .kachat:
-                // Not listed (see `body`): .kachat names are managed in the wallet app.
-                EmptyView()
+                KachatOwnedNamesList(walletAddress: walletAddress)
             }
         }
         .navigationTitle(tld.suffix)

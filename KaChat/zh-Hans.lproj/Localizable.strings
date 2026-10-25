@@ -1258,6 +1258,9 @@
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "宽限期结束 %@";
+"Expires %@" = "%@ 到期";
+"Expired" = "已过期";
+"No .kachat names yet" = "还没有 .kachat 名称";
 
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = ".kachat 注册表正在升级。新注册表上线后,名称会在这里重新开放。";

@@ -764,46 +764,9 @@
 "Nothing here is live yet." = "这里还没有任何功能上线。";
 "How .kachat works" = ".kachat 如何运作";
 
-/* 5.2: Kaspa Hub > KaChat Stats */
-"KaChat Stats" = "KaChat 统计";
-"Stats" = "统计";
-"What counts" = "统计范围";
-"24 Hours" = "24 小时";
+/* 5.2: range and section labels */
 "7 Days" = "7 天";
-"All Time" = "全部时间";
-"KaChat transactions in the last 24 hours" = "过去 24 小时的 KaChat 交易";
-"KaChat transactions in the last 7 days" = "过去 7 天的 KaChat 交易";
-"KaChat transactions on Kaspa, all time" = "Kaspa 上的 KaChat 交易（全部时间）";
-"Direct Messages" = "私信";
-"New Chats" = "新聊天";
-"Payments" = "付款";
-"Group Messages" = "群组消息";
-"Group Updates" = "群组变更";
 "Public Chats" = "公共聊天";
-"KaPost Activity" = "KaPost 动态";
-"Chess Moves" = "国际象棋着法";
-"Chess Games" = "国际象棋对局";
-"Saved Records" = "已保存记录";
-"1:1 texts, voice notes, reactions and 1:1 chess" = "1:1 文字、语音、回应和 1:1 国际象棋";
-"Handshakes that start a 1:1 chat" = "开启 1:1 聊天的握手";
-"KAS sent in chats" = "在聊天中发送的 KAS";
-"Messages in group chats" = "群聊中的消息";
-"Creating groups, invites and other changes" = "创建群组、邀请及其他变更";
-"Messages in public rooms" = "公共房间中的消息";
-"Posts, replies, quotes and polls" = "帖子、回复、引用和投票";
-"Votes, follows, edits and deletes" = "点赞、关注、编辑和删除";
-"Moves played in Chess Online" = "在 Chess Online 中走的棋";
-"Games started in Chess Online" = "在 Chess Online 中开始的对局";
-"Chat keys and contact notes saved to your own account" = "保存到你自己账户的聊天密钥和联系人备注";
-"No indexer is set for this network" = "此网络未设置索引器";
-"Add one in Settings > Connection Settings to see KaChat stats." = "请在 设置 > 连接设置 中添加一个以查看 KaChat 统计。";
-"Stats aren't available yet" = "统计暂不可用";
-"Your indexer doesn't report KaChat stats yet. They'll show here once it does." = "你的索引器尚未提供 KaChat 统计。一旦提供就会显示在这里。";
-"Couldn't refresh. Showing the last numbers." = "无法刷新。显示的是上次的数据。";
-"Updated %@" = "更新于%@";
-"Counting since %@" = "自 %@ 起统计";
-"Every KaChat action is its own Kaspa transaction. These totals come from KaChat's indexer, counting what it has seen on chain - nothing is read from your phone." = "KaChat 中的每个操作都是一笔独立的 Kaspa 交易。这些总数来自 KaChat 的索引器，统计的是它在链上看到的内容——不会读取你手机上的任何数据。";
-"1:1 messages are encrypted, so voice notes, reactions and 1:1 chess moves count as direct messages: nobody, the indexer included, can tell them apart." = "1:1 消息是加密的，因此语音、回应和 1:1 国际象棋着法都计为私信：任何人，包括索引器，都无法区分它们。";
 "All-time only" = "仅全部时间";
 "Kinds marked \"All-time only\" aren't in this total yet." = "标有“仅全部时间”的类别尚未计入此总数。";
 
@@ -1334,18 +1297,6 @@
 "Reclaimable names appear here once .kachat names launch." = ".kachat 名称上线后，可回收的名称会显示在这里。";
 "Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "注册表中的每一次注册、续期、挂牌、出售、报价、转让和回收。";
 
-/* KaChat Stats: .kachat names */
-"Names Registered" = "已注册名称";
-"Name Renewals" = "名称续期";
-"Name Sales" = "名称出售";
-"Name Offers" = "名称报价";
-"Name Activity" = "名称动态";
-".kachat names claimed" = "已认领的 .kachat 名称";
-".kachat names extended or renewed" = "已延长或续期的 .kachat 名称";
-".kachat names bought from a listing or through an accepted offer" = "通过挂牌或接受报价购买的 .kachat 名称";
-"Offers made on .kachat names" = "对 .kachat 名称的报价";
-"Listings, transfers, releases, reclaims and returned offers" = "挂牌、转让、释放、回收和退回的报价";
-
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "回收并重新拥有";
 "Clear the lapsed name and get your bond back, then register it again." = "清除已失效的名称并取回保证金，然后重新注册。";
@@ -1770,15 +1721,6 @@
 "You won't be notified about %@'s posts anymore." = "你将不再收到 %@ 的发帖通知。";
 "Stop post notifications" = "关闭发帖通知";
 "Notify me when they post" = "发帖时通知我";
-
-/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
-"Fees" = "费用";
-"Transactions on the .kachat registry" = ".kachat 注册表上的交易";
-
-/* KaChat Stats: Fees tab (.kachat Domains fees) */
-"Paid for registrations and renewals" = "注册和续费支付的金额";
-"Fees aren't available yet" = "暂无费用数据";
-"Your indexer doesn't report them yet. They'll show here once it does." = "你的索引器尚未提供这些数据。提供后会显示在这里。";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "需要恢复短语";

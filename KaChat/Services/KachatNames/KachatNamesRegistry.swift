@@ -532,7 +532,7 @@ final class KachatNamesRegistry: ObservableObject {
     }
 
     /// How many .kachat transactions there were and what they paid, across the registry - for
-    /// KaChat Stats and the market's Activity page. An indexer reports both (`GET /stats/names`:
+    /// the market's Activity page. An indexer reports both (`GET /stats/names`:
     /// fees = what each transaction paid miners, the registry's price included, since that is
     /// how the price is paid). Read from the chain instead, the walker counts its events and
     /// prices each registration, extension and renewal at the registry's fixed prices.

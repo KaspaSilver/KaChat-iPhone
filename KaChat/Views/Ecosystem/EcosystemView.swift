@@ -93,8 +93,6 @@ struct EcosystemView: View {
             ChessHomeView()
         case .kachatNames:
             KachatMarketView()
-        case .kachatStats:
-            KaChatStatsView()
         case .addressBook:
             AddressBookView()
         case .kachatBots:

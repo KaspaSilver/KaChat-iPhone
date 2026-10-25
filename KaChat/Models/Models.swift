@@ -2040,9 +2040,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     /// .kachat names (5.2) - Kaspa Hub > .kachat: the marketplace for KaChat's own names
     /// (claim, buy and sell, trustless). UI only until the name service is built.
     case kachatNames
-    /// KaChat Stats (5.2) - Kaspa Hub > KaChat Stats: how many transactions KaChat has put on
-    /// Kaspa, by kind, as the indexers count them (STATS_INDEXER.md).
-    case kachatStats
     /// Address Book (2026-10-08) - Kaspa Hub > Address Book: saved Kaspa addresses with names,
     /// per wallet, kept in KaChat (it replaced syncing with the phone's Contacts).
     case addressBook
@@ -2076,7 +2073,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .apps: return "Websites"
         case .chess: return "Chess"
         case .kachatNames: return ".kachat"
-        case .kachatStats: return "Stats"
         case .addressBook: return "Address Book"
         case .kachatBots: return "Bots"
         case .ecosystem: return "Kaspa Hub"
@@ -2098,7 +2094,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         // Drawn as the ".kachat" wordmark (KachatTabIcon) wherever tabs are drawn; this symbol
         // is only the fallback for anything that has not been taught about it.
         case .kachatNames: return "at"
-        case .kachatStats: return "chart.bar.xaxis"
         case .addressBook: return "book.closed"
         case .kachatBots: return "cpu"
         // Kaspa Hub wears the Kaspa mark itself, not an SF Symbol - see `usesKaspaLogo`.
@@ -2120,7 +2115,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .apps: return "Kaspa Websites"
         case .chess: return "Chess Online"
         case .kachatNames: return ".kachat Domains"
-        case .kachatStats: return "KaChat Stats"
         case .kachatBots: return "KaChat Bots"
         // ChangeNOW's own capitalization, matching how the app already names it everywhere else
         // (swap transaction rows, the settings section).
@@ -2142,7 +2136,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .apps: return 9
         case .chess: return 11
         case .kachatNames: return 12
-        case .kachatStats: return 13
         case .addressBook: return 14
         case .kachatBots: return 15
         case .ecosystem: return 10
@@ -2162,19 +2155,19 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
     static let pinnedToDock: [AppTab] = [.ecosystem, .chats, .profile]
 
     /// Tabs the user can place. Excludes the Hub (pinned) and the retired "+ More".
-    static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .kachatStats, .addressBook, .kachatBots]
+    static let assignable: [AppTab] = [.chats, .portfolio, .coldStorage, .swap, .kaposts, .apps, .chess, .kachatNames, .addressBook, .kachatBots]
 
     /// A default install shows exactly the five the dock can fit - Kaspa Hub, Portfolio, Chats,
     /// KaPosts, Profile - with Cold Storage, Swap and the websites list still ENABLED but living
     /// inside Kaspa Hub rather than competing for a dock slot.
-    static let defaultOrder: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile, .coldStorage, .addressBook, .kachatNames, .kachatStats, .kachatBots, .swap, .publicChats, .apps, .chess]
+    static let defaultOrder: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile, .coldStorage, .addressBook, .kachatNames, .kachatBots, .swap, .publicChats, .apps, .chess]
 
     /// What a fresh install starts with (owner's order, 2026-10-20). Everything else starts in
     /// Kaspa Hub. A saved arrangement is the person's and is never reset to this.
     static let defaultDock: [AppTab] = [.ecosystem, .portfolio, .chats, .kaposts, .profile]
 
     /// The rest, in the order the Hub grid shows them until the user rearranges it.
-    static let defaultHub: [AppTab] = [.coldStorage, .addressBook, .kachatNames, .kachatStats, .kachatBots, .swap, .apps]
+    static let defaultHub: [AppTab] = [.coldStorage, .addressBook, .kachatNames, .kachatBots, .swap, .apps]
 
     /// Slots the user can actually fill: the cap minus the pinned tabs.
     static var assignableDockSlots: Int { maxDockItems - pinnedToDock.count }
@@ -2224,8 +2217,6 @@ enum AppTab: String, Codable, CaseIterable, Identifiable, Equatable, Hashable {
         case .chess: return !settings.hideChessTab && !settings.childModeEnabled
         // A marketplace - buying and selling with real KAS - so Simple Mode hides it, like Swap.
         case .kachatNames: return !settings.childModeEnabled
-        // Read-only numbers; nothing in it to keep from Simple Mode.
-        case .kachatStats: return true
         // Your own saved addresses; nothing in it to keep from Simple Mode.
         case .addressBook: return true
         // Ordinary chats with the bots; nothing in it to keep from Simple Mode.

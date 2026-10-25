@@ -764,46 +764,9 @@
 "Nothing here is live yet." = "এখানে এখনো কিছুই চালু নেই।";
 "How .kachat works" = ".kachat কীভাবে কাজ করে";
 
-/* 5.2: Kaspa Hub > KaChat Stats */
-"KaChat Stats" = "KaChat পরিসংখ্যান";
-"Stats" = "পরিসংখ্যান";
-"What counts" = "কী গোনা হয়";
-"24 Hours" = "২৪ ঘণ্টা";
+/* 5.2: range and section labels */
 "7 Days" = "৭ দিন";
-"All Time" = "সর্বকাল";
-"KaChat transactions in the last 24 hours" = "গত ২৪ ঘণ্টায় KaChat লেনদেন";
-"KaChat transactions in the last 7 days" = "গত ৭ দিনে KaChat লেনদেন";
-"KaChat transactions on Kaspa, all time" = "Kaspa-তে সর্বকালের KaChat লেনদেন";
-"Direct Messages" = "সরাসরি বার্তা";
-"New Chats" = "নতুন চ্যাট";
-"Payments" = "পেমেন্ট";
-"Group Messages" = "গ্রুপ বার্তা";
-"Group Updates" = "গ্রুপ পরিবর্তন";
 "Public Chats" = "পাবলিক চ্যাট";
-"KaPost Activity" = "KaPost কার্যকলাপ";
-"Chess Moves" = "দাবার চাল";
-"Chess Games" = "দাবার খেলা";
-"Saved Records" = "সংরক্ষিত রেকর্ড";
-"1:1 texts, voice notes, reactions and 1:1 chess" = "1:1 টেক্সট, ভয়েস নোট, প্রতিক্রিয়া ও 1:1 দাবা";
-"Handshakes that start a 1:1 chat" = "যে হ্যান্ডশেক 1:1 চ্যাট শুরু করে";
-"KAS sent in chats" = "চ্যাটে পাঠানো KAS";
-"Messages in group chats" = "গ্রুপ চ্যাটের বার্তা";
-"Creating groups, invites and other changes" = "গ্রুপ তৈরি, আমন্ত্রণ ও অন্যান্য পরিবর্তন";
-"Messages in public rooms" = "পাবলিক রুমের বার্তা";
-"Posts, replies, quotes and polls" = "পোস্ট, উত্তর, উদ্ধৃতি ও পোল";
-"Votes, follows, edits and deletes" = "ভোট, ফলো, সম্পাদনা ও মুছে ফেলা";
-"Moves played in Chess Online" = "Chess Online-এ খেলা চাল";
-"Games started in Chess Online" = "Chess Online-এ শুরু হওয়া খেলা";
-"Chat keys and contact notes saved to your own account" = "আপনার নিজের অ্যাকাউন্টে সংরক্ষিত চ্যাট কী ও পরিচিতি নোট";
-"No indexer is set for this network" = "এই নেটওয়ার্কের জন্য কোনো ইনডেক্সার সেট করা নেই";
-"Add one in Settings > Connection Settings to see KaChat stats." = "KaChat পরিসংখ্যান দেখতে সেটিংস > সংযোগ সেটিংস-এ একটি যোগ করুন।";
-"Stats aren't available yet" = "পরিসংখ্যান এখনো উপলব্ধ নয়";
-"Your indexer doesn't report KaChat stats yet. They'll show here once it does." = "আপনার ইনডেক্সার এখনো KaChat পরিসংখ্যান দেয় না। দিলে এখানে দেখা যাবে।";
-"Couldn't refresh. Showing the last numbers." = "রিফ্রেশ করা যায়নি। শেষ সংখ্যাগুলো দেখানো হচ্ছে।";
-"Updated %@" = "আপডেট হয়েছে %@";
-"Counting since %@" = "%@ থেকে গণনা";
-"Every KaChat action is its own Kaspa transaction. These totals come from KaChat's indexer, counting what it has seen on chain - nothing is read from your phone." = "KaChat-এর প্রতিটি কাজ আলাদা একটি Kaspa লেনদেন। এই মোটগুলো KaChat-এর ইনডেক্সার থেকে আসে, যা চেইনে যা দেখেছে তা গোনে - আপনার ফোন থেকে কিছুই পড়া হয় না।";
-"1:1 messages are encrypted, so voice notes, reactions and 1:1 chess moves count as direct messages: nobody, the indexer included, can tell them apart." = "1:1 বার্তা এনক্রিপ্ট করা, তাই ভয়েস নোট, প্রতিক্রিয়া ও 1:1 দাবার চাল সরাসরি বার্তা হিসেবে গোনা হয়: ইনডেক্সারসহ কেউই এগুলো আলাদা করতে পারে না।";
 "All-time only" = "শুধু সর্বকাল";
 "Kinds marked \"All-time only\" aren't in this total yet." = "“শুধু সর্বকাল” চিহ্নিত ধরনগুলো এখনো এই মোটে নেই।";
 
@@ -1334,18 +1297,6 @@
 "Reclaimable names appear here once .kachat names launch." = ".kachat নাম চালু হলে পুনরুদ্ধারযোগ্য নামগুলো এখানে দেখা যাবে।";
 "Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "রেজিস্ট্রির প্রতিটি দাবি, নবায়ন, তালিকাভুক্তি, বিক্রি, প্রস্তাব, স্থানান্তর আর পুনরুদ্ধার।";
 
-/* KaChat Stats: .kachat names */
-"Names Registered" = "নিবন্ধিত নাম";
-"Name Renewals" = "নাম নবায়ন";
-"Name Sales" = "নাম বিক্রি";
-"Name Offers" = "নামের প্রস্তাব";
-"Name Activity" = "নামের কার্যকলাপ";
-".kachat names claimed" = "দাবি করা .kachat নাম";
-".kachat names extended or renewed" = "বাড়ানো বা নবায়ন করা .kachat নাম";
-".kachat names bought from a listing or through an accepted offer" = "তালিকা থেকে বা গৃহীত প্রস্তাবের মাধ্যমে কেনা .kachat নাম";
-"Offers made on .kachat names" = ".kachat নামে দেওয়া প্রস্তাব";
-"Listings, transfers, releases, reclaims and returned offers" = "তালিকাভুক্তি, স্থানান্তর, ছেড়ে দেওয়া, পুনরুদ্ধার ও ফেরত প্রস্তাব";
-
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "মালিকানার জন্য পুনরুদ্ধার";
 "Clear the lapsed name and get your bond back, then register it again." = "বাতিল হওয়া নামটি সরিয়ে বন্ড ফেরত নিন, তারপর আবার নিবন্ধন করুন।";
@@ -1770,15 +1721,6 @@
 "You won't be notified about %@'s posts anymore." = "%@-এর পোস্ট সম্পর্কে আর জানানো হবে না।";
 "Stop post notifications" = "পোস্টের নোটিফিকেশন বন্ধ করুন";
 "Notify me when they post" = "পোস্ট করলে আমাকে জানাও";
-
-/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
-"Fees" = "ফি";
-"Transactions on the .kachat registry" = "‎.kachat রেজিস্ট্রিতে লেনদেন";
-
-/* KaChat Stats: Fees tab (.kachat Domains fees) */
-"Paid for registrations and renewals" = "নিবন্ধন ও নবায়নের জন্য প্রদত্ত";
-"Fees aren't available yet" = "ফি এখনও পাওয়া যাচ্ছে না";
-"Your indexer doesn't report them yet. They'll show here once it does." = "আপনার ইনডেক্সার এখনও এগুলো জানায় না। জানালে এখানে দেখাবে।";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "রিকভারি বাক্যাংশ দরকার";

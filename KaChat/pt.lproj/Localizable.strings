@@ -764,46 +764,9 @@
 "Nothing here is live yet." = "Nada aqui está no ar ainda.";
 "How .kachat works" = "Como o .kachat funciona";
 
-/* 5.2: Kaspa Hub > KaChat Stats */
-"KaChat Stats" = "Estatísticas do KaChat";
-"Stats" = "Estatísticas";
-"What counts" = "O que é contado";
-"24 Hours" = "24 horas";
+/* 5.2: range and section labels */
 "7 Days" = "7 dias";
-"All Time" = "Tudo";
-"KaChat transactions in the last 24 hours" = "Transações do KaChat nas últimas 24 horas";
-"KaChat transactions in the last 7 days" = "Transações do KaChat nos últimos 7 dias";
-"KaChat transactions on Kaspa, all time" = "Transações do KaChat na Kaspa, desde o início";
-"Direct Messages" = "Mensagens diretas";
-"New Chats" = "Novos chats";
-"Payments" = "Pagamentos";
-"Group Messages" = "Mensagens de grupo";
-"Group Updates" = "Alterações de grupo";
 "Public Chats" = "Chats públicos";
-"KaPost Activity" = "Atividade do KaPosts";
-"Chess Moves" = "Lances de xadrez";
-"Chess Games" = "Partidas de xadrez";
-"Saved Records" = "Registros salvos";
-"1:1 texts, voice notes, reactions and 1:1 chess" = "Textos 1:1, mensagens de voz, reações e xadrez 1:1";
-"Handshakes that start a 1:1 chat" = "Handshakes que iniciam um chat 1:1";
-"KAS sent in chats" = "KAS enviados nos chats";
-"Messages in group chats" = "Mensagens em chats de grupo";
-"Creating groups, invites and other changes" = "Criação de grupos, convites e outras alterações";
-"Messages in public rooms" = "Mensagens em salas públicas";
-"Posts, replies, quotes and polls" = "Posts, respostas, citações e enquetes";
-"Votes, follows, edits and deletes" = "Votos, seguidas, edições e exclusões";
-"Moves played in Chess Online" = "Lances jogados no Chess Online";
-"Games started in Chess Online" = "Partidas iniciadas no Chess Online";
-"Chat keys and contact notes saved to your own account" = "Chaves de chat e notas de contato salvas na sua própria conta";
-"No indexer is set for this network" = "Nenhum indexador definido para esta rede";
-"Add one in Settings > Connection Settings to see KaChat stats." = "Adicione um em Configurações > Configurações de conexão para ver as estatísticas do KaChat.";
-"Stats aren't available yet" = "As estatísticas ainda não estão disponíveis";
-"Your indexer doesn't report KaChat stats yet. They'll show here once it does." = "Seu indexador ainda não informa estatísticas do KaChat. Elas aparecem aqui assim que ele informar.";
-"Couldn't refresh. Showing the last numbers." = "Não foi possível atualizar. Mostrando os últimos números.";
-"Updated %@" = "Atualizado %@";
-"Counting since %@" = "Contando desde %@";
-"Every KaChat action is its own Kaspa transaction. These totals come from KaChat's indexer, counting what it has seen on chain - nothing is read from your phone." = "Cada ação no KaChat é uma transação Kaspa própria. Estes totais vêm do indexador do KaChat, que conta o que viu na blockchain - nada é lido do seu telefone.";
-"1:1 messages are encrypted, so voice notes, reactions and 1:1 chess moves count as direct messages: nobody, the indexer included, can tell them apart." = "As mensagens 1:1 são criptografadas, então mensagens de voz, reações e lances de xadrez 1:1 contam como mensagens diretas: ninguém, nem o indexador, consegue diferenciá-los.";
 "All-time only" = "Só no total";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Os tipos marcados como “Só no total” ainda não entram neste total.";
 
@@ -1334,18 +1297,6 @@
 "Reclaimable names appear here once .kachat names launch." = "Os nomes recuperáveis aparecem aqui quando os nomes .kachat forem lançados.";
 "Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "Cada registro, renovação, anúncio, venda, oferta, transferência e recuperação do registro.";
 
-/* KaChat Stats: .kachat names */
-"Names Registered" = "Nomes registrados";
-"Name Renewals" = "Renovações de nomes";
-"Name Sales" = "Vendas de nomes";
-"Name Offers" = "Ofertas por nomes";
-"Name Activity" = "Atividade de nomes";
-".kachat names claimed" = "Nomes .kachat registrados";
-".kachat names extended or renewed" = "Nomes .kachat estendidos ou renovados";
-".kachat names bought from a listing or through an accepted offer" = "Nomes .kachat comprados de um anúncio ou por oferta aceita";
-"Offers made on .kachat names" = "Ofertas feitas por nomes .kachat";
-"Listings, transfers, releases, reclaims and returned offers" = "Anúncios, transferências, liberações, recuperações e ofertas devolvidas";
-
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "Recuperar para ter de volta";
 "Clear the lapsed name and get your bond back, then register it again." = "Libere o nome caducado e receba sua caução de volta; depois registre-o de novo.";
@@ -1770,15 +1721,6 @@
 "You won't be notified about %@'s posts anymore." = "Você não será mais avisado sobre os posts de %@.";
 "Stop post notifications" = "Desativar avisos de posts";
 "Notify me when they post" = "Avise-me quando postar";
-
-/* .kachat: Fees card on the market's Activity page, .kachat Domains card on KaChat Stats */
-"Fees" = "Taxas";
-"Transactions on the .kachat registry" = "Transações no registro .kachat";
-
-/* KaChat Stats: Fees tab (.kachat Domains fees) */
-"Paid for registrations and renewals" = "Pago por registros e renovações";
-"Fees aren't available yet" = "As taxas ainda não estão disponíveis";
-"Your indexer doesn't report them yet. They'll show here once it does." = "Seu indexador ainda não as informa. Elas aparecerão aqui quando informar.";
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
 "Recovery Phrase Needed" = "Frase de recuperação necessária";

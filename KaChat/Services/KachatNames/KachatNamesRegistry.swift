@@ -182,8 +182,8 @@ final class KachatNamesRegistry: ObservableObject {
                 revision += 1
                 revisionBumpedAt = Date()
             }
-            // what changed for this wallet's names and offers, into the Profile bell
-            Task { await KachatNamesNotifier.shared.check() }
+            // No name-event check any more: offers, sales and renewal news for your names are
+            // the KaChat wallet app's since the .kachat market left this app (2026-10-24).
         } catch {
             let message = error.localizedDescription
             lastError = message
@@ -1630,6 +1630,15 @@ enum KachatNameReminders {
     /// A wallet's reminders, for when it leaves this phone. The tag comes from the address as
     /// given, whose checksum differs between kaspa: and kaspatest:, so a caller removing an
     /// account calls this for each of its network variants (`accountAddressVariants`).
+    /// Every pending .kachat reminder on this phone, for every wallet - run once when the
+    /// market left the app (`RetiredFeatureCleanup`).
+    static func removeEverything() async {
+        let center = UNUserNotificationCenter.current()
+        let ids = await center.pendingNotificationRequests().map(\.identifier)
+            .filter { $0.hasPrefix(root) || $0.hasPrefix(legacyPrefix) }
+        if !ids.isEmpty { center.removePendingNotificationRequests(withIdentifiers: ids) }
+    }
+
     static func removeAll(forWallet wallet: String) async {
         let center = UNUserNotificationCenter.current()
         let tag = "-\(walletTag(wallet))-"

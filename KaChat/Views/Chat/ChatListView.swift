@@ -742,19 +742,22 @@ struct ChatListView: View {
 
     // MARK: - Circles (group chats and bot chats)
 
-    /// Bot chats sit in the circles row, not the chat list - once you have written to the bot.
-    /// Opening one from Kaspa Hub > KaChat Bots without writing leaves no circle; deleting the
-    /// chat takes it away until you write to the bot again.
-    private var botCircles: [Conversation] {
-        chatService.conversations.filter { conversation in
-            guard KaChatBot.isBot(conversation.contact.address),
-                  !contactsManager.isAddressDeleted(conversation.contact.address) else { return false }
-            let contact = contactsManager.getContact(byAddress: conversation.contact.address) ?? conversation.contact
-            return contact.hasSentOutgoingMessage || conversation.messages.contains { $0.isOutgoing }
+    /// Every bot is always a circle in the row, beside the group chats (since 2026-10-24 there
+    /// is no Kaspa Hub page for them), with its chat when there is one. Bot chats never sit in
+    /// the chat list itself.
+    private var botCircles: [BotCircle] {
+        KaChatBot.available.map { bot in
+            let key = bot.address.lowercased()
+            let conversation = chatService.conversations.first {
+                $0.contact.address.lowercased() == key && !contactsManager.isAddressDeleted($0.contact.address)
+            }
+            return BotCircle(bot: bot, conversation: conversation)
         }
     }
 
-    private func openBotFromCircle(_ contact: Contact) {
+    /// Opens the bot's chat, starting it the first time.
+    private func openBotFromCircle(_ bot: KaChatBot) {
+        guard let contact = bot.startChat() else { return }
         selectedGroup = nil
         selectedContactStartInPaymentMode = false
         selectedContact = contact
@@ -1050,7 +1053,7 @@ struct ChatListView: View {
 
     private func refreshFilteredConversations() {
         let settings = settingsViewModel.settings
-        // Bot chats are reached from Kaspa Hub > KaChat Bots only, never the chat list.
+        // Bot chats are reached from their circles above the list, never the chat list.
         let sourceConversations = chatService.conversations.filter { !KaChatBot.isBot($0.contact.address) }
 
         if searchText.isEmpty {
@@ -1269,40 +1272,45 @@ struct ChatListView: View {
                 }
 
             } else if id.hasPrefix("b:"),
-                      let conversation = chatService.conversations.first(where: { "b:\($0.contact.address.lowercased())" == id }) {
-                let contact = contactsManager.getContact(byAddress: conversation.contact.address) ?? conversation.contact
-                let isSilent = contact.notificationModeOverride == .off
-                Text(verbatim: KaChatBot.bot(for: contact.address)?.name ?? contactsManager.displayName(for: contact))
+                      let bot = KaChatBot.all.first(where: { "b:\($0.address.lowercased())" == id }) {
+                let conversation = chatService.conversations.first { "b:\($0.contact.address.lowercased())" == id }
+                let contact = contactsManager.getContact(byAddress: bot.address) ?? conversation?.contact
+                let isSilent = contact?.notificationModeOverride == .off
+                Text(verbatim: bot.name)
                     .font(.headline)
                     .lineLimit(1)
                     .padding(.top, 20)
                     .padding(.bottom, 4)
 
                 ActionSheetTiles {
-                    if conversation.unreadCount > 0 {
+                    // Read state, silence and delete need the chat; a bot never written to has
+                    // only its pin.
+                    if let conversation, conversation.unreadCount > 0 {
                         ActionSheetRow(title: "Mark as Read", subtitle: "Clears the unread badge on this chat.", systemImage: "envelope.open") {
                             circleActionTarget = nil
                             Task { await chatService.markConversationAsRead(conversation) }
                         }
-                    } else {
+                    } else if let conversation {
                         ActionSheetRow(title: "Mark as Unread", subtitle: "Puts the unread badge back so you come across it again.", systemImage: "envelope.badge") {
                             circleActionTarget = nil
                             chatService.markConversationAsUnread(conversation)
                         }
                     }
                     circlePinRow(id: id, isPinned: isPinned)
-                    ActionSheetRow(
-                        title: isSilent ? "Unsilence" : "Silence",
-                        subtitle: isSilent ? "Notifications from this bot resume." : "No notification from this bot.",
-                        systemImage: isSilent ? "bell" : "bell.slash"
-                    ) {
-                        circleActionTarget = nil
-                        setSilent(!isSilent, for: contact)
-                    }
-                    ActionSheetRow(title: "Delete", subtitle: "Removes this chat until you write to the bot again.", systemImage: "trash", tint: .red) {
-                        circleActionTarget = nil
-                        // One turn later: the alert can't present while the sheet is going down.
-                        DispatchQueue.main.async { rowDeleteContact = contact }
+                    if let contact, conversation != nil {
+                        ActionSheetRow(
+                            title: isSilent ? "Unsilence" : "Silence",
+                            subtitle: isSilent ? "Notifications from this bot resume." : "No notification from this bot.",
+                            systemImage: isSilent ? "bell" : "bell.slash"
+                        ) {
+                            circleActionTarget = nil
+                            setSilent(!isSilent, for: contact)
+                        }
+                        ActionSheetRow(title: "Delete", subtitle: "Deletes this chat's messages from this device. The bot stays in the row.", systemImage: "trash", tint: .red) {
+                            circleActionTarget = nil
+                            // One turn later: the alert can't present while the sheet is going down.
+                            DispatchQueue.main.async { rowDeleteContact = contact }
+                        }
                     }
                 }
 
@@ -2009,6 +2017,12 @@ private struct ChatsTabUnreadBadge: View {
     }
 }
 
+/// One bot in the circles row, with its chat when there is one.
+struct BotCircle {
+    let bot: KaChatBot
+    let conversation: Conversation?
+}
+
 /// Group chats and bot chats as a row of circles above the chats list, under the search bar.
 /// Swipe sideways for all of them. Pinned ones come first (in pin order), then the rest by latest
 /// activity. A red count shows messages from others since you last opened it. Tap opens; hold
@@ -2020,22 +2034,22 @@ private struct ChatCirclesStrip: View {
     @Environment(\.editMode) private var editMode
     let searchText: String
     let pins: [String]
-    /// Bot chats you have written to (`ChatListView.botCircles`).
-    let bots: [Conversation]
+    /// Every bot, with its chat when there is one (`ChatListView.botCircles`).
+    let bots: [BotCircle]
     @Binding var selectedGroupIDs: Set<String>
     let onOpenGroup: (GroupChat) -> Void
-    let onOpenBot: (Contact) -> Void
+    let onOpenBot: (KaChatBot) -> Void
     /// Hold a circle: its half sheet (read state, pin, notifications, delete), like a chat row's.
     let onLongPress: (String) -> Void
 
     private enum Item: Identifiable {
         case group(GroupChat)
-        case bot(Conversation)
+        case bot(BotCircle)
 
         var id: String {
             switch self {
             case .group(let group): return "g:\(group.id)"
-            case .bot(let conversation): return "b:\(conversation.contact.address.lowercased())"
+            case .bot(let circle): return "b:\(circle.bot.address.lowercased())"
             }
         }
     }
@@ -2047,7 +2061,7 @@ private struct ChatCirclesStrip: View {
         var dated: [(item: Item, at: Date)] = groupChatService.groups.map { group in
             (.group(group), groupMessages[group.id]?.last?.timestamp ?? group.createdAt)
         }
-        dated += bots.map { (item: Item.bot($0), at: $0.lastMessage?.timestamp ?? Date.distantPast) }
+        dated += bots.map { (item: Item.bot($0), at: $0.conversation?.lastMessage?.timestamp ?? Date.distantPast) }
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         if !query.isEmpty {
             dated = dated.filter { title(of: $0.item).range(of: query, options: .caseInsensitive) != nil }
@@ -2081,14 +2095,14 @@ private struct ChatCirclesStrip: View {
     private func title(of item: Item) -> String {
         switch item {
         case .group(let group): return group.name
-        case .bot(let conversation): return KaChatBot.bot(for: conversation.contact.address)?.name ?? conversation.contact.alias
+        case .bot(let circle): return circle.bot.name
         }
     }
 
     private func unread(of item: Item) -> Int {
         switch item {
         case .group(let group): return groupChatService.unreadCount(for: group)
-        case .bot(let conversation): return conversation.unreadCount
+        case .bot(let circle): return circle.conversation?.unreadCount ?? 0
         }
     }
 
@@ -2126,11 +2140,11 @@ private struct ChatCirclesStrip: View {
                             .foregroundColor(.accentColor)
                     )
             }
-        case .bot(let conversation):
+        case .bot(let circle):
             Circle()
                 .fill(Color.accentColor.opacity(0.2))
                 .overlay(
-                    Image(systemName: KaChatBot.bot(for: conversation.contact.address)?.systemImage ?? "cpu")
+                    Image(systemName: circle.bot.systemImage)
                         .font(.scaled(size: 22, weight: .semibold))
                         .foregroundColor(.accentColor)
                 )
@@ -2147,7 +2161,7 @@ private struct ChatCirclesStrip: View {
             } else {
                 switch item {
                 case .group(let group): onOpenGroup(group)
-                case .bot(let conversation): onOpenBot(conversation.contact)
+                case .bot(let circle): onOpenBot(circle.bot)
                 }
             }
         } label: {

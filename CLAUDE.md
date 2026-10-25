@@ -7,9 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 KaChat is a native iOS messaging and payment application built on the Kaspa blockchain. It enables encrypted peer-to-peer messaging with on-chain payments using SwiftUI.
 
 **Scope (since 2026-10-24):** KaChat is 1:1 chats and group chats, kept small enough for an App
-Store 4+ rating. KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments) and KaChat
-Stats were removed from the app; 1:1 chess inside a chat stays. Their server docs below are kept as
-contracts for the indexer and the apps that took the features over. Don't add them back here.
+Store 4+ rating. The dock is a fixed four: Chats, Address Book, Profile, Settings (no Kaspa Hub, no
+Customize Dock). The KaChat bots are always circles in the row above the chats, beside the groups.
+Removed from the app: KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments), KaChat
+Stats, Portfolio, Cold Storage (KasSigner), Kaspa Websites, Swap, the `.kachat` market (claim, buy,
+sell, offers, name notifications) and the home-screen widget. The wallet features live in the KaChat
+wallet app. Kept: 1:1 chess inside a chat, sending and receiving KAS in chats and from Profile,
+`.kachat` name lookup and Edit KaChat Profile. Their server docs below are kept as contracts for the
+indexer and the apps that took the features over. Don't add them back here.
 
 ## Build Commands
 
@@ -56,7 +61,7 @@ The app uses MVVM architecture with global singleton services injected via Swift
 | `KeychainService` | Device-specific Secure Enclave credential storage |
 | `MessageStore` | Core Data message persistence, device-local, one SQLite store per wallet |
 | `ContactsManager` | Chat contacts (per wallet): names, deletion tombstones, KNS domain integration. KaChat no longer reads or writes the phone's Contacts (removed 2026-10-08; no `NSContactsUsageDescription`) |
-| `AddressBookManager` | The Address Book (Kaspa Hub > Address Book, `AddressBookView.swift`): saved Kaspa addresses with a name and note, per wallet, on device and in the chat backup (`addressBook` / `addressBookDeleted`, NEXTCLOUD_SYNC.md §5). A saved name is the display-name fallback after a name you gave the chat. An entry's picture is a photo you assign (files in Application Support/AddressBookPhotos/<wallet hash>/, `photo` in the backup, size and removal in Settings > Storage) or else exactly the avatar the address set on its own profile (`AddressBookAvatar`, never the chat contact's backup photo). Import / export (the button next to +): a JSON file via Files or the KaChat folder in Nextcloud (NEXTCLOUD_SYNC.md §1). It replaced phone-Contacts sync, which wrote Kaspa addresses into people's iCloud/Google contacts |
+| `AddressBookManager` | The Address Book (its own dock tab, `AddressBookView.swift`): saved Kaspa addresses with a name and note, per wallet, on device and in the chat backup (`addressBook` / `addressBookDeleted`, NEXTCLOUD_SYNC.md §5). A saved name is the display-name fallback after a name you gave the chat. An entry's picture is a photo you assign (files in Application Support/AddressBookPhotos/<wallet hash>/, `photo` in the backup, size and removal in Settings > Storage) or else exactly the avatar the address set on its own profile (`AddressBookAvatar`, never the chat contact's backup photo). Import / export (the button next to +): a JSON file via Files or the KaChat folder in Nextcloud (NEXTCLOUD_SYNC.md §1). It replaced phone-Contacts sync, which wrote Kaspa addresses into people's iCloud/Google contacts |
 | `KNSService` | Kaspa Name Service API client for domain resolution |
 | `KasiaTransactionBuilder` | Constructs signed Kaspa transactions |
 | `KachatNamesService` | `.kachat` names. **Live on both networks**: testnet-10, and **mainnet since 2026-10-09** ("mainnet v1", kachat-domains docs/MAINNET.md: registry `348bd2c8…75a4`, the audited v4 contracts with yearly periods, 90-day grace, 30-day renewal window, register 4000/2000/1000/250/35 KAS). `isLaunched` is true on both; `networkName` / `addressPrefix` pick the network's bundled manifest (`Resources/kachat-names-<network>.json`), pins and price tables (per network in `KachatNames.Manifest`), address prefix and cache folder, and a network switch resets the manifest and registry. Mainnet opened to everyone in the app on Friday 2026-10-16 8:00 AM Eastern; the countdown that gated it until then was removed (audit XP-028). **Before any registry switch on mainnet**, build the old-registry offer clean-up first: the app only reads its manifest's registry, so offers on the old one vanish and stay locked (audit IOS-066, left as is; KACHAT_NAMES.md warning at the top). Mainnet launch guards (MAINNET.md section 5): offers refundable before the name expires and withdrawn once it has (C1), an owner sees only offers made since they got the name (C6). The v4 compute budgets are the audited ones (register 9, merge 5). **Address profiles are not registry data** (`profilesEnabled`, every network since 2026-10-05): a `kchat:1:profile:` self-send from the chatting address (`KachatNamesActions.profileSigner()`), so "Edit KaChat Profile" saves on mainnet too (primary name greyed out there), and mainnet identities are profile-only (`GET /profiles/{address}`; the indexer side is kachat-indexer `docs/KACHAT_PROFILES.md`). Any UI change must work on both networks: loads and verifies the registry manifest (registry v4 or v5, `registryVersion`: fixed register and renew price tables baked into the gap and name, one genesis whose covenant-id binding is verified; v5 adds `import` from a migration snapshot of the previous registry and keeps `register` closed until `params.migration.deadlineMs` (the claim sheet says when it opens), with a bigger gap and its own compute budgets (`Budgets.recommendedV5`). The name template hash and the price tables are pinned in the app (`Manifest.pinnedTemplateHashes` by version, `pinnedRegisterPrices` / `pinnedRenewPrices`), the v4 gap too; the offer and the v5 gap per deployment in `Manifest.deployedTemplateHashes`; an indexer-served manifest is accepted only when every template hash is pinned. The bundled `Resources/kachat-names-testnet-10.json` is the live testnet-10 v5 registry on the audited contracts since 2026-10-09 (audit C2; the name template changed with it): genesis `b6223f0f…e24f`, registry `1283f749…bfa2`, imported from the drill registry `fdc403f5…571d` (6 names; 24-hour periods, 6-hour grace, 2-hour renewal window, offers' fee cap 0.1 KAS)), signs (P256K, v1 SIGHASH_ALL) and submits the version-1 covenant transactions built by the pure core in `Services/KachatNames/` (`KachatNames.Builder`, a port of the kachat-domains CLI checked against `KaChatTests/KachatNamesVectors.json` by `scripts/test_kachat_names_core.swift`; see KACHAT_NAMES.md section 9) |
@@ -104,8 +109,8 @@ their `.kas` domain. What KNS still does:
   `OtherDomainsDropdown`, for the person to pick; a typed ending resolves on that service)
 - Your Domains: list, transfer, set primary and customize the profile of your OWN `.kas` names
   (reads `fetchInfo`/`domainCache` directly, never through the identity gate)
-- Your own addresses (Manage Addresses, Cold Storage, saved accounts, the chatting-address
-  picker) still note which of them hold a domain
+- Your own addresses (Manage Addresses, saved accounts, the chatting-address picker) still note
+  which of them hold a domain
 
 **API Endpoints:**
 - `GET /api/v1/{domain}/owner` - Resolve domain to owner address (forward lookup)
@@ -263,17 +268,17 @@ Messages are partitioned by wallet address using separate SQLite files:
 ```
 KaChat/
 ├── App/              # KaChatApp, ContentView (router), LaunchRouter, MainTabView
-├── Models/           # Models.swift (core), PortfolioModels.swift, SwapModels.swift
-├── ViewModels/       # SettingsViewModel, PortfolioViewModel
+├── Models/           # Models.swift (core)
+├── ViewModels/       # SettingsViewModel
 ├── Views/            # SwiftUI views by feature: Chat/, Contacts/, Onboarding/, Settings/,
-│                     # ColdStorage/, Portfolio/, Swap/, Shared/
+│                     # Ecosystem/ (bots, Edit KaChat Profile), Shared/
 ├── Services/         # Core business logic, API clients, crypto utilities (+ NodePool/)
 ├── Shortcuts/        # App Intents / Shortcuts integration
 ├── Generated/        # Generated protobuf/gRPC sources
 └── Utilities/        # CryptoUtils, KasiaCipher (ECIES, in KaChatCipher.swift), Bech32, ...
 ```
 
-Companion targets at the repo root: `KaChatNotificationService/` (push decryption extension), `KaChatShareExtension/` (share sheet), `KaChatWidgets/` (home screen widgets), `KaChatIntents/` (Intents extension: `INStartCallIntent` so Siri and Recents can "call with KaChat"; it resolves against `call_contacts` in the App Group by KaChat address or name, and hands the call to the app).
+Companion targets at the repo root: `KaChatNotificationService/` (push decryption extension), `KaChatShareExtension/` (share sheet), `KaChatIntents/` (Intents extension: `INStartCallIntent` so Siri and Recents can "call with KaChat"; it resolves against `call_contacts` in the App Group by KaChat address or name, and hands the call to the app).
 
 ## Key Dependencies
 
@@ -329,11 +334,11 @@ and room rows. The chat composers' **+** sheets (1:1 and group) use the same til
 
 Every Send Kaspa screen is built from the shared pieces in `Views/Shared/SendKaspaComponents.swift`,
 so they match: the 1:1 chat's Send KAS sheet, Send Kaspa (`WithdrawKaspaView`: Chats > + > Send
-Kaspa, Donate, the Address Book, an address's Send, paying a payment request), and
-KasSigner's send (`ColdSendFlowView`). `SpendingAddressWithdrawView` is left for compounding one
+Kaspa, Donate, the Address Book, an address's Send, paying a payment request). Coin Control
+(`CoinControlView`) lives there too. `SpendingAddressWithdrawView` is left for compounding one
 spending address's coins.
 
-Every send but KasSigner's starts with **From** (`SendFromSection`): Chatting Address (the
+Every send starts with **From** (`SendFromSection`): Chatting Address (the
 default) or Choose an Address (`OwnAddressPicker`: every address of the account, each marked Used
 or Unused), so it is always plain which address the Kaspa leaves. There is no "primary spending
 address" in the UI and no Chats Payment Privacy (removed 2026-10-13: no fresh-address offers to
@@ -345,7 +350,7 @@ first, then the spending addresses.
 | Piece | What it is |
 |---|---|
 | `SendRecipientCard` | Address or name, with Paste, Scan QR and the lookup status. The screen runs the lookup (`NameServicesClient.resolveEverywhere`, .kachat first) and passes every answer in for the dropdown |
-| `OtherDomainsDropdown` | "Other domains" under the resolved name: the same typed name on the other services, each selectable. Every address field in the app shows it (Create chat, New Group rows, Group Add Members, the Send screens, Send Domain, Portfolio, the Address Book editor, .kachat Transfer); .kachat is always listed first |
+| `OtherDomainsDropdown` | "Other domains" under the resolved name: the same typed name on the other services, each selectable. Every address field in the app shows it (Create chat, New Group rows, Group Add Members, the Send screens, Send Domain, the Address Book editor); .kachat is always listed first |
 | `SendFromSection` / `SendSource` | From: Chatting Address or Choose an Address, the chosen address and its balance |
 | `OwnAddressPicker` | The account's addresses (chatting first) with balance and Used / Unused - Choose an Address, Request Payment |
 | `SelectablePill` | A choice pill, the chosen one filled in (From, Request Payment's address) |

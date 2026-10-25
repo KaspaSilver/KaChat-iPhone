@@ -79,7 +79,7 @@ struct ChatDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @ObservedObject private var knsService = KNSService.shared
-    @ObservedObject private var portfolioViewModel = PortfolioViewModel.shared
+    @ObservedObject private var priceModel = KasPriceModel.shared
     @StateObject private var fiatAmountState = KaspaFiatAmountState()
 
     private var myAddress: String? {
@@ -3127,7 +3127,7 @@ struct ChatDetailView: View {
                         )
                         await MainActor.run {
                             let kas = Double(maxSompi) / 100_000_000.0
-                            amountText = fiatAmountState.setMaxKas(kas, priceInCurrency: portfolioViewModel.currentPriceUsd)
+                            amountText = fiatAmountState.setMaxKas(kas, priceInCurrency: priceModel.currentPriceUsd)
                         }
                     } catch {
                         AppLog.log("[ChatDetail] Max calculation failed: %@", error.localizedDescription)

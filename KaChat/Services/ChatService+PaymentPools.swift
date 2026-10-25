@@ -255,15 +255,6 @@ extension ChatService {
                 own.insert(spending.lowercased())
             }
         }
-        let network = AppSettings.load().networkType
-        for account in ColdStorageManager.shared.accounts {
-            guard let key = KaspaExtendedPublicKey(kpubString: account.kpubString) else { continue }
-            for index in 0...max(account.maxAddressIndex, 0) {
-                if let address = try? key.receiveAddress(at: UInt32(index), network: network) {
-                    own.insert(address.lowercased())
-                }
-            }
-        }
         return own
     }
 

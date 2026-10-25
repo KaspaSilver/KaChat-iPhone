@@ -23,9 +23,6 @@
 "Add Address" = "Thêm địa chỉ";
 "Add Contact" = "Thêm liên hệ";
 "Add Custom Endpoint" = "Thêm điểm cuối tùy chỉnh";
-"Add Transaction" = "Thêm giao dịch";
-"Add a buy or sell to start tracking your portfolio" = "Thêm một giao dịch mua hoặc bán để bắt đầu theo dõi danh mục đầu tư của bạn";
-"Add to Portfolio" = "Thêm vào danh mục đầu tư";
 "Added" = "Đã thêm";
 "Address" = "Địa chỉ";
 "Address Actions" = "Thao tác địa chỉ";
@@ -37,7 +34,6 @@
 "Always Hide" = "Luôn ẩn";
 "Always Show" = "Luôn hiện";
 "Always shown" = "Luôn được hiển thị";
-"Amount" = "Số tiền";
 "Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "Bất kỳ ai tham gia cùng tên kênh đều có thể xem và đăng tin nhắn ở đó - không có chủ sở hữu hay lời mời.";
 "Anyone with your seed phrase can access your account. Never share it with anyone." = "Bất kỳ ai có seed phrase của bạn đều có thể truy cập tài khoản. Không bao giờ chia sẻ với ai.";
 "Archive" = "Lưu trữ";
@@ -50,7 +46,6 @@
 "Auto Search for Nodes" = "Tu dong tim kiem node";
 "Autocreate system contacts" = "Tự động tạo liên hệ hệ thống";
 "Automatic hides photos from contacts you haven't added or messaged yet, until you tap to reveal them." = "Tự động ẩn ảnh từ các liên hệ bạn chưa thêm hoặc chưa nhắn tin, cho đến khi bạn chạm để hiển thị chúng.";
-"Available" = "Có sẵn";
 "Avatar" = "Hình đại diện";
 "Balance" = "Số dư";
 "Balance copied to clipboard." = "Đã sao chép số dư vào bộ nhớ tạm.";
@@ -60,10 +55,8 @@
 "Best" = "Tốt nhất";
 "Bio" = "Tiểu sử";
 "Broadcast Settings" = "Cài đặt phát sóng";
-"Broadcasting..." = "Đang phát sóng...";
 "Broadcasts" = "Phát sóng";
 "Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "Phát sóng là các kênh công khai, không mã hóa - bất kỳ ai tham gia cùng tên kênh đều thấy cùng tin nhắn.";
-"Buy" = "Mua";
 "Camera" = "Máy ảnh";
 "Camera Access Required" = "Cần quyền truy cập camera";
 "Cancel" = "Hủy";
@@ -101,7 +94,6 @@
 "Clear Link" = "Xóa liên kết";
 "Clear connection pool?" = "Xóa nhóm kết nối?";
 "Close" = "Đóng";
-"Cold Storage" = "Lưu trữ lạnh";
 "Confirm" = "Xác nhận";
 "Connect Your Own Node" = "Ket noi node cua rieng ban";
 "Connect to a Node" = "Kết nối với một nút";
@@ -126,7 +118,6 @@
 "Copy Private Key Hex" = "Sao chép khóa riêng (hex)";
 "Copy Seed Phrase" = "Sao chép seed phrase";
 "Copy Transaction ID" = "Sao chép ID giao dịch";
-"Copy kpub" = "Sao chép kpub";
 "Copy to Clipboard" = "Sao chép vào bộ nhớ tạm";
 "Could not encode selected image" = "Không thể mã hóa hình ảnh đã chọn";
 "Could not initialize image encoder" = "Không thể khởi chạy bộ mã hóa hình ảnh";
@@ -156,7 +147,6 @@
 "Delete" = "Xóa";
 "Delete Account" = "Xóa tài khoản";
 "Delete Group" = "Xóa nhóm";
-"Delete Transaction" = "Xóa giao dịch";
 "Diagnostics" = "Chẩn đoán";
 "Disable" = "Tắt";
 "Disable Real-Time Updates" = "Tắt cập nhật thời gian thực";
@@ -164,7 +154,6 @@
 "Discord user id" = "Id người dùng Discord";
 "Discover Addresses" = "Khám phá địa chỉ";
 "Discover new peers" = "Khám phá nút mới";
-"Dismiss" = "Bỏ qua";
 "Distance" = "Khoảng cách";
 "Domain" = "Lãnh địa";
 "Domain transfer unavailable." = "Chuyển tên miền không có sẵn.";
@@ -181,13 +170,11 @@
 "Enter a new name for this saved account." = "Nhập tên mới cho tài khoản đã lưu này.";
 "Enter a node address you trust" = "Nhap dia chi node ma ban tin tuong";
 "Enter a trusted node (host:port for plaintext, or grpcs://host for TLS-secured nodes like Kaspium's) and tap Save to always connect to it instead of automatic discovery. Doesn't affect the Indexer/KNS/REST API URLs above." = "Nhập một nút đáng tin cậy (host:port cho văn bản thuần, hoặc grpcs://host cho các nút được bảo mật TLS như của Kaspium) và chạm Lưu để luôn kết nối với nút đó thay vì tự động tìm kiếm. Không ảnh hưởng đến URL Indexer/KNS/REST API ở trên.";
-"Enter kpub" = "Nhập kpub";
 "Enter your 12 or 24 word seed phrase to restore your account. Separate each word with a space." = "Nhập seed phrase gồm 12 hoặc 24 từ để khôi phục tài khoản. Phân tách mỗi từ bằng dấu cách.";
 "Error" = "Lỗi";
 "Estimate fees while composing" = "Ước tính phí khi soạn";
 "Every member will see the new name." = "Mọi thành viên sẽ thấy tên mới.";
 "Explorer" = "Trình khám phá";
-"Export CSV" = "Xuất CSV";
 "Export Chat History" = "Xuất lịch sử trò chuyện";
 "Export Diagnostics Archive" = "Xuất kho lưu trữ chẩn đoán";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "Xuất thông tin ứng dụng/thiết bị, cài đặt kết nối, số lượng tin nhắn cục bộ và nhật ký ứng dụng gần đây dưới dạng zip - để khắc phục sự cố với bộ phận hỗ trợ. Không bao gồm khóa riêng tư, cụm từ khôi phục hoặc nội dung tin nhắn đã giải mã.";
@@ -198,14 +185,12 @@
 "Failed to open archive: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "Không thể mở kho lưu trữ: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Failed updates" = "Cập nhật không thành công";
 "Fee" = "Phí";
-"Fee (optional)" = "Phí (tùy chọn)";
 "Fee unavailable" = "Phí không có sẵn";
 "Finish" = "Hoan tat";
 "First let's create your identity with a domain name" = "Trước tiên hãy tạo danh tính của bạn với một tên miền";
 "From" = "Từ";
 "Fund Your Chatting Address" = "Nap tien cho dia chi tro chuyen cua ban";
 "Generate Account" = "Tạo tài khoản";
-"Generate More Addresses" = "Tạo thêm địa chỉ";
 "Generate New Address" = "Tạo địa chỉ mới";
 "Generate New Spending Address" = "Tạo địa chỉ chi tiêu mới";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "Tạo một địa chỉ bên dưới để bắt đầu gửi thanh toán từ một địa chỉ khác với địa chỉ bạn trò chuyện.";
@@ -216,7 +201,6 @@
 "Gift claimed! Check your balance shortly." = "Da nhan qua! Kiem tra so du cua ban trong giay lat.";
 "Gift sent to your wallet!" = "Quà đã được gửi đến ví của bạn!";
 "Gift unavailable" = "Không có quà";
-"Give this account a name so you can recognize it." = "Đặt tên cho tài khoản này để bạn có thể nhận ra nó.";
 "Give this address a label to help you recognize it." = "Đặt nhãn cho địa chỉ này để giúp bạn nhận ra nó.";
 "Group Info" = "Thông tin nhóm";
 "Group Name" = "Tên nhóm";
@@ -239,11 +223,9 @@
 "If the network is busy, a higher fee can help your transaction confirm faster." = "Nếu mạng bận, phí cao hơn có thể giúp giao dịch của bạn xác nhận nhanh hơn.";
 "Import" = "Nhập";
 "Import Account" = "Nhập tài khoản";
-"Import CSV" = "Nhập CSV";
 "Import Chat History" = "Nhập lịch sử trò chuyện";
 "Import Cold Storage Account" = "Nhập tài khoản lưu trữ lạnh";
 "Import Existing Account" = "Nhập tài khoản hiện có";
-"Import Failed" = "Nhập không thành công";
 "Import Your Account" = "Nhập tài khoản của bạn";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "Nhập thất bại: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Important" = "Quan trọng";
@@ -262,7 +244,6 @@
 "It's ok, I already have a domain" = "Không sao, tôi đã có tên miền rồi";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Chi gui 5-10 KAS moi lan, du de trang trai phi tro chuyen trong mot thoi gian (khoang 500 tin nhan moi KAS)";
 "KAS" = "KAS";
-"KAS Price" = "Giá KAS";
 "KNS API URL" = "KNS API URL";
 "KNS Domains" = "Tên miền KNS";
 "KNS Profile" = "KNS Hồ sơ";
@@ -340,17 +321,14 @@
 "Never send Kaspa you intend to spend to this address — it's for chatting fees only." = "Không bao giờ gửi Kaspa mà bạn định chi tiêu đến địa chỉ này - nó chỉ dành cho phí trò chuyện.";
 "New message" = "Tin nhắn mới";
 "Next" = "Tiếp theo";
-"No Cold Storage Accounts" = "Không có tài khoản lưu trữ lạnh";
 "No Conversations Yet" = "Chưa có cuộc trò chuyện nào";
 "No Group Chats Yet" = "Chưa có trò chuyện nhóm nào";
 "No KNS profile changes detected." = "Không phát hiện thấy thay đổi hồ sơ KNS nào.";
 "No Kaspa address in system contact" = "Không có địa chỉ Kaspa trong liên hệ hệ thống";
 "No Sound" = "Không có âm thanh";
 "No Spending Addresses" = "Không có địa chỉ chi tiêu";
-"No Transactions Yet" = "Chưa có giao dịch nào";
 "No active account" = "Không có tài khoản đang hoạt động";
 "No active nodes" = "Không có nút đang hoạt động";
-"No addresses discovered yet." = "Chưa khám phá được địa chỉ nào.";
 "No archived chats" = "Không có cuộc trò chuyện đã lưu trữ";
 "No broadcast channels yet" = "Chưa có kênh phát sóng nào";
 "No contacts found." = "Không tìm thấy liên hệ.";
@@ -389,7 +367,6 @@
 "Other Nodes" = "Nút khác";
 "Paste" = "Dán";
 "Paste from Clipboard" = "Dán từ bộ nhớ tạm";
-"Paste kpub" = "Dán kpub";
 "Paste the kpub exported from your KasSigner device. This contains no private key material." = "Dán kpub được xuất từ thiết bị KasSigner của bạn. Điều này không chứa dữ liệu khóa riêng tư.";
 "Pay in Kaspa" = "Thanh toán bằng Kaspa";
 "Payment" = "Thanh toán";
@@ -410,10 +387,8 @@
 "Pool Health" = "Sức khỏe nhóm";
 "Pool Status" = "Trạng thái nhóm";
 "Popular Tab" = "Tab phổ biến";
-"Portfolio" = "Danh mục đầu tư";
 "Preparing profile update..." = "Đang chuẩn bị cập nhật hồ sơ...";
 "Press and drag a tab in the preview below to reorder it." = "Nhấn giữ và kéo một tab trong bản xem trước bên dưới để sắp xếp lại.";
-"Price Per Coin" = "Giá mỗi đồng";
 "Primary" = "Chính";
 "Primary Latency" = "Độ trễ chính";
 "Primary domain set to %@." = "Tên miền chính được đặt thành %@.";
@@ -433,7 +408,6 @@
 "Push Register" = "Đăng ký push";
 "Push Registration" = "Đăng ký push";
 "Push subscription failed." = "Đăng ký push thất bại.";
-"Quantity" = "Số lượng";
 "REST API for transaction history and balance lookups" = "REST API cho lịch sử giao dịch và tra cứu số dư";
 "Rate" = "Tỷ giá";
 "Read" = "Đã đọc";
@@ -465,7 +439,6 @@
 "Remove" = "Xóa";
 "Remove Avatar" = "Xóa hình đại diện";
 "Remove Banner" = "Xóa biểu ngữ";
-"Remove Cold Storage Account" = "Xóa tài khoản lưu trữ lạnh";
 "Remove Saved Account" = "Xóa tài khoản đã lưu";
 "Remove from Device" = "Xóa khỏi thiết bị";
 "Rename" = "Đổi tên";
@@ -489,12 +462,8 @@
 "Save Audio" = "Lưu âm thanh";
 "Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above." = "Lưu địa chỉ nút của riêng bạn tại đây, sau đó chạm vào một địa chỉ để sao chép và dán vào trường Nút Kaspa ở trên.";
 "Saved Accounts" = "Tài khoản đã lưu";
-"Scan" = "Quét";
 "Scan QR" = "Quét QR";
 "Scan QR Code" = "Quét mã QR";
-"Scan Signed Transaction" = "Quét giao dịch đã ký";
-"Scan or paste a kpub exported from your KasSigner device to watch its balance." = "Quét hoặc dán một kpub được xuất từ thiết bị KasSigner của bạn để theo dõi số dư của nó.";
-"Scan this on your KasSigner device" = "Quét mã này trên thiết bị KasSigner của bạn";
 "Scan to share account. Tap anywhere here to copy address." = "Quét để chia sẻ tài khoản. Nhấn vào đây để sao chép địa chỉ.";
 "Search chats" = "Tìm kiếm cuộc trò chuyện";
 "Search contacts" = "Tìm kiếm liên hệ";
@@ -509,7 +478,6 @@
 "Select the currency you'd like prices displayed in." = "Chon loai tien te ban muon hien thi gia.";
 "Select the language you'd like to use in KaChat." = "Chon ngon ngu ban muon su dung trong KaChat.";
 "Selected data is not a valid image" = "Dữ liệu đã chọn không phải là hình ảnh hợp lệ";
-"Sell" = "Bán";
 "Send" = "Gửi";
 "Send All Kaspa To Primary Spend Address" = "Gửi toàn bộ Kaspa đến địa chỉ chi tiêu chính";
 "Send Anyway" = "Vẫn gửi";
@@ -520,7 +488,6 @@
 "Send Kaspa" = "Gửi Kaspa";
 "Send Photo" = "Gửi ảnh";
 "Send audio" = "Gửi âm thanh";
-"Send from Cold Storage" = "Gửi từ lưu trữ lạnh";
 "Send message" = "Gửi tin nhắn";
 "Sending less than 0.1 KAS may fail due to the network dust protection limit." = "Gửi dưới 0,1 KAS có thể thất bại do giới hạn bảo vệ dust của mạng.";
 "Sending…" = "Đang gửi…";
@@ -567,7 +534,6 @@
 "Submitting transfer..." = "Đang gửi chuyển khoản...";
 "Support Email" = "Email hỗ trợ";
 "Suspected" = "Nghi ngờ";
-"Swap" = "Hoán đổi";
 "Swap Details" = "Chi tiết hoán đổi";
 "Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "Các giao dịch hoán đổi được xử lý bởi ChangeNOW, một sàn giao dịch bên thứ ba. Khi tiếp tục, bạn xác nhận đã đọc và đồng ý với Điều khoản dịch vụ riêng của ChangeNOW. KaChat chỉ gửi yêu cầu hoán đổi của bạn và hiển thị trạng thái của nó; KaChat không chịu trách nhiệm về các giao dịch hoán đổi thất bại, bị trễ hoặc bị mất. Nếu một giao dịch hoán đổi không thành công, hãy liên hệ trực tiếp với bộ phận hỗ trợ ChangeNOW.";
 "Switch direction" = "Đổi hướng";
@@ -582,14 +548,12 @@
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "Chạm để điều chỉnh. Nếu mạng bận, phí cao hơn có thể giúp giao dịch của bạn xác nhận nhanh hơn.";
 "Tap to reveal seed phrase" = "Nhấn để hiện seed phrase";
 "This account will be removed from this device." = "Tài khoản này sẽ bị xóa khỏi thiết bị này.";
-"This can't be undone." = "Điều này không thể hoàn tác.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Liên hệ này sẽ được liên kết sau khi tạo. Bạn vẫn cần nhập địa chỉ Kaspa hoặc tên miền KNS.";
 "This could take a few minutes while it confirms on-chain." = "Quá trình này có thể mất vài phút trong khi xác nhận trên chuỗi.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "Thao tác này xóa tất cả dữ liệu cục bộ và bản ghi tin nhắn CloudKit. Không thể hoàn tác.";
 "This device has already received the welcome gift." = "Thiết bị này đã nhận quà chào mừng rồi.";
 "This domain is not available." = "Tên miền này không có sẵn.";
 "This is a live check of your iCloud account, separate from local storage above." = "Đây là kiểm tra trực tiếp tài khoản iCloud của bạn, tách biệt với bộ nhớ cục bộ ở trên.";
-"This only removes it from KaChat's watch list. It has no effect on the KasSigner device or any funds it holds." = "Điều này chỉ xóa nó khỏi danh sách theo dõi của KaChat. Nó không ảnh hưởng đến thiết bị KasSigner hoặc bất kỳ khoản tiền nào nó nắm giữ.";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "Điều này xóa vĩnh viễn mọi tin nhắn với họ, kể cả từ iCloud, vì vậy nó cũng bị xóa khỏi các thiết bị khác của bạn. Điều này không thể hoàn tác.";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "Thao tác này xóa \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) và dữ liệu cục bộ khỏi thiết bị này.";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "Thao tác này xóa \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) và dữ liệu cục bộ khỏi thiết bị này.";
@@ -605,11 +569,7 @@
 "To receive notifications, please enable them in Settings." = "Để nhận thông báo, vui lòng bật trong Cài đặt.";
 "Total" = "Tổng";
 "Total Balance" = "Tổng số dư";
-"Total P&L" = "Tổng lãi/lỗ";
-"Transaction History" = "Lịch sử giao dịch";
 "Transaction Sent" = "Đã gửi giao dịch";
-"Transactions" = "Giao dịch";
-"Transfer" = "Chuyển khoản";
 "Transfer %@" = "Chuyển khoản %@";
 "Transfer Domain" = "Chuyển tên miền";
 "Transfer Your Domain" = "Chuyen ten mien cua ban";
@@ -631,7 +591,6 @@
 "Used to build \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"view transaction\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" links throughout the app." = "Được sử dụng để tạo liên kết \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"xem giao dịch\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" trong toàn bộ ứng dụng.";
 "Used when a contact has no custom notification mode set." = "Được sử dụng khi liên hệ chưa đặt chế độ thông báo tùy chỉnh.";
 "Uses your device contacts to match and enrich Kaspa contacts." = "Sử dụng danh bạ thiết bị để đối chiếu và bổ sung liên hệ Kaspa.";
-"Value Over Time" = "Giá trị theo thời gian";
 "Verified" = "Đã xác minh";
 "Verified Nodes" = "Nút đã xác minh";
 "Verifying device..." = "Đang xác minh thiết bị...";
@@ -690,7 +649,6 @@
 "kachat.kas" = "kachat.kas";
 "kaspa:... or alice.kas" = "kaspa:... hoặc alice.kas";
 "kaspasilver@gmail.com" = "kaspasilver@gmail.com";
-"kpub" = "kpub";
 "name" = "tên";
 "–" = "–";
 "—" = "—";
@@ -717,8 +675,6 @@
 "None yet" = "Chưa có";
 ".kachat Name" = "Tên .kachat";
 "Customize Profile" = "Tùy chỉnh hồ sơ";
-".kachat names are coming" = "Tên .kachat sắp ra mắt";
-"KaChat's own names will live here: claim one, set it as your name in chats, and share it as your profile link." = "Tên riêng của KaChat sẽ ở đây: nhận một tên, dùng làm tên của bạn trong trò chuyện và chia sẻ làm liên kết hồ sơ.";
 "Get a %@ domain at %@" = "Nhận tên miền %1$@ tại %2$@";
 "No %@ names yet." = "Chưa có tên %@.";
 "Couldn't reach %@. Pull down to try again." = "Không thể kết nối %@. Kéo xuống để thử lại.";
@@ -739,36 +695,15 @@
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "Quét tự động tìm và kết nối với các node tốt nhất. Chọn một node cụ thể chỉ kết nối với node đó, không chuyển sang node khác. Không ảnh hưởng đến trình lập chỉ mục, tên miền hay trình khám phá ở các tab khác. Thêm địa chỉ của bạn vào Sổ địa chỉ IP bên dưới để chọn ở đây.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"Find a name" = "Tìm tên";
-"Registration isn't open yet." = "Chưa mở đăng ký.";
-"Claim" = "Nhận";
-"Marketplace" = "Chợ";
 "My Names" = "Tên của tôi";
 "Activity" = "Hoạt động";
-"List a Name for Sale" = "Rao bán tên";
-"Listings appear here once .kachat names launch." = "Tin rao sẽ xuất hiện ở đây khi tên .kachat ra mắt.";
-"No .kachat names yet" = "Chưa có tên .kachat";
 "Claim a Name" = "Nhận một tên";
-"Recent activity" = "Hoạt động gần đây";
-"Activity appears here once .kachat names launch." = "Hoạt động sẽ xuất hiện ở đây khi tên .kachat ra mắt.";
-"How it works" = "Cách hoạt động";
-"List" = "Rao bán";
-"Trustless" = "Không cần tin cậy";
-"Pick a free name and register it on Kaspa. It's yours: your name in chats, your profile, your link." = "Chọn một tên còn trống và đăng ký trên Kaspa. Nó là của bạn: tên trong trò chuyện, hồ sơ, liên kết của bạn.";
-"Set a price. The name waits in an on-chain covenant, not with KaChat or anyone else, until someone buys it or you take it back." = "Đặt giá. Tên chờ trong một covenant trên chuỗi - không nằm ở KaChat hay ai khác - cho đến khi có người mua hoặc bạn rút lại.";
-"Pay the listed price. The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "Trả giá niêm yết. Khoản thanh toán đến người bán và tên đến bạn trong cùng một giao dịch - hoặc cả hai xảy ra, hoặc không gì cả.";
-"No middleman and no escrow account: Kaspa's own rules enforce every sale." = "Không trung gian, không tài khoản ký quỹ: chính quy tắc của Kaspa bảo đảm mọi giao dịch.";
-"Nothing here is live yet." = "Chưa có gì hoạt động ở đây.";
-"How .kachat works" = "Cách .kachat hoạt động";
 
 /* 5.2: range and section labels */
-"7 Days" = "7 ngày";
 "All-time only" = "Chỉ toàn thời gian";
 "Kinds marked \"All-time only\" aren't in this total yet." = "Các loại có nhãn “Chỉ toàn thời gian” chưa được tính vào tổng này.";
 
 /* 5.2: .kachat setup guide */
-"Claim your .kachat name" = "Nhận tên .kachat của bạn";
-"It's the name people see you as across KaChat - in chats, on posts and on your profile link. Without one, people see your address." = "Đây là tên mọi người thấy bạn trên khắp KaChat - trong trò chuyện, trên bài đăng và qua liên kết hồ sơ. Nếu không có, mọi người thấy địa chỉ của bạn.";
 "Add a profile photo" = "Thêm ảnh hồ sơ";
 "Your avatar shows next to your name everywhere in KaChat." = "Ảnh đại diện hiển thị cạnh tên bạn ở mọi nơi trong KaChat.";
 "Add a banner" = "Thêm ảnh bìa";
@@ -786,39 +721,13 @@
 "Help" = "Trợ giúp";
 
 /* 5.2: .kachat listing, buy and offer */
-"Offers" = "Đề nghị";
 "No offers yet." = "Chưa có đề nghị nào.";
-"Offer" = "Đề nghị";
-"Name your own price. Your KAS waits on chain until the seller accepts, you withdraw the offer, or it expires - and you can message the seller first." = "Tự đặt giá. KAS của bạn chờ trên chuỗi cho đến khi người bán chấp nhận, bạn rút đề nghị hoặc đề nghị hết hạn - và bạn có thể nhắn tin cho người bán trước.";
-"Listing" = "Tin rao";
-"Price" = "Giá";
-"Buy Now" = "Mua ngay";
-"Make an Offer" = "Gửi đề nghị";
-"Seller" = "Người bán";
-"Ask about the name, or agree on a price before you offer." = "Hỏi về tên hoặc thỏa thuận giá trước khi đề nghị.";
-"Open offers on this name, highest first. The seller can accept any of them." = "Các đề nghị đang mở cho tên này, cao nhất trước. Người bán có thể chấp nhận bất kỳ đề nghị nào.";
 "History" = "Lịch sử";
-"Buying pays the seller and moves the name to you in one transaction." = "Mua sẽ trả tiền cho người bán và chuyển tên cho bạn trong một giao dịch.";
-"An offer locks your KAS on chain until the seller accepts it, you withdraw it, or it expires." = "Đề nghị khóa KAS của bạn trên chuỗi cho đến khi người bán chấp nhận, bạn rút lại hoặc hết hạn.";
-"Messages go to the seller like any KaChat chat." = "Tin nhắn đến người bán như mọi cuộc trò chuyện KaChat.";
 "Network fee" = "Phí mạng";
-"Confirm Purchase" = "Xác nhận mua";
-"Buying opens when .kachat names launch." = "Mua sẽ mở khi tên .kachat ra mắt.";
-"Buy Name" = "Mua tên";
-"1 Day" = "1 ngày";
-"3 Days" = "3 ngày";
-"Listed at" = "Giá rao";
-"Your offer" = "Đề nghị của bạn";
-"Expires" = "Hết hạn";
-"Expires after" = "Hết hạn sau";
-"Send Offer" = "Gửi đề nghị";
-"Offers open when .kachat names launch." = "Đề nghị sẽ mở khi tên .kachat ra mắt.";
 
 /* 5.2: Portfolio export/import with Nextcloud */
 "Import from Nextcloud" = "Nhập từ Nextcloud";
-"Pick a CSV file from your Nextcloud." = "Chọn một tệp CSV từ Nextcloud của bạn.";
 "Export to Nextcloud" = "Xuất sang Nextcloud";
-"Save the CSV to the KaChat folder in your Nextcloud." = "Lưu tệp CSV vào thư mục KaChat trên Nextcloud của bạn.";
 "Saved to %@ in Nextcloud." = "Đã lưu vào %@ trên Nextcloud.";
 "Export to Nextcloud failed: %@" = "Xuất sang Nextcloud thất bại: %@";
 "Import from Nextcloud failed: %@" = "Nhập từ Nextcloud thất bại: %@";
@@ -829,28 +738,15 @@
 "KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "KaPosts, Trò chuyện công khai và Kaspa Websites xuất hiện ở đây khi không có trong dock. Quản lý chúng trong Cài đặt > Customization > Customize Dock.";
 
 /* 5.2: an address's .kachat Domains tab */
-".kachat Domains" = "Tên miền .kachat";
-"No .kachat names on this address" = "Không có tên .kachat trên địa chỉ này";
-"Names this address claims or buys show here once .kachat names launch." = "Các tên mà địa chỉ này nhận hoặc mua sẽ hiện ở đây khi tên .kachat ra mắt.";
 
 /* 5.2: move a portfolio transaction */
-"Move to Portfolio" = "Chuyển sang danh mục";
-"Create another portfolio first, then you can move transactions into it." = "Hãy tạo thêm một danh mục trước, rồi bạn có thể chuyển giao dịch vào đó.";
-"Already has this transaction." = "Đã có giao dịch này.";
-"Move this transaction here." = "Chuyển giao dịch này vào đây.";
 "Moved to %@." = "Đã chuyển sang %@.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-"Add Chatting Address" = "Thêm địa chỉ trò chuyện";
-"Your chatting address's buys and sells, and every network fee it has paid." = "Các lần mua, bán của địa chỉ trò chuyện và mọi phí mạng nó đã trả.";
 ". Network fees counted: %lld" = ". Phí mạng đã tính: %lld";
-"No sells yet this year." = "Chưa có lần bán nào trong năm nay.";
 "Sells: %lld. Oldest buys first (FIFO)." = "Lần bán: %lld. Lần mua cũ nhất trước (FIFO).";
 "%@ sold with no buy on record, counted at zero cost." = "%@ đã bán mà không có lần mua được ghi, tính với giá vốn bằng 0.";
-"Some prices are still loading." = "Một số giá vẫn đang tải.";
 "Realized P&L %@" = "Lãi/lỗ đã thực hiện %@";
-"Fees Spent" = "Phí đã trả";
-"Add your chatting address with + to count the network fees it has paid." = "Thêm địa chỉ trò chuyện bằng + để tính các phí mạng nó đã trả.";
 "Transactions: %lld. Some prices are still loading." = "Giao dịch: %lld. Một số giá vẫn đang tải.";
 "Transactions: %lld, at each day's price." = "Giao dịch: %lld, theo giá từng ngày.";
 
@@ -859,8 +755,6 @@
 "Yesterday" = "Hôm qua";
 
 /* 5.2: Portfolio transfers */
-"Value at the Time" = "Giá trị tại thời điểm đó";
-"KAS moved between your own addresses - sent away and brought back, or wallet to wallet. It doesn't change your holdings, cost or profit." = "KAS được chuyển giữa các địa chỉ của chính bạn - gửi đi rồi lấy lại, hoặc từ ví này sang ví khác. Không thay đổi số lượng nắm giữ, giá vốn hay lợi nhuận.";
 
 /* Receive / chatting address QR text */
 
@@ -908,109 +802,40 @@
 "A name is 1 to 32 characters." = "Tên dài từ 1 đến 32 ký tự.";
 "Use a-z, 0-9 and hyphens only." = "Chỉ dùng a-z, 0-9 và dấu gạch ngang.";
 "A name can't start or end with a hyphen." = "Tên không được bắt đầu hoặc kết thúc bằng dấu gạch ngang.";
-"Expired" = "Đã hết hạn";
 "Lapsed" = "Đã mất hiệu lực";
-"Yours" = "Của bạn";
-"until %@" = "đến %@";
-"Available · %@ a year" = "Còn trống · %@ mỗi năm";
-"Not a valid name." = "Tên không hợp lệ.";
-"Taken · for sale at %@" = "Đã có chủ · đang bán với giá %@";
-"Taken" = "Đã có chủ";
-"Expired - the owner can still renew it" = "Đã hết hạn - chủ sở hữu vẫn có thể gia hạn";
 "Lapsed - reclaim it, then claim it" = "Đã mất hiệu lực - thu hồi rồi nhận lại";
-"About %lld s to go" = "Còn khoảng %lld giây";
-"Cancel the commit?" = "Hủy cam kết?";
-"Cancel Commit" = "Hủy cam kết";
-"Keep" = "Giữ lại";
-"The registration stops and the commit's 0.2 KAS comes back to you, less the network fee." = "Việc đăng ký dừng lại và 0.2 KAS của cam kết trở về bạn, trừ phí mạng.";
-"Sending the hidden commit..." = "Đang gửi cam kết ẩn...";
-"Waiting for the commit to confirm..." = "Đang chờ cam kết được xác nhận...";
-"The commit has to age for about a minute before the name can be registered. Keep KaChat open - it registers by itself, and picks up where it left off if you leave." = "Cam kết cần chờ khoảng một phút trước khi tên có thể được đăng ký. Hãy để KaChat mở - ứng dụng tự đăng ký, và tiếp tục từ chỗ dừng nếu bạn rời đi.";
-"Registering..." = "Đang đăng ký...";
-"Registered. It's yours." = "Đã đăng ký. Tên này là của bạn.";
-"Someone registered this name first. Cancel the commit to get its 0.2 KAS back." = "Đã có người đăng ký tên này trước. Hủy cam kết để lấy lại 0.2 KAS.";
-"The registration stopped." = "Việc đăng ký đã dừng.";
-"Cancelling the commit..." = "Đang hủy cam kết...";
 "Cancelled." = "Đã hủy.";
 "Confirm this .kachat transaction" = "Xác nhận giao dịch .kachat này";
-"For sale" = "Đang bán";
 "Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "Những tên do chủ sở hữu rao bán. Mua sẽ trả tiền cho chủ và chuyển tên cho bạn trong một giao dịch.";
-"No names are listed right now." = "Hiện chưa có tên nào được rao bán.";
 "Reclaimable" = "Có thể thu hồi";
 "Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "Những tên mà chủ để mất hiệu lực. Ai cũng có thể thu hồi: tiền bảo đảm trả về chủ cuối, bạn giữ khoản ký quỹ được giải phóng làm thưởng, và tên trở nên trống.";
 "Nothing to reclaim." = "Không có gì để thu hồi.";
 "Reclaim" = "Thu hồi";
 "Renew, list, transfer or release them, and pick the one KaChat shows for you." = "Gia hạn, rao bán, chuyển hoặc nhả tên, và chọn tên KaChat hiển thị cho bạn.";
 "Search for a name above and claim it." = "Tìm một tên ở trên và nhận nó.";
-"My Offers" = "Đề nghị của tôi";
 "Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "Các đề nghị bạn đã đưa. Rút bất cứ lúc nào; sau thời điểm hoàn, ai cũng có thể trả lại cho bạn.";
-"No open offers." = "Không có đề nghị đang mở.";
-"Offers from others appear once a names indexer is connected." = "Đề nghị từ người khác sẽ hiện khi có kết nối trình lập chỉ mục tên.";
-"Nothing yet." = "Chưa có gì.";
-"Withdraw Offer" = "Rút đề nghị";
-"Withdraw" = "Rút";
-"Refund Offer" = "Hoàn đề nghị";
-"Refund" = "Hoàn";
-"Accept Offer" = "Chấp nhận đề nghị";
-"Accept and Transfer" = "Chấp nhận và chuyển";
-"The name goes to the buyer and the offer's amount comes to you, in one transaction. This can't be undone." = "Tên chuyển cho người mua và số tiền đề nghị về bạn, trong một giao dịch. Không thể hoàn tác.";
-"Buyer" = "Người mua";
 "Refundable now" = "Có thể hoàn ngay";
-"Price (to miners)" = "Giá (trả cho thợ đào)";
 "Your balance" = "Số dư của bạn";
 "It shows here once the network accepts it, usually within seconds." = "Sẽ hiện ở đây khi mạng chấp nhận, thường trong vài giây.";
-"Years" = "Số năm";
-"Bond (returned on release)" = "Tiền bảo đảm (hoàn khi nhả)";
-"Registry deposit (returned on release)" = "Ký quỹ sổ đăng ký (hoàn khi nhả)";
-"Commit (returned at registration)" = "Cam kết (hoàn khi đăng ký)";
-"Network fees" = "Phí mạng";
 "Cost" = "Chi phí";
-"Not enough KAS on your chatting address for this name." = "Địa chỉ trò chuyện của bạn không đủ KAS cho tên này.";
-"The price goes to the miners - KaChat takes nothing. The bond and the deposit come back when you release the name." = "Giá trả cho thợ đào - KaChat không lấy gì. Tiền bảo đảm và ký quỹ trả lại khi bạn nhả tên.";
-"A hidden commit goes on chain first. Nobody can see which name it is for." = "Một cam kết ẩn được đưa lên chuỗi trước. Không ai thấy nó dành cho tên nào.";
-"About a minute later KaChat registers the name by itself. Keep the app open; if you leave, it continues next time." = "Khoảng một phút sau KaChat tự đăng ký tên. Hãy để ứng dụng mở; nếu bạn rời đi, lần sau sẽ tiếp tục.";
 "The name is yours for the years you paid. Renew it any time before it expires." = "Tên là của bạn trong số năm đã trả. Gia hạn bất cứ lúc nào trước khi hết hạn.";
-"How claiming works" = "Cách nhận tên hoạt động";
-"Claim %@.kachat" = "Nhận %@.kachat";
-"Claim Name" = "Nhận tên";
-"This name was released or reclaimed. It's free to claim again." = "Tên này đã được nhả hoặc thu hồi. Có thể nhận lại.";
 "Make %@ your primary name?" = "Đặt %@ làm tên chính của bạn?";
 "Set as Primary" = "Đặt làm tên chính";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat hiển thị đây là tên của bạn. Tên được lưu trong hồ sơ của bạn trên chuỗi, với một khoản phí mạng.";
-"Not for sale" = "Không bán";
-"Expires %@" = "Hết hạn %@";
 "Expired - renew to keep it. Until the grace period ends nobody else can take it." = "Đã hết hạn - gia hạn để giữ tên. Cho đến hết thời gian ân hạn, không ai khác lấy được.";
 "Expired. It no longer resolves; the owner can still renew it." = "Đã hết hạn. Tên không còn trỏ tới địa chỉ; chủ vẫn có thể gia hạn.";
 "Lapsed: anyone may reclaim it, and then claim it again." = "Đã mất hiệu lực: ai cũng có thể thu hồi rồi nhận lại.";
-"Renew" = "Gia hạn";
-"Change Price" = "Đổi giá";
-"List for Sale" = "Rao bán";
-"Delist" = "Gỡ bán";
-"Release Name" = "Nhả tên";
-"Owner" = "Chủ sở hữu";
 "You" = "Bạn";
 "Accept one to sell the name for it." = "Chấp nhận một đề nghị để bán tên với giá đó.";
-"No history yet." = "Chưa có lịch sử.";
-"Release" = "Nhả";
-"Releasing gives the name up for good: it becomes free for anyone to register, and the time you paid for is lost. You get the bond and the registry deposit back." = "Nhả tên là từ bỏ vĩnh viễn: ai cũng có thể đăng ký, và thời gian bạn đã trả sẽ mất. Bạn nhận lại tiền bảo đảm và ký quỹ sổ đăng ký.";
 "Saved. Transaction %@" = "Đã lưu. Giao dịch %@";
-"The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "Khoản thanh toán đến người bán và tên đến bạn trong cùng một giao dịch - cả hai cùng xảy ra, hoặc không gì cả.";
-"Price (to the seller)" = "Giá (trả cho người bán)";
-"Refundable after" = "Có thể hoàn sau";
 "A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "Gia hạn được cộng vào hạn hiện tại, kể cả khi đã quá hạn. Giá trả cho thợ đào.";
 "Price per year" = "Giá mỗi năm";
-"New expiry" = "Hạn mới";
-"Anyone can buy it at this price: the payment reaches you and the name reaches them in one transaction. Delist any time." = "Ai cũng có thể mua với giá này: tiền đến bạn và tên đến người mua trong một giao dịch. Gỡ bán bất cứ lúc nào.";
-"A transfer can't be undone. The new owner gets the name with its current expiry; your profile stays with your address." = "Không thể hoàn tác việc chuyển. Chủ mới nhận tên với hạn hiện tại; hồ sơ của bạn vẫn ở địa chỉ của bạn.";
 "To" = "Đến";
 "kaspatest:... or name.kachat" = "kaspatest:... hoặc name.kachat";
-"New owner" = "Chủ mới";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "Một địa chỉ testnet hoặc một tên .kachat - được chuyển thành địa chỉ hiển thị.";
 "Not a testnet Schnorr address." = "Không phải địa chỉ Schnorr testnet.";
-"That address's key is not valid." = "Khóa của địa chỉ đó không hợp lệ.";
 "Enter an address or a .kachat name." = "Nhập địa chỉ hoặc tên .kachat.";
 "No active .kachat name by that name." = "Không có tên .kachat đang hoạt động nào như vậy.";
-"Couldn't look that name up." = "Không tra cứu được tên đó.";
 "The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "Tiền bảo đảm của tên trả về chủ cuối, bạn giữ khoản ký quỹ sổ đăng ký được giải phóng (trừ phí) làm thưởng, và tên trở nên trống. Để sở hữu, hãy nhận tên sau đó.";
 "Bond to the last owner" = "Tiền bảo đảm về chủ cuối";
 "Claim one in Kaspa Hub > .kachat." = "Nhận một tên tại Kaspa Hub > .kachat.";
@@ -1031,7 +856,6 @@
 "Save your profile?" = "Lưu hồ sơ của bạn?";
 "It's written to the chain for a network fee." = "Được ghi lên chuỗi với một khoản phí mạng.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "Hồ sơ là công khai và nằm trên chuỗi: ai cũng đọc được, và các phiên bản trước vẫn đọc được sau khi bạn thay đổi. Được ghi với một khoản phí mạng.";
-"%lld years" = "%lld năm";
 "No testnet wallet is open." = "Chưa mở ví testnet nào.";
 "This wallet's key does not match its address." = "Khóa của ví này không khớp với địa chỉ.";
 "%@ is not a valid key (not on the secp256k1 curve)." = "%@ không phải khóa hợp lệ (không nằm trên đường cong secp256k1).";
@@ -1074,32 +898,16 @@
 "Balance after" = "Số dư sau đó";
 "Balance change" = "Thay đổi số dư";
 "Transaction sent" = "Đã gửi giao dịch";
-"View Transaction" = "Xem giao dịch";
-"Name released" = "Đã giải phóng tên";
-"Name bought" = "Đã mua tên";
-"Offer sent" = "Đã gửi đề nghị";
-"Price changed" = "Đã đổi giá";
 "Listed for sale" = "Đã đăng bán";
-"Name transferred" = "Đã chuyển tên";
 "Name reclaimed" = "Đã thu hồi tên";
 "Profile saved" = "Đã lưu hồ sơ";
-"Primary name set" = "Đã đặt tên chính";
-"Name registered" = "Đã đăng ký tên";
-"Commit cancelled" = "Đã hủy cam kết";
 "Your Profile" = "Hồ sơ của bạn";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "Được lưu trên chuỗi từ địa chỉ trò chuyện của bạn gửi cho chính nó.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "Hồ sơ là công khai và nằm trên chuỗi: ai cũng có thể đọc, và các phiên bản trước vẫn đọc được sau khi bạn thay đổi.";
 "Extended" = "Đã kéo dài";
-"Extend" = "Kéo dài";
-"Extend to %lld years" = "Kéo dài đến %lld năm";
 "Renewal opens on %@" = "Mở gia hạn vào %@";
-"Paid from %@ to %@" = "Đã trả từ %@ đến %@";
-"New period" = "Kỳ mới";
-"Renewal open" = "Đang mở gia hạn";
-"Extending adds years to the current paid period, which holds at most 2 years. The price goes to the miners." = "Kéo dài thêm năm vào kỳ đã trả hiện tại, mỗi kỳ tối đa 2 năm. Giá trả cho thợ đào.";
 "The names indexer didn't send this name's paid period. Pull to refresh and try again." = "Bộ chỉ mục tên không gửi kỳ đã trả của tên này. Kéo xuống để làm mới rồi thử lại.";
-"The name is yours for the years you paid, at most 2 ahead. A 1-year name can be extended to 2 years; from 10 days before it expires you can renew it." = "Tên là của bạn trong số năm đã trả, tối đa trước 2 năm. Tên 1 năm có thể kéo dài thành 2 năm; từ 10 ngày trước khi hết hạn bạn có thể gia hạn.";
 "Setting up" = "Đang thiết lập";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "Sổ đăng ký .kachat trên Testnet đang được nâng cấp. Tên sẽ mở lại ở đây khi sổ đăng ký mới hoạt động.";
 ".kachat Names" = "Tên .kachat";
@@ -1139,10 +947,6 @@
 "Copies the transaction ID to your clipboard." = "Sao chép ID giao dịch vào bộ nhớ tạm.";
 "Transaction ID copied" = "Đã sao chép ID giao dịch";
 "This payment isn't on chain yet." = "Khoản thanh toán này chưa lên chuỗi.";
-"Opens the .kachat marketplace" = "Mở chợ .kachat";
-"Names this address owns show here." = "Các tên mà địa chỉ này sở hữu hiển thị ở đây.";
-"Your spending address #%lld" = "Địa chỉ chi tiêu của bạn #%lld";
-"Your KasSigner address (%@ #%lld)" = "Địa chỉ KasSigner của bạn (%@ #%lld)";
 "New" = "Mới";
 "New Chat" = "Cuộc trò chuyện mới";
 "New Group Chat" = "Nhóm trò chuyện mới";
@@ -1158,7 +962,6 @@
 "Profiles can be saved once .kachat launches on mainnet." = "Có thể lưu hồ sơ khi .kachat ra mắt trên mainnet.";
 "Pinned to the front" = "Đã ghim lên đầu";
 "Unpinned" = "Đã bỏ ghim";
-"Build Unsigned Transaction" = "Tạo giao dịch chưa ký";
 "Coin Control" = "Kiểm soát coin";
 "Automatic" = "Tự động";
 "Consolidating This Address" = "Đang gộp địa chỉ này";
@@ -1188,25 +991,9 @@
 "Claimed. You can claim again in %@." = "Đã nhận. Bạn có thể nhận lại sau %@.";
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "Sao chép địa chỉ trò chuyện và mở vòi TN10: dán vào, vượt qua bước kiểm tra và nhận mức tối đa.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "Đã sao chép địa chỉ trò chuyện TN10. Hãy dán vào ô địa chỉ của vòi.";
-"Copies the address" = "Sao chép địa chỉ";
-"Manage Name" = "Quản lý tên";
-"Pays for more years now, up to the 2-year limit." = "Trả thêm năm ngay bây giờ, tối đa giới hạn 2 năm.";
-"Starts a new paid period from the expiry date." = "Bắt đầu kỳ trả phí mới từ ngày hết hạn.";
-"Changes the asking price." = "Thay đổi giá bán.";
-"Takes the name off the market." = "Gỡ tên khỏi chợ.";
-"Puts the name up for sale at your price." = "Rao bán tên với giá của bạn.";
-"Sends the name to another address." = "Gửi tên đến địa chỉ khác.";
-"Shows you by this name across KaChat." = "Hiển thị bạn bằng tên này trên toàn KaChat.";
-"Gives the name up and returns its deposit." = "Từ bỏ tên và hoàn lại tiền đặt cọc.";
 "Expires in %@" = "Hết hạn sau %@";
-"Expired - returning to you" = "Đã hết hạn - đang hoàn lại cho bạn";
-"Expired - returning to the buyer" = "Đã hết hạn - đang hoàn lại cho người mua";
-"Expired - refundable now" = "Đã hết hạn - có thể hoàn lại ngay";
 "Tap an offer to accept it. Expired offers go back to their buyers." = "Chạm vào một đề nghị để chấp nhận. Đề nghị hết hạn sẽ hoàn lại cho người mua.";
 "This offer has expired. It's going back to the buyer." = "Đề nghị này đã hết hạn. Đang hoàn lại cho người mua.";
-"Offers you made. Withdraw one any time; once it expires it comes back to you on its own." = "Các đề nghị bạn đã gửi. Rút bất cứ lúc nào; khi hết hạn sẽ tự hoàn lại cho bạn.";
-"Declined - the name changed hands, returning to you" = "Bị từ chối - tên đã đổi chủ, đang hoàn lại cho bạn";
-"Declined - made to an earlier owner" = "Bị từ chối - gửi cho chủ cũ";
 "This offer was made before the name changed hands, so it's declined and going back to the buyer." = "Đề nghị này được gửi trước khi tên đổi chủ, nên đã bị từ chối và đang hoàn lại cho người mua.";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
@@ -1215,16 +1002,8 @@
 "You can't make an offer on your own name." = "Bạn không thể đưa đề nghị cho tên của chính mình.";
 "An offer can run for up to 7 days." = "Một đề nghị có thể kéo dài tối đa 7 ngày.";
 "Price per %@" = "Giá mỗi %@";
-"Available · %@ per %@" = "Còn trống · %1$@ mỗi %2$@";
-"Extend to %@" = "Kéo dài đến %@";
 "Pays for more time now, up to the %@ limit." = "Trả thêm thời gian ngay bây giờ, tối đa %@.";
-"Extending adds time to the current paid period, which holds at most %@. The price goes to the miners." = "Kéo dài sẽ thêm thời gian vào kỳ đã trả hiện tại, tối đa %@. Khoản phí được trả cho thợ đào.";
-"The name is yours for the time you paid, at most %@ ahead. From %@ before it expires you can renew it." = "Tên là của bạn trong thời gian bạn đã trả, tối đa %1$@ về sau. Từ %2$@ trước khi hết hạn, bạn có thể gia hạn.";
-"Decline Offer" = "Từ chối đề nghị";
 "Offer declined" = "Đã từ chối đề nghị";
-"The offer goes back to the buyer. Its network fee comes out of the offer, so declining costs you nothing." = "Đề nghị được trả lại cho người mua. Phí mạng được trừ vào đề nghị, nên từ chối không tốn gì của bạn.";
-"Your KAS stays locked on chain until the owner accepts or declines, you withdraw the offer, or it expires - then anyone can send it back to you." = "KAS của bạn bị khóa trên chuỗi cho đến khi chủ chấp nhận hoặc từ chối, bạn rút đề nghị, hoặc đề nghị hết hạn - sau đó ai cũng có thể trả lại cho bạn.";
-"This name is listed for less than your offer. Consider buying it instead." = "Tên này đang được bán với giá thấp hơn đề nghị của bạn. Hãy cân nhắc mua luôn.";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
 "The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "Giá đã đổi thành %@ kể từ khi bạn xác nhận. Chưa có gì được gửi. Hãy xem giá mới và xác nhận lại.";
@@ -1232,7 +1011,6 @@
 "Confirm New Price" = "Xác nhận giá mới";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"A renewal starts the next period at the current expiry, not from today, so a name that expired a while ago gets less time. The price goes to the miners." = "Gia hạn bắt đầu kỳ tiếp theo tại ngày hết hạn hiện tại, không phải từ hôm nay, nên tên đã hết hạn một thời gian sẽ có ít thời gian hơn. Khoản phí được trả cho thợ đào.";
 "This name has been expired too long to renew. It can only be reclaimed and registered again." = "Tên này đã hết hạn quá lâu để gia hạn. Chỉ có thể thu hồi và đăng ký lại.";
 "Offers can only be made on active names." = "Chỉ có thể đưa đề nghị cho tên đang hoạt động.";
 "This name has expired. Offers can only be accepted while the name is active. Renew it first." = "Tên này đã hết hạn. Chỉ có thể chấp nhận đề nghị khi tên còn hoạt động. Hãy gia hạn trước.";
@@ -1252,7 +1030,6 @@
 "Send %@ to %@?" = "Gửi %1$@ cho %2$@?";
 
 /* .kachat: expires-soon follows the period clock (IOS-060) */
-"Less than %@ is left before this name expires. You'd have to renew it soon." = "Còn chưa đến %@ là tên này hết hạn. Bạn sẽ phải gia hạn sớm.";
 
 /* Profile editor: links that can't be checked don't block saving */
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Hiện chưa thể kiểm tra một số liên kết từ điện thoại này. Chúng được lưu đúng như đã nhập và ứng dụng của người khác sẽ tải khi có thể.";
@@ -1283,13 +1060,11 @@
 "Nobody accepted it in time. The KAS is back with you." = "Không ai chấp nhận kịp. KAS đã trở về với bạn.";
 "Offer on %@ returned" = "Đề nghị cho %@ đã được trả lại";
 "It can no longer be accepted. The KAS is back with you." = "Không thể chấp nhận nữa. KAS đã trở về với bạn.";
-"Kaspa arriving in your wallets and news about your .kachat names show up here." = "Kaspa đến ví của bạn và tin tức về tên .kachat của bạn hiển thị ở đây.";
 "Renew it soon to keep it." = "Hãy sớm gia hạn để giữ tên.";
 "Renew it soon or anyone can claim it." = "Hãy sớm gia hạn nếu không ai cũng có thể lấy.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
 "Reclaimable names appear here once .kachat names launch." = "Các tên có thể thu hồi sẽ hiện ở đây khi tên .kachat ra mắt.";
-"Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "Mọi lần đăng ký, gia hạn, rao bán, bán, đề nghị, chuyển nhượng và thu hồi trong sổ đăng ký.";
 
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "Thu hồi để sở hữu lại";
@@ -1302,11 +1077,9 @@
 "Waiting for the old %@ to be cleared from the registry." = "Đang chờ %@ cũ được xóa khỏi sổ đăng ký.";
 
 /* .kachat: a released or reclaimed name */
-"Free to claim" = "Có thể đăng ký";
 
 /* .kachat registration progress half sheet */
 "Claiming %@" = "Đang nhận %@";
-"Keep KaChat open: the name is registered about a minute after the hidden commit confirms. If you leave, it picks up where it left off when you come back." = "Hãy giữ KaChat mở: tên được đăng ký khoảng một phút sau khi cam kết ẩn được xác nhận. Nếu bạn rời đi, quá trình sẽ tiếp tục từ chỗ dừng khi bạn quay lại.";
 "Finish the name you're claiming first." = "Hãy hoàn tất tên bạn đang nhận trước.";
 
 /* .kachat name lapsed: moved to Reclaimable */
@@ -1321,13 +1094,9 @@
 "Choose seed phrase length" = "Chọn độ dài seed phrase";
 
 /* .kachat sale tile: expiry flag */
-"Expires soon" = "Sắp hết hạn";
 
 /* .kachat: expired names are available to claim */
 "Freeing %@ for you..." = "Đang giải phóng %@ cho bạn...";
-"This name expired and wasn't renewed, so anyone can claim it at the normal price. The old owner's bond goes back to them." = "Tên này đã hết hạn và không được gia hạn, nên ai cũng có thể nhận với giá thông thường. Tiền đặt cọc của chủ cũ được trả lại cho họ.";
-"No expired names right now." = "Hiện không có tên nào hết hạn.";
-"Expired names appear here once .kachat names launch." = "Các tên hết hạn sẽ xuất hiện ở đây khi tên .kachat ra mắt.";
 "%@ was freed" = "%@ đã được giải phóng";
 "It expired and was cleared from the registry. Your bond is back with you." = "Tên đã hết hạn và được xóa khỏi sổ đăng ký. Tiền đặt cọc đã trở lại với bạn.";
 
@@ -1336,8 +1105,6 @@
 "It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Tên đã hết hạn và không được gia hạn, nên giờ ai cũng có thể nhận trong chợ. Tiền đặt cọc sẽ trở lại với bạn khi có người nhận tên.";
 
 /* .kachat: claims in progress button and busy-network notes */
-"Claiming" = "Đang nhận";
-"Names being claimed" = "Các tên đang được nhận";
 "The network is busy. Your commit is waiting for a block." = "Mạng đang bận. Cam kết của bạn đang chờ một khối.";
 "The network is busy, so the commit was sent again." = "Mạng đang bận nên cam kết đã được gửi lại.";
 
@@ -1369,21 +1136,13 @@
 "Scratch files from sending photos and voice notes. Safe to remove at any time." = "Tệp tạm khi gửi ảnh và tin nhắn thoại. Có thể xóa bất kỳ lúc nào.";
 
 /* .kachat Renew: choose the period first */
-"How long?" = "Trong bao lâu?";
-"A renewal starts the next period at the current expiry, not from today." = "Gia hạn bắt đầu kỳ tiếp theo từ lúc hết hạn hiện tại, không phải từ hôm nay.";
 
 /* .kachat marketplace: the Expired tab (names in grace, counting down) */
-"Released in" = "Mở lại sau";
-"No names are in their grace period right now." = "Hiện không có tên nào trong thời gian ân hạn.";
-"Names in their grace period appear here once .kachat names launch." = "Các tên trong thời gian ân hạn sẽ xuất hiện ở đây khi tên .kachat ra mắt.";
 
 /* .kachat name screen: when an expired name's grace period ends */
-"Grace period ends %@" = "Thời gian ân hạn kết thúc %@";
 
 /* .kachat: names in grace keep resolving to their owner */
 "No .kachat name by that name." = "Không có tên .kachat nào như vậy.";
-"Expired. It still resolves to its owner until the grace period ends, and the owner can still renew it." = "Đã hết hạn. Tên vẫn trỏ đến chủ sở hữu cho đến khi hết thời gian ân hạn, và chủ sở hữu vẫn có thể gia hạn.";
-"Expired - renew to keep it. Until the grace period ends it still resolves to you and nobody else can take it." = "Đã hết hạn - hãy gia hạn để giữ. Cho đến khi hết thời gian ân hạn, tên vẫn trỏ đến bạn và không ai khác có thể lấy.";
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "Sổ địa chỉ";
@@ -1448,12 +1207,7 @@
 "That Address Book export has no addresses." = "Bản xuất đó không có địa chỉ nào.";
 
 /* .kachat: fees, busy network, progress receipt */
-"The network is busy" = "Mạng đang bận";
-"At Normal this may wait a while. Fast or Priority pays a little more to get into a block sooner." = "Với Bình thường có thể phải chờ. Nhanh hoặc Ưu tiên trả nhiều hơn một chút để vào khối sớm hơn.";
 "Balance after: %@" = "Số dư sau: %@";
-"Balance change: %@" = "Thay đổi số dư: %@";
-"Available: %@" = "Khả dụng: %@";
-"Claiming sends two transactions: the commit now, the registration about a minute later. Both use this speed." = "Nhận tên gửi hai giao dịch: cam kết ngay bây giờ, đăng ký khoảng một phút sau. Cả hai dùng tốc độ này.";
 "Sent to the network" = "Đã gửi lên mạng";
 "In a block" = "Trong một khối";
 "Updated in KaChat" = "Đã cập nhật trong KaChat";
@@ -1464,10 +1218,6 @@
 "Tap the transaction to open it in the explorer." = "Chạm vào giao dịch để mở trong trình khám phá.";
 
 /* .kachat offers: tiles and half sheet */
-"Expires in" = "Hết hạn sau";
-"This offer can't be accepted any more." = "Không thể chấp nhận đề nghị này nữa.";
-"Only the name's owner can accept or decline this offer." = "Chỉ chủ sở hữu tên mới có thể chấp nhận hoặc từ chối đề nghị này.";
-"Tap an offer to accept or decline it. Expired offers go back to their buyers." = "Chạm vào một đề nghị để chấp nhận hoặc từ chối. Đề nghị hết hạn sẽ trả lại người mua.";
 
 /* Audit run 3: Address Book network checks, .kachat fee re-check */
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "Mọi địa chỉ trong tệp đó đều là địa chỉ Mainnet. KaChat đang ở Testnet.";
@@ -1477,7 +1227,6 @@
 
 /* .kachat registry v5 migration */
 "Names are moving to the new registry. New names can be claimed from %@." = "Các tên đang được chuyển sang sổ đăng ký mới. Bạn có thể nhận tên mới từ %@.";
-"Every name from the old registry comes over with the same owner and expiry first." = "Trước tiên, mọi tên từ sổ đăng ký cũ được chuyển sang với cùng chủ sở hữu và hạn dùng.";
 "Moved to the new registry" = "Đã chuyển sang sổ đăng ký mới";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
@@ -1492,19 +1241,12 @@
 ".kachat Names (%lld)" = "Tên .kachat (%lld)";
 ".kas Names (%lld)" = "Tên .kas (%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "Nhập địa chỉ Kaspa (kaspa:...) hoặc tên miền. Tên .kachat được tra trước.";
-"Enter a Kaspa address or a domain like name.kachat (.kachat names are looked up first). Every received transaction on this address becomes a buy, every sent transaction becomes a sell, priced at that day's historical KAS price. Re-adding the same address later only imports transactions found since the last import." = "Nhập địa chỉ Kaspa hoặc tên miền như name.kachat (tên .kachat được tra trước). Mỗi giao dịch nhận vào địa chỉ này là một lần mua, mỗi giao dịch gửi đi là một lần bán, theo giá KAS lịch sử của ngày đó. Thêm lại cùng địa chỉ sau này chỉ nhập các giao dịch kể từ lần nhập trước.";
 "Search contacts, or an address or domain" = "Tìm liên hệ, địa chỉ hoặc tên miền";
 "You have no contacts yet. Paste an address or a domain above to invite someone." = "Bạn chưa có liên hệ nào. Dán địa chỉ hoặc tên miền ở trên để mời ai đó.";
 "No contacts match your search. Paste an address or a domain to invite someone new." = "Không có liên hệ phù hợp. Dán địa chỉ hoặc tên miền để mời người mới.";
-"An address or a domain - .kachat names are looked up first, and it's resolved to the address shown." = "Địa chỉ hoặc tên miền - tên .kachat được tra trước và được chuyển thành địa chỉ hiển thị.";
-"kaspatest:... or domain" = "kaspatest:... hoặc tên miền";
-"Enter an address or a domain." = "Nhập địa chỉ hoặc tên miền.";
-"That name's address can't own a .kachat name." = "Địa chỉ của tên đó không thể sở hữu tên .kachat.";
 "No domain found by that name." = "Không tìm thấy tên miền nào có tên đó.";
-"One of your .kachat domains expired" = "Một tên miền .kachat của bạn đã hết hạn";
 "%lld of your .kachat domains expired" = "%lld tên miền .kachat của bạn đã hết hạn";
 "Renew %@ before its grace period ends on %@ to keep it." = "Gia hạn %@ trước khi thời gian ân hạn kết thúc vào %@ để giữ nó.";
-"Renew them before their grace periods end to keep them." = "Gia hạn chúng trước khi thời gian ân hạn kết thúc để giữ chúng.";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Tên .kachat chưa hoạt động trên mạng này";
@@ -1518,9 +1260,6 @@
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = "Sổ đăng ký .kachat đang được nâng cấp. Tên sẽ mở lại ở đây khi sổ đăng ký mới hoạt động.";
 "No wallet is open." = "Chưa mở ví nào.";
-"Not a Schnorr address on this network." = "Không phải địa chỉ Schnorr trên mạng này.";
-"Live on Mainnet: names, prices and payments here are real KAS." = "Đang chạy trên Mainnet: tên, giá và thanh toán ở đây là KAS thật.";
-"Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names are live on Mainnet." = "Đang chạy trên Testnet: tên, giá và thanh toán ở đây dùng TKAS trên testnet-10. Tên Mainnet đang chạy trên Mainnet.";
 "Live on Mainnet" = "Đang chạy trên Mainnet";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
@@ -1529,7 +1268,6 @@
 
 /* .kachat: combining many small coins before a name transaction */
 "Your KAS is in many small coins. Combining them into one first..." = "KAS của bạn nằm rải rác trong nhiều đồng nhỏ. Đang gộp chúng thành một trước...";
-"Your KAS is in many small coins. KaChat combines them into one before registering, for a tiny extra network fee." = "KAS của bạn nằm rải rác trong nhiều đồng nhỏ. KaChat gộp chúng thành một trước khi đăng ký, với một khoản phí mạng nhỏ thêm.";
 "Not enough KAS on your chatting address for this." = "Địa chỉ chat của bạn không đủ KAS để làm việc này.";
 
 /* .kachat mainnet launch countdown */
@@ -1542,8 +1280,6 @@
 ".kachat names open to everyone on %@." = "Tên .kachat mở cho mọi người vào %@.";
 
 /* Kaspa Hub > KaChat Bots */
-"KaChat Bots" = "Bot KaChat";
-"Bots" = "Bot";
 "Block Reward Tracker" = "Theo dõi phần thưởng khối";
 "A message for every block reward paid to your mining address." = "Một tin nhắn cho mỗi phần thưởng khối trả về địa chỉ đào của bạn.";
 "Wallet Tracker" = "Theo dõi ví";
@@ -1552,21 +1288,17 @@
 "Ask anything related to Kaspa." = "Hỏi bất cứ điều gì về Kaspa.";
 "Coming soon." = "Sắp ra mắt.";
 "Bots run on mainnet only." = "Bot chỉ chạy trên mainnet.";
-"Opens a chat with this bot." = "Mở cuộc trò chuyện với bot này.";
-"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "Tin nhắn gửi bot là tin nhắn KaChat mã hóa thông thường, nên mỗi tin tốn phí mạng thông thường.";
 
 /* Kaspa Hub > KaChat Bots: Price Bot */
 "Price Bot" = "Bot giá";
 "Alerts when KAS crosses your price, big moves and a daily summary." = "Cảnh báo khi KAS vượt mức giá của bạn, biến động lớn và bản tóm tắt hằng ngày.";
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
-"%lld unread" = "%lld chưa đọc";
 
 /* Chats: a bot chat's circle half sheet */
 "Clears the unread badge on this chat." = "Xóa huy hiệu chưa đọc của cuộc trò chuyện này.";
 "Notifications from this bot resume." = "Thông báo từ bot này hoạt động lại.";
 "No notification from this bot." = "Không có thông báo từ bot này.";
-"Removes this chat until you write to the bot again." = "Xóa cuộc trò chuyện này cho đến khi bạn viết lại cho bot.";
 
 /* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
 "Request Payment" = "Yêu cầu thanh toán";
@@ -1602,13 +1334,9 @@
 "Send Payment Request" = "Gửi yêu cầu thanh toán";
 
 /* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
-"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "KAS của bạn nằm trong nhiều đồng nhỏ. Khi bạn trượt, KaChat sẽ gộp chúng thành một trước (một giao dịch riêng với phí nhỏ), rồi gửi giao dịch này.";
 
 /* An address's Domains tab: one card per name service */
-"No %@ names on this address." = "Địa chỉ này không có tên %@.";
-"1 domain" = "1 tên miền";
 "%lld domains" = "%lld tên miền";
-"Couldn't load" = "Không thể tải";
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Trả vào một địa chỉ hoàn toàn mới của bạn, chỉ dùng cho yêu cầu này. Người trả thấy ghi chú, nhưng ghi chú không đi kèm khoản thanh toán.";
@@ -1647,27 +1375,7 @@
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Để bảo vệ quyền riêng tư, hãy dùng các địa chỉ khác của bạn cho mọi hoạt động khác trên mạng Kaspa. Nhận Kaspa cho bạn một địa chỉ mới, và Quản lý địa chỉ liệt kê tất cả.";
 
 /* .kachat Names guide (claim, how it works, make it yours, keep it) */
-"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "Tìm tên bạn muốn trong Kaspa Hub > .kachat, rồi nhận nó.";
-"How a name works" = "Tên hoạt động thế nào";
-"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "Tên của bạn nằm trên mạng Kaspa, do địa chỉ trò chuyện của bạn nắm giữ. Khi còn là của bạn, không ai có thể lấy hay đổi nó.";
-"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "Nhận tên cần hai giao dịch nhanh: giao dịch đầu giữ bí mật lựa chọn, giao dịch thứ hai đăng ký.";
-"You pay for one period at a time. Shorter names cost more." = "Bạn trả cho từng kỳ một. Tên càng ngắn càng đắt.";
-"The price goes to the network's miners, not to KaChat." = "Khoản phí trả cho thợ đào của mạng, không phải cho KaChat.";
-"Make it your name" = "Biến nó thành tên của bạn";
-"Set it as your primary name and it's how you appear everywhere in KaChat." = "Đặt làm tên chính và bạn sẽ hiện với tên đó ở mọi nơi trong KaChat.";
-"People can find you and message you by typing your name." = "Mọi người có thể tìm và nhắn tin cho bạn bằng cách gõ tên bạn.";
-"They can send you Kaspa to yourname.kachat instead of a long address." = "Họ có thể gửi Kaspa tới tenban.kachat thay vì một địa chỉ dài.";
-"Your profile link shows your name." = "Liên kết hồ sơ của bạn hiển thị tên bạn.";
-"Keep it" = "Giữ lấy";
-"Your names are in Profile > Your Domains > .kachat." = "Các tên của bạn nằm ở Hồ sơ > Tên miền của bạn > .kachat.";
-"Renew before it expires. It shows when, on each name." = "Gia hạn trước khi hết hạn. Mỗi tên đều hiện ngày.";
-"After it expires there's a grace period to renew it before anyone else can claim it." = "Sau khi hết hạn có một thời gian ân hạn để gia hạn trước khi người khác có thể nhận.";
-"You can transfer it, list it for sale, or accept an offer for it." = "Bạn có thể chuyển nhượng, rao bán hoặc chấp nhận một lời đề nghị.";
 "You're all set" = "Đã xong";
-"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "Nhận tên của bạn trong Kaspa Hub > .kachat khi bạn sẵn sàng.";
-".kachat Names Guide" = "Hướng dẫn tên .kachat";
-"Claim a .kachat name, make it your name, and keep it." = "Nhận một tên .kachat, biến nó thành tên của bạn và giữ lấy.";
-"Walk through claiming your .kachat name and making it yours." = "Từng bước nhận tên .kachat và biến nó thành của bạn.";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ bị khóa cùng tên của bạn trong khi bạn giữ nó (tiền ký quỹ + tiền gửi sổ đăng ký). Bạn nhận lại khi trả tên.";
@@ -1677,7 +1385,6 @@
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Bạn không đủ tiền. Vui lòng gửi ít nhất 1 KAS đến địa chỉ trò chuyện của bạn.";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"From: %@" = "Từ: %@";
 "Buy From" = "Mua từ";
 "Fund" = "Nạp tiền";
 "Copy address" = "Sao chép địa chỉ";

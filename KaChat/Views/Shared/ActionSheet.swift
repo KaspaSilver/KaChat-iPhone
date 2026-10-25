@@ -329,24 +329,39 @@ extension KaspaFullTransactionResponse: Identifiable {
     var id: String { transactionId }
 }
 
-/// What to do with a transaction you tapped in an address history: look at it, or record it.
+/// What to do with a transaction you tapped in an address history: look at it on the explorer.
 ///
-/// Shared by cold storage history, the spending-address histories and the chatting address, all
-/// three of which used to raise their own identical confirmation dialog.
+/// Shared by the spending-address histories and the chatting address, both of which used to
+/// raise their own identical confirmation dialog.
 struct TransactionActionsSheet: View {
     let transaction: KaspaFullTransactionResponse
     /// The address the history was viewed under, which is what decides whether this reads as
     /// money in or money out.
     let address: String
     let onOpenExplorer: () -> Void
-    /// Nil candidate means the transaction has no side involving `address` we can price, so
-    /// there is nothing to record and the option is not offered.
-    let onAddToPortfolio: (PortfolioCandidateTransaction) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
-    private var candidate: PortfolioCandidateTransaction? {
-        PortfolioCandidateTransaction(transaction: transaction, address: address)
+    private static let kasFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.groupingSeparator = ","
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 4
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter
+    }()
+
+    /// "Received 12.5 KAS on 3 Oct 2026 at 14:02", or nil when the transaction has no side
+    /// involving `address` (a pure internal move).
+    private var summary: String? {
+        guard let info = transaction.direction(for: address) else { return nil }
+        let kas = Double(info.amountSompi) / 100_000_000.0
+        let amount = (Self.kasFormatter.string(from: NSNumber(value: kas)) ?? String(format: "%.4f", kas)) + " " + KaspaUnit.symbol
+        // A transaction with no block time yet is still in the mempool; "now" is the stand-in.
+        let date = transaction.blockTime.map { Date(timeIntervalSince1970: Double($0) / 1000) } ?? Date()
+        return "\(info.isOutgoing ? "Sent" : "Received") \(amount) on " + date.formatted(date: .abbreviated, time: .shortened)
     }
 
     var body: some View {
@@ -354,8 +369,8 @@ struct TransactionActionsSheet: View {
             VStack(spacing: 4) {
                 Text("Transaction")
                     .font(.headline)
-                if let candidate {
-                    Text(summary(candidate))
+                if let summary {
+                    Text(summary)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -377,29 +392,12 @@ struct TransactionActionsSheet: View {
                 onOpenExplorer()
             }
 
-            if let candidate {
-                ActionSheetRow(
-                    title: "Add to Portfolio",
-                    subtitle: "Records it as a buy or a sell in a portfolio of your choosing.",
-                    systemImage: "chart.pie.fill"
-                ) {
-                    dismiss()
-                    onAddToPortfolio(candidate)
-                }
-            }
-
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 24)
-        .presentationDetents([.height(candidate == nil ? 250 : 320)])
+        .presentationDetents([.height(250)])
         .presentationDragIndicator(.visible)
-    }
-
-    private func summary(_ candidate: PortfolioCandidateTransaction) -> String {
-        let direction = candidate.isOutgoing ? "Sent" : "Received"
-        return "\(direction) \(PortfolioFormat.kas(candidate.amountKas)) on "
-            + candidate.timestamp.formatted(date: .abbreviated, time: .shortened)
     }
 }
 

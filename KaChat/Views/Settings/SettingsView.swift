@@ -103,11 +103,6 @@ struct SettingsView: View {
                 ToolbarItem(placement: .principal) {
                     balanceToolbarView
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
             }
             .sheet(isPresented: $showSeedPhrase) {
                 SeedPhraseView()
@@ -192,25 +187,8 @@ struct SettingsView: View {
         Form {
             Section("Customization") {
                     // Appearance/Language/Currency are extracted so the accounts-screen
-                    // App Settings can reuse the exact same rows (one source of truth) -
-                    // Customize Dock + Show Setup Guides below stay here only: the dock is
-                    // per-account and the guides need an active wallet.
+                    // App Settings can reuse the exact same rows (one source of truth).
                     AppWideCustomizationPickers()
-
-                    // The sheet above the tab bar (MainTabView), never a page in here: the dock
-                    // updates live, and every change rebuilds the tabs this page sits in.
-                    Button {
-                        NotificationCenter.default.post(name: .openCustomizeDock, object: nil)
-                    } label: {
-                        HStack {
-                            Label("Customize Dock", systemImage: "list.bullet")
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundColor(Color(.tertiaryLabel))
-                        }
-                    }
 
                     // Moved here from Chats: it decides whether a number is drawn on the
                     // composer, which is a display preference, not a chat behaviour.
@@ -715,9 +693,8 @@ struct SecuritySettingsPage: View {
 }
 
 /// The three app-wide customization pickers (Appearance / Language / Currency) as loose rows,
-/// so each host wraps them in its own Section: SettingsView's Customization page adds the
-/// per-account extras (Customize Dock, Show Setup Guides) after them; AppSettingsView shows
-/// them alone.
+/// so each host wraps them in its own Section: SettingsView's Customization page adds its own
+/// rows after them; AppSettingsView shows them alone.
 struct AppWideCustomizationPickers: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
 
@@ -1327,7 +1304,7 @@ struct WalletNotificationSettingsView: View {
                         settingsViewModel.saveSettings()
                     }
             } footer: {
-                Text("Notify when any of your spending or cold storage addresses receives Kaspa from an external source. Transfers between your own addresses are ignored.")
+                Text("Notify when any of your spending addresses receives Kaspa from an external source. Transfers between your own addresses are ignored.")
             }
         }
         .navigationTitle("Wallet")
@@ -2473,8 +2450,7 @@ struct ConnectionStatusIndicator: View {
 }
 
 /// Kaspa-logo chatting-address balance for navigation bars - shared by the main pages
-/// (Cold Storage, Portfolio, Swap) so the centered header reads
-/// identically across tabs. Chats keeps its own tap-to-copy variant.
+/// (Address Book, Settings) so the centered header reads identically across tabs. Chats keeps its own tap-to-copy variant.
 struct BalanceToolbarLabel: View {
     @EnvironmentObject var walletManager: WalletManager
 
@@ -3483,7 +3459,7 @@ struct NextcloudSettingsView: View {
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Keeps your chat history in \(NextcloudService.backupFileName) in the folder above (choosing All Files resets to the default \(NextcloudService.backupFolderName) folder). Automatic Sync keeps your devices in near-live sync: new messages upload moments after they arrive, and while the app is open it also watches the server and quietly pulls in what your other devices upload, fastest while you are in a chat. A wallet that connects to an existing backup restores it once automatically. Every upload merges with what is already on the server, so no device can erase another's history. Restoring merges the archive into this device's history.")
-                        Text("Your Address Book and portfolios are in the same backup and sync between your devices the same way.")
+                        Text("Your Address Book is in the same backup and syncs between your devices the same way.")
                     }
                 }
 

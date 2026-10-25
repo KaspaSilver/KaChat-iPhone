@@ -994,12 +994,12 @@ private struct ConsolidateToPrimaryConfirmView: View {
     @State private var feeEditorText = ""
     @FocusState private var feeFieldFocused: Bool
 
-    /// Same reference-mass shortcut used by Cold Storage's fee editor - a fixed 1-input/2-output
-    /// mass, good enough to show/edit a per-transaction fee estimate without a network round trip.
-    private var referenceMass: UInt64 { ColdStorageSendEngine.referenceMassForFeeEditor }
+    /// A fixed 1-input/2-output reference mass, good enough to show/edit a per-transaction fee
+    /// estimate without a network round trip.
+    private var referenceMass: UInt64 { KaspaFeePolicy.referenceMassForFeeEditor }
 
     private var normalFeeSompi: UInt64 {
-        ColdStorageSendEngine.calculateFee(mass: referenceMass, rateSompiPerGram: KaspaFeePolicy.minimumRelayFeePerGramSompi)
+        KaspaFeePolicy.calculateFee(mass: referenceMass, rateSompiPerGram: KaspaFeePolicy.minimumRelayFeePerGramSompi)
     }
 
     /// Extra priority tip on top of the base (Normal-tier) fee - same Normal/Fast/Priority
@@ -1228,7 +1228,7 @@ struct SpendingAddressWithdrawView: View {
     @EnvironmentObject var contactsManager: ContactsManager
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var portfolioViewModel = PortfolioViewModel.shared
+    @ObservedObject private var priceModel = KasPriceModel.shared
     @StateObject private var fiatAmountState = KaspaFiatAmountState()
 
     @State private var addressInput = ""
@@ -1558,13 +1558,13 @@ struct SpendingAddressWithdrawView: View {
                     let (maxSompi, utxos) = try await chatService.maxConsolidatableChunk(index: source.index, extraFeeSompi: tipSompi, availableUtxos: preloadedUtxos)
                     await MainActor.run {
                         manualUtxos = utxos
-                        amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: portfolioViewModel.currentPriceUsd)
+                        amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
                         isEstimatingMax = false
                     }
                 } else {
                     let maxSompi = try await chatService.estimateMaxSpendingAddressAmount(index: source.index, toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                     await MainActor.run {
-                        amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: portfolioViewModel.currentPriceUsd)
+                        amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
                         isEstimatingMax = false
                     }
                 }
@@ -1946,11 +1946,6 @@ struct SpendingAddressTransactionHistoryView: View {
 
     /// The tapped transaction, while its action chooser is up.
     @State private var transactionActionTarget: KaspaFullTransactionResponse?
-    @State private var pendingPortfolioCandidate: PortfolioCandidateTransaction?
-    /// The transaction being filed into a portfolio, if any - see `AddToPortfolioSheet`.
-    @State private var portfolioCandidate: PortfolioCandidateTransaction?
-    /// Name of the portfolio just added to, for the confirmation capsule.
-    @State private var addedPortfolioName: String?
 
     @EnvironmentObject var chatService: ChatService
     @EnvironmentObject var settingsViewModel: SettingsViewModel
@@ -1958,7 +1953,6 @@ struct SpendingAddressTransactionHistoryView: View {
     private enum Tab: String, CaseIterable {
         case transactions = "History"
         case utxos = "UTXOs"
-        case kachatDomains = "Domains"
     }
 
     @State private var selectedTab: Tab = .transactions
@@ -1984,7 +1978,7 @@ struct SpendingAddressTransactionHistoryView: View {
         "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)"
     }
 
-    /// Plain names - History, UTXOs, Domains - the way the user asked for them.
+    /// Plain names - History, UTXOs - the way the user asked for them.
     private func tabLabel(_ tab: Tab) -> String {
         tab.rawValue
     }
@@ -2012,8 +2006,6 @@ struct SpendingAddressTransactionHistoryView: View {
                 transactionsList
             case .utxos:
                 utxosList
-            case .kachatDomains:
-                AddressDomainsTab(address: entry.address)
             }
         }
         .navigationTitle(entry.displayLabel)
@@ -2171,9 +2163,7 @@ struct SpendingAddressTransactionHistoryView: View {
                 ForEach(transactions, id: \.transactionId) { tx in
                     Button {
                         Haptics.impact(.light)
-                        // Tapping a transaction asks what to do with it. It used to open the
-                        // explorer outright, which left "Add to Portfolio" on a swipe and a long
-                        // press - both invisible until you already knew they were there.
+                        // Tapping a transaction asks what to do with it.
                         transactionActionTarget = tx
                     } label: {
                         transactionRow(tx)
@@ -2185,32 +2175,12 @@ struct SpendingAddressTransactionHistoryView: View {
         .listStyle(.insetGrouped)
         // The menu is a sheet rather than a confirmation dialog so each option can say what it
         // does, and so the transaction it applies to stays on screen while you choose.
-        .sheet(item: $transactionActionTarget, onDismiss: {
-            // Handing the portfolio sheet over only once this one is fully gone. Presenting a
-            // sheet from inside a sheet that is still dismissing drops it on the floor.
-            if let pending = pendingPortfolioCandidate {
-                pendingPortfolioCandidate = nil
-                portfolioCandidate = pending
-            }
-        }) { tx in
+        .sheet(item: $transactionActionTarget) { tx in
             TransactionActionsSheet(
                 transaction: tx,
                 address: entry.address,
-                onOpenExplorer: { openInExplorer(tx) },
-                onAddToPortfolio: { pendingPortfolioCandidate = $0 }
+                onOpenExplorer: { openInExplorer(tx) }
             )
-        }
-        .sheet(item: $portfolioCandidate) { candidate in
-            AddToPortfolioSheet(candidate: candidate) { portfolio in
-                addedPortfolioName = portfolio.name
-            }
-        }
-        .overlay(alignment: .bottom) {
-            if let addedPortfolioName {
-                PortfolioAddedCapsule(portfolioName: addedPortfolioName) {
-                    self.addedPortfolioName = nil
-                }
-            }
         }
         .refreshable {
             await loadTransactions()

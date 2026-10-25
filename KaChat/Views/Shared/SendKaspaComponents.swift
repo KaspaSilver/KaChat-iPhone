@@ -224,7 +224,7 @@ struct OtherDomainsDropdown: View {
 /// converted value) and Max under it. Hands the screen the KAS amount text after every edit.
 struct KaspaAmountEntry: View {
     @ObservedObject var fiatAmountState: KaspaFiatAmountState
-    @ObservedObject private var portfolio = PortfolioViewModel.shared
+    @ObservedObject private var priceModel = KasPriceModel.shared
     /// Receives the amount in KAS (as text) after each edit - what the screen stores.
     let onAmountChange: (String) -> Void
     /// Cleans what was typed before it's used: by default digits and one decimal point, with
@@ -243,7 +243,7 @@ struct KaspaAmountEntry: View {
     var body: some View {
         let display = Self.grouped(fiatAmountState.displayText)
         let fontSize: CGFloat = display.count <= 7 ? 52 : (display.count <= 10 ? 40 : 30)
-        let price = portfolio.currentPriceUsd
+        let price = priceModel.currentPriceUsd
         VStack(spacing: 10) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 TextField(
@@ -264,7 +264,7 @@ struct KaspaAmountEntry: View {
                 .focused($isFocused)
                 .accessibilityLabel(Text(KaspaUnit.label(AppLocalization.string("Amount (KAS)"))))
 
-                Text(verbatim: fiatAmountState.isFiatMode ? portfolio.currentCurrency.code : KaspaUnit.symbol)
+                Text(verbatim: fiatAmountState.isFiatMode ? priceModel.currentCurrency.code : KaspaUnit.symbol)
                     .font(.system(size: fontSize * 0.55, weight: .semibold, design: .rounded))
                     .foregroundColor(.secondary)
             }
@@ -280,10 +280,10 @@ struct KaspaAmountEntry: View {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.arrow.down")
                                 .font(.caption.weight(.semibold))
-                            if let conversion = fiatAmountState.conversionLabelText(priceInCurrency: price, currency: portfolio.currentCurrency) {
+                            if let conversion = fiatAmountState.conversionLabelText(priceInCurrency: price, currency: priceModel.currentCurrency) {
                                 Text(verbatim: conversion)
                             } else {
-                                Text(verbatim: fiatAmountState.isFiatMode ? KaspaUnit.symbol : portfolio.currentCurrency.code)
+                                Text(verbatim: fiatAmountState.isFiatMode ? KaspaUnit.symbol : priceModel.currentCurrency.code)
                             }
                         }
                         .font(.caption)
@@ -907,5 +907,166 @@ struct OwnAddressPicker: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Coin Control
+
+/// Coin control — lets the user fix the exact UTXO set a send spends from instead of the
+/// automatic largest-first selector. Reachable from a send form's "Coin Control" row (moved here
+/// from Cold Storage on 2026-10-24; it fetches via the generic
+/// `NodePoolService.shared.getUtxosByAddresses`, keyed only by `fromAddress`).
+/// Passes the selection back as a plain `[UTXO]?` (nil = automatic) rather than owning any state
+/// itself, since the actual spendable set needs re-resolving against a fresh fetch at build time
+/// anyway.
+struct CoinControlView: View {
+    let fromAddress: String
+    let initialSelection: [UTXO]?
+    let onDone: ([UTXO]?) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var utxos: [UTXO] = []
+    @State private var selectedKeys: Set<String> = []
+    @State private var isLoading = false
+    /// The node could not be asked. Shown in place of "no coins": an outage must never read as
+    /// an empty address when the coins here are about to be spent.
+    @State private var loadError: String?
+    @State private var utxoLabels: [String: String] = [:]
+
+    private func loadUtxos() async {
+        isLoading = true
+        do {
+            utxos = try await NodePoolService.shared.getUtxosByAddresses([fromAddress])
+            loadError = nil
+        } catch {
+            loadError = UserFacingError.message(for: error)
+        }
+        isLoading = false
+    }
+
+    private func key(_ utxo: UTXO) -> String {
+        "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)"
+    }
+
+    private var selectedTotalSompi: UInt64 {
+        utxos.filter { selectedKeys.contains(key($0)) }.reduce(0) { $0 + $1.amount }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if isLoading && utxos.isEmpty {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                } else if utxos.isEmpty {
+                    if let loadError {
+                        UtxoLoadFailureRow(detail: loadError) {
+                            Task { await loadUtxos() }
+                        }
+                    } else {
+                        Text("No UTXOs found at this address.")
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    Section {
+                        ForEach(Array(utxos.enumerated()), id: \.offset) { _, utxo in
+                            let k = key(utxo)
+                            let isSelected = selectedKeys.contains(k)
+                            Button {
+                                if isSelected {
+                                    selectedKeys.remove(k)
+                                } else {
+                                    selectedKeys.insert(k)
+                                }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(isSelected ? .accentColor : .secondary)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        if let label = utxoLabels[k], !label.isEmpty {
+                                            Text(label)
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.accentColor)
+                                        }
+                                        Text(verbatim: "\(formatKas(utxo.amount)) \(KaspaUnit.symbol)")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.primary)
+                                        Text("\(utxo.outpoint.transactionId.prefix(10))...:\(utxo.outpoint.index)")
+                                            .font(.system(.caption2, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } footer: {
+                        if !selectedKeys.isEmpty {
+                            Text(verbatim: "Selected: \(formatKas(selectedTotalSompi)) \(KaspaUnit.symbol) (\(selectedKeys.count) UTXO\(selectedKeys.count == 1 ? "" : "s"))")
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Coin Control")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("Select All") { selectedKeys = Set(utxos.map(key)) }
+                        Button("Automatic (Clear Selection)") { selectedKeys.removeAll() }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    let selected = utxos.filter { selectedKeys.contains(key($0)) }
+                    onDone(selected.isEmpty ? nil : selected)
+                    dismiss()
+                } label: {
+                    Text(selectedKeys.isEmpty ? "Use Automatic Selection" : "Confirm Selection")
+                        .font(.subheadline.weight(.bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .foregroundColor(.black)
+                        .background(Capsule().fill(Color.accentColor))
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 16)
+            }
+            .task {
+                utxoLabels = UtxoLabelStore.load(address: fromAddress)
+                await loadUtxos()
+                if let initialSelection {
+                    selectedKeys = Set(initialSelection.map(key))
+                }
+            }
+        }
+    }
+
+    private func formatKas(_ sompi: UInt64) -> String {
+        String(format: "%.8f", Double(sompi) / 100_000_000.0)
+    }
+}
+
+/// Names a person gave individual coins (UTXOs), shown in Coin Control. Kept under the key Cold
+/// Storage used, so labels set there before it left the app still show.
+enum UtxoLabelStore {
+    static func load(address: String) -> [String: String] {
+        guard let data = UserDefaults.standard.data(forKey: "kachat_cold_storage_utxo_labels_" + address),
+              let decoded = try? JSONDecoder().decode([String: String].self, from: data) else {
+            return [:]
+        }
+        return decoded
     }
 }

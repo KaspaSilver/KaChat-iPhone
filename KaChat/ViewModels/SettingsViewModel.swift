@@ -50,73 +50,8 @@ private final class AppSettingsCache: @unchecked Sendable {
     func invalidate() { lock.lock(); defer { lock.unlock() }; cached = nil }
 }
 
-/// Per-account dock layout (tab order + which tabs are hidden). The dock is PER ACCOUNT: the
-/// same install can hold multiple accounts, each with its own arrangement. Stored as one JSON
-/// blob per wallet address; `AppSettings.load()` overlays the active account's blob onto the
-/// global settings, and every save writes the current dock fields back to that account's blob.
-/// An account with no blob yet inherits the global values (continuity for the account that
-/// existed before this feature, a sensible starting point for new ones) and diverges on its
-/// first dock change.
-struct DockOverlay: Codable {
-    var tabOrder: [String]
-    var hiddenTabs: [String]
-    /// Placement, per account. Optional so overlays written before placement existed still
-    /// decode; a nil one leaves whatever the global blob's migration produced in place rather
-    /// than overwriting it with an empty dock.
-    var dockTabs: [String]?
-    var hubTabs: [String]?
-}
-
 /// Extension to load settings from any context (not MainActor-isolated)
 extension AppSettings {
-    static func dockOverlayKey(for address: String) -> String { "kachat_dock_overlay_\(address)" }
-
-    /// The active wallet address, from the app-group defaults (kept current by
-    /// SharedDataManager.syncWalletAddressForExtension on every load/switch/logout) - readable
-    /// from any context, unlike the MainActor-bound WalletManager.
-    static func activeDockAddress() -> String? {
-        (SharedDataManager.sharedDefaultsValue(forKey: "wallet_address") as? String)
-            .flatMap { $0.isEmpty ? nil : $0 }
-    }
-
-    mutating func applyDockOverlay(_ overlay: DockOverlay) {
-        tabOrder = overlay.tabOrder
-        if let overlayDock = overlay.dockTabs, !overlayDock.isEmpty {
-            dockTabs = overlayDock
-        }
-        if let overlayHub = overlay.hubTabs, !overlayHub.isEmpty {
-            hubTabs = overlayHub
-        }
-        hidePortfolioTab = overlay.hiddenTabs.contains(AppTab.portfolio.rawValue)
-        hideColdStorageTab = overlay.hiddenTabs.contains(AppTab.coldStorage.rawValue)
-        hideSwapTab = overlay.hiddenTabs.contains(AppTab.swap.rawValue)
-        hideAppsTab = overlay.hiddenTabs.contains(AppTab.apps.rawValue)
-        hideMoreItem = overlay.hiddenTabs.contains(AppTab.more.rawValue)
-    }
-
-    func dockOverlay() -> DockOverlay {
-        // Raw hide flags, NOT AppTab.isEnabled: isEnabled also applies the Simple Mode mask
-        // (Swap forced off), and baking that mask into the persisted
-        // per-account overlay would leave those tabs hidden even after Simple Mode is turned
-        // back off. The overlay must only ever record the user's own dock choices.
-        var hidden: [String] = []
-        if hidePortfolioTab { hidden.append(AppTab.portfolio.rawValue) }
-        if hideColdStorageTab { hidden.append(AppTab.coldStorage.rawValue) }
-        if hideSwapTab { hidden.append(AppTab.swap.rawValue) }
-        if hideAppsTab { hidden.append(AppTab.apps.rawValue) }
-        if hideMoreItem { hidden.append(AppTab.more.rawValue) }
-        return DockOverlay(tabOrder: tabOrder, hiddenTabs: hidden, dockTabs: dockTabs, hubTabs: hubTabs)
-    }
-
-    /// Writes the dock fields of `settings` to the active account's overlay blob. Called from
-    /// both save paths so the per-account copy can never drift from what the user sees.
-    static func persistDockOverlay(_ settings: AppSettings) {
-        guard let address = activeDockAddress() else { return }
-        if let data = try? JSONEncoder().encode(settings.dockOverlay()) {
-            UserDefaults.standard.set(data, forKey: dockOverlayKey(for: address))
-        }
-    }
-
     /// Load settings from UserDefaults (can be called from any context). Cached - see
     /// `AppSettingsCache`.
     static func load() -> AppSettings {
@@ -135,84 +70,16 @@ extension AppSettings {
             settings.indexerURL = defaultIndexerURL
             save(settings)
         }
-        // One-time 4.1 dock rules: Ecosystem replaces Swap's dock slot and takes over holding
-        // the websites list, so every existing user is moved onto the new
-        // arrangement rather than only new installs getting it. Their per-tab on/off choices are
-        // untouched - only the ORDER is reset, which is what decides who gets a dock slot.
-        let ecosystemRulesKey = "kachat_dock_41_ecosystem_applied"
-        if !userDefaults.bool(forKey: ecosystemRulesKey) {
-            settings.tabOrder = AppTab.defaultOrder.map(\.rawValue)
-            settings.hideEcosystemTab = false
-            userDefaults.set(true, forKey: ecosystemRulesKey)
-            save(settings)
-        }
-
-        // Its OWN key, deliberately, rather than another line inside the block above.
-        //
-        // That block's flag is set the first time it runs, so a rule added to it afterwards
-        // never executes for anyone who already ran it - which is exactly what happened here:
-        // the websites list stayed switched off on every device that had already taken the
-        // Kaspa Hub migration, and the decode default could not rescue it either, since a saved
-        // blob carries an explicit `hideAppsTab` and never falls back.
-        //
-        // One rule, one key. It costs a Bool in UserDefaults and it cannot silently no-op.
-        let websitesEnabledKey = "kachat_dock_41_websites_enabled"
-        if !userDefaults.bool(forKey: websitesEnabledKey) {
-            // Off by default while it had to win one of five dock slots; its home is now a tile
-            // in Kaspa Hub that costs nothing to keep.
-            settings.hideAppsTab = false
-            userDefaults.set(true, forKey: websitesEnabledKey)
-            save(settings)
-        }
-        // One-time placement migration. Tabs used to be on/off with the dock taking the first
-        // five of an order; they now have an explicit placement, and a blob saved before that has
-        // no `dockTabs` at all. Derived from what the user could actually SEE rather than reset to
-        // the default, so an arrangement they built is carried over instead of discarded - with
-        // Kaspa Hub guaranteed a slot, since it is what holds everything else.
-        let placementKey = "kachat_dock_41_placement_applied"
-        if !userDefaults.bool(forKey: placementKey) {
-            var dock = AppTab.resolvedOrder(from: settings)
-                .filter { $0.isEnabled(in: settings) && AppTab.assignable.contains($0) }
-            // The pinned tabs go where a fresh install puts them; `AppTab.visible` would reinsert
-            // them at read time anyway, but storing them keeps the saved arrangement honest.
-            for pinned in AppTab.pinnedToDock where !dock.contains(pinned) {
-                let position = AppTab.defaultDock.firstIndex(of: pinned) ?? dock.count
-                dock.insert(pinned, at: min(position, dock.count))
-            }
-            let placedDock = Array(dock.prefix(AppTab.maxDockItems))
-            settings.dockTabs = placedDock.map(\.rawValue)
-            // Everything else, in the app's default order, as this account's starting Hub order.
-            settings.hubTabs = AppTab.defaultOrder
-                .filter { AppTab.assignable.contains($0) && !placedDock.contains($0) }
-                .map(\.rawValue)
-            userDefaults.set(true, forKey: placementKey)
-            save(settings)
-        }
-
-        // Per-account dock: the active account's saved arrangement wins over the global blob.
-        if let address = activeDockAddress() {
-            if let data = userDefaults.data(forKey: dockOverlayKey(for: address)),
-               let overlay = try? JSONDecoder().decode(DockOverlay.self, from: data) {
-                settings.applyDockOverlay(overlay)
-            } else {
-                // First load for this account: freeze its inherited dock into its own blob NOW.
-                // Without this, an account that never saves settings would keep inheriting the
-                // global blob - which a later save on a DIFFERENT account overwrites, leaking
-                // that account's dock back into this one.
-                persistDockOverlay(settings)
-            }
-        }
         AppSettingsCache.shared.set(settings)
         return settings
     }
 
-    /// Symmetric write path for services that don't hold a `SettingsViewModel` reference (e.g.
-    /// SwapService persisting the swap disclaimer flag) - same storage key/notification as
+    /// Symmetric write path for services that don't hold a `SettingsViewModel` reference - same
+    /// storage key/notification as
     /// `SettingsViewModel.saveSettings()`, just callable without an instance.
     static func save(_ settings: AppSettings) {
         guard let data = try? JSONEncoder().encode(settings) else { return }
         UserDefaults.standard.set(data, forKey: "kachat_app_settings")
-        persistDockOverlay(settings)
         // Keep the app-group mirror current on this path too - the Diagnostics page's Verbose
         // API Logging toggle saves through here, and the NSE reads that flag from the mirror.
         SharedDataManager.syncNotificationSettingsForExtension(settings)
@@ -237,7 +104,7 @@ final class SettingsViewModel: ObservableObject {
         self.settings = loaded
         self.launchNetworkType = loaded.networkType
         // Account switches post .settingsDidChange with a nil object (see WalletManager) so the
-        // new account's dock overlay takes effect immediately. Saves post WITH the settings
+        // settings are re-read. Saves post WITH the settings
         // object - skipped here, this instance already holds those values.
         NotificationCenter.default.addObserver(
             forName: .settingsDidChange, object: nil, queue: .main
@@ -257,7 +124,6 @@ final class SettingsViewModel: ObservableObject {
     func saveSettings() {
         guard let data = try? JSONEncoder().encode(settings) else { return }
         userDefaults.set(data, forKey: settingsKey)
-        AppSettings.persistDockOverlay(settings)
         SharedDataManager.syncNotificationSettingsForExtension(settings)
 
         // Notify other services of settings changes

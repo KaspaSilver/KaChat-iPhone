@@ -1,11 +1,9 @@
 import Foundation
 import SwiftUI
 
-/// The bell on the Profile screen holds two things:
-/// - Kaspa arriving in one of your own wallets - the chatting wallet, a spending address, cold
-///   storage (fed by AddressActivityNotifier);
-/// - your .kachat names: offers, sales, renewal and expiry, what happened to your offers
-///   (`KachatNamesNotifier`).
+/// The bell on the Profile screen holds Kaspa arriving in one of your own addresses - the
+/// chatting address or a spending address (fed by AddressActivityNotifier). .kachat name news
+/// left with the .kachat market on 2026-10-24.
 /// Not group chats (they keep their own unread counts in the Chats tab). Entries are account-scoped, persisted, deduped by id, and capped; opening the
 /// list marks everything seen.
 @MainActor
@@ -18,7 +16,7 @@ final class GlobalNotificationCenter: ObservableObject {
             /// an older build still decodes - `reload` drops those rows.
             case kaposts, group, wallet
             case publicChat = "broadcast"
-            /// a .kachat name event; `targetId` is the name
+            /// RETIRED with the .kachat market (2026-10-24): a .kachat name event.
             case kachat
 
             var label: String {
@@ -42,7 +40,7 @@ final class GlobalNotificationCenter: ObservableObject {
             }
 
             /// What the Profile bell lists.
-            static let inBell: Set<Source> = [.wallet, .kachat]
+            static let inBell: Set<Source> = [.wallet]
         }
 
         let id: String
@@ -77,9 +75,9 @@ final class GlobalNotificationCenter: ObservableObject {
     func reload() {
         if let data = UserDefaults.standard.data(forKey: entriesKey),
            let decoded = try? JSONDecoder().decode([Entry].self, from: data) {
-            // Wallet and .kachat rows only. Group mentions carry their own counts in the Chats
-            // tab, and KaPosts and Public Chats are gone; anything an older build saved for
-            // those is dropped here.
+            // Wallet rows only. Group mentions carry their own counts in the Chats tab, and
+            // KaPosts, Public Chats and the .kachat market are gone; anything an older build
+            // saved for those is dropped here.
             let kept = decoded.filter { Entry.Source.inBell.contains($0.source) }
             entries = kept
             if kept.count != decoded.count { persist() }
@@ -186,7 +184,7 @@ struct GlobalNotificationListView: View {
                             .foregroundColor(.secondary)
                         Text("No notifications yet")
                             .font(.headline)
-                        Text("Kaspa arriving in your wallets and news about your .kachat names show up here.")
+                        Text("Kaspa arriving in your addresses shows up here.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -220,8 +218,7 @@ struct GlobalNotificationListView: View {
                         }
                         .padding(.vertical, 2)
                         // Every row deep-opens its subject through the same pending-deep-link
-                        // flow the OS notification taps use: group rows the group thread,
-                        // wallet rows the wallet screen, .kachat rows the name.
+                        // flow the OS notification taps use: wallet rows the address.
                         .contentShape(Rectangle())
                         .onTapGesture { open(entry) }
                     }
@@ -249,7 +246,7 @@ struct GlobalNotificationListView: View {
     private func open(_ entry: GlobalNotificationCenter.Entry) {
         let target = entry.targetId ?? ""
         switch entry.source {
-        case .kaposts, .publicChat:
+        case .kaposts, .publicChat, .kachat:
             // Retired sources; `reload` drops their rows, so there is nothing to open.
             return
         case .group:
@@ -264,26 +261,17 @@ struct GlobalNotificationListView: View {
                 )
             }
         case .wallet:
-            // A receipt opens the history of the address that got the Kaspa (chatting, spending
-            // or cold storage - MainTabView works out which), as a tapped banner does. Entries
-            // recorded before receipts carried their address fall back to the wallet screen.
+            // A receipt opens the history of the address that got the Kaspa (chatting or
+            // spending - MainTabView works out which), as a tapped banner does. Entries recorded
+            // before receipts carried their address fall back to Profile.
             dismiss()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                 if !target.isEmpty {
                     OwnAddressRoute.pending = target
                     NotificationCenter.default.post(name: .openOwnAddress, object: nil)
                 } else {
-                    NotificationCenter.default.post(name: .openPortfolio, object: nil)
+                    NotificationCenter.default.post(name: .openProfile, object: nil)
                 }
-            }
-        case .kachat:
-            // The name, the same way a tapped .kachat push opens it.
-            guard !target.isEmpty else { return }
-            dismiss()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                KachatDeepLink.pendingName = KachatNames.Codec.normalize(target)
-                PendingTabRoute.pending = .kachatNames
-                NotificationCenter.default.post(name: .openKachatName, object: nil)
             }
         }
     }

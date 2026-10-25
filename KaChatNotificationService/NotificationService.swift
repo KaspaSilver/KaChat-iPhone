@@ -67,9 +67,16 @@ class NotificationService: UNNotificationServiceExtension {
         // Extract push data from userInfo
         let userInfo = request.content.userInfo
 
-        // .kachat name events (KACHAT_NAMES_INDEXER.md Part E): offers, sales, renewal reminders.
+        // .kachat name events (KACHAT_NAMES_INDEXER.md Part E: offers, sales, renewal reminders)
+        // belong to the KaChat wallet app since the .kachat market left this app (2026-10-24):
+        // delivered silently.
         if (userInfo["type"] as? String) == "name_event" {
-            handleNameEvent(content: content, userInfo: userInfo)
+            content.title = ""
+            content.subtitle = ""
+            content.body = ""
+            content.sound = nil
+            content.badge = nil
+            content.interruptionLevel = .passive
             contentHandler(content)
             return
         }

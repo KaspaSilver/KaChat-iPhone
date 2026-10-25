@@ -44,9 +44,6 @@ struct ProfileView: View {
     @State private var kachatBannerSource: String?
     @State private var kachatBioSource: String?
     @State private var kachatLinktree: String?
-    /// The account's .kachat names for the Your Domains count - the same set its .kachat tab
-    /// lists (in grace and lapsed included). 0 where the registry isn't launched.
-    @State private var kachatOwnedCount = 0
     @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
     @State private var showMoreProfileInfo = false
@@ -61,14 +58,12 @@ struct ProfileView: View {
     @State private var showAvatarPreview = false
     @State private var showKNSEditor = false
     @State private var showCreateKNSProfileFlow = false
-    @State private var showKachatSetupGuide = false
     @State private var settingPrimaryDomainId: String?
     /// Result of the last "Set as Primary" tap, shown by the editor sheet itself.
     @State private var setPrimaryMessage: KNSSetPrimaryMessage?
     @State private var isSavingKNSProfile = false
     @State private var knsSaveProgressText: String?
     @State private var failedKNSUpdates: [KNSProfileFieldKey: String] = [:]
-    @State private var showSettings = false
     @State private var showNotifCenter = false
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared
     /// Donate: the Send screen, addressed to KaChat's donation address
@@ -86,8 +81,6 @@ struct ProfileView: View {
     @State private var showLogoutConfirmation = false
     @State private var showWelcomeGuideReplay = false
     @State private var isEditingAccountName = false
-    /// .kachat names of this wallet in their grace period: the banner at the top
-    @StateObject private var expiredKachatNames = KachatExpiredNamesModel()
 
     static func preloadQRCode(for address: String) {
         ProfileQRCodeCache.preload(address: address, completion: nil)
@@ -98,10 +91,6 @@ struct ProfileView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     if let wallet = walletManager.currentWallet {
-                        // one of your .kachat names expired and is in grace: renew it in time
-                        if !expiredKachatNames.visible.isEmpty {
-                            KachatExpiredNamesBanner(model: expiredKachatNames)
-                        }
                         accountNameRow(wallet)
                         profileHeroSection(wallet)
                             .task(id: "\(wallet.publicAddress)-\(kachatRegistry.revision)") {
@@ -110,7 +99,6 @@ struct ProfileView: View {
                         qrButtonsSection(wallet)
                         addressDropdownsSection(wallet)
                         yourDomainsSection
-                        settingsSection
                         helpSection
                         logOutSection
                         aboutSection(wallet)
@@ -248,9 +236,6 @@ struct ProfileView: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isSavingKNSProfile)
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
             // Posted from elsewhere in the app to open the editor this screen's state already
             // drives, rather than rebuilding it.
             .onReceive(NotificationCenter.default.publisher(for: .openKNSProfileEditor)) { _ in
@@ -315,9 +300,6 @@ struct ProfileView: View {
                     fallbackText: editedAlias,
                     title: knsProfileInfo?.domainName ?? editedAlias
                 )
-            }
-            .fullScreenCover(isPresented: $showKachatSetupGuide) {
-                KachatSetupGuideView { showKachatSetupGuide = false }
             }
             .fullScreenCover(isPresented: $showWelcomeGuideReplay) {
                 WelcomeGuideView(onFinished: { showWelcomeGuideReplay = false })
@@ -522,8 +504,8 @@ struct ProfileView: View {
                     Label("Your Domains", systemImage: "at")
                         .foregroundColor(.primary)
                     Spacer()
-                    // Every name the account owns: .kachat, KNS, .k and .kaspa.
-                    Text("\(kachatOwnedCount + knsDomains.count + (nameServices.ownerAddress == walletAddress.lowercased() ? nameServices.totalOwned : 0))")
+                    // Every name the account owns with KNS, .k and .kaspa.
+                    Text("\(knsDomains.count + (nameServices.ownerAddress == walletAddress.lowercased() ? nameServices.totalOwned : 0))")
                         .foregroundColor(.secondary)
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -538,54 +520,14 @@ struct ProfileView: View {
             .task(id: walletAddress) {
                 await NameServicesClient.shared.refresh(for: walletAddress)
             }
-            // Reloads whenever the registry moves (a registration, sale or transfer lands).
-            .task(id: "\(walletAddress)-\(kachatRegistry.revision)") {
-                await loadKachatOwnedCount(walletAddress)
-            }
         }
-    }
-
-    private func loadKachatOwnedCount(_ address: String) async {
-        guard KachatNamesService.isLaunched, let key = KachatNamesRegistry.keyOf(address) else {
-            kachatOwnedCount = 0
-            return
-        }
-        await kachatRegistry.refreshIfStale(maxAge: 300)
-        // the same names Your Domains lists: a lapsed one isn't yours any more
-        guard let names = try? await kachatRegistry.heldNames(owner: key) else { return }
-        kachatOwnedCount = names.count
-        // and one that lapses while Profile is open comes off the count right then
-        await kachatRegistry.dropLapsed(from: names) { kachatOwnedCount = $0.count }
-    }
-
-    /// Settings, as a card in the list rather than a glyph in the chrome - it belongs with the
-    /// other destinations you tap into from here (Your Domains, Help), and it is the entry point
-    /// to everything the app can be configured to do.
-    private var settingsSection: some View {
-        Button {
-            showSettings = true
-        } label: {
-            HStack {
-                Label("Settings", systemImage: "gear")
-                    .foregroundColor(.primary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(16)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(glassBackground(cornerRadius: 18))
     }
 
     /// Entry to the Help screen: every guide in one place.
     private var helpSection: some View {
         NavigationLink {
             ProfileHelpView(
-                onWelcomeGuide: { showWelcomeGuideReplay = true },
-                onKNSSetupGuide: { showKachatSetupGuide = true }
+                onWelcomeGuide: { showWelcomeGuideReplay = true }
             )
         } label: {
             HStack {
@@ -2337,8 +2279,7 @@ private struct KNSProfileEditorSheet: View {
 
     var body: some View {
         NavigationStack {
-            // No setup guide here since 5.2: the guide is .kachat's, in Edit KaChat Profile
-            // (`KachatSetupGuideView`). A .kas profile is edited field by field below.
+            // A .kas profile is edited field by field below.
             Form {
 
                 Section("Avatar") {
@@ -2713,18 +2654,14 @@ private struct KNSDomainsListView: View {
     var onCustomizeProfile: ((KNSDomain) -> Void)? = nil
 
     @ObservedObject private var nameServices = NameServicesClient.shared
-    @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
-    /// How many .kachat names this wallet holds, counted the same way the .kachat screen lists
-    /// them. nil until the first count lands (the card shows a dash, not a made-up 0).
-    @State private var kachatCount: Int?
 
     var body: some View {
-        // One square card per name ending, KaChat's own first: .kachat, KNS (.kas), dotk (.k),
-        // Kaspa Names (.kaspa) - the same tile look as Kaspa Hub. Each card pushes that
+        // One square card per name ending: KNS (.kas), dotk (.k), Kaspa Names (.kaspa). .kachat
+        // names are managed in the KaChat wallet app since 2026-10-24. Each card pushes that
         // service's own screen (these used to be tabs on this screen).
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
-                ForEach(NameServiceTLD.allCases) { tld in
+                ForEach(NameServiceTLD.allCases.filter { $0 != .kachat }) { tld in
                     NavigationLink {
                         domainsScreen(tld)
                     } label: {
@@ -2739,11 +2676,6 @@ private struct KNSDomainsListView: View {
         .task(id: walletAddress) {
             await nameServices.refresh(for: walletAddress)
         }
-        // Counts again whenever the registry moves (a name inscribed, bought, transferred or
-        // lapsed behind a card shows on this screen the moment you come back to it).
-        .task(id: kachatRegistry.revision) {
-            await refreshKachatCount()
-        }
         .navigationTitle("Your Domains")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -2757,25 +2689,7 @@ private struct KNSDomainsListView: View {
         case .k, .kaspa:
             return nameServices.owned[tld]?.count
         case .kachat:
-            return kachatCount
-        }
-    }
-
-    /// The same read KachatLiveDomainsTab's load() does, reduced to a count: the whole wallet's
-    /// held names for the own chatting address, the one address's otherwise.
-    private func refreshKachatCount() async {
-        guard KachatNamesService.isEnabled, KachatNamesService.isLaunched else {
-            kachatCount = 0
-            return
-        }
-        if kachatRegistry.refreshedAt == nil { await kachatRegistry.refresh() }
-        if walletAddress.lowercased() == KachatNamesActions.shared.myAddress,
-           let own = try? await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: true) {
-            kachatCount = own.names.count
-        } else if let key = KachatNamesRegistry.keyOf(walletAddress) {
-            kachatCount = (try? await kachatRegistry.heldNames(owner: key))?.count
-        } else {
-            kachatCount = 0
+            return nil
         }
     }
 
@@ -2789,12 +2703,8 @@ private struct KNSDomainsListView: View {
             case .k, .kaspa:
                 serviceNameList(tld)
             case .kachat:
-                // Live on both networks (testnet-10, and mainnet since 2026-10-09).
-                if KachatNamesService.isEnabled {
-                    KachatLiveDomainsTab(walletAddress: walletAddress)
-                } else {
-                    kachatComingSoon
-                }
+                // Not listed (see `body`): .kachat names are managed in the wallet app.
+                EmptyView()
             }
         }
         .navigationTitle(tld.suffix)
@@ -2942,27 +2852,6 @@ private struct KNSDomainsListView: View {
         }
         .safeAreaInset(edge: .bottom) {
             getNameButton(tld)
-        }
-    }
-
-    // MARK: .kachat
-
-    private var kachatComingSoon: some View {
-        ScrollView {
-            VStack(spacing: 12) {
-                Image(systemName: "at.circle")
-                    .font(.system(size: 44, weight: .semibold))
-                    .foregroundColor(.accentColor)
-                Text(".kachat names are coming")
-                    .font(.headline)
-                Text("KaChat's own names will live here: claim one, set it as your name in chats, and share it as your profile link.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 40)
         }
     }
 
@@ -3883,11 +3772,6 @@ struct ChattingAddressManageView: View {
 
     /// The tapped transaction, while its action chooser is up.
     @State private var transactionActionTarget: KaspaFullTransactionResponse?
-    @State private var pendingPortfolioCandidate: PortfolioCandidateTransaction?
-    /// The transaction being filed into a portfolio, if any - see `AddToPortfolioSheet`.
-    @State private var portfolioCandidate: PortfolioCandidateTransaction?
-    /// Name of the portfolio just added to, for the confirmation capsule.
-    @State private var addedPortfolioName: String?
 
     @EnvironmentObject var chatService: ChatService
     @EnvironmentObject var settingsViewModel: SettingsViewModel
@@ -3895,7 +3779,6 @@ struct ChattingAddressManageView: View {
     private enum Tab: String, CaseIterable {
         case transactions = "History"
         case utxos = "UTXOs"
-        case kachatDomains = "Domains"
     }
 
     @State private var selectedTab: Tab = .transactions
@@ -3928,7 +3811,7 @@ struct ChattingAddressManageView: View {
         "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)"
     }
 
-    /// Plain names - History, UTXOs, Domains - the way the user asked for them.
+    /// Plain names - History, UTXOs - the way the user asked for them.
     private func tabLabel(_ tab: Tab) -> String {
         tab.rawValue
     }
@@ -3976,8 +3859,6 @@ struct ChattingAddressManageView: View {
                 transactionsList
             case .utxos:
                 utxosList
-            case .kachatDomains:
-                AddressDomainsTab(address: address)
             }
         }
         .navigationTitle("Chatting Address")
@@ -4161,9 +4042,7 @@ struct ChattingAddressManageView: View {
                 ForEach(transactions, id: \.transactionId) { tx in
                     Button {
                         Haptics.impact(.light)
-                        // Tapping a transaction asks what to do with it. It used to open the
-                        // explorer outright, which left "Add to Portfolio" on a swipe and a long
-                        // press - both invisible until you already knew they were there.
+                        // Tapping a transaction asks what to do with it.
                         transactionActionTarget = tx
                     } label: {
                         transactionRow(tx)
@@ -4175,32 +4054,12 @@ struct ChattingAddressManageView: View {
         .listStyle(.insetGrouped)
         // The menu is a sheet rather than a confirmation dialog so each option can say what it
         // does, and so the transaction it applies to stays on screen while you choose.
-        .sheet(item: $transactionActionTarget, onDismiss: {
-            // Handing the portfolio sheet over only once this one is fully gone. Presenting a
-            // sheet from inside a sheet that is still dismissing drops it on the floor.
-            if let pending = pendingPortfolioCandidate {
-                pendingPortfolioCandidate = nil
-                portfolioCandidate = pending
-            }
-        }) { tx in
+        .sheet(item: $transactionActionTarget) { tx in
             TransactionActionsSheet(
                 transaction: tx,
                 address: address,
-                onOpenExplorer: { openInExplorer(tx) },
-                onAddToPortfolio: { pendingPortfolioCandidate = $0 }
+                onOpenExplorer: { openInExplorer(tx) }
             )
-        }
-        .sheet(item: $portfolioCandidate) { candidate in
-            AddToPortfolioSheet(candidate: candidate) { portfolio in
-                addedPortfolioName = portfolio.name
-            }
-        }
-        .overlay(alignment: .bottom) {
-            if let addedPortfolioName {
-                PortfolioAddedCapsule(portfolioName: addedPortfolioName) {
-                    self.addedPortfolioName = nil
-                }
-            }
         }
         .refreshable {
             await loadTransactions()
@@ -4756,7 +4615,7 @@ struct WithdrawKaspaView: View {
     @EnvironmentObject var contactsManager: ContactsManager
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var portfolioViewModel = PortfolioViewModel.shared
+    @ObservedObject private var priceModel = KasPriceModel.shared
     @StateObject private var fiatAmountState = KaspaFiatAmountState()
 
     @State private var addressInput = ""
@@ -5023,7 +4882,7 @@ struct WithdrawKaspaView: View {
         isValidAddress = KaspaAddress.isValidOnActiveNetwork(request.address)
         // the exact amount is what's sent; the field shows it in whichever unit it is in
         amountInput = request.amountText
-        _ = fiatAmountState.setMaxKas(Double(request.amountSompi) / 100_000_000.0, priceInCurrency: portfolioViewModel.currentPriceUsd)
+        _ = fiatAmountState.setMaxKas(Double(request.amountSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
     }
 
     /// Use one service's answer (the priority one, or a pick from "Other domains").
@@ -5093,7 +4952,7 @@ struct WithdrawKaspaView: View {
                     maxSompi = try await chatService.estimateMaxWithdrawalAmount(toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                 }
                 await MainActor.run {
-                    amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: portfolioViewModel.currentPriceUsd)
+                    amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
                     isEstimatingMax = false
                 }
             } catch {
@@ -5238,12 +5097,10 @@ private enum ProfileQRCodeCache {
 // MARK: - Profile Help screen
 
 /// All the app's guides in one place, reached from Profile > Help: the first-run Welcome
-/// Guide, the KNS profile setup wizard, and the 4.0 dock walkthrough (Chats-tab cycling).
-/// Welcome/KNS replay through ProfileView's own covers (callbacks); the dock guide presents
-/// right here.
+/// Guide, replayed through ProfileView's own cover (callback). The .kachat names guide left with
+/// the .kachat market on 2026-10-24.
 struct ProfileHelpView: View {
     let onWelcomeGuide: () -> Void
-    let onKNSSetupGuide: () -> Void
 
 
     var body: some View {
@@ -5255,13 +5112,6 @@ struct ProfileHelpView: View {
                     subtitle: "The full first-run tour: wallet, chats, payments and more."
                 ) {
                     onWelcomeGuide()
-                }
-                helpRow(
-                    icon: "person.text.rectangle",
-                    title: ".kachat Names Guide",
-                    subtitle: "Claim a .kachat name, make it your name, and keep it."
-                ) {
-                    onKNSSetupGuide()
                 }
             }
         }
@@ -5423,94 +5273,6 @@ struct TestnetFaucetClaimButton: View {
     }
 }
 
-// MARK: - Profile Apps screen (Kaspa ecosystem quick links)
-
-/// Bubble-style launchers for Kaspa ecosystem sites, each opening in an IN-APP browser
-/// (SFSafariViewController) rather than kicking the user out to Safari.
-struct ProfileAppsView: View {
-    struct EcosystemApp: Identifiable {
-        let name: String
-        let icon: String
-        let usesKaspaLogo: Bool
-        let url: URL
-        var id: String { name }
-    }
-
-    private let apps: [EcosystemApp] = [
-        EcosystemApp(name: "Kaspa.org", icon: "", usesKaspaLogo: true, url: URL(string: "https://kaspa.org")!),
-        EcosystemApp(name: "Kaspa Stream", icon: "waveform.path.ecg", usesKaspaLogo: false, url: URL(string: "https://kaspa.stream")!),
-        EcosystemApp(name: "Kaspa Explorer", icon: "magnifyingglass", usesKaspaLogo: false, url: URL(string: "https://explorer.kaspa.org")!),
-        EcosystemApp(name: "KasMap", icon: "map", usesKaspaLogo: false, url: URL(string: "https://kasmap.org")!),
-        EcosystemApp(name: "KasShi", icon: "play.rectangle.fill", usesKaspaLogo: false, url: URL(string: "https://kasshi.io")!),
-        EcosystemApp(name: "Kaspa News", icon: "newspaper", usesKaspaLogo: false, url: URL(string: "https://kaspa.news")!),
-        EcosystemApp(name: "KasPlay", icon: "gamecontroller", usesKaspaLogo: false, url: URL(string: "https://kasplay.fun")!),
-        EcosystemApp(name: "KasMart", icon: "cart", usesKaspaLogo: false, url: URL(string: "https://kasmart.org")!),
-        EcosystemApp(name: "KasMedia", icon: "doc.text.image", usesKaspaLogo: false, url: URL(string: "https://kasmedia.com")!),
-        EcosystemApp(name: "Kaspalytics", icon: "chart.bar", usesKaspaLogo: false, url: URL(string: "https://www.kaspalytics.com")!),
-        EcosystemApp(name: "Kas-Smiths", icon: "hammer", usesKaspaLogo: false, url: URL(string: "https://kas-smiths.org")!),
-        EcosystemApp(name: "Kaspa Core R&D", icon: "atom", usesKaspaLogo: false, url: URL(string: "https://t.me/kasparnd")!),
-        // Free testnet-10 KAS for the app's testnet mode (Settings > Testnet uses TN10).
-        EcosystemApp(name: "TN10 Faucet", icon: "drop.fill", usesKaspaLogo: false, url: URL(string: "https://faucet-tn10.kaspanet.io")!)
-    ]
-
-    @State private var browserURL: URL?
-
-    private let columns = [GridItem(.adaptive(minimum: 96), spacing: 20)]
-
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 24) {
-                ForEach(apps) { app in
-                    Button {
-                        Haptics.impact(.light)
-                        browserURL = app.url
-                    } label: {
-                        VStack(spacing: 8) {
-                            Group {
-                                if app.usesKaspaLogo {
-                                    Image("KaspaLogo")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 34, height: 34)
-                                } else {
-                                    Image(systemName: app.icon)
-                                        .font(.scaled(size: 28, weight: .semibold))
-                                        .foregroundColor(.accentColor)
-                                }
-                            }
-                            .frame(width: 68, height: 68)
-                            .background(
-                                Circle()
-                                    .fill(.regularMaterial)
-                                    .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
-                                    .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
-                            )
-                            Text(app.name)
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(.primary)
-                                .lineLimit(1)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(24)
-        }
-        .navigationTitle(AppTab.apps.ecosystemTitle)
-        .navigationBarTitleDisplayMode(.large)
-        .fullScreenCover(isPresented: Binding(
-            get: { browserURL != nil },
-            set: { if !$0 { browserURL = nil } }
-        )) {
-            if let browserURL {
-                InAppBrowserScreen(url: browserURL) {
-                    self.browserURL = nil
-                }
-            }
-        }
-    }
-}
-
 /// Full-screen in-app browser: the X in the top-left is the ONLY way out (full-screen cover,
 /// so there's no slide-down to dismiss).
 ///
@@ -5652,9 +5414,6 @@ private struct DomainProfileEditTarget: Identifiable {
 /// saves on mainnet too; only the primary name waits for mainnet's registry.
 struct KaChatProfileEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var walletManager = WalletManager.shared
-    @State private var showSetupGuide = false
-
     var body: some View {
         if KachatNamesService.isEnabled {
             KachatLiveProfileEditor()
@@ -5666,20 +5425,6 @@ struct KaChatProfileEditorSheet: View {
     private var comingSoonEditor: some View {
         NavigationStack {
             Form {
-                // The setup guide lives here since 5.2 - .kachat is the name KaChat sets up for
-                // you; .kas profiles are edited field by field in Your Domains.
-                if walletManager.showSetupGuides {
-                    Section {
-                        Button {
-                            showSetupGuide = true
-                        } label: {
-                            Text("Setup Guide")
-                        }
-                    } footer: {
-                        Text("Walk through claiming your .kachat name and making it yours.")
-                    }
-                }
-
                 Section {
                     Label {
                         Text(".kachat names are coming. Once you claim one, your avatar, banner, bio and links are set here - and they're what KaChat shows for you everywhere.")
@@ -5722,9 +5467,6 @@ struct KaChatProfileEditorSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
-            }
-            .fullScreenCover(isPresented: $showSetupGuide) {
-                KachatSetupGuideView { showSetupGuide = false }
             }
         }
     }

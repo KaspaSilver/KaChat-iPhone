@@ -1,5 +1,4 @@
 import Foundation
-import WidgetKit
 
 /// Manages shared data between main app and notification extension via App Group
 /// Both targets must have the same App Group entitlement configured
@@ -625,7 +624,6 @@ final class SharedDataManager {
                     "kachat_portfolio_widget_store"] {
             sharedDefaults?.removeObject(forKey: key)
         }
-        WidgetCenter.shared.reloadAllTimelines()
         if let sharedContainerURL {
             let outboundShareDirectory = sharedContainerURL
                 .appendingPathComponent(SharedOutboundShare.ImageAttachment.rootDirectoryName, isDirectory: true)

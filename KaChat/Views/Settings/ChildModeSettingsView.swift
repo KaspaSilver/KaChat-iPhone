@@ -379,12 +379,10 @@ struct ChildModeSettingsView: View {
     private var aboutSection: some View {
         Section {
             Label("Chats & Group Chats", systemImage: "bubble.left.and.bubble.right")
-            Label("Portfolio", systemImage: "chart.pie")
-            Label("Cold Storage", systemImage: "lock.shield")
         } header: {
             Text("What stays available")
         } footer: {
-            Text("While Simple Mode is on, Swaps and the .kachat market are removed everywhere - the dock, Kaspa Hub and links. Face ID never unlocks Simple Mode; only the password does.")
+            Text("Face ID never unlocks Simple Mode; only the password does.")
         }
     }
 }

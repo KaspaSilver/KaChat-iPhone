@@ -214,14 +214,6 @@ final class KachatNamesActions: ObservableObject {
         for (index, address) in spending.sorted(by: { $0.key < $1.key }) where KachatNamesRegistry.keyOf(address) == owner {
             return .spending(index: index, address: address)
         }
-        let cold = ColdStorageManager.shared
-        for account in cold.accounts {
-            for index in 0...max(0, account.maxAddressIndex) {
-                if let address = cold.address(for: account, at: index), KachatNamesRegistry.keyOf(address) == owner {
-                    return .kasSigner(account: account.label, index: index, address: address)
-                }
-            }
-        }
         return nil
     }
 

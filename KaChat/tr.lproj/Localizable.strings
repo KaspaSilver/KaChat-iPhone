@@ -23,9 +23,6 @@
 "Add Address" = "Adres Ekle";
 "Add Contact" = "Kişi Ekle";
 "Add Custom Endpoint" = "Özel Uç Nokta Ekle";
-"Add Transaction" = "Islem Ekle";
-"Add a buy or sell to start tracking your portfolio" = "Portfoyunuzu takip etmeye baslamak icin bir alim veya satim ekleyin";
-"Add to Portfolio" = "Portfoye Ekle";
 "Added" = "Eklendi";
 "Address" = "Adres";
 "Address Actions" = "Adres Islemleri";
@@ -37,7 +34,6 @@
 "Always Hide" = "Her Zaman Gizle";
 "Always Show" = "Her Zaman Goster";
 "Always shown" = "Her zaman gosterilir";
-"Amount" = "Tutar";
 "Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "Ayni kanal adina katilan herkes orada mesajlari gorebilir ve gonderebilir - sahibi veya davetiyesi yoktur.";
 "Anyone with your seed phrase can access your account. Never share it with anyone." = "Seed phrase'inize sahip herkes hesabınıza erişebilir. Asla kimseyle paylaşmayın.";
 "Archive" = "Arşivle";
@@ -50,7 +46,6 @@
 "Auto Search for Nodes" = "Node'lari Otomatik Ara";
 "Autocreate system contacts" = "Sistem kişilerini otomatik oluştur";
 "Automatic hides photos from contacts you haven't added or messaged yet, until you tap to reveal them." = "Otomatik, henuz eklemediginiz veya mesajlasmadiginiz kisilerin fotograflarini siz dokunup gostermeden gizler.";
-"Available" = "Musait";
 "Avatar" = "avatar";
 "Balance" = "Bakiye";
 "Balance copied to clipboard." = "Bakiye panoya kopyalandı.";
@@ -60,10 +55,8 @@
 "Best" = "En iyi";
 "Bio" = "Biyografi";
 "Broadcast Settings" = "Yayin Ayarlari";
-"Broadcasting..." = "Yayinlaniyor...";
 "Broadcasts" = "Yayinlar";
 "Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "Yayinlar herkese acik, sifrelenmemis kanallardir - ayni kanal adina katilan herkes ayni mesajlari gorur.";
-"Buy" = "Al";
 "Camera" = "Kamera";
 "Camera Access Required" = "Kamera Erişimi Gerekli";
 "Cancel" = "İptal";
@@ -101,7 +94,6 @@
 "Clear Link" = "Bağlantıyı Kaldır";
 "Clear connection pool?" = "Bağlantı havuzu temizlensin mi?";
 "Close" = "Kapat";
-"Cold Storage" = "Soguk Depolama";
 "Confirm" = "Onayla";
 "Connect Your Own Node" = "Kendi Node'unuzu Baglayin";
 "Connect to a Node" = "Bir Duguma Baglan";
@@ -126,7 +118,6 @@
 "Copy Private Key Hex" = "Özel Anahtar Hex Kopyala";
 "Copy Seed Phrase" = "Seed Phrase Kopyala";
 "Copy Transaction ID" = "İşlem ID'sini Kopyala";
-"Copy kpub" = "kpub Kopyala";
 "Copy to Clipboard" = "Panoya Kopyala";
 "Could not encode selected image" = "Seçilen resim kodlanamadı";
 "Could not initialize image encoder" = "Görüntü kodlayıcı başlatılamadı";
@@ -156,7 +147,6 @@
 "Delete" = "Sil";
 "Delete Account" = "Hesabı Sil";
 "Delete Group" = "Grubu Sil";
-"Delete Transaction" = "Islemi Sil";
 "Diagnostics" = "Tanılama";
 "Disable" = "Devre Dışı Bırak";
 "Disable Real-Time Updates" = "Gerçek Zamanlı Güncellemeleri Devre Dışı Bırak";
@@ -164,7 +154,6 @@
 "Discord user id" = "Discord kullanıcı kimliği";
 "Discover Addresses" = "Adresleri Kesfet";
 "Discover new peers" = "Yeni eşler keşfet";
-"Dismiss" = "Kapat";
 "Distance" = "Mesafe";
 "Domain" = "İhtisas";
 "Domain transfer unavailable." = "Alan adı aktarımı kullanılamıyor.";
@@ -181,13 +170,11 @@
 "Enter a new name for this saved account." = "Bu kayitli hesap icin yeni bir isim girin.";
 "Enter a node address you trust" = "Guvendiginiz bir node adresi girin";
 "Enter a trusted node (host:port for plaintext, or grpcs://host for TLS-secured nodes like Kaspium's) and tap Save to always connect to it instead of automatic discovery. Doesn't affect the Indexer/KNS/REST API URLs above." = "Guvenilir bir dugum girin (duz metin icin host:port, veya Kaspium gibi TLS korumali dugumler icin grpcs://host) ve otomatik kesif yerine her zaman ona baglanmak icin Kaydet'e dokunun. Yukaridaki Indexer/KNS/REST API URL'lerini etkilemez.";
-"Enter kpub" = "kpub Gir";
 "Enter your 12 or 24 word seed phrase to restore your account. Separate each word with a space." = "Hesabınızı geri yüklemek için 12 veya 24 kelimelik seed phrase'inizi girin. Her kelimeyi boşlukla ayırın.";
 "Error" = "Hata";
 "Estimate fees while composing" = "Yazarken ücretleri tahmin et";
 "Every member will see the new name." = "Her uye yeni ismi gorecek.";
 "Explorer" = "Kesif Motoru";
-"Export CSV" = "CSV Disa Aktar";
 "Export Chat History" = "Sohbet Geçmişini Dışa Aktar";
 "Export Diagnostics Archive" = "Tanılama Arşivini Dışa Aktar";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "Uygulama/cihaz bilgilerini, baglanti ayarlarini, yerel mesaj sayilarini ve son uygulama gunluklerini destek icin sorun giderme amaciyla zip olarak disa aktarir. Ozel anahtarlar, kurtarma ifadeleri veya cozulmus mesaj icerikleri dahil edilmez.";
@@ -198,14 +185,12 @@
 "Failed to open archive: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "Arşiv açılamadı: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Failed updates" = "Başarısız güncellemeler";
 "Fee" = "Ücret";
-"Fee (optional)" = "Ucret (istege bagli)";
 "Fee unavailable" = "Ücret mevcut değil";
 "Finish" = "Bitir";
 "First let's create your identity with a domain name" = "Once bir alan adiyla kimliginizi olusturalim";
 "From" = "Gonderen";
 "Fund Your Chatting Address" = "Sohbet Adresinizi Fonlayin";
 "Generate Account" = "Hesap Oluştur";
-"Generate More Addresses" = "Daha Fazla Adres Olustur";
 "Generate New Address" = "Yeni Adres Olustur";
 "Generate New Spending Address" = "Yeni Harcama Adresi Olustur";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "Sohbet ettiginizden farkli bir adresten odeme gondermeye baslamak icin asagida bir tane olusturun.";
@@ -216,7 +201,6 @@
 "Gift claimed! Check your balance shortly." = "Hediye alindi! Kisa surede bakiyenizi kontrol edin.";
 "Gift sent to your wallet!" = "Hediye cüzdanına gönderildi!";
 "Gift unavailable" = "Hediye kullanılamıyor";
-"Give this account a name so you can recognize it." = "Tanimasi icin bu hesaba bir isim verin.";
 "Give this address a label to help you recognize it." = "Tanimaniza yardimci olmasi icin bu adrese bir etiket verin.";
 "Group Info" = "Grup Bilgisi";
 "Group Name" = "Grup Adi";
@@ -239,11 +223,9 @@
 "If the network is busy, a higher fee can help your transaction confirm faster." = "Ag yogunsa, daha yuksek bir ucret isleminizin daha hizli onaylanmasina yardimci olabilir.";
 "Import" = "İçe Aktar";
 "Import Account" = "Hesabı İçe Aktar";
-"Import CSV" = "CSV Ice Aktar";
 "Import Chat History" = "Sohbet Geçmişini İçe Aktar";
 "Import Cold Storage Account" = "Soguk Depolama Hesabi Ice Aktar";
 "Import Existing Account" = "Mevcut Hesabı İçe Aktar";
-"Import Failed" = "Ice Aktarma Basarisiz";
 "Import Your Account" = "Hesabınızı İçe Aktarın";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "İçe aktarma başarısız: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Important" = "Önemli";
@@ -262,7 +244,6 @@
 "It's ok, I already have a domain" = "Sorun degil, zaten bir alan adim var";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Bir seferde sadece 5-10 KAS gonderin, bu bir sure icin sohbet ucretlerini karsilamaya yeter (KAS basina yaklasik 500 mesaj)";
 "KAS" = "KAS";
-"KAS Price" = "KAS Fiyati";
 "KNS API URL" = "KNS API URL";
 "KNS Domains" = "KNS Alan Adları";
 "KNS Profile" = "KNS Profili";
@@ -340,17 +321,14 @@
 "Never send Kaspa you intend to spend to this address — it's for chatting fees only." = "Harcamayi dusundugunuz Kaspa'yi asla bu adrese gondermeyin - burasi yalnizca sohbet ucretleri icindir.";
 "New message" = "Yeni mesaj";
 "Next" = "Ileri";
-"No Cold Storage Accounts" = "Soguk Depolama Hesabi Yok";
 "No Conversations Yet" = "Henüz konuşma yok";
 "No Group Chats Yet" = "Henuz Grup Sohbeti Yok";
 "No KNS profile changes detected." = "KNS profil değişikliği algılanmadı.";
 "No Kaspa address in system contact" = "Sistem kişisinde Kaspa adresi yok";
 "No Sound" = "Ses Yok";
 "No Spending Addresses" = "Harcama Adresi Yok";
-"No Transactions Yet" = "Henuz Islem Yok";
 "No active account" = "Etkin hesap yok";
 "No active nodes" = "Aktif düğüm yok";
-"No addresses discovered yet." = "Henuz kesfedilen adres yok.";
 "No archived chats" = "Arşivlenmiş sohbet yok";
 "No broadcast channels yet" = "Henuz yayin kanali yok";
 "No contacts found." = "Kişi bulunamadı.";
@@ -389,7 +367,6 @@
 "Other Nodes" = "Diğer Düğümler";
 "Paste" = "Yapıştır";
 "Paste from Clipboard" = "Panodan Yapıştır";
-"Paste kpub" = "kpub Yapistir";
 "Paste the kpub exported from your KasSigner device. This contains no private key material." = "KasSigner cihazinizdan disa aktarilan kpub'i yapistirin. Bu, ozel anahtar materyali icermez.";
 "Pay in Kaspa" = "Kaspa ile Ode";
 "Payment" = "Ödeme";
@@ -410,10 +387,8 @@
 "Pool Health" = "Havuz Sağlığı";
 "Pool Status" = "Havuz Durumu";
 "Popular Tab" = "Populer Sekmesi";
-"Portfolio" = "Portfoy";
 "Preparing profile update..." = "Profil güncellemesi hazırlanıyor...";
 "Press and drag a tab in the preview below to reorder it." = "Yeniden siralamak icin asagidaki onizlemede bir sekmeyi basili tutup surukleyin.";
-"Price Per Coin" = "Coin Basina Fiyat";
 "Primary" = "Birincil";
 "Primary Latency" = "Birincil Gecikme";
 "Primary domain set to %@." = "Birincil alan adı %@ olarak ayarlandı.";
@@ -433,7 +408,6 @@
 "Push Register" = "Push Kaydi";
 "Push Registration" = "Push Kaydı";
 "Push subscription failed." = "Push aboneliği başarısız oldu.";
-"Quantity" = "Miktar";
 "REST API for transaction history and balance lookups" = "İşlem geçmişi ve bakiye sorgulaması için REST API";
 "Rate" = "Kur";
 "Read" = "Okundu";
@@ -465,7 +439,6 @@
 "Remove" = "Kaldir";
 "Remove Avatar" = "Avatarı Kaldır";
 "Remove Banner" = "Banner'ı Kaldır";
-"Remove Cold Storage Account" = "Soguk Depolama Hesabini Kaldir";
 "Remove Saved Account" = "Kayıtlı Hesabı Kaldır";
 "Remove from Device" = "Cihazdan Kaldır";
 "Rename" = "Yeniden Adlandir";
@@ -489,12 +462,8 @@
 "Save Audio" = "Sesi Kaydet";
 "Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above." = "Kendi dugum adreslerinizi buraya kaydedin, ardindan kopyalayip yukaridaki Kaspa Dugumu alanina yapistirmak icin birine dokunun.";
 "Saved Accounts" = "Kaydedilen Hesaplar";
-"Scan" = "Tara";
 "Scan QR" = "QR Tara";
 "Scan QR Code" = "QR Kod Tara";
-"Scan Signed Transaction" = "Imzali Islemi Tara";
-"Scan or paste a kpub exported from your KasSigner device to watch its balance." = "Bakiyesini izlemek icin KasSigner cihazinizdan disa aktarilan bir kpub'i tarayin veya yapistirin.";
-"Scan this on your KasSigner device" = "Bunu KasSigner cihazinizda tarayin";
 "Scan to share account. Tap anywhere here to copy address." = "Hesabı paylaşmak için tarayın. Adresi kopyalamak için buraya dokunun.";
 "Search chats" = "Sohbet ara";
 "Search contacts" = "Kişi ara";
@@ -509,7 +478,6 @@
 "Select the currency you'd like prices displayed in." = "Fiyatlarin hangi para biriminde gosterilmesini istediginizi secin.";
 "Select the language you'd like to use in KaChat." = "KaChat'te kullanmak istediginiz dili secin.";
 "Selected data is not a valid image" = "Seçilen veriler geçerli bir resim değil";
-"Sell" = "Sat";
 "Send" = "Gonder";
 "Send All Kaspa To Primary Spend Address" = "Tum Kaspa'yi Ana Harcama Adresine Gonder";
 "Send Anyway" = "Yine de Gönder";
@@ -520,7 +488,6 @@
 "Send Kaspa" = "Kaspa Gonder";
 "Send Photo" = "Fotograf Gonder";
 "Send audio" = "Ses gönder";
-"Send from Cold Storage" = "Soguk Depolamadan Gonder";
 "Send message" = "Mesaj gönder";
 "Sending less than 0.1 KAS may fail due to the network dust protection limit." = "0,1 KAS'tan az göndermek, ağın dust koruma limiti nedeniyle başarısız olabilir.";
 "Sending…" = "Gönderiliyor…";
@@ -567,7 +534,6 @@
 "Submitting transfer..." = "Aktarım gönderiliyor...";
 "Support Email" = "Destek E-postası";
 "Suspected" = "Şüpheli";
-"Swap" = "Takas";
 "Swap Details" = "Takas Detaylari";
 "Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "Takaslar ucuncu taraf bir borsa olan ChangeNOW tarafindan islenir. Devam ederek, ChangeNOW'un kendi Hizmet Sartlarini okudugunuzu ve kabul ettiginizi onaylarsiniz. KaChat yalnizca takas talebinizi gonderir ve durumunu gosterir; KaChat basarisiz, gecikmis veya kaybolmus takaslardan sorumlu degildir. Bir takas gerceklesmezse dogrudan ChangeNOW destegiyle iletisime gecin.";
 "Switch direction" = "Yonu Degistir";
@@ -582,14 +548,12 @@
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "Ayarlamak icin dokunun. Ag yogunsa, daha yuksek bir ucret isleminizin daha hizli onaylanmasina yardimci olabilir.";
 "Tap to reveal seed phrase" = "Seed phrase'i görmek için dokun";
 "This account will be removed from this device." = "Bu hesap bu cihazdan kaldırılacak.";
-"This can't be undone." = "Bu geri alinamaz.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Bu kişi oluşturulduktan sonra bağlanacak. Hâlâ bir Kaspa adresi veya KNS alan adı girmeniz gerekiyor.";
 "This could take a few minutes while it confirms on-chain." = "Zincir uzerinde onaylanirken birkac dakika surebilir.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "Bu, tüm yerel verileri ve CloudKit mesaj kayıtlarını siler. Bu işlem geri alınamaz.";
 "This device has already received the welcome gift." = "Bu cihaz hoş geldin hediyesini zaten aldı.";
 "This domain is not available." = "Bu alan adı kullanılamıyor.";
 "This is a live check of your iCloud account, separate from local storage above." = "Bu, yukaridaki yerel depolamadan ayri olarak iCloud hesabinizin canli bir kontrolüdür.";
-"This only removes it from KaChat's watch list. It has no effect on the KasSigner device or any funds it holds." = "Bu, yalnizca KaChat'in izleme listesinden kaldirir. KasSigner cihazi veya tuttugu fonlar uzerinde hicbir etkisi yoktur.";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "Bu, iCloud dahil onlarla olan her mesaji kalici olarak siler, boylece diger cihazlarinizdan da kaldirilir. Bu geri alinamaz.";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "Bu, \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) hesabını ve yerel verilerini bu cihazdan kaldırır.";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "Bu, \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) hesabını ve yerel verilerini bu cihazdan kaldırır.";
@@ -605,11 +569,7 @@
 "To receive notifications, please enable them in Settings." = "Bildirim almak için lütfen Ayarlar'dan etkinleştirin.";
 "Total" = "Toplam";
 "Total Balance" = "Toplam Bakiye";
-"Total P&L" = "Toplam K/Z";
-"Transaction History" = "Islem Gecmisi";
 "Transaction Sent" = "Islem Gonderildi";
-"Transactions" = "Islemler";
-"Transfer" = "Aktarım";
 "Transfer %@" = "%@ aktar";
 "Transfer Domain" = "Alan Adı Transferi";
 "Transfer Your Domain" = "Alan Adinizi Transfer Edin";
@@ -631,7 +591,6 @@
 "Used to build \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"view transaction\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" links throughout the app." = "Uygulama genelinde \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"islemi goruntule\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" baglantilari olusturmak icin kullanilir.";
 "Used when a contact has no custom notification mode set." = "Bir kişinin özel bildirim modu ayarlanmadığında kullanılır.";
 "Uses your device contacts to match and enrich Kaspa contacts." = "Kaspa kişilerini eşleştirmek ve zenginleştirmek için cihaz kişilerinizi kullanır.";
-"Value Over Time" = "Zaman Icinde Deger";
 "Verified" = "Doğrulanmış";
 "Verified Nodes" = "Doğrulanmış Düğümler";
 "Verifying device..." = "Cihaz doğrulanıyor...";
@@ -690,7 +649,6 @@
 "kachat.kas" = "kachat.kas";
 "kaspa:... or alice.kas" = "kaspa:... veya alice.kas";
 "kaspasilver@gmail.com" = "kaspasilver@gmail.com";
-"kpub" = "kpub";
 "name" = "isim";
 "–" = "–";
 "—" = "—";
@@ -717,8 +675,6 @@
 "None yet" = "Henüz yok";
 ".kachat Name" = ".kachat adı";
 "Customize Profile" = "Profili özelleştir";
-".kachat names are coming" = ".kachat adları geliyor";
-"KaChat's own names will live here: claim one, set it as your name in chats, and share it as your profile link." = "KaChat'in kendi adları burada olacak: bir tane al, sohbetlerde adın olarak kullan ve profil bağlantın olarak paylaş.";
 "Get a %@ domain at %@" = "%2$@ üzerinden bir %1$@ alan adı al";
 "No %@ names yet." = "Henüz %@ adı yok.";
 "Couldn't reach %@. Pull down to try again." = "%@ ile bağlantı kurulamadı. Tekrar denemek için aşağı çek.";
@@ -739,36 +695,15 @@
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "Otomatik Tarama en iyi düğümleri bulur ve bağlanır. Belirli bir düğüm seçmek yalnızca ona bağlanır, başkalarına geçmez. Diğer sekmelerdeki dizinleyicileri, alan adlarını veya gezgini etkilemez. Burada seçmek için kendi adreslerini aşağıdaki IP Adres Defteri'ne ekle.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"Find a name" = "Ad bul";
-"Registration isn't open yet." = "Kayıt henüz açık değil.";
-"Claim" = "Al";
-"Marketplace" = "Pazar yeri";
 "My Names" = "Adlarım";
 "Activity" = "Etkinlik";
-"List a Name for Sale" = "Bir adı satışa çıkar";
-"Listings appear here once .kachat names launch." = "İlanlar .kachat adları başladığında burada görünür.";
-"No .kachat names yet" = "Henüz .kachat adın yok";
 "Claim a Name" = "Ad al";
-"Recent activity" = "Son etkinlik";
-"Activity appears here once .kachat names launch." = "Etkinlik .kachat adları başladığında burada görünür.";
-"How it works" = "Nasıl çalışır";
-"List" = "Satışa çıkar";
-"Trustless" = "Güvene gerek yok";
-"Pick a free name and register it on Kaspa. It's yours: your name in chats, your profile, your link." = "Boş bir ad seç ve Kaspa'da kaydet. Senin olur: sohbetlerdeki adın, profilin, bağlantın.";
-"Set a price. The name waits in an on-chain covenant, not with KaChat or anyone else, until someone buys it or you take it back." = "Bir fiyat belirle. Ad, biri satın alana ya da sen geri alana kadar KaChat'te veya başkasında değil, zincir üstü bir covenant'ta bekler.";
-"Pay the listed price. The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "İlan fiyatını öde. Ödeme satıcıya, ad sana aynı işlemde ulaşır - ya ikisi de olur ya hiçbiri.";
-"No middleman and no escrow account: Kaspa's own rules enforce every sale." = "Aracı yok, emanet hesabı yok: her satışı Kaspa'nın kendi kuralları güvenceye alır.";
-"Nothing here is live yet." = "Burada henüz hiçbir şey canlı değil.";
-"How .kachat works" = ".kachat nasıl çalışır";
 
 /* 5.2: range and section labels */
-"7 Days" = "7 Gün";
 "All-time only" = "Yalnızca tüm zamanlar";
 "Kinds marked \"All-time only\" aren't in this total yet." = "“Yalnızca tüm zamanlar” olarak işaretli türler henüz bu toplamda yok.";
 
 /* 5.2: .kachat setup guide */
-"Claim your .kachat name" = ".kachat adını al";
-"It's the name people see you as across KaChat - in chats, on posts and on your profile link. Without one, people see your address." = "İnsanların seni KaChat'in her yerinde gördüğü ad: sohbetlerde, gönderilerde ve profil bağlantında. Yoksa adresin görünür.";
 "Add a profile photo" = "Profil fotoğrafı ekle";
 "Your avatar shows next to your name everywhere in KaChat." = "Avatarın KaChat'in her yerinde adının yanında görünür.";
 "Add a banner" = "Banner ekle";
@@ -786,39 +721,13 @@
 "Help" = "Yardım";
 
 /* 5.2: .kachat listing, buy and offer */
-"Offers" = "Teklifler";
 "No offers yet." = "Henüz teklif yok.";
-"Offer" = "Teklif";
-"Name your own price. Your KAS waits on chain until the seller accepts, you withdraw the offer, or it expires - and you can message the seller first." = "Kendi fiyatını belirle. KAS'ın satıcı kabul edene, teklifi geri çekene ya da süresi dolana kadar zincirde bekler - önce satıcıya mesaj da atabilirsin.";
-"Listing" = "İlan";
-"Price" = "Fiyat";
-"Buy Now" = "Hemen Al";
-"Make an Offer" = "Teklif Ver";
-"Seller" = "Satıcı";
-"Ask about the name, or agree on a price before you offer." = "Teklif vermeden önce adı sor ya da fiyatta anlaş.";
-"Open offers on this name, highest first. The seller can accept any of them." = "Bu ada açık teklifler, en yükseği önce. Satıcı herhangi birini kabul edebilir.";
 "History" = "Geçmiş";
-"Buying pays the seller and moves the name to you in one transaction." = "Satın alma, satıcıya ödemeyi ve adın sana geçişini tek işlemde yapar.";
-"An offer locks your KAS on chain until the seller accepts it, you withdraw it, or it expires." = "Teklif, satıcı kabul edene, sen geri çekene ya da süresi dolana kadar KAS'ını zincirde kilitler.";
-"Messages go to the seller like any KaChat chat." = "Mesajlar satıcıya her KaChat sohbeti gibi gider.";
 "Network fee" = "Ağ ücreti";
-"Confirm Purchase" = "Satın Almayı Onayla";
-"Buying opens when .kachat names launch." = "Satın alma .kachat adları başlayınca açılacak.";
-"Buy Name" = "Adı Satın Al";
-"1 Day" = "1 Gün";
-"3 Days" = "3 Gün";
-"Listed at" = "İlan fiyatı";
-"Your offer" = "Teklifin";
-"Expires" = "Süre";
-"Expires after" = "Süre sonu";
-"Send Offer" = "Teklifi Gönder";
-"Offers open when .kachat names launch." = "Teklifler .kachat adları başlayınca açılacak.";
 
 /* 5.2: Portfolio export/import with Nextcloud */
 "Import from Nextcloud" = "Nextcloud'dan İçe Aktar";
-"Pick a CSV file from your Nextcloud." = "Nextcloud'undan bir CSV dosyası seç.";
 "Export to Nextcloud" = "Nextcloud'a Dışa Aktar";
-"Save the CSV to the KaChat folder in your Nextcloud." = "CSV'yi Nextcloud'undaki KaChat klasörüne kaydeder.";
 "Saved to %@ in Nextcloud." = "Nextcloud'da %@ konumuna kaydedildi.";
 "Export to Nextcloud failed: %@" = "Nextcloud'a dışa aktarma başarısız: %@";
 "Import from Nextcloud failed: %@" = "Nextcloud'dan içe aktarma başarısız: %@";
@@ -829,28 +738,15 @@
 "KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "KaPosts, Herkese Açık Sohbetler ve Kaspa Websites, dock'unda olmadıklarında burada görünür. Bunları Ayarlar > Customization > Customize Dock bölümünden yönet.";
 
 /* 5.2: an address's .kachat Domains tab */
-".kachat Domains" = ".kachat Alan Adları";
-"No .kachat names on this address" = "Bu adreste .kachat adı yok";
-"Names this address claims or buys show here once .kachat names launch." = "Bu adresin aldığı ya da satın aldığı adlar .kachat adları başladığında burada görünür.";
 
 /* 5.2: move a portfolio transaction */
-"Move to Portfolio" = "Portföye Taşı";
-"Create another portfolio first, then you can move transactions into it." = "Önce başka bir portföy oluştur, sonra işlemleri oraya taşıyabilirsin.";
-"Already has this transaction." = "Bu işlem zaten var.";
-"Move this transaction here." = "Bu işlemi buraya taşı.";
 "Moved to %@." = "%@ portföyüne taşındı.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-"Add Chatting Address" = "Sohbet Adresini Ekle";
-"Your chatting address's buys and sells, and every network fee it has paid." = "Sohbet adresinin alımları, satımları ve ödediği tüm ağ ücretleri.";
 ". Network fees counted: %lld" = ". Sayılan ağ ücretleri: %lld";
-"No sells yet this year." = "Bu yıl henüz satış yok.";
 "Sells: %lld. Oldest buys first (FIFO)." = "Satışlar: %lld. Önce en eski alımlar (FIFO).";
 "%@ sold with no buy on record, counted at zero cost." = "%@ kayıtlı alımı olmadan satıldı, sıfır maliyetle sayıldı.";
-"Some prices are still loading." = "Bazı fiyatlar hâlâ yükleniyor.";
 "Realized P&L %@" = "Gerçekleşen K/Z %@";
-"Fees Spent" = "Ödenen Ücretler";
-"Add your chatting address with + to count the network fees it has paid." = "Ödediği ağ ücretlerini saymak için sohbet adresini + ile ekle.";
 "Transactions: %lld. Some prices are still loading." = "İşlemler: %lld. Bazı fiyatlar hâlâ yükleniyor.";
 "Transactions: %lld, at each day's price." = "İşlemler: %lld, her günün fiyatıyla.";
 
@@ -859,8 +755,6 @@
 "Yesterday" = "Dün";
 
 /* 5.2: Portfolio transfers */
-"Value at the Time" = "O Andaki Değeri";
-"KAS moved between your own addresses - sent away and brought back, or wallet to wallet. It doesn't change your holdings, cost or profit." = "Kendi adreslerin arasında taşınan KAS - gönderilip geri alınan ya da cüzdandan cüzdana. Varlıklarını, maliyetini veya kârını değiştirmez.";
 
 /* Receive / chatting address QR text */
 
@@ -908,109 +802,40 @@
 "A name is 1 to 32 characters." = "Ad 1 ile 32 karakter arasıdır.";
 "Use a-z, 0-9 and hyphens only." = "Yalnızca a-z, 0-9 ve tire kullanın.";
 "A name can't start or end with a hyphen." = "Ad tire ile başlayamaz veya bitemez.";
-"Expired" = "Süresi doldu";
 "Lapsed" = "Düştü";
-"Yours" = "Sizin";
-"until %@" = "%@ tarihine kadar";
-"Available · %@ a year" = "Müsait · yılda %@";
-"Not a valid name." = "Geçerli bir ad değil.";
-"Taken · for sale at %@" = "Alınmış · %@ fiyatla satışta";
-"Taken" = "Alınmış";
-"Expired - the owner can still renew it" = "Süresi doldu - sahibi hâlâ yenileyebilir";
 "Lapsed - reclaim it, then claim it" = "Düştü - geri alın, sonra kaydedin";
-"About %lld s to go" = "Yaklaşık %lld sn kaldı";
-"Cancel the commit?" = "Taahhüt iptal edilsin mi?";
-"Cancel Commit" = "Taahhüdü İptal Et";
-"Keep" = "Tut";
-"The registration stops and the commit's 0.2 KAS comes back to you, less the network fee." = "Kayıt durur ve taahhüdün 0.2 KAS'ı ağ ücreti düşülerek size geri döner.";
-"Sending the hidden commit..." = "Gizli taahhüt gönderiliyor...";
-"Waiting for the commit to confirm..." = "Taahhüdün onaylanması bekleniyor...";
-"The commit has to age for about a minute before the name can be registered. Keep KaChat open - it registers by itself, and picks up where it left off if you leave." = "Adın kaydedilebilmesi için taahhüdün yaklaşık bir dakika beklemesi gerekir. KaChat'i açık tutun - kendiliğinden kaydeder ve çıkarsanız kaldığı yerden devam eder.";
-"Registering..." = "Kaydediliyor...";
-"Registered. It's yours." = "Kaydedildi. Artık sizin.";
-"Someone registered this name first. Cancel the commit to get its 0.2 KAS back." = "Bu adı önce başkası kaydetti. 0.2 KAS'ı geri almak için taahhüdü iptal edin.";
-"The registration stopped." = "Kayıt durdu.";
-"Cancelling the commit..." = "Taahhüt iptal ediliyor...";
 "Cancelled." = "İptal edildi.";
 "Confirm this .kachat transaction" = ".kachat işlemini onaylayın";
-"For sale" = "Satılık";
 "Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "Sahiplerinin satışa koyduğu adlar. Satın almak tek işlemde sahibine ödeme yapar ve adı size geçirir.";
-"No names are listed right now." = "Şu anda satışta ad yok.";
 "Reclaimable" = "Geri alınabilir";
 "Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "Sahiplerinin düşmeye bıraktığı adlar. Herkes geri alabilir: teminat son sahibine döner, açığa çıkan depozito ödül olarak sizde kalır ve ad kayda açılır.";
 "Nothing to reclaim." = "Geri alınacak bir şey yok.";
 "Reclaim" = "Geri al";
 "Renew, list, transfer or release them, and pick the one KaChat shows for you." = "Yenileyin, satışa koyun, devredin veya bırakın; KaChat'in sizi hangisiyle göstereceğini seçin.";
 "Search for a name above and claim it." = "Yukarıda bir ad arayıp alın.";
-"My Offers" = "Tekliflerim";
 "Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "Verdiğiniz teklifler. İstediğiniz zaman geri çekin; iade zamanı geçince herkes size geri gönderebilir.";
-"No open offers." = "Açık teklif yok.";
-"Offers from others appear once a names indexer is connected." = "Başkalarının teklifleri bir ad dizinleyicisi bağlandığında görünür.";
-"Nothing yet." = "Henüz bir şey yok.";
-"Withdraw Offer" = "Teklifi Geri Çek";
-"Withdraw" = "Geri çek";
-"Refund Offer" = "Teklifi İade Et";
-"Refund" = "İade et";
-"Accept Offer" = "Teklifi Kabul Et";
-"Accept and Transfer" = "Kabul Et ve Devret";
-"The name goes to the buyer and the offer's amount comes to you, in one transaction. This can't be undone." = "Ad alıcıya, teklif tutarı size tek işlemde geçer. Bu geri alınamaz.";
-"Buyer" = "Alıcı";
 "Refundable now" = "Şimdi iade edilebilir";
-"Price (to miners)" = "Fiyat (madencilere)";
 "Your balance" = "Bakiyeniz";
 "It shows here once the network accepts it, usually within seconds." = "Ağ kabul edince burada görünür, genellikle saniyeler içinde.";
-"Years" = "Yıl";
-"Bond (returned on release)" = "Teminat (bırakınca iade)";
-"Registry deposit (returned on release)" = "Kayıt depozitosu (bırakınca iade)";
-"Commit (returned at registration)" = "Taahhüt (kayıtta iade)";
-"Network fees" = "Ağ ücretleri";
 "Cost" = "Maliyet";
-"Not enough KAS on your chatting address for this name." = "Sohbet adresinizde bu ad için yeterli KAS yok.";
-"The price goes to the miners - KaChat takes nothing. The bond and the deposit come back when you release the name." = "Fiyat madencilere gider - KaChat hiçbir şey almaz. Teminat ve depozito, adı bıraktığınızda geri gelir.";
-"A hidden commit goes on chain first. Nobody can see which name it is for." = "Önce zincire gizli bir taahhüt gider. Hangi ad için olduğunu kimse göremez.";
-"About a minute later KaChat registers the name by itself. Keep the app open; if you leave, it continues next time." = "Yaklaşık bir dakika sonra KaChat adı kendisi kaydeder. Uygulamayı açık tutun; çıkarsanız bir dahaki sefere devam eder.";
 "The name is yours for the years you paid. Renew it any time before it expires." = "Ad, ödediğiniz yıllar boyunca sizindir. Süresi dolmadan istediğiniz zaman yenileyin.";
-"How claiming works" = "Ad alma nasıl işler";
-"Claim %@.kachat" = "%@.kachat adını al";
-"Claim Name" = "Ad Al";
-"This name was released or reclaimed. It's free to claim again." = "Bu ad bırakıldı veya geri alındı. Yeniden alınabilir.";
 "Make %@ your primary name?" = "%@ ana adınız olsun mu?";
 "Set as Primary" = "Ana Ad Yap";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat bunu adınız olarak gösterir. Bir ağ ücretiyle zincirdeki profil kaydınıza yazılır.";
-"Not for sale" = "Satılık değil";
-"Expires %@" = "%@ tarihinde sona erer";
 "Expired - renew to keep it. Until the grace period ends nobody else can take it." = "Süresi doldu - korumak için yenileyin. Ek süre bitene kadar başkası alamaz.";
 "Expired. It no longer resolves; the owner can still renew it." = "Süresi doldu. Artık adrese çözümlenmiyor; sahibi hâlâ yenileyebilir.";
 "Lapsed: anyone may reclaim it, and then claim it again." = "Düştü: herkes geri alıp yeniden kaydedebilir.";
-"Renew" = "Yenile";
-"Change Price" = "Fiyatı Değiştir";
-"List for Sale" = "Satışa Koy";
-"Delist" = "Satıştan Kaldır";
-"Release Name" = "Adı Bırak";
-"Owner" = "Sahip";
 "You" = "Siz";
 "Accept one to sell the name for it." = "Adı o tutara satmak için birini kabul edin.";
-"No history yet." = "Henüz geçmiş yok.";
-"Release" = "Bırak";
-"Releasing gives the name up for good: it becomes free for anyone to register, and the time you paid for is lost. You get the bond and the registry deposit back." = "Bırakmak adı kalıcı olarak vermek demektir: herkes kaydedebilir ve ödediğiniz süre boşa gider. Teminat ve kayıt depozitosu size geri döner.";
 "Saved. Transaction %@" = "Kaydedildi. İşlem %@";
-"The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "Ödeme satıcıya, ad size aynı işlemde ulaşır - ya ikisi de olur ya hiçbiri.";
-"Price (to the seller)" = "Fiyat (satıcıya)";
-"Refundable after" = "Şu süreden sonra iade edilebilir";
 "A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "Yenileme, geçmiş olsa bile mevcut bitiş tarihine eklenir. Fiyat madencilere gider.";
 "Price per year" = "Yıllık fiyat";
-"New expiry" = "Yeni bitiş tarihi";
-"Anyone can buy it at this price: the payment reaches you and the name reaches them in one transaction. Delist any time." = "Herkes bu fiyattan satın alabilir: ödeme size, ad alıcıya tek işlemde ulaşır. İstediğiniz zaman satıştan kaldırın.";
-"A transfer can't be undone. The new owner gets the name with its current expiry; your profile stays with your address." = "Devir geri alınamaz. Yeni sahip adı mevcut bitiş tarihiyle alır; profiliniz adresinizde kalır.";
 "To" = "Alıcı";
 "kaspatest:... or name.kachat" = "kaspatest:... veya name.kachat";
-"New owner" = "Yeni sahip";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "Bir testnet adresi veya .kachat adı - gösterilen adrese çözümlenir.";
 "Not a testnet Schnorr address." = "Testnet Schnorr adresi değil.";
-"That address's key is not valid." = "Bu adresin anahtarı geçerli değil.";
 "Enter an address or a .kachat name." = "Bir adres veya .kachat adı girin.";
 "No active .kachat name by that name." = "Bu adda etkin bir .kachat adı yok.";
-"Couldn't look that name up." = "Bu ad aranamadı.";
 "The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "Adın teminatı son sahibine döner, açığa çıkan kayıt depozitosu (ücret düşülerek) ödül olarak sizde kalır ve ad boşa çıkar. Sahibi olmak için ardından kaydedin.";
 "Bond to the last owner" = "Teminat son sahibine";
 "Claim one in Kaspa Hub > .kachat." = "Kaspa Hub > .kachat bölümünden bir tane alın.";
@@ -1031,7 +856,6 @@
 "Save your profile?" = "Profiliniz kaydedilsin mi?";
 "It's written to the chain for a network fee." = "Bir ağ ücretiyle zincire yazılır.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "Profiller herkese açık ve zincirdedir: herkes okuyabilir, değiştirdikten sonra da eski sürümler okunabilir kalır. Bir ağ ücretiyle yazılır.";
-"%lld years" = "%lld yıl";
 "No testnet wallet is open." = "Açık bir testnet cüzdanı yok.";
 "This wallet's key does not match its address." = "Bu cüzdanın anahtarı adresiyle eşleşmiyor.";
 "%@ is not a valid key (not on the secp256k1 curve)." = "%@ geçerli bir anahtar değil (secp256k1 eğrisinde değil).";
@@ -1074,32 +898,16 @@
 "Balance after" = "Sonraki bakiye";
 "Balance change" = "Bakiye değişimi";
 "Transaction sent" = "İşlem gönderildi";
-"View Transaction" = "İşlemi görüntüle";
-"Name released" = "Ad bırakıldı";
-"Name bought" = "Ad satın alındı";
-"Offer sent" = "Teklif gönderildi";
-"Price changed" = "Fiyat değiştirildi";
 "Listed for sale" = "Satışa çıkarıldı";
-"Name transferred" = "Ad aktarıldı";
 "Name reclaimed" = "Ad geri alındı";
 "Profile saved" = "Profil kaydedildi";
-"Primary name set" = "Ana ad ayarlandı";
-"Name registered" = "Ad kaydedildi";
-"Commit cancelled" = "Taahhüt iptal edildi";
 "Your Profile" = "Profiliniz";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "Sohbet adresinizden kendisine zincir üzerinde kaydedilir.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "Profiller herkese açıktır ve zincir üzerindedir: herkes okuyabilir ve değiştirdikten sonra önceki sürümler okunabilir kalır.";
 "Extended" = "Uzatıldı";
-"Extend" = "Uzat";
-"Extend to %lld years" = "%lld yıla uzat";
 "Renewal opens on %@" = "Yenileme %@ tarihinde açılır";
-"Paid from %@ to %@" = "%@ - %@ arası ödendi";
-"New period" = "Yeni dönem";
-"Renewal open" = "Yenileme açık";
-"Extending adds years to the current paid period, which holds at most 2 years. The price goes to the miners." = "Uzatma, en fazla 2 yıl kapsayan mevcut ödenmiş döneme yıl ekler. Fiyat madencilere gider.";
 "The names indexer didn't send this name's paid period. Pull to refresh and try again." = "Ad dizinleyicisi bu adın ödenmiş dönemini göndermedi. Yenilemek için aşağı çekip tekrar deneyin.";
-"The name is yours for the years you paid, at most 2 ahead. A 1-year name can be extended to 2 years; from 10 days before it expires you can renew it." = "Ad, ödediğiniz yıllar boyunca sizindir, en fazla 2 yıl ileriye. 1 yıllık bir ad 2 yıla uzatılabilir; bitişinden 10 gün önceden itibaren yenileyebilirsiniz.";
 "Setting up" = "Hazırlanıyor";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "Testnet'teki .kachat kaydı güncelleniyor. Yeni kayıt yayına girince adlar burada yeniden açılır.";
 ".kachat Names" = ".kachat Adları";
@@ -1139,10 +947,6 @@
 "Copies the transaction ID to your clipboard." = "İşlem kimliğini panoya kopyalar.";
 "Transaction ID copied" = "İşlem kimliği kopyalandı";
 "This payment isn't on chain yet." = "Bu ödeme henüz zincirde değil.";
-"Opens the .kachat marketplace" = ".kachat pazar yerini açar";
-"Names this address owns show here." = "Bu adresin sahip olduğu adlar burada görünür.";
-"Your spending address #%lld" = "Harcama adresin #%lld";
-"Your KasSigner address (%@ #%lld)" = "KasSigner adresin (%@ #%lld)";
 "New" = "Yeni";
 "New Chat" = "Yeni Sohbet";
 "New Group Chat" = "Yeni Grup Sohbeti";
@@ -1158,7 +962,6 @@
 "Profiles can be saved once .kachat launches on mainnet." = "Profiller, .kachat ana ağda başlatıldığında kaydedilebilecek.";
 "Pinned to the front" = "Başa sabitlendi";
 "Unpinned" = "Sabitleme kaldırıldı";
-"Build Unsigned Transaction" = "İmzasız işlem oluştur";
 "Coin Control" = "Coin kontrolü";
 "Automatic" = "Otomatik";
 "Consolidating This Address" = "Bu adres birleştiriliyor";
@@ -1188,25 +991,9 @@
 "Claimed. You can claim again in %@." = "Alındı. %@ sonra yeniden alabilirsin.";
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "Sohbet adresini kopyalar ve TN10 musluğunu açar: yapıştır, doğrulamayı geç ve sunulan en yüksek miktarı al.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "TN10 sohbet adresin kopyalandı. Musluğun adres alanına yapıştır.";
-"Copies the address" = "Adresi kopyalar";
-"Manage Name" = "Adı yönet";
-"Pays for more years now, up to the 2-year limit." = "Şimdi ek yılları öder, 2 yıllık sınıra kadar.";
-"Starts a new paid period from the expiry date." = "Bitiş tarihinden itibaren yeni bir ödenmiş dönem başlatır.";
-"Changes the asking price." = "Satış fiyatını değiştirir.";
-"Takes the name off the market." = "Adı piyasadan çeker.";
-"Puts the name up for sale at your price." = "Adı senin fiyatından satışa çıkarır.";
-"Sends the name to another address." = "Adı başka bir adrese gönderir.";
-"Shows you by this name across KaChat." = "Seni KaChat'in her yerinde bu adla gösterir.";
-"Gives the name up and returns its deposit." = "Adı bırakır ve depozitosunu iade eder.";
 "Expires in %@" = "%@ içinde sona eriyor";
-"Expired - returning to you" = "Süresi doldu - sana dönüyor";
-"Expired - returning to the buyer" = "Süresi doldu - alıcıya dönüyor";
-"Expired - refundable now" = "Süresi doldu - şimdi iade edilebilir";
 "Tap an offer to accept it. Expired offers go back to their buyers." = "Kabul etmek için bir teklife dokun. Süresi dolan teklifler alıcılarına döner.";
 "This offer has expired. It's going back to the buyer." = "Bu teklifin süresi doldu. Alıcıya geri dönüyor.";
-"Offers you made. Withdraw one any time; once it expires it comes back to you on its own." = "Yaptığın teklifler. İstediğin zaman geri çek; süresi dolunca kendiliğinden sana döner.";
-"Declined - the name changed hands, returning to you" = "Reddedildi - adın sahibi değişti, sana dönüyor";
-"Declined - made to an earlier owner" = "Reddedildi - önceki sahibine yapılmış";
 "This offer was made before the name changed hands, so it's declined and going back to the buyer." = "Bu teklif ad el değiştirmeden önce yapıldığı için reddedildi ve alıcıya geri dönüyor.";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
@@ -1215,16 +1002,8 @@
 "You can't make an offer on your own name." = "Kendi adınıza teklif veremezsiniz.";
 "An offer can run for up to 7 days." = "Bir teklif en fazla 7 gün sürebilir.";
 "Price per %@" = "%@ başına fiyat";
-"Available · %@ per %@" = "Müsait · %2$@ başına %1$@";
-"Extend to %@" = "%@ süresine uzat";
 "Pays for more time now, up to the %@ limit." = "Şimdi daha fazla süre için öder, %@ sınırına kadar.";
-"Extending adds time to the current paid period, which holds at most %@. The price goes to the miners." = "Uzatma, mevcut ödenmiş döneme süre ekler; dönem en fazla %@ olabilir. Ücret madencilere gider.";
-"The name is yours for the time you paid, at most %@ ahead. From %@ before it expires you can renew it." = "Ad, ödediğiniz süre boyunca sizindir, en fazla %1$@ ilerisine kadar. Süresi dolmadan %2$@ önce yenileyebilirsiniz.";
-"Decline Offer" = "Teklifi Reddet";
 "Offer declined" = "Teklif reddedildi";
-"The offer goes back to the buyer. Its network fee comes out of the offer, so declining costs you nothing." = "Teklif alıcıya geri döner. Ağ ücreti tekliften karşılanır, yani reddetmek size hiçbir şeye mal olmaz.";
-"Your KAS stays locked on chain until the owner accepts or declines, you withdraw the offer, or it expires - then anyone can send it back to you." = "KAS'ınız sahibi kabul edene veya reddedene, teklifi geri çekene veya süresi dolana kadar zincirde kilitli kalır - sonra herkes size geri gönderebilir.";
-"This name is listed for less than your offer. Consider buying it instead." = "Bu ad teklifinizden daha düşük bir fiyata listelenmiş. Bunun yerine satın almayı düşünün.";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
 "The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "Onayladığınızdan beri fiyat %@ oldu. Hiçbir şey gönderilmedi. Yeni fiyatı kontrol edip tekrar onaylayın.";
@@ -1232,7 +1011,6 @@
 "Confirm New Price" = "Yeni Fiyatı Onayla";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"A renewal starts the next period at the current expiry, not from today, so a name that expired a while ago gets less time. The price goes to the miners." = "Yenileme bir sonraki dönemi bugünden değil, mevcut bitiş tarihinden başlatır; bu yüzden bir süre önce süresi dolan bir ad daha az süre alır. Ücret madencilere gider.";
 "This name has been expired too long to renew. It can only be reclaimed and registered again." = "Bu adın süresi yenilenemeyecek kadar uzun zaman önce doldu. Yalnızca geri alınıp yeniden kaydedilebilir.";
 "Offers can only be made on active names." = "Yalnızca etkin adlara teklif verilebilir.";
 "This name has expired. Offers can only be accepted while the name is active. Renew it first." = "Bu adın süresi doldu. Teklifler yalnızca ad etkinken kabul edilebilir. Önce yenileyin.";
@@ -1252,7 +1030,6 @@
 "Send %@ to %@?" = "%2$@ kişisine %1$@ gönderilsin mi?";
 
 /* .kachat: expires-soon follows the period clock (IOS-060) */
-"Less than %@ is left before this name expires. You'd have to renew it soon." = "Bu adın süresinin dolmasına %@ süreden az kaldı. Yakında yenilemeniz gerekir.";
 
 /* Profile editor: links that can't be checked don't block saving */
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Bazı bağlantılar şu anda bu telefondan kontrol edilemedi. Girildiği gibi kaydedilir ve başkalarının uygulamaları yükleyebildiğinde yükler.";
@@ -1283,13 +1060,11 @@
 "Nobody accepted it in time. The KAS is back with you." = "Kimse zamanında kabul etmedi. KAS size geri döndü.";
 "Offer on %@ returned" = "%@ için teklif iade edildi";
 "It can no longer be accepted. The KAS is back with you." = "Artık kabul edilemez. KAS size geri döndü.";
-"Kaspa arriving in your wallets and news about your .kachat names show up here." = "Cüzdanlarınıza gelen Kaspa ve .kachat adlarınızla ilgili haberler burada görünür.";
 "Renew it soon to keep it." = "Korumak için yakında yenileyin.";
 "Renew it soon or anyone can claim it." = "Yakında yenileyin, yoksa herkes alabilir.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
 "Reclaimable names appear here once .kachat names launch." = ".kachat adları başlayınca geri alınabilir adlar burada görünecek.";
-"Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "Kayıttaki her talep, yenileme, ilan, satış, teklif, aktarım ve geri alma.";
 
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "Sahiplenmek İçin Geri Al";
@@ -1302,11 +1077,9 @@
 "Waiting for the old %@ to be cleared from the registry." = "Eski %@ adının kayıttan temizlenmesi bekleniyor.";
 
 /* .kachat: a released or reclaimed name */
-"Free to claim" = "Talep edilebilir";
 
 /* .kachat registration progress half sheet */
 "Claiming %@" = "%@ alınıyor";
-"Keep KaChat open: the name is registered about a minute after the hidden commit confirms. If you leave, it picks up where it left off when you come back." = "KaChat'i açık tutun: ad, gizli taahhüt onaylandıktan yaklaşık bir dakika sonra kaydedilir. Uygulamadan çıkarsanız, döndüğünüzde kaldığı yerden devam eder.";
 "Finish the name you're claiming first." = "Önce almakta olduğunuz adı tamamlayın.";
 
 /* .kachat name lapsed: moved to Reclaimable */
@@ -1321,13 +1094,9 @@
 "Choose seed phrase length" = "Seed phrase uzunluğunu seçin";
 
 /* .kachat sale tile: expiry flag */
-"Expires soon" = "Yakında sona eriyor";
 
 /* .kachat: expired names are available to claim */
 "Freeing %@ for you..." = "%@ sizin için serbest bırakılıyor...";
-"This name expired and wasn't renewed, so anyone can claim it at the normal price. The old owner's bond goes back to them." = "Bu adın süresi doldu ve yenilenmedi, bu yüzden herkes onu normal fiyattan alabilir. Önceki sahibin teminatı kendisine geri döner.";
-"No expired names right now." = "Şu anda süresi dolmuş ad yok.";
-"Expired names appear here once .kachat names launch." = ".kachat adları başlatıldığında süresi dolmuş adlar burada görünecek.";
 "%@ was freed" = "%@ serbest bırakıldı";
 "It expired and was cleared from the registry. Your bond is back with you." = "Süresi doldu ve kayıttan kaldırıldı. Teminatınız size geri döndü.";
 
@@ -1336,8 +1105,6 @@
 "It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Süresi doldu ve yenilenmedi, bu yüzden artık pazar yerinde herkese açık. Biri onu aldığında teminatınız size geri döner.";
 
 /* .kachat: claims in progress button and busy-network notes */
-"Claiming" = "Alınıyor";
-"Names being claimed" = "Alınmakta olan adlar";
 "The network is busy. Your commit is waiting for a block." = "Ağ yoğun. Taahhüdünüz bir blok bekliyor.";
 "The network is busy, so the commit was sent again." = "Ağ yoğun, bu yüzden taahhüt yeniden gönderildi.";
 
@@ -1369,21 +1136,13 @@
 "Scratch files from sending photos and voice notes. Safe to remove at any time." = "Fotoğraf ve sesli not gönderirken oluşan geçici dosyalar. Her zaman silinebilir.";
 
 /* .kachat Renew: choose the period first */
-"How long?" = "Ne kadar süre?";
-"A renewal starts the next period at the current expiry, not from today." = "Yenileme, sonraki dönemi bugünden değil, mevcut bitiş tarihinden başlatır.";
 
 /* .kachat marketplace: the Expired tab (names in grace, counting down) */
-"Released in" = "Serbest kalmasına";
-"No names are in their grace period right now." = "Şu anda ek süredeki ad yok.";
-"Names in their grace period appear here once .kachat names launch." = ".kachat adları başlatıldığında ek süredeki adlar burada görünecek.";
 
 /* .kachat name screen: when an expired name's grace period ends */
-"Grace period ends %@" = "Ek süre %@ tarihinde bitiyor";
 
 /* .kachat: names in grace keep resolving to their owner */
 "No .kachat name by that name." = "Bu adla bir .kachat adı yok.";
-"Expired. It still resolves to its owner until the grace period ends, and the owner can still renew it." = "Süresi doldu. Ek süre bitene kadar hâlâ sahibine çözümlenir ve sahibi hâlâ yenileyebilir.";
-"Expired - renew to keep it. Until the grace period ends it still resolves to you and nobody else can take it." = "Süresi doldu - korumak için yenileyin. Ek süre bitene kadar hâlâ size çözümlenir ve başka kimse alamaz.";
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "Adres Defteri";
@@ -1448,12 +1207,7 @@
 "That Address Book export has no addresses." = "Bu dışa aktarımda adres yok.";
 
 /* .kachat: fees, busy network, progress receipt */
-"The network is busy" = "Ağ yoğun";
-"At Normal this may wait a while. Fast or Priority pays a little more to get into a block sooner." = "Normal ile biraz sürebilir. Hızlı veya Öncelikli biraz daha ödeyip bloğa daha erken girer.";
 "Balance after: %@" = "Sonraki bakiye: %@";
-"Balance change: %@" = "Bakiye değişimi: %@";
-"Available: %@" = "Kullanılabilir: %@";
-"Claiming sends two transactions: the commit now, the registration about a minute later. Both use this speed." = "Talep etmek iki işlem gönderir: şimdi taahhüt, yaklaşık bir dakika sonra kayıt. İkisi de bu hızla.";
 "Sent to the network" = "Ağa gönderildi";
 "In a block" = "Bir blokta";
 "Updated in KaChat" = "KaChat'te güncellendi";
@@ -1464,10 +1218,6 @@
 "Tap the transaction to open it in the explorer." = "Gezginde açmak için işleme dokun.";
 
 /* .kachat offers: tiles and half sheet */
-"Expires in" = "Bitimine";
-"This offer can't be accepted any more." = "Bu teklif artık kabul edilemez.";
-"Only the name's owner can accept or decline this offer." = "Bu teklifi yalnızca adın sahibi kabul edebilir veya reddedebilir.";
-"Tap an offer to accept or decline it. Expired offers go back to their buyers." = "Kabul etmek veya reddetmek için bir teklife dokun. Süresi dolan teklifler alıcılarına geri döner.";
 
 /* Audit run 3: Address Book network checks, .kachat fee re-check */
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "Bu dosyadaki tüm adresler Mainnet adresi. KaChat Testnet'te.";
@@ -1477,7 +1227,6 @@
 
 /* .kachat registry v5 migration */
 "Names are moving to the new registry. New names can be claimed from %@." = "İsimler yeni kayıt defterine taşınıyor. Yeni isimler %@ tarihinden itibaren alınabilir.";
-"Every name from the old registry comes over with the same owner and expiry first." = "Önce eski kayıt defterindeki her isim aynı sahip ve aynı bitiş tarihiyle taşınır.";
 "Moved to the new registry" = "Yeni kayıt defterine taşındı";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
@@ -1492,19 +1241,12 @@
 ".kachat Names (%lld)" = ".kachat Adları (%lld)";
 ".kas Names (%lld)" = ".kas Adları (%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "Bir Kaspa adresi (kaspa:...) veya alan adı girin. Önce .kachat adları aranır.";
-"Enter a Kaspa address or a domain like name.kachat (.kachat names are looked up first). Every received transaction on this address becomes a buy, every sent transaction becomes a sell, priced at that day's historical KAS price. Re-adding the same address later only imports transactions found since the last import." = "Bir Kaspa adresi veya name.kachat gibi bir alan adı girin (önce .kachat adları aranır). Bu adrese gelen her işlem alış, gönderilen her işlem satış sayılır ve o günün geçmiş KAS fiyatıyla değerlenir. Aynı adresi daha sonra yeniden eklerseniz yalnızca son içe aktarmadan beri bulunan işlemler içe aktarılır.";
 "Search contacts, or an address or domain" = "Kişi, adres veya alan adı arayın";
 "You have no contacts yet. Paste an address or a domain above to invite someone." = "Henüz kişiniz yok. Birini davet etmek için yukarıya bir adres veya alan adı yapıştırın.";
 "No contacts match your search. Paste an address or a domain to invite someone new." = "Aramanızla eşleşen kişi yok. Yeni birini davet etmek için bir adres veya alan adı yapıştırın.";
-"An address or a domain - .kachat names are looked up first, and it's resolved to the address shown." = "Bir adres veya alan adı; önce .kachat adları aranır ve gösterilen adrese çözümlenir.";
-"kaspatest:... or domain" = "kaspatest:... veya alan adı";
-"Enter an address or a domain." = "Bir adres veya alan adı girin.";
-"That name's address can't own a .kachat name." = "Bu adın adresi bir .kachat adına sahip olamaz.";
 "No domain found by that name." = "Bu adla bir alan adı bulunamadı.";
-"One of your .kachat domains expired" = ".kachat alan adlarınızdan birinin süresi doldu";
 "%lld of your .kachat domains expired" = ".kachat alan adlarınızdan %lld tanesinin süresi doldu";
 "Renew %@ before its grace period ends on %@ to keep it." = "%@ adını korumak için ek süresi %@ tarihinde bitmeden yenileyin.";
-"Renew them before their grace periods end to keep them." = "Korumak için ek süreleri bitmeden yenileyin.";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat adları bu ağda henüz etkin değil";
@@ -1518,9 +1260,6 @@
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = ".kachat kayıt defteri yükseltiliyor. Yeni kayıt defteri devreye girince isimler burada yeniden açılır.";
 "No wallet is open." = "Açık bir cüzdan yok.";
-"Not a Schnorr address on this network." = "Bu ağda bir Schnorr adresi değil.";
-"Live on Mainnet: names, prices and payments here are real KAS." = "Mainnet'te canlı: buradaki isimler, fiyatlar ve ödemeler gerçek KAS'tır.";
-"Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names are live on Mainnet." = "Testnet'te canlı: buradaki isimler, fiyatlar ve ödemeler testnet-10'da TKAS kullanır. Mainnet isimleri Mainnet'te canlı.";
 "Live on Mainnet" = "Mainnet'te canlı";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
@@ -1529,7 +1268,6 @@
 
 /* .kachat: combining many small coins before a name transaction */
 "Your KAS is in many small coins. Combining them into one first..." = "KAS'ınız birçok küçük coine dağılmış. Önce tek bir coinde birleştiriliyor...";
-"Your KAS is in many small coins. KaChat combines them into one before registering, for a tiny extra network fee." = "KAS'ınız birçok küçük coine dağılmış. KaChat kayıttan önce bunları çok küçük ek bir ağ ücretiyle tek bir coinde birleştirir.";
 "Not enough KAS on your chatting address for this." = "Sohbet adresinizde bunun için yeterli KAS yok.";
 
 /* .kachat mainnet launch countdown */
@@ -1542,8 +1280,6 @@
 ".kachat names open to everyone on %@." = ".kachat isimleri herkese %@ tarihinde açılıyor.";
 
 /* Kaspa Hub > KaChat Bots */
-"KaChat Bots" = "KaChat Botları";
-"Bots" = "Botlar";
 "Block Reward Tracker" = "Blok Ödülü Takipçisi";
 "A message for every block reward paid to your mining address." = "Madencilik adresinize ödenen her blok ödülü için bir mesaj.";
 "Wallet Tracker" = "Cüzdan Takipçisi";
@@ -1552,21 +1288,17 @@
 "Ask anything related to Kaspa." = "Kaspa ile ilgili her şeyi sorun.";
 "Coming soon." = "Çok yakında.";
 "Bots run on mainnet only." = "Botlar yalnızca ana ağda çalışır.";
-"Opens a chat with this bot." = "Bu botla bir sohbet açar.";
-"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "Bir bota giden mesajlar sıradan şifreli KaChat mesajlarıdır, bu yüzden her biri olağan ağ ücretine mal olur.";
 
 /* Kaspa Hub > KaChat Bots: Price Bot */
 "Price Bot" = "Fiyat Botu";
 "Alerts when KAS crosses your price, big moves and a daily summary." = "KAS fiyatınızı geçtiğinde, büyük hareketlerde ve günlük özetle uyarır.";
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
-"%lld unread" = "%lld okunmamış";
 
 /* Chats: a bot chat's circle half sheet */
 "Clears the unread badge on this chat." = "Bu sohbetteki okunmamış rozetini kaldırır.";
 "Notifications from this bot resume." = "Bu bottan bildirimler yeniden gelir.";
 "No notification from this bot." = "Bu bottan bildirim gelmez.";
-"Removes this chat until you write to the bot again." = "Bota yeniden yazana kadar bu sohbeti kaldırır.";
 
 /* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
 "Request Payment" = "Ödeme İste";
@@ -1602,13 +1334,9 @@
 "Send Payment Request" = "Ödeme İsteği Gönder";
 
 /* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
-"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "KAS'ınız çok sayıda küçük koinde. Kaydırdığınızda KaChat önce onları tek koinde birleştirir (kendi küçük ücreti olan ayrı bir işlem), sonra bunu gönderir.";
 
 /* An address's Domains tab: one card per name service */
-"No %@ names on this address." = "Bu adreste %@ adı yok.";
-"1 domain" = "1 alan adı";
 "%lld domains" = "%lld alan adı";
-"Couldn't load" = "Yüklenemedi";
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "Yalnızca bu istek için kullanılan yepyeni bir adresinize ödenir. Notu ödeyen görür, ancak ödemeyle birlikte gitmez.";
@@ -1647,27 +1375,7 @@
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Gizliliğinizi korumak için Kaspa ağındaki diğer tüm işlemlerde diğer adreslerinizi kullanın. Kaspa Al size yeni bir adres verir, Adresleri Yönet hepsini listeler.";
 
 /* .kachat Names guide (claim, how it works, make it yours, keep it) */
-"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "İstediğiniz adı Kaspa Hub > .kachat'te arayıp alın.";
-"How a name works" = "Bir ad nasıl çalışır";
-"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "Adınız Kaspa ağında yaşar ve sohbet adresiniz tarafından tutulur. Sizin olduğu sürece kimse onu alamaz veya değiştiremez.";
-"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "Almak iki hızlı işlem gerektirir: ilki seçiminizi gizli tutar, ikincisi kaydeder.";
-"You pay for one period at a time. Shorter names cost more." = "Her seferinde bir dönem için ödersiniz. Kısa adlar daha pahalıdır.";
-"The price goes to the network's miners, not to KaChat." = "Ücret KaChat'e değil, ağın madencilerine gider.";
-"Make it your name" = "Adınız yapın";
-"Set it as your primary name and it's how you appear everywhere in KaChat." = "Birincil adınız yapın; KaChat'in her yerinde bu adla görünürsünüz.";
-"People can find you and message you by typing your name." = "İnsanlar adınızı yazarak sizi bulup mesaj atabilir.";
-"They can send you Kaspa to yourname.kachat instead of a long address." = "Uzun bir adres yerine adiniz.kachat'e Kaspa gönderebilirler.";
-"Your profile link shows your name." = "Profil bağlantınız adınızı gösterir.";
-"Keep it" = "Koruyun";
-"Your names are in Profile > Your Domains > .kachat." = "Adlarınız Profil > Alan Adlarınız > .kachat'te.";
-"Renew before it expires. It shows when, on each name." = "Süresi dolmadan yenileyin. Her adın üzerinde tarihi görünür.";
-"After it expires there's a grace period to renew it before anyone else can claim it." = "Süre dolduktan sonra, başkası alabilmeden önce yenilemek için bir ek süre vardır.";
-"You can transfer it, list it for sale, or accept an offer for it." = "Onu aktarabilir, satışa çıkarabilir veya bir teklifi kabul edebilirsiniz.";
 "You're all set" = "Hazırsınız";
-"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "Hazır olduğunuzda adınızı Kaspa Hub > .kachat'te alın.";
-".kachat Names Guide" = ".kachat Adları Rehberi";
-"Claim a .kachat name, make it your name, and keep it." = "Bir .kachat adı alın, adınız yapın ve koruyun.";
-"Walk through claiming your .kachat name and making it yours." = "Adım adım .kachat adınızı alıp sizin yapın.";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "Adınız sizde kaldıkça %@ onunla birlikte kilitli kalır (teminat + kayıt depozitosu). Adı bıraktığınızda geri alırsınız.";
@@ -1677,7 +1385,6 @@
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Yeterli bakiyeniz yok. Lütfen sohbet adresinize en az 1 KAS gönderin.";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"From: %@" = "Gönderen: %@";
 "Buy From" = "Şuradan satın al";
 "Fund" = "Bakiye yükle";
 "Copy address" = "Adresi kopyala";

@@ -334,13 +334,13 @@ struct WelcomeGuideView: View {
                 .padding(.horizontal, 24)
 
             if settingsViewModel.settings.childModeEnabled {
-                Text("Simple Mode is on. Chats, Group Chats, Portfolio and Cold Storage are available; Swaps and the .kachat market are hidden. Manage this in Settings > Security > Simple Mode.")
+                Text("Simple Mode is on. Manage this in Settings > Security > Simple Mode.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             } else {
-                Text("Simple Mode is a smaller KaChat: just Chats, Group Chats, Portfolio and Cold Storage. Swaps and the .kachat market stay hidden until the password unlocks them.")
+                Text("Simple Mode keeps KaChat to chats and group chats, behind a password only you know.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -358,7 +358,7 @@ struct WelcomeGuideView: View {
                             choice: .child,
                             icon: "square.grid.2x2",
                             title: "Simple",
-                            subtitle: "Chats, Portfolio and Cold Storage only. A password unlocks the rest later."
+                            subtitle: "Chats and group chats, behind a password."
                         )
 
                         if userTypeChoice == .child {
@@ -550,8 +550,7 @@ struct WelcomeGuideView: View {
 
     // MARK: - Currency step
 
-    /// Only affects Portfolio's live KAS price/value display (see `CoinGeckoService`,
-    /// `PortfolioViewModel`) - unlike language, this takes effect immediately with no restart, so
+    /// Only affects the KAS price shown on the Send screens (see `KasPriceModel`) - unlike language, this takes effect immediately with no restart, so
     /// there's no restart alert here and the guide simply continues to Fees on tap.
     private var currencyStep: some View {
         VStack(spacing: 16) {

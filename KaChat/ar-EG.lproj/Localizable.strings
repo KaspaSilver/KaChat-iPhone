@@ -23,9 +23,6 @@
 "Add Address" = "إضافة عنوان";
 "Add Contact" = "إضافة جهة اتصال";
 "Add Custom Endpoint" = "إضافة نقطة اتصال مخصصة";
-"Add Transaction" = "إضافة معاملة";
-"Add a buy or sell to start tracking your portfolio" = "أضف عملية شراء أو بيع لبدء تتبع محفظتك";
-"Add to Portfolio" = "إضافة إلى المحفظة";
 "Added" = "تمت الإضافة";
 "Address" = "العنوان";
 "Address Actions" = "إجراءات العنوان";
@@ -37,7 +34,6 @@
 "Always Hide" = "إخفاء دائمًا";
 "Always Show" = "إظهار دائمًا";
 "Always shown" = "معروض دائمًا";
-"Amount" = "المبلغ";
 "Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "يمكن لأي شخص ينضم إلى نفس اسم القناة رؤية الرسائل ونشرها هناك - لا يوجد مالك أو دعوة.";
 "Anyone with your seed phrase can access your account. Never share it with anyone." = "أي شخص يمتلك seed phrase الخاصة بك يمكنه الوصول إلى حسابك. لا تشاركها مع أحد أبداً.";
 "Archive" = "أرشفة";
@@ -50,7 +46,6 @@
 "Auto Search for Nodes" = "البحث التلقائي عن العقد";
 "Autocreate system contacts" = "إنشاء جهات اتصال النظام تلقائياً";
 "Automatic hides photos from contacts you haven't added or messaged yet, until you tap to reveal them." = "يخفي الوضع التلقائي صور جهات الاتصال التي لم تضفها أو تراسلها بعد، حتى تنقر لإظهارها.";
-"Available" = "متاح";
 "Avatar" = "الصورة الرمزية";
 "Balance" = "الرصيد";
 "Balance copied to clipboard." = "تم نسخ الرصيد إلى الحافظة.";
@@ -60,10 +55,8 @@
 "Best" = "الأفضل";
 "Bio" = "السيرة الذاتية";
 "Broadcast Settings" = "إعدادات البث";
-"Broadcasting..." = "جارٍ البث...";
 "Broadcasts" = "البث";
 "Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "قنوات البث عامة وغير مشفرة - أي شخص ينضم إلى نفس اسم القناة يرى نفس الرسائل.";
-"Buy" = "شراء";
 "Camera" = "الكاميرا";
 "Camera Access Required" = "مطلوب الوصول إلى الكاميرا";
 "Cancel" = "إلغاء";
@@ -101,7 +94,6 @@
 "Clear Link" = "مسح الربط";
 "Clear connection pool?" = "مسح مجموعة الاتصالات؟";
 "Close" = "إغلاق";
-"Cold Storage" = "التخزين البارد";
 "Confirm" = "تأكيد";
 "Connect Your Own Node" = "اتصل بعقدتك الخاصة";
 "Connect to a Node" = "الاتصال بعقدة";
@@ -126,7 +118,6 @@
 "Copy Private Key Hex" = "نسخ المفتاح الخاص (Hex)";
 "Copy Seed Phrase" = "نسخ seed phrase";
 "Copy Transaction ID" = "نسخ معرف المعاملة";
-"Copy kpub" = "نسخ kpub";
 "Copy to Clipboard" = "نسخ إلى الحافظة";
 "Could not encode selected image" = "تعذر ترميز الصورة المحددة";
 "Could not initialize image encoder" = "تعذر تهيئة برنامج ترميز الصور";
@@ -156,7 +147,6 @@
 "Delete" = "حذف";
 "Delete Account" = "حذف الحساب";
 "Delete Group" = "حذف المجموعة";
-"Delete Transaction" = "حذف المعاملة";
 "Diagnostics" = "التشخيصات";
 "Disable" = "تعطيل";
 "Disable Real-Time Updates" = "تعطيل التحديثات الفورية";
@@ -164,7 +154,6 @@
 "Discord user id" = "معرف المستخدم الخلاف";
 "Discover Addresses" = "اكتشاف العناوين";
 "Discover new peers" = "اكتشاف نظراء جدد";
-"Dismiss" = "تجاهل";
 "Distance" = "المسافة";
 "Domain" = "اِختِصاص";
 "Domain transfer unavailable." = "نقل النطاق غير متاح.";
@@ -181,13 +170,11 @@
 "Enter a new name for this saved account." = "أدخل اسمًا جديدًا لهذا الحساب المحفوظ.";
 "Enter a node address you trust" = "أدخل عنوان عقدة تثق بها";
 "Enter a trusted node (host:port for plaintext, or grpcs://host for TLS-secured nodes like Kaspium's) and tap Save to always connect to it instead of automatic discovery. Doesn't affect the Indexer/KNS/REST API URLs above." = "أدخل عقدة موثوقة (المضيف:المنفذ للنص العادي، أو grpcs://المضيف للعقد المؤمّنة بـ TLS مثل عقد Kaspium) واضغط على حفظ للاتصال بها دائمًا بدلاً من الاكتشاف التلقائي. لا يؤثر على روابط الفهرس/KNS/REST API أعلاه.";
-"Enter kpub" = "إدخال kpub";
 "Enter your 12 or 24 word seed phrase to restore your account. Separate each word with a space." = "أدخل seed phrase المكونة من ١٢ أو ٢٤ كلمة لاستعادة حسابك. افصل كل كلمة بمسافة.";
 "Error" = "خطأ";
 "Estimate fees while composing" = "تقدير الرسوم أثناء الكتابة";
 "Every member will see the new name." = "سيرى كل عضو الاسم الجديد.";
 "Explorer" = "المستكشف";
-"Export CSV" = "تصدير CSV";
 "Export Chat History" = "تصدير سجل المحادثات";
 "Export Diagnostics Archive" = "تصدير أرشيف التشخيصات";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "يُصدّر معلومات التطبيق/الجهاز وإعدادات الاتصال وعدد الرسائل المحلية وسجلات التطبيق الأخيرة كملف مضغوط - لاستكشاف الأخطاء وإصلاحها مع الدعم. لا يتم تضمين أي مفاتيح خاصة أو عبارات استرداد أو محتوى رسائل مفكوك التشفير.";
@@ -198,14 +185,12 @@
 "Failed to open archive: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "فشل فتح الأرشيف: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Failed updates" = "التحديثات الفاشلة";
 "Fee" = "مصاريف";
-"Fee (optional)" = "الرسوم (اختياري)";
 "Fee unavailable" = "الرسوم غير متوفرة";
 "Finish" = "إنهاء";
 "First let's create your identity with a domain name" = "لننشئ أولاً هويتك باسم نطاق";
 "From" = "من";
 "Fund Your Chatting Address" = "قم بتمويل عنوان الدردشة الخاص بك";
 "Generate Account" = "إنشاء حساب";
-"Generate More Addresses" = "إنشاء المزيد من العناوين";
 "Generate New Address" = "إنشاء عنوان جديد";
 "Generate New Spending Address" = "إنشاء عنوان إنفاق جديد";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "أنشئ واحدًا أدناه لبدء إرسال المدفوعات من عنوان منفصل عن الذي تتحدث منه.";
@@ -216,7 +201,6 @@
 "Gift claimed! Check your balance shortly." = "تم استلام الهدية! تحقق من رصيدك قريبًا.";
 "Gift sent to your wallet!" = "الهدية اتبعتت لمحفظتك!";
 "Gift unavailable" = "الهدية غير متاحة";
-"Give this account a name so you can recognize it." = "أعطِ هذا الحساب اسمًا لتتمكن من التعرف عليه.";
 "Give this address a label to help you recognize it." = "أعطِ هذا العنوان تسمية لمساعدتك على التعرف عليه.";
 "Group Info" = "معلومات المجموعة";
 "Group Name" = "اسم المجموعة";
@@ -239,11 +223,9 @@
 "If the network is busy, a higher fee can help your transaction confirm faster." = "إذا كانت الشبكة مزدحمة، يمكن لرسوم أعلى أن تساعد في تأكيد معاملتك بشكل أسرع.";
 "Import" = "استيراد";
 "Import Account" = "استيراد حساب";
-"Import CSV" = "استيراد CSV";
 "Import Chat History" = "استيراد سجل المحادثات";
 "Import Cold Storage Account" = "استيراد حساب تخزين بارد";
 "Import Existing Account" = "استيراد حساب موجود";
-"Import Failed" = "فشل الاستيراد";
 "Import Your Account" = "استيراد حسابك";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "فشل الاستيراد: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Important" = "مهم";
@@ -262,7 +244,6 @@
 "It's ok, I already have a domain" = "لا بأس، لدي نطاق بالفعل";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "أرسل فقط 5-10 KAS في كل مرة، فهذا كافٍ لتغطية رسوم الدردشة لفترة (حوالي 500 رسالة لكل KAS)";
 "KAS" = "KAS";
-"KAS Price" = "سعر KAS";
 "KNS API URL" = "رابط KNS API";
 "KNS Domains" = "نطاقات KNS";
 "KNS Profile" = "KNS الملف الشخصي";
@@ -340,17 +321,14 @@
 "Never send Kaspa you intend to spend to this address — it's for chatting fees only." = "لا ترسل أبدًا إلى هذا العنوان كاسبا تنوي إنفاقها - فهو مخصص فقط لرسوم الدردشة.";
 "New message" = "رسالة جديدة";
 "Next" = "التالي";
-"No Cold Storage Accounts" = "لا توجد حسابات تخزين بارد";
 "No Conversations Yet" = "مفيش محادثات لسه";
 "No Group Chats Yet" = "لا توجد دردشات جماعية بعد";
 "No KNS profile changes detected." = "لم يتم اكتشاف أي تغييرات في ملف تعريف KNS.";
 "No Kaspa address in system contact" = "لا يوجد عنوان Kaspa في جهة اتصال النظام";
 "No Sound" = "بدون صوت";
 "No Spending Addresses" = "لا توجد عناوين إنفاق";
-"No Transactions Yet" = "لا توجد معاملات بعد";
 "No active account" = "مفيش حساب نشط";
 "No active nodes" = "لا توجد عقد نشطة";
-"No addresses discovered yet." = "لم يتم اكتشاف أي عناوين بعد.";
 "No archived chats" = "مفيش محادثات مؤرشفة";
 "No broadcast channels yet" = "لا توجد قنوات بث بعد";
 "No contacts found." = "لم يتم العثور على جهات اتصال.";
@@ -389,7 +367,6 @@
 "Other Nodes" = "عقد أخرى";
 "Paste" = "لصق";
 "Paste from Clipboard" = "لصق من الحافظة";
-"Paste kpub" = "لصق kpub";
 "Paste the kpub exported from your KasSigner device. This contains no private key material." = "الصق الـ kpub المُصدَّر من جهاز KasSigner الخاص بك. لا يحتوي هذا على مواد المفتاح الخاص.";
 "Pay in Kaspa" = "الدفع بكاسبا";
 "Payment" = "دفعة";
@@ -410,10 +387,8 @@
 "Pool Health" = "صحة المجموعة";
 "Pool Status" = "حالة المجموعة";
 "Popular Tab" = "تبويب الأكثر شيوعًا";
-"Portfolio" = "المحفظة";
 "Preparing profile update..." = "جارٍ تحضير تحديث الملف الشخصي...";
 "Press and drag a tab in the preview below to reorder it." = "اضغط مطولاً واسحب تبويبًا في المعاينة أدناه لإعادة ترتيبه.";
-"Price Per Coin" = "السعر لكل عملة";
 "Primary" = "أساسي";
 "Primary Latency" = "زمن الاستجابة الأساسي";
 "Primary domain set to %@." = "تم ضبط النطاق الأساسي على %@.";
@@ -433,7 +408,6 @@
 "Push Register" = "تسجيل الدفع";
 "Push Registration" = "تسجيل الإشعارات";
 "Push subscription failed." = "فشل الاشتراك في الإشعارات.";
-"Quantity" = "الكمية";
 "REST API for transaction history and balance lookups" = "REST API لسجل المعاملات واستعلامات الرصيد";
 "Rate" = "السعر";
 "Read" = "مقروءة";
@@ -465,7 +439,6 @@
 "Remove" = "إزالة";
 "Remove Avatar" = "إزالة الصورة الرمزية";
 "Remove Banner" = "إزالة الشعار";
-"Remove Cold Storage Account" = "إزالة حساب التخزين البارد";
 "Remove Saved Account" = "إزالة الحساب المحفوظ";
 "Remove from Device" = "إزالة من الجهاز";
 "Rename" = "إعادة تسمية";
@@ -489,12 +462,8 @@
 "Save Audio" = "حفظ الصوت";
 "Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above." = "احفظ عناوين عقدك الخاصة هنا، ثم اضغط على واحدة لنسخها ولصقها في حقل عقدة كاسبا أعلاه.";
 "Saved Accounts" = "الحسابات المحفوظة";
-"Scan" = "مسح";
 "Scan QR" = "مسح QR";
 "Scan QR Code" = "مسح رمز QR";
-"Scan Signed Transaction" = "مسح المعاملة الموقّعة";
-"Scan or paste a kpub exported from your KasSigner device to watch its balance." = "امسح ضوئيًا أو الصق kpub مُصدَّرًا من جهاز KasSigner الخاص بك لمراقبة رصيده.";
-"Scan this on your KasSigner device" = "امسح هذا على جهاز KasSigner الخاص بك";
 "Scan to share account. Tap anywhere here to copy address." = "امسح للمشاركة. اضغط في أي مكان هنا لنسخ العنوان.";
 "Search chats" = "البحث في المحادثات";
 "Search contacts" = "البحث في جهات الاتصال";
@@ -509,7 +478,6 @@
 "Select the currency you'd like prices displayed in." = "اختر العملة التي تريد عرض الأسعار بها.";
 "Select the language you'd like to use in KaChat." = "اختر اللغة التي ترغب في استخدامها في KaChat.";
 "Selected data is not a valid image" = "البيانات المحددة ليست صورة صالحة";
-"Sell" = "بيع";
 "Send" = "إرسال";
 "Send All Kaspa To Primary Spend Address" = "إرسال كل الكاسبا إلى عنوان الإنفاق الرئيسي";
 "Send Anyway" = "إرسال على أي حال";
@@ -520,7 +488,6 @@
 "Send Kaspa" = "إرسال كاسبا";
 "Send Photo" = "إرسال صورة";
 "Send audio" = "إرسال صوت";
-"Send from Cold Storage" = "إرسال من التخزين البارد";
 "Send message" = "إرسال رسالة";
 "Sending less than 0.1 KAS may fail due to the network dust protection limit." = "قد يفشل إرسال أقل من 0.1 KAS بسبب حد حماية الغبار في الشبكة.";
 "Sending…" = "جاري الإرسال…";
@@ -567,7 +534,6 @@
 "Submitting transfer..." = "جارٍ إرسال النقل...";
 "Support Email" = "بريد الدعم";
 "Suspected" = "مشتبه بها";
-"Swap" = "مبادلة";
 "Swap Details" = "تفاصيل المبادلة";
 "Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "تتم معالجة عمليات المبادلة بواسطة ChangeNOW، وهي خدمة تبادل تابعة لجهة خارجية. بالمتابعة، فإنك تؤكد أنك قرأت ووافقت على شروط الخدمة الخاصة بـ ChangeNOW. يقوم KaChat فقط بإرسال طلب المبادلة الخاص بك وعرض حالته؛ KaChat غير مسؤول عن عمليات المبادلة الفاشلة أو المتأخرة أو المفقودة. إذا لم تتم عملية المبادلة، تواصل مباشرة مع دعم ChangeNOW.";
 "Switch direction" = "تبديل الاتجاه";
@@ -582,14 +548,12 @@
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "اضغط للضبط. إذا كانت الشبكة مزدحمة، يمكن لرسوم أعلى أن تساعد في تأكيد معاملتك بشكل أسرع.";
 "Tap to reveal seed phrase" = "اضغط لإظهار seed phrase";
 "This account will be removed from this device." = "سيتم إزالة هذا الحساب من هذا الجهاز.";
-"This can't be undone." = "لا يمكن التراجع عن هذا.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "سيتم ربط جهة الاتصال هذه بعد إنشائها. لا تزال بحاجة إلى إدخال عنوان Kaspa أو نطاق KNS.";
 "This could take a few minutes while it confirms on-chain." = "قد يستغرق هذا بضع دقائق أثناء التأكيد على السلسلة.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "يؤدي هذا إلى حذف جميع البيانات المحلية وسجلات رسائل CloudKit. لا يمكن التراجع عن هذا.";
 "This device has already received the welcome gift." = "الجهاز ده استلم هدية الترحيب قبل كده.";
 "This domain is not available." = "هذا المجال غير متوفر.";
 "This is a live check of your iCloud account, separate from local storage above." = "هذا فحص مباشر لحساب iCloud الخاص بك، منفصل عن التخزين المحلي أعلاه.";
-"This only removes it from KaChat's watch list. It has no effect on the KasSigner device or any funds it holds." = "هذا يزيله فقط من قائمة مراقبة KaChat. لا تأثير له على جهاز KasSigner أو أي أموال يحتفظ بها.";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "هذا يحذف نهائيًا كل رسالة معهم، بما في ذلك من iCloud، لذا تتم إزالتها أيضًا من أجهزتك الأخرى. لا يمكن التراجع عن هذا.";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "يؤدي هذا إلى إزالة \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) وبياناته المحلية من هذا الجهاز.";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "يؤدي هذا إلى إزالة \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) وبياناته المحلية من هذا الجهاز.";
@@ -605,11 +569,7 @@
 "To receive notifications, please enable them in Settings." = "لاستقبال الإشعارات، يرجى تفعيلها في الإعدادات.";
 "Total" = "الإجمالي";
 "Total Balance" = "الرصيد الإجمالي";
-"Total P&L" = "إجمالي الأرباح والخسائر";
-"Transaction History" = "سجل المعاملات";
 "Transaction Sent" = "تم إرسال المعاملة";
-"Transactions" = "المعاملات";
-"Transfer" = "تحويل";
 "Transfer %@" = "نقل %@";
 "Transfer Domain" = "نقل المجال";
 "Transfer Your Domain" = "انقل نطاقك";
@@ -631,7 +591,6 @@
 "Used to build \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"view transaction\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" links throughout the app." = "يُستخدم لإنشاء روابط \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"عرض المعاملة\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" في جميع أنحاء التطبيق.";
 "Used when a contact has no custom notification mode set." = "يُستخدم عندما لا يكون لجهة الاتصال وضع إشعارات مخصص.";
 "Uses your device contacts to match and enrich Kaspa contacts." = "يستخدم جهات اتصال جهازك لمطابقة وإثراء جهات اتصال Kaspa.";
-"Value Over Time" = "القيمة عبر الزمن";
 "Verified" = "موثق";
 "Verified Nodes" = "العقد الموثقة";
 "Verifying device..." = "جاري التحقق من الجهاز...";
@@ -690,7 +649,6 @@
 "kachat.kas" = "kachat.kas";
 "kaspa:... or alice.kas" = "kaspa:... أو alice.kas";
 "kaspasilver@gmail.com" = "kaspasilver@gmail.com";
-"kpub" = "kpub";
 "name" = "اسم";
 "–" = "–";
 "—" = "—";
@@ -717,8 +675,6 @@
 "None yet" = "لا يوجد بعد";
 ".kachat Name" = "اسم .kachat";
 "Customize Profile" = "تخصيص الملف الشخصي";
-".kachat names are coming" = "أسماء .kachat قادمة قريبًا";
-"KaChat's own names will live here: claim one, set it as your name in chats, and share it as your profile link." = "ستكون أسماء KaChat الخاصة هنا: احصل على اسم، واستخدمه اسمًا لك في المحادثات، وشاركه رابطًا لملفك الشخصي.";
 "Get a %@ domain at %@" = "احصل على نطاق %1$@ من %2$@";
 "No %@ names yet." = "لا توجد أسماء %@ بعد.";
 "Couldn't reach %@. Pull down to try again." = "تعذّر الوصول إلى %@. اسحب للأسفل لإعادة المحاولة.";
@@ -739,36 +695,15 @@
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "يعثر الفحص التلقائي على أفضل العقد المتاحة ويتصل بها. اختيار عقدة محددة يتصل بها وحدها دون الرجوع إلى غيرها. لا يؤثر على المفهرسات أو النطاقات أو المستكشف في التبويبات الأخرى. أضف عناوينك إلى دفتر عناوين IP أدناه لاختيارها هنا.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"Find a name" = "ابحث عن اسم";
-"Registration isn't open yet." = "التسجيل غير مفتوح بعد.";
-"Claim" = "احصل عليه";
-"Marketplace" = "السوق";
 "My Names" = "أسمائي";
 "Activity" = "النشاط";
-"List a Name for Sale" = "اعرض اسمًا للبيع";
-"Listings appear here once .kachat names launch." = "ستظهر العروض هنا عند إطلاق أسماء .kachat.";
-"No .kachat names yet" = "لا توجد أسماء .kachat بعد";
 "Claim a Name" = "احصل على اسم";
-"Recent activity" = "النشاط الأخير";
-"Activity appears here once .kachat names launch." = "سيظهر النشاط هنا عند إطلاق أسماء .kachat.";
-"How it works" = "كيف يعمل";
-"List" = "اعرض للبيع";
-"Trustless" = "بلا ثقة";
-"Pick a free name and register it on Kaspa. It's yours: your name in chats, your profile, your link." = "اختر اسمًا متاحًا وسجّله على Kaspa. إنه لك: اسمك في المحادثات، وملفك الشخصي، ورابطك.";
-"Set a price. The name waits in an on-chain covenant, not with KaChat or anyone else, until someone buys it or you take it back." = "حدّد سعرًا. ينتظر الاسم في عقد على السلسلة - لا لدى KaChat ولا لدى أي أحد - حتى يشتريه أحد أو تسترده.";
-"Pay the listed price. The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "ادفع السعر المعروض. يصل الدفع إلى البائع والاسم إليك في المعاملة نفسها - إما أن يحدث الأمران أو لا يحدث أي منهما.";
-"No middleman and no escrow account: Kaspa's own rules enforce every sale." = "لا وسيط ولا حساب ضمان: قواعد Kaspa نفسها تضمن كل عملية بيع.";
-"Nothing here is live yet." = "لا شيء هنا يعمل بعد.";
-"How .kachat works" = "كيف يعمل .kachat";
 
 /* 5.2: range and section labels */
-"7 Days" = "7 أيام";
 "All-time only" = "الإجمالي فقط";
 "Kinds marked \"All-time only\" aren't in this total yet." = "الأنواع المعلّمة «الإجمالي فقط» غير مشمولة في هذا المجموع بعد.";
 
 /* 5.2: .kachat setup guide */
-"Claim your .kachat name" = "احصل على اسم ‎.kachat الخاص بك";
-"It's the name people see you as across KaChat - in chats, on posts and on your profile link. Without one, people see your address." = "هو الاسم الذي يراك به الناس في كل KaChat - في المحادثات وعلى المنشورات وفي رابط ملفك الشخصي. بدونه يرى الناس عنوانك.";
 "Add a profile photo" = "أضف صورة للملف الشخصي";
 "Your avatar shows next to your name everywhere in KaChat." = "تظهر صورتك الرمزية بجانب اسمك في كل مكان في KaChat.";
 "Add a banner" = "أضف لافتة";
@@ -786,39 +721,13 @@
 "Help" = "المساعدة";
 
 /* 5.2: .kachat listing, buy and offer */
-"Offers" = "العروض";
 "No offers yet." = "لا توجد عروض بعد.";
-"Offer" = "عرض";
-"Name your own price. Your KAS waits on chain until the seller accepts, you withdraw the offer, or it expires - and you can message the seller first." = "حدّد سعرك. تنتظر KAS الخاصة بك على السلسلة حتى يقبل البائع أو تسحب العرض أو تنتهي صلاحيته - ويمكنك مراسلة البائع أولًا.";
-"Listing" = "إعلان البيع";
-"Price" = "السعر";
-"Buy Now" = "اشترِ الآن";
-"Make an Offer" = "قدّم عرضًا";
-"Seller" = "البائع";
-"Ask about the name, or agree on a price before you offer." = "اسأل عن الاسم أو اتفقا على سعر قبل تقديم العرض.";
-"Open offers on this name, highest first. The seller can accept any of them." = "العروض المفتوحة على هذا الاسم، الأعلى أولًا. يمكن للبائع قبول أي منها.";
 "History" = "السجل";
-"Buying pays the seller and moves the name to you in one transaction." = "الشراء يدفع للبائع وينقل الاسم إليك في معاملة واحدة.";
-"An offer locks your KAS on chain until the seller accepts it, you withdraw it, or it expires." = "العرض يقفل KAS الخاصة بك على السلسلة حتى يقبله البائع أو تسحبه أو تنتهي صلاحيته.";
-"Messages go to the seller like any KaChat chat." = "تصل الرسائل إلى البائع مثل أي محادثة في KaChat.";
 "Network fee" = "رسوم الشبكة";
-"Confirm Purchase" = "تأكيد الشراء";
-"Buying opens when .kachat names launch." = "يُفتح الشراء عند إطلاق أسماء ‎.kachat.";
-"Buy Name" = "شراء الاسم";
-"1 Day" = "يوم واحد";
-"3 Days" = "3 أيام";
-"Listed at" = "سعر العرض";
-"Your offer" = "عرضك";
-"Expires" = "تنتهي";
-"Expires after" = "تنتهي بعد";
-"Send Offer" = "إرسال العرض";
-"Offers open when .kachat names launch." = "تُفتح العروض عند إطلاق أسماء ‎.kachat.";
 
 /* 5.2: Portfolio export/import with Nextcloud */
 "Import from Nextcloud" = "استيراد من Nextcloud";
-"Pick a CSV file from your Nextcloud." = "اختر ملف CSV من Nextcloud الخاص بك.";
 "Export to Nextcloud" = "تصدير إلى Nextcloud";
-"Save the CSV to the KaChat folder in your Nextcloud." = "يحفظ ملف CSV في مجلد KaChat على Nextcloud الخاص بك.";
 "Saved to %@ in Nextcloud." = "تم الحفظ في %@ على Nextcloud.";
 "Export to Nextcloud failed: %@" = "فشل التصدير إلى Nextcloud: %@";
 "Import from Nextcloud failed: %@" = "فشل الاستيراد من Nextcloud: %@";
@@ -829,28 +738,15 @@
 "KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "تظهر KaPosts والمحادثات العامة وKaspa Websites هنا عندما لا تكون في الشريط السفلي. أدِرها من الإعدادات > Customization > Customize Dock.";
 
 /* 5.2: an address's .kachat Domains tab */
-".kachat Domains" = "نطاقات ‎.kachat";
-"No .kachat names on this address" = "لا توجد أسماء ‎.kachat على هذا العنوان";
-"Names this address claims or buys show here once .kachat names launch." = "تظهر هنا الأسماء التي يحصل عليها هذا العنوان أو يشتريها عند إطلاق أسماء ‎.kachat.";
 
 /* 5.2: move a portfolio transaction */
-"Move to Portfolio" = "نقل إلى محفظة";
-"Create another portfolio first, then you can move transactions into it." = "أنشئ محفظة أخرى أولًا، ثم يمكنك نقل المعاملات إليها.";
-"Already has this transaction." = "تحتوي هذه المعاملة بالفعل.";
-"Move this transaction here." = "انقل هذه المعاملة إلى هنا.";
 "Moved to %@." = "تم النقل إلى %@.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-"Add Chatting Address" = "إضافة عنوان المحادثة";
-"Your chatting address's buys and sells, and every network fee it has paid." = "عمليات شراء وبيع عنوان المحادثة الخاص بك، وكل رسوم شبكة دفعها.";
 ". Network fees counted: %lld" = ". رسوم الشبكة المحسوبة: %lld";
-"No sells yet this year." = "لا توجد مبيعات هذا العام بعد.";
 "Sells: %lld. Oldest buys first (FIFO)." = "المبيعات: %lld. أقدم المشتريات أولًا (FIFO).";
 "%@ sold with no buy on record, counted at zero cost." = "تم بيع %@ دون شراء مسجل، وحُسبت بتكلفة صفرية.";
-"Some prices are still loading." = "لا تزال بعض الأسعار قيد التحميل.";
 "Realized P&L %@" = "الربح/الخسارة المحققة %@";
-"Fees Spent" = "الرسوم المدفوعة";
-"Add your chatting address with + to count the network fees it has paid." = "أضف عنوان المحادثة عبر + لاحتساب رسوم الشبكة التي دفعها.";
 "Transactions: %lld. Some prices are still loading." = "المعاملات: %lld. لا تزال بعض الأسعار قيد التحميل.";
 "Transactions: %lld, at each day's price." = "المعاملات: %lld، بسعر كل يوم.";
 
@@ -859,8 +755,6 @@
 "Yesterday" = "أمس";
 
 /* 5.2: Portfolio transfers */
-"Value at the Time" = "القيمة في ذلك الوقت";
-"KAS moved between your own addresses - sent away and brought back, or wallet to wallet. It doesn't change your holdings, cost or profit." = "‏KAS نُقلت بين عناوينك الخاصة - أُرسلت ثم أُعيدت، أو من محفظة إلى أخرى. لا يغيّر ذلك رصيدك أو التكلفة أو الربح.";
 
 /* Receive / chatting address QR text */
 
@@ -908,109 +802,40 @@
 "A name is 1 to 32 characters." = "الاسم من 1 إلى 32 حرفًا.";
 "Use a-z, 0-9 and hyphens only." = "استخدم a-z و0-9 والشرطات فقط.";
 "A name can't start or end with a hyphen." = "لا يمكن أن يبدأ الاسم أو ينتهي بشرطة.";
-"Expired" = "منتهي";
 "Lapsed" = "سقط";
-"Yours" = "لك";
-"until %@" = "حتى %@";
-"Available · %@ a year" = "متاح · %@ سنويًا";
-"Not a valid name." = "ليس اسمًا صالحًا.";
-"Taken · for sale at %@" = "محجوز · للبيع بسعر %@";
-"Taken" = "محجوز";
-"Expired - the owner can still renew it" = "منتهي - لا يزال بإمكان المالك تجديده";
 "Lapsed - reclaim it, then claim it" = "سقط - استرده ثم احصل عليه";
-"About %lld s to go" = "بقي نحو %lld ث";
-"Cancel the commit?" = "إلغاء الالتزام؟";
-"Cancel Commit" = "إلغاء الالتزام";
-"Keep" = "إبقاء";
-"The registration stops and the commit's 0.2 KAS comes back to you, less the network fee." = "يتوقف التسجيل ويعود إليك مبلغ 0.2 KAS الخاص بالالتزام، مطروحًا منه رسوم الشبكة.";
-"Sending the hidden commit..." = "جارٍ إرسال الالتزام المخفي...";
-"Waiting for the commit to confirm..." = "في انتظار تأكيد الالتزام...";
-"The commit has to age for about a minute before the name can be registered. Keep KaChat open - it registers by itself, and picks up where it left off if you leave." = "يجب أن يمر نحو دقيقة على الالتزام قبل تسجيل الاسم. أبقِ KaChat مفتوحًا - سيسجّله تلقائيًا، ويكمل من حيث توقف إن غادرت.";
-"Registering..." = "جارٍ التسجيل...";
-"Registered. It's yours." = "تم التسجيل. إنه لك.";
-"Someone registered this name first. Cancel the commit to get its 0.2 KAS back." = "سجّل شخص آخر هذا الاسم أولًا. ألغِ الالتزام لاسترداد 0.2 KAS.";
-"The registration stopped." = "توقف التسجيل.";
-"Cancelling the commit..." = "جارٍ إلغاء الالتزام...";
 "Cancelled." = "تم الإلغاء.";
 "Confirm this .kachat transaction" = "تأكيد معاملة .kachat هذه";
-"For sale" = "للبيع";
 "Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "أسماء عرضها أصحابها للبيع. الشراء يدفع للمالك وينقل الاسم إليك في معاملة واحدة.";
-"No names are listed right now." = "لا توجد أسماء معروضة للبيع الآن.";
 "Reclaimable" = "قابلة للاسترداد";
 "Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "أسماء تركها أصحابها تسقط. يمكن لأي شخص استردادها: يعود الضمان إلى آخر مالك، وتحتفظ أنت بالوديعة المحرَّرة كمكافأة، ويصبح الاسم متاحًا للتسجيل.";
 "Nothing to reclaim." = "لا يوجد ما يُسترد.";
 "Reclaim" = "استرداد";
 "Renew, list, transfer or release them, and pick the one KaChat shows for you." = "جدّدها أو اعرضها للبيع أو انقلها أو تخلَّ عنها، واختر الاسم الذي يعرضه KaChat لك.";
 "Search for a name above and claim it." = "ابحث عن اسم في الأعلى واحصل عليه.";
-"My Offers" = "عروضي";
 "Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "العروض التي قدمتها. اسحب أيًا منها متى شئت؛ وبعد انقضاء وقت الاسترداد يمكن لأي شخص إعادته إليك.";
-"No open offers." = "لا توجد عروض مفتوحة.";
-"Offers from others appear once a names indexer is connected." = "تظهر عروض الآخرين بعد ربط مفهرس للأسماء.";
-"Nothing yet." = "لا شيء بعد.";
-"Withdraw Offer" = "سحب العرض";
-"Withdraw" = "سحب";
-"Refund Offer" = "استرداد العرض";
-"Refund" = "استرداد";
-"Accept Offer" = "قبول العرض";
-"Accept and Transfer" = "قبول ونقل";
-"The name goes to the buyer and the offer's amount comes to you, in one transaction. This can't be undone." = "ينتقل الاسم إلى المشتري ويصل إليك مبلغ العرض في معاملة واحدة. لا يمكن التراجع عن ذلك.";
-"Buyer" = "المشتري";
 "Refundable now" = "قابل للاسترداد الآن";
-"Price (to miners)" = "السعر (للمعدِّنين)";
 "Your balance" = "رصيدك";
 "It shows here once the network accepts it, usually within seconds." = "يظهر هنا بعد قبول الشبكة له، عادةً خلال ثوانٍ.";
-"Years" = "السنوات";
-"Bond (returned on release)" = "الضمان (يُعاد عند التخلي)";
-"Registry deposit (returned on release)" = "وديعة السجل (تُعاد عند التخلي)";
-"Commit (returned at registration)" = "الالتزام (يُعاد عند التسجيل)";
-"Network fees" = "رسوم الشبكة";
 "Cost" = "التكلفة";
-"Not enough KAS on your chatting address for this name." = "لا يوجد ما يكفي من KAS على عنوان الدردشة لهذا الاسم.";
-"The price goes to the miners - KaChat takes nothing. The bond and the deposit come back when you release the name." = "يذهب السعر إلى المعدِّنين - لا يأخذ KaChat شيئًا. يعود الضمان والوديعة عندما تتخلى عن الاسم.";
-"A hidden commit goes on chain first. Nobody can see which name it is for." = "يُرسل التزام مخفي إلى السلسلة أولًا. لا يمكن لأحد معرفة الاسم الذي يخصه.";
-"About a minute later KaChat registers the name by itself. Keep the app open; if you leave, it continues next time." = "بعد نحو دقيقة يسجّل KaChat الاسم تلقائيًا. أبقِ التطبيق مفتوحًا؛ وإن غادرت فسيكمل في المرة القادمة.";
 "The name is yours for the years you paid. Renew it any time before it expires." = "الاسم لك طوال السنوات التي دفعت عنها. جدّده في أي وقت قبل انتهائه.";
-"How claiming works" = "كيف يتم الحصول على الاسم";
-"Claim %@.kachat" = "احصل على %@.kachat";
-"Claim Name" = "الحصول على اسم";
-"This name was released or reclaimed. It's free to claim again." = "تم التخلي عن هذا الاسم أو استرداده. يمكن الحصول عليه من جديد.";
 "Make %@ your primary name?" = "هل تجعل %@ اسمك الأساسي؟";
 "Set as Primary" = "تعيين كاسم أساسي";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "يعرضه KaChat كاسمك. يُحفظ في سجل ملفك الشخصي على السلسلة مقابل رسوم الشبكة.";
-"Not for sale" = "ليس للبيع";
-"Expires %@" = "ينتهي في %@";
 "Expired - renew to keep it. Until the grace period ends nobody else can take it." = "منتهي - جدّده لتحتفظ به. حتى انتهاء فترة السماح لا يمكن لأحد غيرك أخذه.";
 "Expired. It no longer resolves; the owner can still renew it." = "منتهي. لم يعد يُحلّ إلى عنوان؛ لا يزال بإمكان المالك تجديده.";
 "Lapsed: anyone may reclaim it, and then claim it again." = "سقط: يمكن لأي شخص استرداده ثم الحصول عليه من جديد.";
-"Renew" = "تجديد";
-"Change Price" = "تغيير السعر";
-"List for Sale" = "عرض للبيع";
-"Delist" = "إزالة من البيع";
-"Release Name" = "التخلي عن الاسم";
-"Owner" = "المالك";
 "You" = "أنت";
 "Accept one to sell the name for it." = "اقبل أحدها لتبيع الاسم به.";
-"No history yet." = "لا يوجد سجل بعد.";
-"Release" = "تخلٍّ";
-"Releasing gives the name up for good: it becomes free for anyone to register, and the time you paid for is lost. You get the bond and the registry deposit back." = "التخلي يعني التنازل عن الاسم نهائيًا: يصبح متاحًا لأي شخص لتسجيله، وتضيع المدة التي دفعت عنها. يعود إليك الضمان ووديعة السجل.";
 "Saved. Transaction %@" = "تم الحفظ. المعاملة %@";
-"The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "يصل الدفع إلى البائع والاسم إليك في المعاملة نفسها - إما أن يحدث الأمران أو لا يحدث أي منهما.";
-"Price (to the seller)" = "السعر (للبائع)";
-"Refundable after" = "قابل للاسترداد بعد";
 "A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "يُضاف التجديد إلى تاريخ الانتهاء الحالي حتى لو كان قد مضى. يذهب السعر إلى المعدِّنين.";
 "Price per year" = "السعر لكل سنة";
-"New expiry" = "تاريخ الانتهاء الجديد";
-"Anyone can buy it at this price: the payment reaches you and the name reaches them in one transaction. Delist any time." = "يمكن لأي شخص شراؤه بهذا السعر: يصلك الدفع ويصله الاسم في معاملة واحدة. أزله من البيع متى شئت.";
-"A transfer can't be undone. The new owner gets the name with its current expiry; your profile stays with your address." = "لا يمكن التراجع عن النقل. يحصل المالك الجديد على الاسم بتاريخ انتهائه الحالي؛ ويبقى ملفك الشخصي مع عنوانك.";
 "To" = "إلى";
 "kaspatest:... or name.kachat" = "kaspatest:... أو name.kachat";
-"New owner" = "المالك الجديد";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "عنوان على الشبكة التجريبية أو اسم .kachat - يُحوَّل إلى العنوان المعروض.";
 "Not a testnet Schnorr address." = "ليس عنوان Schnorr على الشبكة التجريبية.";
-"That address's key is not valid." = "مفتاح هذا العنوان غير صالح.";
 "Enter an address or a .kachat name." = "أدخل عنوانًا أو اسم .kachat.";
 "No active .kachat name by that name." = "لا يوجد اسم .kachat نشط بهذا الاسم.";
-"Couldn't look that name up." = "تعذر البحث عن هذا الاسم.";
 "The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "يعود ضمان الاسم إلى آخر مالك، وتحتفظ أنت بوديعة السجل المحرَّرة (مطروحًا منها الرسوم) كمكافأة، ويصبح الاسم متاحًا. لامتلاكه، احصل عليه بعد ذلك.";
 "Bond to the last owner" = "الضمان لآخر مالك";
 "Claim one in Kaspa Hub > .kachat." = "احصل على اسم من Kaspa Hub > .kachat.";
@@ -1031,7 +856,6 @@
 "Save your profile?" = "حفظ ملفك الشخصي؟";
 "It's written to the chain for a network fee." = "يُكتب على السلسلة مقابل رسوم الشبكة.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "الملفات الشخصية عامة وعلى السلسلة: يمكن لأي شخص قراءتها، وتبقى النسخ السابقة مقروءة بعد تغييرها. يُكتب مقابل رسوم الشبكة.";
-"%lld years" = "%lld سنوات";
 "No testnet wallet is open." = "لا توجد محفظة مفتوحة على الشبكة التجريبية.";
 "This wallet's key does not match its address." = "مفتاح هذه المحفظة لا يطابق عنوانها.";
 "%@ is not a valid key (not on the secp256k1 curve)." = "%@ ليس مفتاحًا صالحًا (ليس على منحنى secp256k1).";
@@ -1074,32 +898,16 @@
 "Balance after" = "الرصيد بعد العملية";
 "Balance change" = "تغيّر الرصيد";
 "Transaction sent" = "المعاملة اتبعتت";
-"View Transaction" = "اعرض المعاملة";
-"Name released" = "الاسم اتساب";
-"Name bought" = "الاسم اتشرى";
-"Offer sent" = "العرض اتبعت";
-"Price changed" = "السعر اتغير";
 "Listed for sale" = "معروض للبيع";
-"Name transferred" = "الاسم اتنقل";
 "Name reclaimed" = "الاسم اترجع";
 "Profile saved" = "البروفايل اتحفظ";
-"Primary name set" = "الاسم الأساسي اتحدد";
-"Name registered" = "الاسم اتسجل";
-"Commit cancelled" = "الالتزام اتلغى";
 "Your Profile" = "البروفايل بتاعك";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "بيتحفظ على السلسلة من عنوان الشات بتاعك لنفسه.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "البروفايلات عامة وعلى السلسلة: أي حد يقدر يقراها، والنسخ القديمة بتفضل مقروءة بعد ما تغيرها.";
 "Extended" = "تم التمديد";
-"Extend" = "تمديد";
-"Extend to %lld years" = "تمديد إلى %lld سنوات";
 "Renewal opens on %@" = "يبدأ التجديد في %@";
-"Paid from %@ to %@" = "مدفوع من %@ إلى %@";
-"New period" = "فترة جديدة";
-"Renewal open" = "التجديد متاح";
-"Extending adds years to the current paid period, which holds at most 2 years. The price goes to the miners." = "يضيف التمديد سنوات إلى الفترة المدفوعة الحالية، التي لا تتجاوز سنتين. يذهب السعر إلى المعدِّنين.";
 "The names indexer didn't send this name's paid period. Pull to refresh and try again." = "لم يرسل مفهرس الأسماء الفترة المدفوعة لهذا الاسم. اسحب للتحديث وحاول مرة أخرى.";
-"The name is yours for the years you paid, at most 2 ahead. A 1-year name can be extended to 2 years; from 10 days before it expires you can renew it." = "الاسم لك طوال السنوات التي دفعتها، وسنتين مقدمًا كحد أقصى. يمكن تمديد اسم لسنة واحدة إلى سنتين؛ ومن 10 أيام قبل انتهائه يمكنك تجديده.";
 "Setting up" = "جارٍ الإعداد";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "تتم ترقية سجل .kachat على الشبكة التجريبية. ستُفتح الأسماء هنا مجددًا بمجرد تشغيل السجل الجديد.";
 ".kachat Names" = "أسماء .kachat";
@@ -1139,10 +947,6 @@
 "Copies the transaction ID to your clipboard." = "بينسخ رقم المعاملة للحافظة.";
 "Transaction ID copied" = "اتنسخ رقم المعاملة";
 "This payment isn't on chain yet." = "الدفعة دي لسه مش على السلسلة.";
-"Opens the .kachat marketplace" = "بيفتح سوق .kachat";
-"Names this address owns show here." = "الأسماء اللي العنوان ده بيملكها بتظهر هنا.";
-"Your spending address #%lld" = "عنوان الصرف بتاعك #%lld";
-"Your KasSigner address (%@ #%lld)" = "عنوان KasSigner بتاعك (%@ #%lld)";
 "New" = "جديد";
 "New Chat" = "شات جديد";
 "New Group Chat" = "جروب جديد";
@@ -1158,7 +962,6 @@
 "Profiles can be saved once .kachat launches on mainnet." = "هتقدر تحفظ البروفايلات أول ما ‎.kachat ينزل على الشبكة الرئيسية.";
 "Pinned to the front" = "اتثبت في الأول";
 "Unpinned" = "اتشال التثبيت";
-"Build Unsigned Transaction" = "اعمل معاملة من غير توقيع";
 "Coin Control" = "التحكم في العملات";
 "Automatic" = "تلقائي";
 "Consolidating This Address" = "بيتم دمج العنوان ده";
@@ -1188,25 +991,9 @@
 "Claimed. You can claim again in %@." = "تم الطلب. تقدر تطلب تاني بعد %@.";
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "بينسخ عنوان الدردشة ويفتح صنبور TN10: الصقه، وعدّي التحقق، واطلب أكبر مبلغ متاح.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "عنوان دردشة TN10 اتنسخ. الصقه في خانة العنوان في الصنبور.";
-"Copies the address" = "بينسخ العنوان";
-"Manage Name" = "إدارة الاسم";
-"Pays for more years now, up to the 2-year limit." = "بيدفع لسنين زيادة دلوقتي، لحد حد السنتين.";
-"Starts a new paid period from the expiry date." = "بيبدأ فترة مدفوعة جديدة من تاريخ الانتهاء.";
-"Changes the asking price." = "بيغيّر السعر المطلوب.";
-"Takes the name off the market." = "بيشيل الاسم من السوق.";
-"Puts the name up for sale at your price." = "بيعرض الاسم للبيع بالسعر اللي تحدده.";
-"Sends the name to another address." = "بيبعت الاسم لعنوان تاني.";
-"Shows you by this name across KaChat." = "بيظهرك بالاسم ده في كل KaChat.";
-"Gives the name up and returns its deposit." = "بيتنازل عن الاسم ويرجّع العربون بتاعه.";
 "Expires in %@" = "بينتهي خلال %@";
-"Expired - returning to you" = "انتهى - راجع ليك";
-"Expired - returning to the buyer" = "انتهى - راجع للمشتري";
-"Expired - refundable now" = "انتهى - ممكن يترجع دلوقتي";
 "Tap an offer to accept it. Expired offers go back to their buyers." = "دوس على عرض علشان تقبله. العروض المنتهية بترجع لأصحابها.";
 "This offer has expired. It's going back to the buyer." = "العرض ده انتهى. راجع للمشتري.";
-"Offers you made. Withdraw one any time; once it expires it comes back to you on its own." = "العروض اللي قدمتها. اسحب أي واحد في أي وقت؛ ولما ينتهي بيرجعلك لوحده.";
-"Declined - the name changed hands, returning to you" = "مرفوض - الاسم اتغير صاحبه، راجع ليك";
-"Declined - made to an earlier owner" = "مرفوض - اتقدم لصاحب قديم";
 "This offer was made before the name changed hands, so it's declined and going back to the buyer." = "العرض ده اتقدم قبل ما صاحب الاسم يتغير، فاترفض وراجع للمشتري.";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
@@ -1215,16 +1002,8 @@
 "You can't make an offer on your own name." = "لا يمكنك تقديم عرض على اسمك.";
 "An offer can run for up to 7 days." = "يمكن أن يستمر العرض حتى 7 أيام.";
 "Price per %@" = "السعر لكل %@";
-"Available · %@ per %@" = "متاح · %1$@ لكل %2$@";
-"Extend to %@" = "تمديد إلى %@";
 "Pays for more time now, up to the %@ limit." = "يدفع مقابل وقت إضافي الآن، حتى حد %@.";
-"Extending adds time to the current paid period, which holds at most %@. The price goes to the miners." = "يضيف التمديد وقتًا إلى الفترة المدفوعة الحالية، التي تتسع لـ %@ كحد أقصى. يذهب السعر إلى المعدّنين.";
-"The name is yours for the time you paid, at most %@ ahead. From %@ before it expires you can renew it." = "الاسم لك للمدة التي دفعتها، حتى %1$@ مقدمًا. يمكنك تجديده قبل انتهائه بـ %2$@.";
-"Decline Offer" = "رفض العرض";
 "Offer declined" = "رُفض العرض";
-"The offer goes back to the buyer. Its network fee comes out of the offer, so declining costs you nothing." = "يعود العرض إلى المشتري. تُقتطع رسوم الشبكة من العرض، فلا يكلّفك الرفض شيئًا.";
-"Your KAS stays locked on chain until the owner accepts or declines, you withdraw the offer, or it expires - then anyone can send it back to you." = "تبقى KAS الخاصة بك مقفلة على السلسلة حتى يقبل المالك أو يرفض، أو تسحب العرض، أو تنتهي مدته - وعندها يمكن لأي شخص إعادتها إليك.";
-"This name is listed for less than your offer. Consider buying it instead." = "هذا الاسم معروض للبيع بأقل من عرضك. فكّر في شرائه بدلًا من ذلك.";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
 "The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "تغيّر السعر إلى %@ منذ أن أكدت. لم يُرسل شيء. راجع السعر الجديد وأكد مرة أخرى.";
@@ -1232,7 +1011,6 @@
 "Confirm New Price" = "تأكيد السعر الجديد";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"A renewal starts the next period at the current expiry, not from today, so a name that expired a while ago gets less time. The price goes to the miners." = "يبدأ التجديد الفترة التالية من تاريخ الانتهاء الحالي، وليس من اليوم، لذا يحصل الاسم المنتهي منذ مدة على وقت أقل. يذهب السعر إلى المعدّنين.";
 "This name has been expired too long to renew. It can only be reclaimed and registered again." = "انتهت صلاحية هذا الاسم منذ مدة طويلة جدًا لتجديده. يمكن فقط استرداده وتسجيله من جديد.";
 "Offers can only be made on active names." = "لا يمكن تقديم العروض إلا على الأسماء النشطة.";
 "This name has expired. Offers can only be accepted while the name is active. Renew it first." = "انتهت صلاحية هذا الاسم. لا يمكن قبول العروض إلا أثناء نشاط الاسم. جدّده أولًا.";
@@ -1252,7 +1030,6 @@
 "Send %@ to %@?" = "إرسال %1$@ إلى %2$@؟";
 
 /* .kachat: expires-soon follows the period clock (IOS-060) */
-"Less than %@ is left before this name expires. You'd have to renew it soon." = "يتبقى أقل من %@ قبل انتهاء صلاحية هذا الاسم. ستحتاج إلى تجديده قريبًا.";
 
 /* Profile editor: links that can't be checked don't block saving */
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "تعذّر التحقق من بعض الروابط من هذا الهاتف الآن. ستُحفظ كما أُدخلت، وتحمّلها تطبيقات الآخرين عندما تستطيع.";
@@ -1283,13 +1060,11 @@
 "Nobody accepted it in time. The KAS is back with you." = "لم يقبله أحد في الوقت المحدد. عادت KAS إليك.";
 "Offer on %@ returned" = "أُعيد العرض على %@";
 "It can no longer be accepted. The KAS is back with you." = "لم يعد من الممكن قبوله. عادت KAS إليك.";
-"Kaspa arriving in your wallets and news about your .kachat names show up here." = "تظهر هنا KAS التي تصل إلى محافظك وأخبار أسماء .kachat الخاصة بك.";
 "Renew it soon to keep it." = "جدّده قريبًا للاحتفاظ به.";
 "Renew it soon or anyone can claim it." = "جدّده قريبًا وإلا يمكن لأي شخص المطالبة به.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
 "Reclaimable names appear here once .kachat names launch." = "تظهر هنا الأسماء القابلة للاسترداد عند إطلاق أسماء .kachat.";
-"Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "كل تسجيل وتجديد وإدراج وبيع وعرض ونقل واسترداد في السجل.";
 
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "استرداد للتملّك";
@@ -1302,11 +1077,9 @@
 "Waiting for the old %@ to be cleared from the registry." = "بانتظار إزالة %@ القديم من السجل.";
 
 /* .kachat: a released or reclaimed name */
-"Free to claim" = "متاح للمطالبة";
 
 /* .kachat registration progress half sheet */
 "Claiming %@" = "جارٍ المطالبة بـ %@";
-"Keep KaChat open: the name is registered about a minute after the hidden commit confirms. If you leave, it picks up where it left off when you come back." = "أبقِ KaChat مفتوحًا: يُسجَّل الاسم بعد نحو دقيقة من تأكيد الالتزام المخفي. إذا غادرت، فسيكمل من حيث توقف عند عودتك.";
 "Finish the name you're claiming first." = "أكمل أولًا الاسم الذي تطالب به.";
 
 /* .kachat name lapsed: moved to Reclaimable */
@@ -1321,13 +1094,9 @@
 "Choose seed phrase length" = "اختر طول seed phrase";
 
 /* .kachat sale tile: expiry flag */
-"Expires soon" = "ينتهي قريبًا";
 
 /* .kachat: expired names are available to claim */
 "Freeing %@ for you..." = "جارٍ تحرير %@ لك...";
-"This name expired and wasn't renewed, so anyone can claim it at the normal price. The old owner's bond goes back to them." = "انتهت صلاحية هذا الاسم ولم يُجدَّد، لذا يمكن لأي شخص المطالبة به بالسعر العادي. يعود ضمان المالك السابق إليه.";
-"No expired names right now." = "لا توجد أسماء منتهية الآن.";
-"Expired names appear here once .kachat names launch." = "ستظهر الأسماء المنتهية هنا عند إطلاق أسماء ‎.kachat.";
 "%@ was freed" = "تم تحرير %@";
 "It expired and was cleared from the registry. Your bond is back with you." = "انتهت صلاحيته وأُزيل من السجل. عاد ضمانك إليك.";
 
@@ -1336,8 +1105,6 @@
 "It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "انتهت صلاحيته ولم يُجدَّد، لذا أصبح متاحًا لأي شخص في السوق. يعود ضمانك إليك عندما يطالب به أحد.";
 
 /* .kachat: claims in progress button and busy-network notes */
-"Claiming" = "جارٍ المطالبة";
-"Names being claimed" = "الأسماء قيد المطالبة";
 "The network is busy. Your commit is waiting for a block." = "الشبكة مزدحمة. التزامك ينتظر كتلة.";
 "The network is busy, so the commit was sent again." = "الشبكة مزدحمة، لذلك أُرسل الالتزام مرة أخرى.";
 
@@ -1369,21 +1136,13 @@
 "Scratch files from sending photos and voice notes. Safe to remove at any time." = "ملفات مؤقتة من إرسال الصور والرسائل الصوتية. يمكن حذفها في أي وقت.";
 
 /* .kachat Renew: choose the period first */
-"How long?" = "لأي مدة؟";
-"A renewal starts the next period at the current expiry, not from today." = "يبدأ التجديد الفترة التالية عند تاريخ الانتهاء الحالي، وليس من اليوم.";
 
 /* .kachat marketplace: the Expired tab (names in grace, counting down) */
-"Released in" = "يُطلق خلال";
-"No names are in their grace period right now." = "لا توجد أسماء في فترة السماح الآن.";
-"Names in their grace period appear here once .kachat names launch." = "ستظهر هنا الأسماء في فترة السماح عند إطلاق أسماء ‎.kachat.";
 
 /* .kachat name screen: when an expired name's grace period ends */
-"Grace period ends %@" = "تنتهي فترة السماح في %@";
 
 /* .kachat: names in grace keep resolving to their owner */
 "No .kachat name by that name." = "لا يوجد اسم ‎.kachat‎ بهذا الاسم.";
-"Expired. It still resolves to its owner until the grace period ends, and the owner can still renew it." = "منتهي الصلاحية. لا يزال يشير إلى مالكه حتى تنتهي فترة السماح، ولا يزال بإمكان المالك تجديده.";
-"Expired - renew to keep it. Until the grace period ends it still resolves to you and nobody else can take it." = "منتهي الصلاحية - جدّده للاحتفاظ به. حتى تنتهي فترة السماح، لا يزال يشير إليك ولا يمكن لأي شخص آخر أخذه.";
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "دفتر العناوين";
@@ -1448,12 +1207,7 @@
 "That Address Book export has no addresses." = "لا يحتوي ملف التصدير هذا على أي عناوين.";
 
 /* .kachat: fees, busy network, progress receipt */
-"The network is busy" = "الشبكة مزدحمة";
-"At Normal this may wait a while. Fast or Priority pays a little more to get into a block sooner." = "بالرسوم العادية قد يطول الانتظار. السريع أو الأولوية يدفع أكثر قليلًا ليدخل في كتلة أسرع.";
 "Balance after: %@" = "الرصيد بعد: %@";
-"Balance change: %@" = "تغيّر الرصيد: %@";
-"Available: %@" = "المتاح: %@";
-"Claiming sends two transactions: the commit now, the registration about a minute later. Both use this speed." = "المطالبة ترسل معاملتين: الالتزام الآن، والتسجيل بعد دقيقة تقريبًا. كلاهما بهذه السرعة.";
 "Sent to the network" = "أُرسلت إلى الشبكة";
 "In a block" = "في كتلة";
 "Updated in KaChat" = "حُدّثت في KaChat";
@@ -1464,10 +1218,6 @@
 "Tap the transaction to open it in the explorer." = "اضغط المعاملة لفتحها في المستكشف.";
 
 /* .kachat offers: tiles and half sheet */
-"Expires in" = "ينتهي خلال";
-"This offer can't be accepted any more." = "لم يعد بالإمكان قبول هذا العرض.";
-"Only the name's owner can accept or decline this offer." = "مالك الاسم وحده يمكنه قبول هذا العرض أو رفضه.";
-"Tap an offer to accept or decline it. Expired offers go back to their buyers." = "اضغط عرضًا لقبوله أو رفضه. العروض المنتهية تعود إلى أصحابها.";
 
 /* Audit run 3: Address Book network checks, .kachat fee re-check */
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "كل العناوين في هذا الملف عناوين Mainnet. ‏KaChat على Testnet.";
@@ -1477,7 +1227,6 @@
 
 /* .kachat registry v5 migration */
 "Names are moving to the new registry. New names can be claimed from %@." = "تنتقل الأسماء إلى السجل الجديد. يمكن المطالبة بأسماء جديدة بدءًا من %@.";
-"Every name from the old registry comes over with the same owner and expiry first." = "ينتقل كل اسم من السجل القديم أولًا بالمالك نفسه وتاريخ الانتهاء نفسه.";
 "Moved to the new registry" = "نُقل إلى السجل الجديد";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
@@ -1492,19 +1241,12 @@
 ".kachat Names (%lld)" = "أسماء .kachat (%lld)";
 ".kas Names (%lld)" = "أسماء .kas (%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "أدخل عنوان Kaspa (kaspa:...) أو نطاقًا. يُبحث عن أسماء .kachat أولًا.";
-"Enter a Kaspa address or a domain like name.kachat (.kachat names are looked up first). Every received transaction on this address becomes a buy, every sent transaction becomes a sell, priced at that day's historical KAS price. Re-adding the same address later only imports transactions found since the last import." = "أدخل عنوان Kaspa أو نطاقًا مثل name.kachat (يُبحث عن أسماء .kachat أولًا). كل معاملة مستلمة على هذا العنوان تُسجل شراءً وكل معاملة مرسلة بيعًا، بسعر KAS التاريخي لذلك اليوم. عند إضافة العنوان نفسه لاحقًا تُستورد فقط المعاملات الجديدة منذ آخر استيراد.";
 "Search contacts, or an address or domain" = "ابحث في جهات الاتصال أو عن عنوان أو نطاق";
 "You have no contacts yet. Paste an address or a domain above to invite someone." = "ليست لديك جهات اتصال بعد. الصق عنوانًا أو نطاقًا في الأعلى لدعوة شخص ما.";
 "No contacts match your search. Paste an address or a domain to invite someone new." = "لا توجد جهات اتصال مطابقة. الصق عنوانًا أو نطاقًا لدعوة شخص جديد.";
-"An address or a domain - .kachat names are looked up first, and it's resolved to the address shown." = "عنوان أو نطاق - يُبحث عن أسماء .kachat أولًا، ويُحوّل إلى العنوان المعروض.";
-"kaspatest:... or domain" = "kaspatest:... أو نطاق";
-"Enter an address or a domain." = "أدخل عنوانًا أو نطاقًا.";
-"That name's address can't own a .kachat name." = "عنوان هذا الاسم لا يمكنه امتلاك اسم .kachat.";
 "No domain found by that name." = "لم يُعثر على نطاق بهذا الاسم.";
-"One of your .kachat domains expired" = "انتهت صلاحية أحد نطاقات .kachat الخاصة بك";
 "%lld of your .kachat domains expired" = "انتهت صلاحية %lld من نطاقات .kachat الخاصة بك";
 "Renew %@ before its grace period ends on %@ to keep it." = "جدّد %@ قبل انتهاء فترة السماح في %@ للاحتفاظ به.";
-"Renew them before their grace periods end to keep them." = "جدّدها قبل انتهاء فترات السماح للاحتفاظ بها.";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "أسماء .kachat غير متاحة على هذه الشبكة بعد";
@@ -1518,9 +1260,6 @@
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = "سجل .kachat قيد الترقية. تعود الأسماء هنا بمجرد تشغيل السجل الجديد.";
 "No wallet is open." = "لا توجد محفظة مفتوحة.";
-"Not a Schnorr address on this network." = "ليس عنوان Schnorr على هذه الشبكة.";
-"Live on Mainnet: names, prices and payments here are real KAS." = "مباشر على Mainnet: الأسماء والأسعار والمدفوعات هنا بعملة KAS حقيقية.";
-"Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names are live on Mainnet." = "مباشر على Testnet: الأسماء والأسعار والمدفوعات هنا بعملة TKAS على testnet-10. أسماء Mainnet متاحة على Mainnet.";
 "Live on Mainnet" = "مباشر على Mainnet";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
@@ -1529,7 +1268,6 @@
 
 /* .kachat: combining many small coins before a name transaction */
 "Your KAS is in many small coins. Combining them into one first..." = "رصيدك من KAS موزع على عملات صغيرة كثيرة. يتم دمجها في عملة واحدة أولًا...";
-"Your KAS is in many small coins. KaChat combines them into one before registering, for a tiny extra network fee." = "رصيدك من KAS موزع على عملات صغيرة كثيرة. يدمجها KaChat في عملة واحدة قبل التسجيل، مقابل رسوم شبكة إضافية صغيرة جدًا.";
 "Not enough KAS on your chatting address for this." = "لا يوجد KAS كافٍ في عنوان الدردشة لهذا.";
 
 /* .kachat mainnet launch countdown */
@@ -1542,8 +1280,6 @@
 ".kachat names open to everyone on %@." = "تُفتح أسماء .kachat للجميع في %@.";
 
 /* Kaspa Hub > KaChat Bots */
-"KaChat Bots" = "بوتات KaChat";
-"Bots" = "البوتات";
 "Block Reward Tracker" = "متتبع مكافآت الكتل";
 "A message for every block reward paid to your mining address." = "رسالة عن كل مكافأة كتلة تُدفع إلى عنوان التعدين الخاص بك.";
 "Wallet Tracker" = "متتبع المحفظة";
@@ -1552,21 +1288,17 @@
 "Ask anything related to Kaspa." = "اسأل أي شيء يتعلق بـ Kaspa.";
 "Coming soon." = "قريبًا.";
 "Bots run on mainnet only." = "البوتات تعمل على الشبكة الرئيسية فقط.";
-"Opens a chat with this bot." = "يفتح محادثة مع هذا البوت.";
-"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "الرسائل إلى البوت رسائل KaChat مشفرة عادية، لذا تكلف كل رسالة رسوم الشبكة المعتادة.";
 
 /* Kaspa Hub > KaChat Bots: Price Bot */
 "Price Bot" = "بوت السعر";
 "Alerts when KAS crosses your price, big moves and a daily summary." = "تنبيهات عندما يتجاوز KAS السعر الذي حددته، والتحركات الكبيرة، وملخص يومي.";
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
-"%lld unread" = "%lld غير مقروءة";
 
 /* Chats: a bot chat's circle half sheet */
 "Clears the unread badge on this chat." = "يزيل شارة غير المقروء من هذه المحادثة.";
 "Notifications from this bot resume." = "تُستأنف الإشعارات من هذا البوت.";
 "No notification from this bot." = "لا إشعارات من هذا البوت.";
-"Removes this chat until you write to the bot again." = "يزيل هذه المحادثة حتى تكتب إلى البوت مرة أخرى.";
 
 /* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
 "Request Payment" = "طلب دفعة";
@@ -1602,13 +1334,9 @@
 "Send Payment Request" = "إرسال طلب الدفع";
 
 /* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
-"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "رصيدك من KAS موزّع على عملات صغيرة كثيرة. عند السحب، يدمجها KaChat أولًا في عملة واحدة (معاملة منفصلة برسوم صغيرة خاصة بها)، ثم يرسل هذه.";
 
 /* An address's Domains tab: one card per name service */
-"No %@ names on this address." = "لا توجد أسماء %@ على هذا العنوان.";
-"1 domain" = "نطاق واحد";
 "%lld domains" = "%lld نطاقات";
-"Couldn't load" = "تعذّر التحميل";
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "تُدفع إلى عنوان جديد تمامًا لك، يُستخدم لهذا الطلب فقط. تظهر الملاحظة لمن يدفع، لكنها لا تُرسل مع الدفعة.";
@@ -1647,27 +1375,7 @@
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "لحماية خصوصيتك، استخدم عناوينك الأخرى لكل نشاط آخر على شبكة Kaspa. يمنحك «استلام Kaspa» عنوانًا جديدًا، و«إدارة العناوين» تعرضها كلها.";
 
 /* .kachat Names guide (claim, how it works, make it yours, keep it) */
-"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "ابحث عن الاسم الذي تريده في مركز Kaspa > .kachat، ثم احجزه.";
-"How a name works" = "كيف يعمل الاسم";
-"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "اسمك موجود على شبكة Kaspa، ويحتفظ به عنوان الدردشة الخاص بك. لا يمكن لأحد أخذه أو تغييره ما دام لك.";
-"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "الحجز يتم بمعاملتين سريعتين: الأولى تُبقي اختيارك سرًا، والثانية تسجّله.";
-"You pay for one period at a time. Shorter names cost more." = "تدفع فترة واحدة في كل مرة. الأسماء الأقصر أغلى.";
-"The price goes to the network's miners, not to KaChat." = "السعر يذهب إلى معدّني الشبكة، لا إلى KaChat.";
-"Make it your name" = "اجعله اسمك";
-"Set it as your primary name and it's how you appear everywhere in KaChat." = "عيّنه اسمًا أساسيًا وسيظهر به اسمك في كل مكان في KaChat.";
-"People can find you and message you by typing your name." = "يمكن للناس العثور عليك ومراسلتك بكتابة اسمك.";
-"They can send you Kaspa to yourname.kachat instead of a long address." = "يمكنهم إرسال Kaspa إلى yourname.kachat بدل عنوان طويل.";
-"Your profile link shows your name." = "رابط ملفك الشخصي يُظهر اسمك.";
-"Keep it" = "احتفظ به";
-"Your names are in Profile > Your Domains > .kachat." = "أسماؤك في الملف الشخصي > نطاقاتك > .kachat.";
-"Renew before it expires. It shows when, on each name." = "جدّده قبل أن ينتهي. يظهر الموعد على كل اسم.";
-"After it expires there's a grace period to renew it before anyone else can claim it." = "بعد انتهائه توجد فترة سماح لتجديده قبل أن يحجزه أي شخص آخر.";
-"You can transfer it, list it for sale, or accept an offer for it." = "يمكنك نقله أو عرضه للبيع أو قبول عرض عليه.";
 "You're all set" = "أنت جاهز";
-"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "احجز اسمك في مركز Kaspa > .kachat متى شئت.";
-".kachat Names Guide" = "دليل أسماء .kachat";
-"Claim a .kachat name, make it your name, and keep it." = "احجز اسم .kachat واجعله اسمك واحتفظ به.";
-"Walk through claiming your .kachat name and making it yours." = "تعرّف خطوة بخطوة على حجز اسم .kachat وجعله اسمك.";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "يبقى %@ مقفلًا مع اسمك ما دمت تحتفظ به (الضمان + وديعة السجل). تستعيده عند التخلي عن الاسم.";
@@ -1677,7 +1385,6 @@
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "ليس لديك رصيد كافٍ. يرجى إرسال 1 KAS على الأقل إلى عنوان الدردشة الخاص بك.";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"From: %@" = "من: %@";
 "Buy From" = "الشراء من";
 "Fund" = "تمويل";
 "Copy address" = "نسخ العنوان";

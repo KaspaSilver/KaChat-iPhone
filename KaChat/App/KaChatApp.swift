@@ -230,11 +230,7 @@ struct KaChatApp: App {
             ChatService.shared.startForegroundContactSweep()
             // And the 2s open-chat poll, if a conversation was open when we went to background.
             ChatService.shared.resumeActiveChatPollIfNeeded()
-            // .kachat registrations in flight (testnet only; no-op on mainnet) resume after a
-            // relaunch: commit -> wait -> register continues by itself.
-            KachatNamesActions.shared.resume()
-            // .kachat news for the Profile bell (offers, sales, renewal, expiry): the refresh
-            // runs KachatNamesNotifier. Testnet only until names launch on mainnet.
+            // The .kachat registry, for name lookups (the market itself left the app on 2026-10-24).
             Task { @MainActor in await KachatNamesRegistry.shared.refreshIfStale() }
             // Group traffic from the indexer while the app is open (block stream as fallback).
             GroupChatService.shared.startLivePolling()
@@ -343,15 +339,6 @@ struct KaChatApp: App {
         }
 
         guard url.scheme?.lowercased() == "kachat" else { return }
-
-        // kachat://portfolio - the Home Screen widget's tap target. Staged as well as posted:
-        // on a cold start this runs while the app is still on the loading route, where nothing
-        // is listening (see PendingTabRoute).
-        if url.host?.lowercased() == "portfolio" {
-            PendingTabRoute.pending = .portfolio
-            NotificationCenter.default.post(name: .openPortfolio, object: nil)
-            return
-        }
 
         guard url.host?.lowercased() == "share",
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
@@ -513,6 +500,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         Task.detached(priority: .utility) { CacheManager.sweepStaleTempFiles() }
         Task.detached(priority: .utility) { RetiredFeatureCleanup.runOnce() }
+        Task { await RetiredFeatureCleanup.runOnceV2() }
         // Set notification delegate to handle foreground notifications
         UNUserNotificationCenter.current().delegate = self
         registerNotificationCategories()
@@ -831,39 +819,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             return
         }
 
-        // A .kachat name event (offer, sale, accepted offer, renewal reminder - thread
-        // "kachat-names", set by the notification extension): open that name.
+        // A .kachat name event (offer, sale, renewal - thread "kachat-names") left with the
+        // .kachat market on 2026-10-24; a stray one lands on Chats.
         if threadIdentifier == "kachat-names" {
-            let name = response.notification.request.content.userInfo["name"] as? String
-            Task { @MainActor in
-                KachatDeepLink.pendingName = name.map { KachatNames.Codec.normalize($0) }
-                PendingTabRoute.pending = .kachatNames
-                NotificationCenter.default.post(name: .openKachatName, object: nil)
-            }
+            NotificationCenter.default.post(name: .openChat, object: nil, userInfo: [:])
             completionHandler()
             return
         }
 
-        // Own-address activity (spending / cold-storage receive) notification tapped: these
+        // Own-address activity (a spending address received Kaspa) notification tapped: these
         // are wallet events, not chats - the thread id must never fall through to the
-        // contact-address branch below (it would stage a bogus pendingChatNavigation). Cold
-        // storage has its own dock tab; a spending-address receipt lands on the wallet screen
-        // (Portfolio, or Profile when Portfolio is hidden - MainTabView picks), which is where
-        // the balance that just moved is shown. `PendingTabRoute` covers the cold start, where
-        // the post below has no observer yet.
+        // contact-address branch below (it would stage a bogus pendingChatNavigation). A receipt
+        // lands on Profile, which shows the wallet's addresses and balances. `PendingTabRoute`
+        // covers the cold start, where the post below has no observer yet.
         if threadIdentifier == AddressActivityNotifier.notificationThreadIdentifier {
-            let kind = response.notification.request.content.userInfo["kind"] as? String
             if let address = response.notification.request.content.userInfo["address"] as? String, !address.isEmpty {
-                // One address got the Kaspa: open that address's history (chatting, spending or
-                // cold storage - MainTabView works out which).
+                // One address got the Kaspa: open that address's history (chatting or spending -
+                // MainTabView works out which).
                 OwnAddressRoute.pending = address
                 NotificationCenter.default.post(name: .openOwnAddress, object: nil)
-            } else if kind == "cold" {
-                PendingTabRoute.pending = .coldStorage
-                NotificationCenter.default.post(name: .openColdStorage, object: nil)
             } else {
-                PendingTabRoute.pending = .portfolio
-                NotificationCenter.default.post(name: .openPortfolio, object: nil)
+                PendingTabRoute.pending = .profile
+                NotificationCenter.default.post(name: .openProfile, object: nil)
             }
             completionHandler()
             return
@@ -939,16 +916,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 }
 
 /// Cold-start handoff for a notification tap whose whole destination IS a dock tab (wallet
-/// receipts, cold-storage activity). The `.openPortfolio`/`.openColdStorage` posts those taps
-/// make are delivered synchronously to whoever is listening RIGHT THEN - on a cold start that
-/// is nobody, since the app is still on the loading/onboarding route and `MainTabView` hasn't
-/// mounted. It consumes this on mount instead (`consumePendingNotificationRoute`); the
-/// destinations that carry their own pending state (chat, group) don't need it.
+/// receipts). The `.openProfile` post those taps make is delivered synchronously to whoever is
+/// listening RIGHT THEN - on a cold start that is nobody, since the app is still on the
+/// loading/onboarding route and `MainTabView` hasn't mounted. It consumes this on mount instead
+/// (`consumePendingNotificationRoute`); the destinations that carry their own pending state
+/// (chat, group) don't need it.
 enum PendingTabRoute {
     static var pending: AppTab?
 }
 
-/// Public Chats and KaPosts left the app on 2026-10-24. What they kept on this phone - each
+/// Public Chats and KaPosts left the app on 2026-10-24 (`runOnce`), then the wallet features
+/// (`runOnceV2`). What Public Chats and KaPosts kept on this phone - each
 /// account's public room history (its own SQLite file) and the KaPosts drafts, follows, mutes and
 /// read markers in UserDefaults - is deleted once, so nothing of them lingers on disk.
 enum RetiredFeatureCleanup {
@@ -970,6 +948,33 @@ enum RetiredFeatureCleanup {
             try? FileManager.default.removeItem(at: directory.appendingPathComponent(name))
         }
         defaults.set(true, forKey: doneKey)
+    }
+
+    private static let doneKeyV2 = "kachat_retired_features_cleaned_v2"
+    /// Portfolio, Cold Storage, Swap, the .kachat market and the customizable dock left on
+    /// 2026-10-24 (the wallet pieces live in the KaChat wallet app). Their data on this phone goes
+    /// once too. Kept: the last KAS price (`kachat_kas_price_`, the Send screens) and coin labels
+    /// (`kachat_cold_storage_utxo_labels_`, Coin Control).
+    private static let defaultsPrefixesV2 = [
+        "kachat_portfolio", "kachat_active_portfolio_", "kachat_price_history_", "kachat_daily_price_cache_",
+        "kachat_pair_history_", "kachat_cold_storage_accounts", "kachat_cold_storage_hidden_",
+        "kachat_cold_storage_labels_", "kachat_swap_", "kachat_dock_",
+    ]
+
+    static func runOnceV2() async {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: doneKeyV2) else { return }
+        for key in defaults.dictionaryRepresentation().keys where defaultsPrefixesV2.contains(where: { key.hasPrefix($0) }) {
+            defaults.removeObject(forKey: key)
+        }
+        // Portfolio's price-history files and the Home Screen widget's snapshot.
+        if let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+            try? FileManager.default.removeItem(at: support.appendingPathComponent("PriceHistory", isDirectory: true))
+        }
+        UserDefaults(suiteName: SharedDataManager.appGroupIdentifier)?.removeObject(forKey: "kachat_portfolio_widget_store")
+        // Renewal reminders for .kachat names still scheduled on this phone.
+        await KachatNameReminders.removeEverything()
+        defaults.set(true, forKey: doneKeyV2)
     }
 }
 
@@ -1053,17 +1058,10 @@ extension Notification.Name {
     /// (domains, primary, in-flight set-primary), and a second copy of that would be a second
     /// thing to keep correct.
     static let openKNSProfileEditor = Notification.Name("openKNSProfileEditor")
-    static let openPortfolio = Notification.Name("openPortfolio")
-    /// A `.kachat` name notification was tapped: the name is in `KachatDeepLink.pendingName`.
-    static let openKachatName = Notification.Name("openKachatName")
-    static let openColdStorage = Notification.Name("openColdStorage")
+    /// A wallet receipt was tapped: the Profile tab.
+    static let openProfile = Notification.Name("openProfile")
     /// A "Received" notification for one of your addresses was tapped: `OwnAddressRoute.pending`.
     static let openOwnAddress = Notification.Name("openOwnAddress")
-    /// Open Customize Dock. Posted rather than pushed because that screen EDITS the dock, and the
-    /// dock's tabs are the TabView's own children: changing placement rebuilds them, which
-    /// destroys any navigation stack pushed inside one. Presented from MainTabView instead, above
-    /// the TabView, where nothing it does to the dock can dismiss it.
-    static let openCustomizeDock = Notification.Name("openCustomizeDock")
     static let openGroup = Notification.Name("openGroup")
 }
 

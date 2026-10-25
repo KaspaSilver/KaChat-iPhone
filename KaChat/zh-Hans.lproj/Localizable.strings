@@ -23,9 +23,6 @@
 "Add Address" = "添加地址";
 "Add Contact" = "添加联系人";
 "Add Custom Endpoint" = "添加自定义端点";
-"Add Transaction" = "添加交易";
-"Add a buy or sell to start tracking your portfolio" = "添加一笔买入或卖出以开始跟踪您的投资组合";
-"Add to Portfolio" = "添加到投资组合";
 "Added" = "额外";
 "Address" = "地址";
 "Address Actions" = "地址操作";
@@ -37,7 +34,6 @@
 "Always Hide" = "始终隐藏";
 "Always Show" = "始终显示";
 "Always shown" = "始终显示";
-"Amount" = "金额";
 "Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "任何加入相同频道名称的人都可以在那里查看和发布消息 - 没有所有者或邀请。";
 "Anyone with your seed phrase can access your account. Never share it with anyone." = "任何拥有你 seed phrase 的人都可以访问你的账户。切勿与任何人分享。";
 "Archive" = "归档";
@@ -50,7 +46,6 @@
 "Auto Search for Nodes" = "自动搜索节点";
 "Autocreate system contacts" = "自动创建系统联系人";
 "Automatic hides photos from contacts you haven't added or messaged yet, until you tap to reveal them." = "自动会隐藏您尚未添加或尚未发过消息的联系人的照片,直到您点击显示它们。";
-"Available" = "可用";
 "Avatar" = "阿凡达";
 "Balance" = "余额";
 "Balance copied to clipboard." = "余额已复制到剪贴板。";
@@ -60,10 +55,8 @@
 "Best" = "最佳";
 "Bio" = "简介";
 "Broadcast Settings" = "广播设置";
-"Broadcasting..." = "正在广播...";
 "Broadcasts" = "广播";
 "Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "广播是公开的、未加密的频道 - 任何加入相同频道名称的人都会看到相同的消息。";
-"Buy" = "购买";
 "Camera" = "相机";
 "Camera Access Required" = "需要相机访问权限";
 "Cancel" = "取消";
@@ -101,7 +94,6 @@
 "Clear Link" = "清除链接";
 "Clear connection pool?" = "清除连接池？";
 "Close" = "关闭";
-"Cold Storage" = "冷存储";
 "Confirm" = "确认";
 "Connect Your Own Node" = "连接您自己的节点";
 "Connect to a Node" = "连接到节点";
@@ -126,7 +118,6 @@
 "Copy Private Key Hex" = "复制私钥 Hex";
 "Copy Seed Phrase" = "复制 Seed Phrase";
 "Copy Transaction ID" = "复制交易 ID";
-"Copy kpub" = "复制 kpub";
 "Copy to Clipboard" = "复制到剪贴板";
 "Could not encode selected image" = "无法对所选图像进行编码";
 "Could not initialize image encoder" = "无法初始化图像编码器";
@@ -156,7 +147,6 @@
 "Delete" = "删除";
 "Delete Account" = "删除账户";
 "Delete Group" = "删除群组";
-"Delete Transaction" = "删除交易";
 "Diagnostics" = "诊断";
 "Disable" = "禁用";
 "Disable Real-Time Updates" = "禁用实时更新";
@@ -164,7 +154,6 @@
 "Discord user id" = "不一致的用户 ID";
 "Discover Addresses" = "发现地址";
 "Discover new peers" = "发现新节点";
-"Dismiss" = "关闭";
 "Distance" = "距离";
 "Domain" = "领域";
 "Domain transfer unavailable." = "域名转移不可用。";
@@ -181,13 +170,11 @@
 "Enter a new name for this saved account." = "为此已保存的账户输入新名称。";
 "Enter a node address you trust" = "输入您信任的节点地址";
 "Enter a trusted node (host:port for plaintext, or grpcs://host for TLS-secured nodes like Kaspium's) and tap Save to always connect to it instead of automatic discovery. Doesn't affect the Indexer/KNS/REST API URLs above." = "输入受信任的节点(纯文本使用 host:port,或使用 grpcs://host 用于像 Kaspium 那样的 TLS 保护节点),然后点击保存以始终连接到该节点,而不是自动发现。不影响上面的 Indexer/KNS/REST API URL。";
-"Enter kpub" = "输入 kpub";
 "Enter your 12 or 24 word seed phrase to restore your account. Separate each word with a space." = "输入你的 12 或 24 个词的 seed phrase 来恢复账户。每个词之间用空格分隔。";
 "Error" = "错误";
 "Estimate fees while composing" = "编写时估算手续费";
 "Every member will see the new name." = "每个成员都会看到新名称。";
 "Explorer" = "浏览器";
-"Export CSV" = "导出 CSV";
 "Export Chat History" = "导出聊天记录";
 "Export Diagnostics Archive" = "导出诊断档案";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "将应用/设备信息、连接设置、本地消息数量和近期应用日志导出为 zip 文件 - 用于与支持团队排查问题。不包含任何私钥、助记词或已解密的消息内容。";
@@ -198,14 +185,12 @@
 "Failed to open archive: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "无法打开档案: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Failed updates" = "更新失败";
 "Fee" = "费用";
-"Fee (optional)" = "手续费(可选)";
 "Fee unavailable" = "费用不可用";
 "Finish" = "完成";
 "First let's create your identity with a domain name" = "我们先用一个域名来创建您的身份";
 "From" = "发件人";
 "Fund Your Chatting Address" = "为您的聊天地址充值";
 "Generate Account" = "生成账户";
-"Generate More Addresses" = "生成更多地址";
 "Generate New Address" = "生成新地址";
 "Generate New Spending Address" = "生成新的消费地址";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "在下方生成一个地址,以便从与您聊天所用地址不同的地址发送付款。";
@@ -216,7 +201,6 @@
 "Gift claimed! Check your balance shortly." = "礼物已领取！请稍后查看您的余额。";
 "Gift sent to your wallet!" = "礼物已发送到你的钱包！";
 "Gift unavailable" = "礼物不可用";
-"Give this account a name so you can recognize it." = "给这个账户起个名字,方便您识别。";
 "Give this address a label to help you recognize it." = "给这个地址加个标签,方便您识别。";
 "Group Info" = "群组信息";
 "Group Name" = "群组名称";
@@ -239,11 +223,9 @@
 "If the network is busy, a higher fee can help your transaction confirm faster." = "如果网络繁忙,更高的手续费可以帮助您的交易更快确认。";
 "Import" = "导入";
 "Import Account" = "导入账户";
-"Import CSV" = "导入 CSV";
 "Import Chat History" = "导入聊天记录";
 "Import Cold Storage Account" = "导入冷存储账户";
 "Import Existing Account" = "导入现有账户";
-"Import Failed" = "导入失败";
 "Import Your Account" = "导入你的账户";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "导入失败: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
 "Important" = "重要";
@@ -262,7 +244,6 @@
 "It's ok, I already have a domain" = "没关系,我已经有域名了";
 "Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "每次仅发送 5-10 KAS，足以支付一段时间的聊天手续费（每 KAS 约 500 条消息）";
 "KAS" = "KAS";
-"KAS Price" = "KAS 价格";
 "KNS API URL" = "KNS API URL";
 "KNS Domains" = "KNS 域名";
 "KNS Profile" = "KNS 简介";
@@ -340,17 +321,14 @@
 "Never send Kaspa you intend to spend to this address — it's for chatting fees only." = "切勿将您打算花费的 Kaspa 发送到此地址 - 它仅用于聊天手续费。";
 "New message" = "新消息";
 "Next" = "下一步";
-"No Cold Storage Accounts" = "没有冷存储账户";
 "No Conversations Yet" = "暂无会话";
 "No Group Chats Yet" = "暂无群聊";
 "No KNS profile changes detected." = "未检测到 KNS 配置文件更改。";
 "No Kaspa address in system contact" = "系统联系人中没有 Kaspa 地址";
 "No Sound" = "静音";
 "No Spending Addresses" = "没有消费地址";
-"No Transactions Yet" = "暂无交易";
 "No active account" = "没有活动账户";
 "No active nodes" = "没有活跃节点";
-"No addresses discovered yet." = "尚未发现任何地址。";
 "No archived chats" = "没有已归档聊天";
 "No broadcast channels yet" = "暂无广播频道";
 "No contacts found." = "未找到联系人。";
@@ -389,7 +367,6 @@
 "Other Nodes" = "其他节点";
 "Paste" = "粘贴";
 "Paste from Clipboard" = "从剪贴板粘贴";
-"Paste kpub" = "粘贴 kpub";
 "Paste the kpub exported from your KasSigner device. This contains no private key material." = "粘贴从您的 KasSigner 设备导出的 kpub。它不包含任何私钥材料。";
 "Pay in Kaspa" = "用 Kaspa 支付";
 "Payment" = "付款";
@@ -410,10 +387,8 @@
 "Pool Health" = "连接池状况";
 "Pool Status" = "连接池状态";
 "Popular Tab" = "热门标签";
-"Portfolio" = "投资组合";
 "Preparing profile update..." = "正在准备个人资料更新...";
 "Press and drag a tab in the preview below to reorder it." = "在下方预览中长按并拖动标签页以重新排序。";
-"Price Per Coin" = "每枚币价格";
 "Primary" = "主节点";
 "Primary Latency" = "主节点延迟";
 "Primary domain set to %@." = "主域设置为 %@。";
@@ -433,7 +408,6 @@
 "Push Register" = "推送注册";
 "Push Registration" = "推送注册";
 "Push subscription failed." = "推送订阅失败。";
-"Quantity" = "数量";
 "REST API for transaction history and balance lookups" = "用于交易历史和余额查询的 REST API";
 "Rate" = "汇率";
 "Read" = "已读";
@@ -465,7 +439,6 @@
 "Remove" = "移除";
 "Remove Avatar" = "删除头像";
 "Remove Banner" = "删除横幅";
-"Remove Cold Storage Account" = "移除冷存储账户";
 "Remove Saved Account" = "移除已保存账户";
 "Remove from Device" = "从设备移除";
 "Rename" = "重命名";
@@ -489,12 +462,8 @@
 "Save Audio" = "保存音频";
 "Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above." = "在此保存您自己的节点地址,然后点击一个即可复制并粘贴到上方的 Kaspa 节点字段中。";
 "Saved Accounts" = "已保存账户";
-"Scan" = "扫描";
 "Scan QR" = "扫描 QR";
 "Scan QR Code" = "扫描 QR 码";
-"Scan Signed Transaction" = "扫描已签名的交易";
-"Scan or paste a kpub exported from your KasSigner device to watch its balance." = "扫描或粘贴从您的 KasSigner 设备导出的 kpub 以监控其余额。";
-"Scan this on your KasSigner device" = "在您的 KasSigner 设备上扫描此项";
 "Scan to share account. Tap anywhere here to copy address." = "扫描 QR 码分享账户。点击此处任意位置复制地址。";
 "Search chats" = "搜索聊天";
 "Search contacts" = "搜索联系人";
@@ -509,7 +478,6 @@
 "Select the currency you'd like prices displayed in." = "选择您希望以哪种货币显示价格。";
 "Select the language you'd like to use in KaChat." = "选择您想在 KaChat 中使用的语言。";
 "Selected data is not a valid image" = "所选数据不是有效图像";
-"Sell" = "卖出";
 "Send" = "发送";
 "Send All Kaspa To Primary Spend Address" = "将所有 Kaspa 发送到主消费地址";
 "Send Anyway" = "仍然发送";
@@ -520,7 +488,6 @@
 "Send Kaspa" = "发送 Kaspa";
 "Send Photo" = "发送照片";
 "Send audio" = "发送语音";
-"Send from Cold Storage" = "从冷存储发送";
 "Send message" = "发送消息";
 "Sending less than 0.1 KAS may fail due to the network dust protection limit." = "发送少于 0.1 KAS 的金额可能因网络 dust 保护限制而失败。";
 "Sending…" = "正在发送…";
@@ -567,7 +534,6 @@
 "Submitting transfer..." = "正在提交转账...";
 "Support Email" = "支持邮箱";
 "Suspected" = "可疑";
-"Swap" = "兑换";
 "Swap Details" = "兑换详情";
 "Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "兑换由第三方交易所 ChangeNOW 处理。继续即表示您确认已阅读并同意 ChangeNOW 自己的服务条款。KaChat 仅提交您的兑换请求并显示其状态;KaChat 不对失败、延迟或丢失的兑换负责。如果兑换未能完成,请直接联系 ChangeNOW 支持。";
 "Switch direction" = "切换方向";
@@ -582,14 +548,12 @@
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "点击进行调整。如果网络繁忙,更高的手续费可以帮助您的交易更快确认。";
 "Tap to reveal seed phrase" = "点击显示 seed phrase";
 "This account will be removed from this device." = "此账户将从此设备中移除。";
-"This can't be undone." = "此操作无法撤销。";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "此联系人将在创建后关联。你仍需输入 Kaspa 地址或 KNS 域名。";
 "This could take a few minutes while it confirms on-chain." = "在链上确认可能需要几分钟。";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "这将删除所有本地数据和 CloudKit 消息记录。此操作不可撤销。";
 "This device has already received the welcome gift." = "此设备已领取过欢迎礼物。";
 "This domain is not available." = "该域名不可用。";
 "This is a live check of your iCloud account, separate from local storage above." = "这是对您的 iCloud 账户的实时检查,与上面的本地存储分开。";
-"This only removes it from KaChat's watch list. It has no effect on the KasSigner device or any funds it holds." = "这只会将其从 KaChat 的监视列表中移除。对 KasSigner 设备或其持有的任何资金没有任何影响。";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "这将永久删除与他们的每条消息,包括 iCloud 中的消息,因此也会从您的其他设备中删除。此操作无法撤销。";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "将从此设备移除 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias)（\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)）及其本地数据。";
 "This removes \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias) (\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)) and its local data from this device." = "将从此设备移除 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.displayAlias)（\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(account.shortPublicAddress)）及其本地数据。";
@@ -605,11 +569,7 @@
 "To receive notifications, please enable them in Settings." = "要接收通知，请在设置中启用。";
 "Total" = "总计";
 "Total Balance" = "总余额";
-"Total P&L" = "总盈亏";
-"Transaction History" = "交易历史";
 "Transaction Sent" = "交易已发送";
-"Transactions" = "交易";
-"Transfer" = "转移";
 "Transfer %@" = "转移%@";
 "Transfer Domain" = "转移域名";
 "Transfer Your Domain" = "转移您的域名";
@@ -631,7 +591,6 @@
 "Used to build \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"view transaction\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\" links throughout the app." = "用于在整个应用中构建“查看交易”链接。";
 "Used when a contact has no custom notification mode set." = "当联系人未设置自定义通知模式时使用。";
 "Uses your device contacts to match and enrich Kaspa contacts." = "使用设备联系人来匹配和补充 Kaspa 联系人。";
-"Value Over Time" = "随时间变化的价值";
 "Verified" = "已验证";
 "Verified Nodes" = "已验证节点";
 "Verifying device..." = "正在验证设备...";
@@ -690,7 +649,6 @@
 "kachat.kas" = "kachat.kas";
 "kaspa:... or alice.kas" = "kaspa:... 或 alice.kas";
 "kaspasilver@gmail.com" = "kaspasilver@gmail.com";
-"kpub" = "kpub";
 "name" = "姓名";
 "–" = "–";
 "—" = "—";
@@ -717,8 +675,6 @@
 "None yet" = "暂无";
 ".kachat Name" = ".kachat 名称";
 "Customize Profile" = "自定义资料";
-".kachat names are coming" = ".kachat 名称即将推出";
-"KaChat's own names will live here: claim one, set it as your name in chats, and share it as your profile link." = "KaChat 自己的名称将在这里：领取一个，作为你在聊天中的名字，并作为你的资料链接分享。";
 "Get a %@ domain at %@" = "在 %2$@ 获取 %1$@ 域名";
 "No %@ names yet." = "还没有 %@ 名称。";
 "Couldn't reach %@. Pull down to try again." = "无法连接 %@。下拉重试。";
@@ -739,36 +695,15 @@
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "自动扫描会找到并连接最佳可用节点。选择特定节点只会连接该节点，不会切换到其他节点。不影响其他标签页中的索引器、域名或浏览器。将你的地址添加到下方的 IP 地址簿后即可在此选择。";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"Find a name" = "查找名称";
-"Registration isn't open yet." = "注册尚未开放。";
-"Claim" = "领取";
-"Marketplace" = "市场";
 "My Names" = "我的名称";
 "Activity" = "动态";
-"List a Name for Sale" = "出售名称";
-"Listings appear here once .kachat names launch." = ".kachat 名称上线后，挂单会显示在这里。";
-"No .kachat names yet" = "还没有 .kachat 名称";
 "Claim a Name" = "领取名称";
-"Recent activity" = "最近动态";
-"Activity appears here once .kachat names launch." = ".kachat 名称上线后，动态会显示在这里。";
-"How it works" = "运作方式";
-"List" = "挂单";
-"Trustless" = "无需信任";
-"Pick a free name and register it on Kaspa. It's yours: your name in chats, your profile, your link." = "选择一个空闲名称并在 Kaspa 上注册。它属于你：你在聊天中的名字、你的资料、你的链接。";
-"Set a price. The name waits in an on-chain covenant, not with KaChat or anyone else, until someone buys it or you take it back." = "设定价格。名称存放在链上契约中——不在 KaChat 或任何人手里——直到有人买下或你撤回。";
-"Pay the listed price. The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "支付挂出的价格。付款到达卖家、名称到达你，都在同一笔交易中完成——要么两者都发生，要么都不发生。";
-"No middleman and no escrow account: Kaspa's own rules enforce every sale." = "没有中间人，也没有托管账户：每笔交易都由 Kaspa 自身的规则保障。";
-"Nothing here is live yet." = "这里还没有任何功能上线。";
-"How .kachat works" = ".kachat 如何运作";
 
 /* 5.2: range and section labels */
-"7 Days" = "7 天";
 "All-time only" = "仅全部时间";
 "Kinds marked \"All-time only\" aren't in this total yet." = "标有“仅全部时间”的类别尚未计入此总数。";
 
 /* 5.2: .kachat setup guide */
-"Claim your .kachat name" = "领取你的 .kachat 名称";
-"It's the name people see you as across KaChat - in chats, on posts and on your profile link. Without one, people see your address." = "这是你在 KaChat 各处显示的名字——聊天、帖子和个人资料链接中都会用到。没有名称时，别人看到的是你的地址。";
 "Add a profile photo" = "添加头像";
 "Your avatar shows next to your name everywhere in KaChat." = "你的头像会在 KaChat 各处显示在名字旁边。";
 "Add a banner" = "添加横幅";
@@ -786,39 +721,13 @@
 "Help" = "帮助";
 
 /* 5.2: .kachat listing, buy and offer */
-"Offers" = "出价";
 "No offers yet." = "还没有出价。";
-"Offer" = "出价";
-"Name your own price. Your KAS waits on chain until the seller accepts, you withdraw the offer, or it expires - and you can message the seller first." = "自己定价。你的 KAS 会在链上等待，直到卖家接受、你撤回或出价过期——你也可以先给卖家发消息。";
-"Listing" = "挂单";
-"Price" = "价格";
-"Buy Now" = "立即购买";
-"Make an Offer" = "出价";
-"Seller" = "卖家";
-"Ask about the name, or agree on a price before you offer." = "出价前可以询问这个名称，或先商定价格。";
-"Open offers on this name, highest first. The seller can accept any of them." = "该名称的有效出价，从高到低。卖家可以接受其中任何一个。";
 "History" = "历史";
-"Buying pays the seller and moves the name to you in one transaction." = "购买会在一笔交易中付款给卖家，并把名称转给你。";
-"An offer locks your KAS on chain until the seller accepts it, you withdraw it, or it expires." = "出价会把你的 KAS 锁定在链上，直到卖家接受、你撤回或出价过期。";
-"Messages go to the seller like any KaChat chat." = "消息会像普通 KaChat 聊天一样发给卖家。";
 "Network fee" = "网络费用";
-"Confirm Purchase" = "确认购买";
-"Buying opens when .kachat names launch." = ".kachat 名称上线后即可购买。";
-"Buy Name" = "购买名称";
-"1 Day" = "1 天";
-"3 Days" = "3 天";
-"Listed at" = "挂单价格";
-"Your offer" = "你的出价";
-"Expires" = "有效期";
-"Expires after" = "有效期";
-"Send Offer" = "发送出价";
-"Offers open when .kachat names launch." = ".kachat 名称上线后即可出价。";
 
 /* 5.2: Portfolio export/import with Nextcloud */
 "Import from Nextcloud" = "从 Nextcloud 导入";
-"Pick a CSV file from your Nextcloud." = "从你的 Nextcloud 选择一个 CSV 文件。";
 "Export to Nextcloud" = "导出到 Nextcloud";
-"Save the CSV to the KaChat folder in your Nextcloud." = "将 CSV 保存到你 Nextcloud 中的 KaChat 文件夹。";
 "Saved to %@ in Nextcloud." = "已保存到 Nextcloud 的 %@。";
 "Export to Nextcloud failed: %@" = "导出到 Nextcloud 失败：%@";
 "Import from Nextcloud failed: %@" = "从 Nextcloud 导入失败：%@";
@@ -829,28 +738,15 @@
 "KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "KaPosts、公共聊天和 Kaspa Websites 不在程序坞中时会显示在这里。可在 设置 > Customization > Customize Dock 中管理。";
 
 /* 5.2: an address's .kachat Domains tab */
-".kachat Domains" = ".kachat 域名";
-"No .kachat names on this address" = "此地址没有 .kachat 名称";
-"Names this address claims or buys show here once .kachat names launch." = ".kachat 名称上线后，此地址领取或购买的名称会显示在这里。";
 
 /* 5.2: move a portfolio transaction */
-"Move to Portfolio" = "移至投资组合";
-"Create another portfolio first, then you can move transactions into it." = "请先创建另一个投资组合，然后就可以把交易移过去。";
-"Already has this transaction." = "已包含此交易。";
-"Move this transaction here." = "将此交易移到这里。";
 "Moved to %@." = "已移至 %@。";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-"Add Chatting Address" = "添加聊天地址";
-"Your chatting address's buys and sells, and every network fee it has paid." = "你的聊天地址的买入、卖出，以及它支付过的每笔网络费用。";
 ". Network fees counted: %lld" = "。已统计网络费用：%lld";
-"No sells yet this year." = "今年还没有卖出。";
 "Sells: %lld. Oldest buys first (FIFO)." = "卖出：%lld 笔。最早的买入优先（FIFO）。";
 "%@ sold with no buy on record, counted at zero cost." = "卖出的 %@ 没有对应的买入记录，按零成本计算。";
-"Some prices are still loading." = "部分价格仍在加载。";
 "Realized P&L %@" = "已实现盈亏 %@";
-"Fees Spent" = "已付费用";
-"Add your chatting address with + to count the network fees it has paid." = "用 + 添加你的聊天地址，即可统计它支付过的网络费用。";
 "Transactions: %lld. Some prices are still loading." = "交易：%lld 笔。部分价格仍在加载。";
 "Transactions: %lld, at each day's price." = "交易：%lld 笔，按当日价格计算。";
 
@@ -859,8 +755,6 @@
 "Yesterday" = "昨天";
 
 /* 5.2: Portfolio transfers */
-"Value at the Time" = "当时价值";
-"KAS moved between your own addresses - sent away and brought back, or wallet to wallet. It doesn't change your holdings, cost or profit." = "在你自己的地址之间转移的 KAS——转出后再转回，或在钱包之间转移。不会改变你的持仓、成本或收益。";
 
 /* Receive / chatting address QR text */
 
@@ -908,109 +802,40 @@
 "A name is 1 to 32 characters." = "名称为 1 到 32 个字符。";
 "Use a-z, 0-9 and hyphens only." = "只能使用 a-z、0-9 和连字符。";
 "A name can't start or end with a hyphen." = "名称不能以连字符开头或结尾。";
-"Expired" = "已过期";
 "Lapsed" = "已失效";
-"Yours" = "你的";
-"until %@" = "至 %@";
-"Available · %@ a year" = "可注册 · 每年 %@";
-"Not a valid name." = "不是有效的名称。";
-"Taken · for sale at %@" = "已被注册 · 售价 %@";
-"Taken" = "已被注册";
-"Expired - the owner can still renew it" = "已过期 - 所有者仍可续期";
 "Lapsed - reclaim it, then claim it" = "已失效 - 先回收，再注册";
-"About %lld s to go" = "约剩 %lld 秒";
-"Cancel the commit?" = "取消承诺？";
-"Cancel Commit" = "取消承诺";
-"Keep" = "保留";
-"The registration stops and the commit's 0.2 KAS comes back to you, less the network fee." = "注册停止，承诺中的 0.2 KAS 扣除网络费后退还给你。";
-"Sending the hidden commit..." = "正在发送隐藏承诺...";
-"Waiting for the commit to confirm..." = "正在等待承诺确认...";
-"The commit has to age for about a minute before the name can be registered. Keep KaChat open - it registers by itself, and picks up where it left off if you leave." = "承诺需要等待约一分钟才能注册名称。请保持 KaChat 打开 - 它会自动注册，离开后也会从中断处继续。";
-"Registering..." = "正在注册...";
-"Registered. It's yours." = "已注册。它归你了。";
-"Someone registered this name first. Cancel the commit to get its 0.2 KAS back." = "有人先注册了这个名称。取消承诺即可取回 0.2 KAS。";
-"The registration stopped." = "注册已停止。";
-"Cancelling the commit..." = "正在取消承诺...";
 "Cancelled." = "已取消。";
 "Confirm this .kachat transaction" = "确认这笔 .kachat 交易";
-"For sale" = "出售中";
 "Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "所有者挂牌出售的名称。购买时，付款给所有者和名称转给你在同一笔交易中完成。";
-"No names are listed right now." = "目前没有挂牌出售的名称。";
 "Reclaimable" = "可回收";
 "Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "所有者任其失效的名称。任何人都可以回收：保证金退还给最后的所有者，释放出的押金作为奖励归你，名称重新可注册。";
 "Nothing to reclaim." = "没有可回收的名称。";
 "Reclaim" = "回收";
 "Renew, list, transfer or release them, and pick the one KaChat shows for you." = "续期、挂牌、转让或释放它们，并选择 KaChat 为你显示的名称。";
 "Search for a name above and claim it." = "在上方搜索名称并注册。";
-"My Offers" = "我的报价";
 "Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "你提出的报价。随时可以撤回；过了退款时间后，任何人都可以退还给你。";
-"No open offers." = "没有进行中的报价。";
-"Offers from others appear once a names indexer is connected." = "连接名称索引器后，才会显示他人的报价。";
-"Nothing yet." = "暂无内容。";
-"Withdraw Offer" = "撤回报价";
-"Withdraw" = "撤回";
-"Refund Offer" = "退还报价";
-"Refund" = "退还";
-"Accept Offer" = "接受报价";
-"Accept and Transfer" = "接受并转让";
-"The name goes to the buyer and the offer's amount comes to you, in one transaction. This can't be undone." = "名称转给买家，报价金额转给你，在同一笔交易中完成。此操作无法撤销。";
-"Buyer" = "买家";
 "Refundable now" = "现在可退还";
-"Price (to miners)" = "价格（归矿工）";
 "Your balance" = "你的余额";
 "It shows here once the network accepts it, usually within seconds." = "网络接受后会显示在这里，通常只需几秒。";
-"Years" = "年数";
-"Bond (returned on release)" = "保证金（释放时退还）";
-"Registry deposit (returned on release)" = "注册表押金（释放时退还）";
-"Commit (returned at registration)" = "承诺（注册时退还）";
-"Network fees" = "网络费";
 "Cost" = "费用";
-"Not enough KAS on your chatting address for this name." = "你的聊天地址上的 KAS 不足以注册这个名称。";
-"The price goes to the miners - KaChat takes nothing. The bond and the deposit come back when you release the name." = "价格归矿工 - KaChat 分文不取。释放名称时，保证金和押金会退还。";
-"A hidden commit goes on chain first. Nobody can see which name it is for." = "首先，一个隐藏的承诺上链。没人能看出它对应哪个名称。";
-"About a minute later KaChat registers the name by itself. Keep the app open; if you leave, it continues next time." = "大约一分钟后 KaChat 会自动注册名称。请保持应用打开；离开后下次会继续。";
 "The name is yours for the years you paid. Renew it any time before it expires." = "在你付费的年限内，名称归你所有。到期前随时可以续期。";
-"How claiming works" = "注册流程";
-"Claim %@.kachat" = "注册 %@.kachat";
-"Claim Name" = "注册名称";
-"This name was released or reclaimed. It's free to claim again." = "这个名称已被释放或回收，可以重新注册。";
 "Make %@ your primary name?" = "将 %@ 设为你的主名称？";
 "Set as Primary" = "设为主名称";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat 会把它显示为你的名字。它会以一笔网络费保存在链上的个人资料记录中。";
-"Not for sale" = "非卖品";
-"Expires %@" = "%@ 到期";
 "Expired - renew to keep it. Until the grace period ends nobody else can take it." = "已过期 - 续期即可保留。宽限期结束前，别人无法取得。";
 "Expired. It no longer resolves; the owner can still renew it." = "已过期。它不再解析到地址；所有者仍可续期。";
 "Lapsed: anyone may reclaim it, and then claim it again." = "已失效：任何人都可以回收它，然后重新注册。";
-"Renew" = "续期";
-"Change Price" = "修改价格";
-"List for Sale" = "挂牌出售";
-"Delist" = "下架";
-"Release Name" = "释放名称";
-"Owner" = "所有者";
 "You" = "你";
 "Accept one to sell the name for it." = "接受一个报价即可按该价格出售名称。";
-"No history yet." = "暂无历史记录。";
-"Release" = "释放";
-"Releasing gives the name up for good: it becomes free for anyone to register, and the time you paid for is lost. You get the bond and the registry deposit back." = "释放即永久放弃该名称：任何人都可以注册它，已付费的时间也将作废。保证金和注册表押金会退还给你。";
 "Saved. Transaction %@" = "已保存。交易 %@";
-"The payment reaches the seller and the name reaches you in the same transaction - both happen, or neither does." = "付款到达卖家、名称到达你，在同一笔交易中完成——要么都发生，要么都不发生。";
-"Price (to the seller)" = "价格（归卖家）";
-"Refundable after" = "可退还时间";
 "A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "续期从当前到期时间往后累加，即使已经过期也是如此。价格归矿工。";
 "Price per year" = "每年价格";
-"New expiry" = "新的到期时间";
-"Anyone can buy it at this price: the payment reaches you and the name reaches them in one transaction. Delist any time." = "任何人都可以按此价格购买：付款到你、名称到买家，在同一笔交易中完成。可随时下架。";
-"A transfer can't be undone. The new owner gets the name with its current expiry; your profile stays with your address." = "转让无法撤销。新所有者获得名称时保留当前到期时间；你的个人资料仍归你的地址所有。";
 "To" = "转给";
 "kaspatest:... or name.kachat" = "kaspatest:... 或 name.kachat";
-"New owner" = "新所有者";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "测试网地址或 .kachat 名称——会解析为显示的地址。";
 "Not a testnet Schnorr address." = "不是测试网 Schnorr 地址。";
-"That address's key is not valid." = "该地址的密钥无效。";
 "Enter an address or a .kachat name." = "请输入地址或 .kachat 名称。";
 "No active .kachat name by that name." = "没有这个名字的有效 .kachat 名称。";
-"Couldn't look that name up." = "无法查询该名称。";
 "The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "名称的保证金退还给最后的所有者，释放出的注册表押金（扣除费用）作为奖励归你，名称变为可注册。想拥有它，之后再注册即可。";
 "Bond to the last owner" = "保证金退还最后所有者";
 "Claim one in Kaspa Hub > .kachat." = "可在 Kaspa Hub > .kachat 领取一个。";
@@ -1031,7 +856,6 @@
 "Save your profile?" = "保存你的个人资料？";
 "It's written to the chain for a network fee." = "以一笔网络费写到链上。";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "个人资料是公开的并保存在链上：任何人都能读取，修改后旧版本仍可读取。写入需要一笔网络费。";
-"%lld years" = "%lld 年";
 "No testnet wallet is open." = "没有打开的测试网钱包。";
 "This wallet's key does not match its address." = "此钱包的密钥与其地址不匹配。";
 "%@ is not a valid key (not on the secp256k1 curve)." = "%@ 不是有效密钥（不在 secp256k1 曲线上）。";
@@ -1074,32 +898,16 @@
 "Balance after" = "操作后余额";
 "Balance change" = "余额变化";
 "Transaction sent" = "交易已发送";
-"View Transaction" = "查看交易";
-"Name released" = "名称已释放";
-"Name bought" = "名称已购买";
-"Offer sent" = "报价已发送";
-"Price changed" = "价格已更改";
 "Listed for sale" = "已上架出售";
-"Name transferred" = "名称已转让";
 "Name reclaimed" = "名称已收回";
 "Profile saved" = "个人资料已保存";
-"Primary name set" = "主名称已设置";
-"Name registered" = "名称已注册";
-"Commit cancelled" = "承诺已取消";
 "Your Profile" = "你的个人资料";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "从你的聊天地址发送给自身，保存在链上。";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "个人资料是公开的且保存在链上：任何人都能读取，修改后旧版本依然可读。";
 "Extended" = "已延长";
-"Extend" = "延长";
-"Extend to %lld years" = "延长至 %lld 年";
 "Renewal opens on %@" = "续期于 %@ 开放";
-"Paid from %@ to %@" = "已付期间：%@ 至 %@";
-"New period" = "新期间";
-"Renewal open" = "可续期";
-"Extending adds years to the current paid period, which holds at most 2 years. The price goes to the miners." = "延长会为当前已付期间增加年数，每个期间最多 2 年。价格归矿工。";
 "The names indexer didn't send this name's paid period. Pull to refresh and try again." = "名称索引器没有返回此名称的已付期间。下拉刷新后重试。";
-"The name is yours for the years you paid, at most 2 ahead. A 1-year name can be extended to 2 years; from 10 days before it expires you can renew it." = "名称在你付费的年数内归你所有，最多提前 2 年。1 年期的名称可以延长到 2 年；到期前 10 天起可以续期。";
 "Setting up" = "正在设置";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "测试网上的 .kachat 注册表正在升级。新注册表上线后，名称会在这里重新开放。";
 ".kachat Names" = ".kachat 名称";
@@ -1139,10 +947,6 @@
 "Copies the transaction ID to your clipboard." = "将交易 ID 复制到剪贴板。";
 "Transaction ID copied" = "已复制交易 ID";
 "This payment isn't on chain yet." = "此付款尚未上链。";
-"Opens the .kachat marketplace" = "打开 .kachat 市场";
-"Names this address owns show here." = "此地址拥有的名称会显示在这里。";
-"Your spending address #%lld" = "你的支出地址 #%lld";
-"Your KasSigner address (%@ #%lld)" = "你的 KasSigner 地址（%@ #%lld）";
 "New" = "新建";
 "New Chat" = "新聊天";
 "New Group Chat" = "新群聊";
@@ -1158,7 +962,6 @@
 "Profiles can be saved once .kachat launches on mainnet." = ".kachat 在主网上线后即可保存个人资料。";
 "Pinned to the front" = "已置顶";
 "Unpinned" = "已取消置顶";
-"Build Unsigned Transaction" = "创建未签名交易";
 "Coin Control" = "币控";
 "Automatic" = "自动";
 "Consolidating This Address" = "正在合并此地址";
@@ -1188,25 +991,9 @@
 "Claimed. You can claim again in %@." = "已领取。%@后可再次领取。";
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "复制你的聊天地址并打开 TN10 水龙头：粘贴地址、通过验证，然后领取最高额度。";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "已复制你的 TN10 聊天地址。请粘贴到水龙头的地址栏中。";
-"Copies the address" = "复制地址";
-"Manage Name" = "管理名称";
-"Pays for more years now, up to the 2-year limit." = "现在预付更多年份，最多 2 年。";
-"Starts a new paid period from the expiry date." = "从到期日开始新的付费期。";
-"Changes the asking price." = "更改要价。";
-"Takes the name off the market." = "将名称从市场下架。";
-"Puts the name up for sale at your price." = "以你的价格出售该名称。";
-"Sends the name to another address." = "将名称发送到另一个地址。";
-"Shows you by this name across KaChat." = "在整个 KaChat 中以此名称显示你。";
-"Gives the name up and returns its deposit." = "放弃该名称并退还押金。";
 "Expires in %@" = "%@后到期";
-"Expired - returning to you" = "已过期 - 正在退还给你";
-"Expired - returning to the buyer" = "已过期 - 正在退还给买家";
-"Expired - refundable now" = "已过期 - 现在可退款";
 "Tap an offer to accept it. Expired offers go back to their buyers." = "点按报价即可接受。过期的报价会退还给买家。";
 "This offer has expired. It's going back to the buyer." = "此报价已过期，正在退还给买家。";
-"Offers you made. Withdraw one any time; once it expires it comes back to you on its own." = "你发出的报价。可随时撤回；过期后会自动退还给你。";
-"Declined - the name changed hands, returning to you" = "已拒绝 - 名称已易主，正在退还给你";
-"Declined - made to an earlier owner" = "已拒绝 - 向前任所有者发出";
 "This offer was made before the name changed hands, so it's declined and going back to the buyer." = "此报价是在名称易主之前发出的，因此已被拒绝并正在退还给买家。";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
@@ -1215,16 +1002,8 @@
 "You can't make an offer on your own name." = "你不能对自己的名称报价。";
 "An offer can run for up to 7 days." = "报价最长可持续 7 天。";
 "Price per %@" = "每 %@ 价格";
-"Available · %@ per %@" = "可用 · 每 %2$@ %1$@";
-"Extend to %@" = "延长至 %@";
 "Pays for more time now, up to the %@ limit." = "现在支付更多时长，上限为 %@。";
-"Extending adds time to the current paid period, which holds at most %@. The price goes to the miners." = "延长会为当前已付期限增加时长，期限最多 %@。费用归矿工。";
-"The name is yours for the time you paid, at most %@ ahead. From %@ before it expires you can renew it." = "名称在你支付的时长内归你所有，最多提前 %1$@。到期前 %2$@ 起即可续期。";
-"Decline Offer" = "拒绝报价";
 "Offer declined" = "报价已拒绝";
-"The offer goes back to the buyer. Its network fee comes out of the offer, so declining costs you nothing." = "报价会退还给买家。网络费从报价中扣除，所以拒绝不会让你花费任何费用。";
-"Your KAS stays locked on chain until the owner accepts or declines, you withdraw the offer, or it expires - then anyone can send it back to you." = "你的 KAS 会锁定在链上，直到所有者接受或拒绝、你撤回报价或报价到期——之后任何人都可以把它退还给你。";
-"This name is listed for less than your offer. Consider buying it instead." = "此名称的挂牌价低于你的报价。不如直接购买。";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
 "The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "自你确认后价格已变为 %@。未发送任何内容。请查看新价格并再次确认。";
@@ -1232,7 +1011,6 @@
 "Confirm New Price" = "确认新价格";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"A renewal starts the next period at the current expiry, not from today, so a name that expired a while ago gets less time. The price goes to the miners." = "续期会从当前到期时间开始下一个期限，而不是从今天开始，因此已过期一段时间的名称获得的时间会更少。费用归矿工。";
 "This name has been expired too long to renew. It can only be reclaimed and registered again." = "此名称过期太久，无法续期。只能回收后重新注册。";
 "Offers can only be made on active names." = "只能对有效的名称报价。";
 "This name has expired. Offers can only be accepted while the name is active. Renew it first." = "此名称已过期。只有在名称有效时才能接受报价。请先续期。";
@@ -1252,7 +1030,6 @@
 "Send %@ to %@?" = "要向 %2$@ 发送 %1$@ 吗？";
 
 /* .kachat: expires-soon follows the period clock (IOS-060) */
-"Less than %@ is left before this name expires. You'd have to renew it soon." = "距离此名称到期已不足 %@。你很快就需要续期。";
 
 /* Profile editor: links that can't be checked don't block saving */
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "暂时无法从这部手机检查部分链接。它们会按输入内容保存，其他人的应用会在可以时加载。";
@@ -1283,13 +1060,11 @@
 "Nobody accepted it in time. The KAS is back with you." = "没有人及时接受。KAS 已退回给你。";
 "Offer on %@ returned" = "对 %@ 的报价已退回";
 "It can no longer be accepted. The KAS is back with you." = "它已无法被接受。KAS 已退回给你。";
-"Kaspa arriving in your wallets and news about your .kachat names show up here." = "到达你钱包的 Kaspa 和你的 .kachat 名称动态都会显示在这里。";
 "Renew it soon to keep it." = "请尽快续期以保留它。";
 "Renew it soon or anyone can claim it." = "请尽快续期，否则任何人都可以认领。";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
 "Reclaimable names appear here once .kachat names launch." = ".kachat 名称上线后，可回收的名称会显示在这里。";
-"Every claim, renewal, listing, sale, offer, transfer and reclaim across the registry." = "注册表中的每一次注册、续期、挂牌、出售、报价、转让和回收。";
 
 /* .kachat: Reclaim to Own */
 "Reclaim to Own" = "回收并重新拥有";
@@ -1302,11 +1077,9 @@
 "Waiting for the old %@ to be cleared from the registry." = "正在等待旧的 %@ 从注册表中清除。";
 
 /* .kachat: a released or reclaimed name */
-"Free to claim" = "可认领";
 
 /* .kachat registration progress half sheet */
 "Claiming %@" = "正在认领 %@";
-"Keep KaChat open: the name is registered about a minute after the hidden commit confirms. If you leave, it picks up where it left off when you come back." = "请保持 KaChat 打开：隐藏承诺确认约一分钟后名称即会注册。如果你离开，回来时会从中断处继续。";
 "Finish the name you're claiming first." = "请先完成正在认领的名称。";
 
 /* .kachat name lapsed: moved to Reclaimable */
@@ -1321,13 +1094,9 @@
 "Choose seed phrase length" = "选择 seed phrase 长度";
 
 /* .kachat sale tile: expiry flag */
-"Expires soon" = "即将到期";
 
 /* .kachat: expired names are available to claim */
 "Freeing %@ for you..." = "正在为你释放 %@...";
-"This name expired and wasn't renewed, so anyone can claim it at the normal price. The old owner's bond goes back to them." = "该名称已过期且未续期，任何人都可以按正常价格认领。原所有者的押金会退还给他。";
-"No expired names right now." = "目前没有过期的名称。";
-"Expired names appear here once .kachat names launch." = ".kachat 名称上线后，过期名称会显示在这里。";
 "%@ was freed" = "%@ 已被释放";
 "It expired and was cleared from the registry. Your bond is back with you." = "它已过期并从注册表中清除。你的押金已退还给你。";
 
@@ -1336,8 +1105,6 @@
 "It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "它已过期且未续期，现在市场上任何人都可以认领。有人认领时，你的押金会退还给你。";
 
 /* .kachat: claims in progress button and busy-network notes */
-"Claiming" = "认领中";
-"Names being claimed" = "正在认领的名称";
 "The network is busy. Your commit is waiting for a block." = "网络繁忙，你的承诺正在等待区块。";
 "The network is busy, so the commit was sent again." = "网络繁忙，承诺已重新发送。";
 
@@ -1369,21 +1136,13 @@
 "Scratch files from sending photos and voice notes. Safe to remove at any time." = "发送照片和语音消息时产生的临时文件。随时可以安全删除。";
 
 /* .kachat Renew: choose the period first */
-"How long?" = "多长时间?";
-"A renewal starts the next period at the current expiry, not from today." = "续期会从当前到期时间开始下一个周期，而不是从今天开始。";
 
 /* .kachat marketplace: the Expired tab (names in grace, counting down) */
-"Released in" = "释放倒计时";
-"No names are in their grace period right now." = "目前没有处于宽限期的名称。";
-"Names in their grace period appear here once .kachat names launch." = ".kachat 名称上线后，处于宽限期的名称会显示在这里。";
 
 /* .kachat name screen: when an expired name's grace period ends */
-"Grace period ends %@" = "宽限期结束于 %@";
 
 /* .kachat: names in grace keep resolving to their owner */
 "No .kachat name by that name." = "没有这个名称的 .kachat 名称。";
-"Expired. It still resolves to its owner until the grace period ends, and the owner can still renew it." = "已过期。在宽限期结束前，它仍解析到其所有者，所有者仍可续期。";
-"Expired - renew to keep it. Until the grace period ends it still resolves to you and nobody else can take it." = "已过期 - 续期以保留它。在宽限期结束前，它仍解析到你，其他人无法获取。";
 
 /* Address Book (replaces syncing with the phone's Contacts) */
 "Address Book" = "地址簿";
@@ -1448,12 +1207,7 @@
 "That Address Book export has no addresses." = "该导出文件中没有地址。";
 
 /* .kachat: fees, busy network, progress receipt */
-"The network is busy" = "网络繁忙";
-"At Normal this may wait a while. Fast or Priority pays a little more to get into a block sooner." = "普通速度可能要等一会儿。快速或优先多付一点，更快进入区块。";
 "Balance after: %@" = "之后余额：%@";
-"Balance change: %@" = "余额变化：%@";
-"Available: %@" = "可用：%@";
-"Claiming sends two transactions: the commit now, the registration about a minute later. Both use this speed." = "认领会发送两笔交易：现在提交承诺，约一分钟后注册。两笔都用这个速度。";
 "Sent to the network" = "已发送到网络";
 "In a block" = "已进入区块";
 "Updated in KaChat" = "已在 KaChat 更新";
@@ -1464,10 +1218,6 @@
 "Tap the transaction to open it in the explorer." = "点按交易可在浏览器中打开。";
 
 /* .kachat offers: tiles and half sheet */
-"Expires in" = "剩余时间";
-"This offer can't be accepted any more." = "此报价已无法接受。";
-"Only the name's owner can accept or decline this offer." = "只有该名称的所有者才能接受或拒绝此报价。";
-"Tap an offer to accept or decline it. Expired offers go back to their buyers." = "点按报价即可接受或拒绝。过期的报价会退回给买家。";
 
 /* Audit run 3: Address Book network checks, .kachat fee re-check */
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "该文件中的所有地址都是 Mainnet 地址。KaChat 当前在 Testnet。";
@@ -1477,7 +1227,6 @@
 
 /* .kachat registry v5 migration */
 "Names are moving to the new registry. New names can be claimed from %@." = "名称正在迁移到新的注册表。新名称可从 %@ 起认领。";
-"Every name from the old registry comes over with the same owner and expiry first." = "旧注册表中的每个名称会先以相同的所有者和到期时间迁移过来。";
 "Moved to the new registry" = "已迁移到新注册表";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
@@ -1492,19 +1241,12 @@
 ".kachat Names (%lld)" = ".kachat 名称(%lld)";
 ".kas Names (%lld)" = ".kas 名称(%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "输入 Kaspa 地址(kaspa:...)或域名。会先查找 .kachat 名称。";
-"Enter a Kaspa address or a domain like name.kachat (.kachat names are looked up first). Every received transaction on this address becomes a buy, every sent transaction becomes a sell, priced at that day's historical KAS price. Re-adding the same address later only imports transactions found since the last import." = "输入 Kaspa 地址或域名,例如 name.kachat(会先查找 .kachat 名称)。该地址收到的每笔交易记为买入,发出的每笔记为卖出,按当天的历史 KAS 价格计价。以后再次添加同一地址,只会导入上次导入之后的交易。";
 "Search contacts, or an address or domain" = "搜索联系人、地址或域名";
 "You have no contacts yet. Paste an address or a domain above to invite someone." = "你还没有联系人。在上方粘贴地址或域名来邀请他人。";
 "No contacts match your search. Paste an address or a domain to invite someone new." = "没有匹配的联系人。粘贴地址或域名来邀请新的人。";
-"An address or a domain - .kachat names are looked up first, and it's resolved to the address shown." = "地址或域名——会先查找 .kachat 名称,并解析为显示的地址。";
-"kaspatest:... or domain" = "kaspatest:... 或域名";
-"Enter an address or a domain." = "请输入地址或域名。";
-"That name's address can't own a .kachat name." = "该名称的地址无法拥有 .kachat 名称。";
 "No domain found by that name." = "未找到该名称的域名。";
-"One of your .kachat domains expired" = "你的一个 .kachat 域名已过期";
 "%lld of your .kachat domains expired" = "你有 %lld 个 .kachat 域名已过期";
 "Renew %@ before its grace period ends on %@ to keep it." = "请在 %2$@ 宽限期结束前续订 %1$@ 以保留它。";
-"Renew them before their grace periods end to keep them." = "请在宽限期结束前续订以保留它们。";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat 名称尚未在此网络上线";
@@ -1518,9 +1260,6 @@
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = ".kachat 注册表正在升级。新注册表上线后,名称会在这里重新开放。";
 "No wallet is open." = "没有打开的钱包。";
-"Not a Schnorr address on this network." = "不是此网络上的 Schnorr 地址。";
-"Live on Mainnet: names, prices and payments here are real KAS." = "已在主网上线:这里的名称、价格和付款都是真实的 KAS。";
-"Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names are live on Mainnet." = "已在测试网上线:这里的名称、价格和付款使用 testnet-10 上的 TKAS。主网名称已在主网上线。";
 "Live on Mainnet" = "已在主网上线";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
@@ -1529,7 +1268,6 @@
 
 /* .kachat: combining many small coins before a name transaction */
 "Your KAS is in many small coins. Combining them into one first..." = "你的 KAS 分散在许多小额币中。正在先合并为一枚...";
-"Your KAS is in many small coins. KaChat combines them into one before registering, for a tiny extra network fee." = "你的 KAS 分散在许多小额币中。KaChat 会在注册前将它们合并为一枚,只需极少的额外网络费用。";
 "Not enough KAS on your chatting address for this." = "你的聊天地址上没有足够的 KAS 来完成此操作。";
 
 /* .kachat mainnet launch countdown */
@@ -1542,8 +1280,6 @@
 ".kachat names open to everyone on %@." = ".kachat 名称将于 %@ 向所有人开放。";
 
 /* Kaspa Hub > KaChat Bots */
-"KaChat Bots" = "KaChat 机器人";
-"Bots" = "机器人";
 "Block Reward Tracker" = "区块奖励追踪";
 "A message for every block reward paid to your mining address." = "每当有区块奖励支付到你的挖矿地址，就发一条消息。";
 "Wallet Tracker" = "钱包追踪";
@@ -1552,21 +1288,17 @@
 "Ask anything related to Kaspa." = "任何关于 Kaspa 的问题都可以问。";
 "Coming soon." = "即将推出。";
 "Bots run on mainnet only." = "机器人仅在主网运行。";
-"Opens a chat with this bot." = "打开与此机器人的聊天。";
-"Messages to a bot are ordinary encrypted KaChat messages, so each one costs the usual network fee." = "发给机器人的消息是普通的加密 KaChat 消息，因此每条都需支付常规网络费用。";
 
 /* Kaspa Hub > KaChat Bots: Price Bot */
 "Price Bot" = "价格机器人";
 "Alerts when KAS crosses your price, big moves and a daily summary." = "当 KAS 突破你设定的价格、出现大幅波动时提醒你，并每日汇总。";
 
 /* Kaspa Hub > KaChat Bots: a bot card's unread count (VoiceOver) */
-"%lld unread" = "%lld 条未读";
 
 /* Chats: a bot chat's circle half sheet */
 "Clears the unread badge on this chat." = "清除此聊天的未读标记。";
 "Notifications from this bot resume." = "恢复此机器人的通知。";
 "No notification from this bot." = "不接收此机器人的通知。";
-"Removes this chat until you write to the bot again." = "删除此聊天，直到你再次给机器人发消息。";
 
 /* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
 "Request Payment" = "请求付款";
@@ -1602,13 +1334,9 @@
 "Send Payment Request" = "发送付款请求";
 
 /* .kachat transaction sheet: coins are combined only after the slide (IOS-075) */
-"Your KAS is in many small coins. When you slide, KaChat first combines them into one (a separate transaction with its own small fee), then sends this." = "你的 KAS 分散在许多小额币中。滑动后，KaChat 会先把它们合并为一个（一笔单独的交易，需少量手续费），然后再发送这笔交易。";
 
 /* An address's Domains tab: one card per name service */
-"No %@ names on this address." = "此地址没有 %@ 名称。";
-"1 domain" = "1 个域名";
 "%lld domains" = "%lld 个域名";
-"Couldn't load" = "无法加载";
 
 /* Request Payment: a spending-address request gets its own brand-new address */
 "Paid to a brand-new address of yours, used for this request only. The memo shows to whoever pays, but doesn't travel with the payment." = "付到你的一个全新地址，仅用于此请求。付款人能看到备注，但备注不会随付款发送。";
@@ -1647,27 +1375,7 @@
 "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "为保护隐私，在 Kaspa 网络上的其他活动请使用你的其他地址。「接收 Kaspa」会给你一个新地址，「管理地址」列出全部地址。";
 
 /* .kachat Names guide (claim, how it works, make it yours, keep it) */
-"Search for the name you want in Kaspa Hub > .kachat, then claim it." = "在 Kaspa 中心 > .kachat 搜索你想要的名称，然后认领。";
-"How a name works" = "名称如何运作";
-"Your name lives on the Kaspa network, held by your chatting address. Nobody can take it or change it while it's yours." = "你的名称存在于 Kaspa 网络上，由你的聊天地址持有。只要归你所有，谁也不能拿走或更改。";
-"Claiming takes two quick transactions: the first keeps your pick secret, the second registers it." = "认领需要两笔很快的交易：第一笔为你的选择保密，第二笔完成注册。";
-"You pay for one period at a time. Shorter names cost more." = "每次支付一个周期。越短的名称越贵。";
-"The price goes to the network's miners, not to KaChat." = "费用付给网络矿工，而不是 KaChat。";
-"Make it your name" = "让它成为你的名字";
-"Set it as your primary name and it's how you appear everywhere in KaChat." = "设为主名称后，你在 KaChat 各处都以它显示。";
-"People can find you and message you by typing your name." = "别人输入你的名称就能找到你并给你发消息。";
-"They can send you Kaspa to yourname.kachat instead of a long address." = "他们可以把 Kaspa 发到 yourname.kachat，而不是一长串地址。";
-"Your profile link shows your name." = "你的个人资料链接显示你的名称。";
-"Keep it" = "保留它";
-"Your names are in Profile > Your Domains > .kachat." = "你的名称在 个人资料 > 你的域名 > .kachat。";
-"Renew before it expires. It shows when, on each name." = "请在到期前续期。每个名称都会显示到期时间。";
-"After it expires there's a grace period to renew it before anyone else can claim it." = "到期后还有宽限期，在他人能认领前你仍可续期。";
-"You can transfer it, list it for sale, or accept an offer for it." = "你可以转让它、挂牌出售，或接受报价。";
 "You're all set" = "一切就绪";
-"Claim your name in Kaspa Hub > .kachat whenever you're ready." = "准备好后就在 Kaspa 中心 > .kachat 认领你的名称。";
-".kachat Names Guide" = ".kachat 名称指南";
-"Claim a .kachat name, make it your name, and keep it." = "认领一个 .kachat 名称，让它成为你的名字并保留它。";
-"Walk through claiming your .kachat name and making it yours." = "一步步认领你的 .kachat 名称并让它成为你的。";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
 "%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "只要你持有该名称，%@ 就会随名称锁定（保证金 + 注册表押金）。释放名称时会退还给你。";
@@ -1677,7 +1385,6 @@
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "你的余额不足。请向你的聊天地址发送至少 1 KAS。";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"From: %@" = "来自：%@";
 "Buy From" = "购买地址";
 "Fund" = "充值";
 "Copy address" = "复制地址";

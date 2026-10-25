@@ -501,26 +501,8 @@ final class AddressActivityNotifier: ObservableObject {
             cachedSpendingMaxIndex = maxIndex
         }
 
-        let accounts = ColdStorageManager.shared.accounts
-        let fingerprint = accounts
-            .map { "\($0.id.uuidString):\($0.maxAddressIndex):\($0.notifyOnReceive)" }
-            .joined(separator: ",")
-        if walletChanged || fingerprint != coldFingerprint {
-            var labelByAddress: [String: String] = [:]
-            var muted: Set<String> = []
-            for account in accounts {
-                guard let extendedKey = KaspaExtendedPublicKey(kpubString: account.kpubString) else { continue }
-                for index in 0...account.maxAddressIndex {
-                    if let address = try? extendedKey.receiveAddress(at: UInt32(index), network: network) {
-                        labelByAddress[address] = account.label
-                        if !account.notifyOnReceive { muted.insert(address) }
-                    }
-                }
-            }
-            coldLabelByAddress = labelByAddress
-            coldMutedAddresses = muted
-            coldFingerprint = fingerprint
-        }
+        // Cold Storage left the app on 2026-10-24 (it lives in the KaChat wallet app), so there
+        // are no cold-storage addresses to watch: `coldLabelByAddress` stays empty.
         if walletChanged { spendingNotifyLoadedForWallet = nil }
         reloadSpendingSwitchForCurrentWallet()
 

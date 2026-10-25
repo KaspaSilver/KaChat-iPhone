@@ -836,6 +836,7 @@
 				43BBF3422F15A52900B42BDA /* Sources */,
 				43BBF3432F15A52900B42BDA /* Frameworks */,
 				43BBF3442F15A52900B42BDA /* Resources */,
+				LBNE00010001000000000001 /* Local Build Number */,
 			);
 			buildRules = (
 			);
@@ -859,6 +860,7 @@
 				588DB555305C77E500D94B9B /* Sources */,
 				588DB556305C77E500D94B9B /* Frameworks */,
 				588DB557305C77E500D94B9B /* Resources */,
+				LBNE00010001000000000002 /* Local Build Number */,
 			);
 			buildRules = (
 			);
@@ -909,6 +911,7 @@
 				SHREXT000100010000000009 /* Sources */,
 				SHREXT000100010000000007 /* Frameworks */,
 				SHREXT000100010000000008 /* Resources */,
+				LBNE00010001000000000003 /* Local Build Number */,
 			);
 			buildRules = (
 			);
@@ -1050,6 +1053,66 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Builds run from Xcode count up: each gets the next build number, so About reads 5.2.1 (2580), (2581), ... - the last 4 digits of CFBundleVersion. Xcode Cloud ($CI) and archives (ACTION=install) keep their own numbers (Version.xcconfig). The counter is a local, gitignored file.\nif [ -n \"$CI\" ] || [ \"$ACTION\" = \"install\" ]; then exit 0; fi\nCOUNTER=\"$SRCROOT/KaChat/.local-build-number\"\nBASE=\"${CURRENT_PROJECT_VERSION:-0}\"\nLAST=$(cat \"$COUNTER\" 2>/dev/null)\ncase \"$LAST\" in ''|*[!0-9]*) LAST=0 ;; esac\ncase \"$BASE\" in ''|*[!0-9]*) BASE=0 ;; esac\nif [ \"$LAST\" -ge \"$BASE\" ]; then NEXT=$((LAST + 1)); else NEXT=$((BASE + 1)); fi\necho \"$NEXT\" > \"$COUNTER\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $NEXT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Local build number: $NEXT\"\n";
+			showEnvVarsInLog = 0;
+		};
+		LBNE00010001000000000001 /* Local Build Number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Local Build Number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Builds run from Xcode: the same build number the app's Local Build Number phase gives this build, so this extension matches its app (an app extension's CFBundleVersion must equal the app's). The extensions build before the app, so this works out the app's next number from the counter without writing it; the app's phase writes it. Xcode Cloud ($CI) and archives (ACTION=install) keep Version.xcconfig's number.\nif [ -n \"$CI\" ] || [ \"$ACTION\" = \"install\" ]; then exit 0; fi\nCOUNTER=\"$SRCROOT/KaChat/.local-build-number\"\nBASE=\"${CURRENT_PROJECT_VERSION:-0}\"\nLAST=$(cat \"$COUNTER\" 2>/dev/null)\ncase \"$LAST\" in ''|*[!0-9]*) LAST=0 ;; esac\ncase \"$BASE\" in ''|*[!0-9]*) BASE=0 ;; esac\nif [ \"$LAST\" -ge \"$BASE\" ]; then NEXT=$((LAST + 1)); else NEXT=$((BASE + 1)); fi\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $NEXT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Local build number (extension): $NEXT\"\n";
+			showEnvVarsInLog = 0;
+		};
+		LBNE00010001000000000002 /* Local Build Number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Local Build Number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Builds run from Xcode: the same build number the app's Local Build Number phase gives this build, so this extension matches its app (an app extension's CFBundleVersion must equal the app's). The extensions build before the app, so this works out the app's next number from the counter without writing it; the app's phase writes it. Xcode Cloud ($CI) and archives (ACTION=install) keep Version.xcconfig's number.\nif [ -n \"$CI\" ] || [ \"$ACTION\" = \"install\" ]; then exit 0; fi\nCOUNTER=\"$SRCROOT/KaChat/.local-build-number\"\nBASE=\"${CURRENT_PROJECT_VERSION:-0}\"\nLAST=$(cat \"$COUNTER\" 2>/dev/null)\ncase \"$LAST\" in ''|*[!0-9]*) LAST=0 ;; esac\ncase \"$BASE\" in ''|*[!0-9]*) BASE=0 ;; esac\nif [ \"$LAST\" -ge \"$BASE\" ]; then NEXT=$((LAST + 1)); else NEXT=$((BASE + 1)); fi\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $NEXT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Local build number (extension): $NEXT\"\n";
+			showEnvVarsInLog = 0;
+		};
+		LBNE00010001000000000003 /* Local Build Number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Local Build Number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Builds run from Xcode: the same build number the app's Local Build Number phase gives this build, so this extension matches its app (an app extension's CFBundleVersion must equal the app's). The extensions build before the app, so this works out the app's next number from the counter without writing it; the app's phase writes it. Xcode Cloud ($CI) and archives (ACTION=install) keep Version.xcconfig's number.\nif [ -n \"$CI\" ] || [ \"$ACTION\" = \"install\" ]; then exit 0; fi\nCOUNTER=\"$SRCROOT/KaChat/.local-build-number\"\nBASE=\"${CURRENT_PROJECT_VERSION:-0}\"\nLAST=$(cat \"$COUNTER\" 2>/dev/null)\ncase \"$LAST\" in ''|*[!0-9]*) LAST=0 ;; esac\ncase \"$BASE\" in ''|*[!0-9]*) BASE=0 ;; esac\nif [ \"$LAST\" -ge \"$BASE\" ]; then NEXT=$((LAST + 1)); else NEXT=$((BASE + 1)); fi\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $NEXT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Local build number (extension): $NEXT\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -1384,7 +1447,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RP4Z22SFSD;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = KaChatIntents/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = KaChatIntents;
@@ -1419,7 +1482,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = RP4Z22SFSD;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = KaChatIntents/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = KaChatIntents;

@@ -109,9 +109,6 @@ struct ProfileView: View {
                 }
                 .padding()
             }
-            .task(id: "\(walletManager.currentWallet?.publicAddress ?? "")-\(kachatRegistry.revision)") {
-                await expiredKachatNames.load()
-            }
             .refreshable {
                 _ = try? await walletManager.refreshBalance(force: true)
                 await loadSpendingAddressBalance()

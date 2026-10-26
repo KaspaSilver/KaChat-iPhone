@@ -1997,6 +1997,14 @@ struct ConnectionSettingsView: View {
         }
     }
 
+    /// Where .kachat names are read: the message indexer's address, as `KachatNamesRegistry`
+    /// uses it (no trailing slash).
+    private var kachatNamesURL: String {
+        let typed = normalizedHTTPSURL(indexerURL)
+        let base = typed.isEmpty ? ConnectionProfile.defaults(for: settingsViewModel.settings.networkType).indexerURL : typed
+        return base.hasSuffix("/") ? String(base.dropLast()) : base
+    }
+
     @ViewBuilder
     private var domainsSections: some View {
         // .kachat first: it is what every address field resolves before anything else.
@@ -2005,15 +2013,13 @@ struct ConnectionSettingsView: View {
                 Text("KaChat Names (.kachat)")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                // Read through the chat indexer above when it serves this network's names, else
-                // straight from the chain (KachatNamesRegistry).
-                if settingsViewModel.settings.networkType == .testnet {
-                    Text("Live on Testnet (testnet-10 registry)")
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("Live on Mainnet")
-                        .foregroundColor(.secondary)
-                }
+                // Read through the message indexer (the Indexer tab) when it serves this network's
+                // names, else straight from the chain (KachatNamesRegistry.indexerBase). Shows what
+                // is typed on the Indexer tab, or its default when that is blank.
+                Text(kachatNamesURL)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundColor(.secondary)
+                    .textSelection(.enabled)
             }
         } header: {
             Text(".kachat Names")

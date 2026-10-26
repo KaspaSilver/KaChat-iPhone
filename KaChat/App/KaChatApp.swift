@@ -334,7 +334,14 @@ struct KaChatApp: App {
         // (`KaChatLinkRouter.open`), shared with the in-chat preview cards so a tapped card and
         // a tapped system link can never diverge.
         if let link = KaChatInternalLink.parse(url) {
-            KaChatLinkRouter.open(link)
+            // KaPosts' Chat button: a profile link that asks for the chat (`?chat=1`) opens the
+            // 1:1 chat itself rather than User Info. Older KaChat versions ignore the query and
+            // show User Info, so KaPosts can send it to everyone.
+            if case .profile(let address) = link, KaChatLinkRouter.asksForChat(url) {
+                KaChatLinkRouter.openChat(address: address)
+            } else {
+                KaChatLinkRouter.open(link)
+            }
             return
         }
 
@@ -1045,6 +1052,29 @@ enum KaChatLinkRouter {
     @MainActor
     static func openPaymentRequest(_ request: PaymentRequest) {
         PaymentRequestRouter.shared.pending = request
+    }
+
+    /// A profile link carrying `chat=1` (KaPosts' Chat button).
+    static func asksForChat(_ url: URL) -> Bool {
+        URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?.contains { $0.name.lowercased() == "chat" && $0.value == "1" } ?? false
+    }
+
+    /// Opens (or starts) the 1:1 chat with `address` - the route the Addresses screen's Chat
+    /// takes. Your own address has no chat with itself, so it shows your User Info instead.
+    @MainActor
+    static func openChat(address: String) {
+        let normalized = address.lowercased()
+        guard KaspaAddress.isValidOnActiveNetwork(normalized) else { return }
+        guard normalized != WalletManager.shared.currentWallet?.publicAddress.lowercased() else {
+            openProfile(address: normalized)
+            return
+        }
+        let contact = ContactsManager.shared.getOrCreateContact(address: normalized)
+        _ = ChatService.shared.getOrCreateConversation(for: contact)
+        // Pending first, for a cold start where the chat list isn't up to hear the post yet.
+        ChatService.shared.pendingChatNavigation = contact.address
+        NotificationCenter.default.post(name: .openChat, object: nil, userInfo: ["contactAddress": contact.address])
     }
 
     /// Someone's profile link - yours included - opens their User Info, from which Open Chat is

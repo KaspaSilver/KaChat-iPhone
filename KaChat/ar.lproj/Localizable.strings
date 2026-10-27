@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "لا توجد بطولات منتهية بعد.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "المجموعات";
+"Group Chats" = "الدردشات الجماعية";
+"Search group chats" = "البحث في الدردشات الجماعية";
+"Select a group chat" = "حدد دردشة جماعية";
+"Choose a group on the left" = "اختر مجموعة على اليسار";
+"Keeps it first in your group chats." = "تبقى أولاً في دردشاتك الجماعية.";
+"Pinned" = "مثبّتة";

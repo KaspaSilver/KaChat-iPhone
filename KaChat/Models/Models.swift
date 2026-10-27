@@ -2012,11 +2012,13 @@ enum AppCurrency: String, Codable, CaseIterable {
     var displayName: String { "\(name) (\(code))" }
 }
 
-/// The dock (since 2026-10-24 a fixed four: Addresses, Chats, Profile, Settings - no Kaspa Hub
-/// and no Customize Dock). `tag` is a fixed identifier per case so tag-based navigation (jumping to
+/// The dock (since 2026-10-26 a fixed five: Addresses, Groups, Chats, Profile, Settings - no
+/// Kaspa Hub and no Customize Dock; Chats in the center). `tag` is a fixed identifier per case so tag-based navigation (jumping to
 /// Chats on a notification tap) never depends on position.
 enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     case chats
+    /// Group Chats, their own screen again since 2026-10-26 (they were circles above the chats).
+    case groupChats
     /// Address Book (2026-10-08): saved Kaspa addresses with names, per wallet, kept in KaChat.
     case addressBook
     case profile
@@ -2028,6 +2030,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var label: String {
         switch self {
         case .chats: return "Chats"
+        case .groupChats: return "Groups"
         // "Addresses", as in the KaChat wallet app (owner's call, 2026-10-24).
         case .addressBook: return "Addresses"
         case .profile: return "Profile"
@@ -2038,6 +2041,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var icon: String {
         switch self {
         case .chats: return "bubble.left.and.bubble.right"
+        case .groupChats: return "person.3"
         case .addressBook: return "book.closed"
         case .profile: return "person.crop.circle"
         case .settings: return "gearshape"
@@ -2050,11 +2054,12 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
         case .profile: return 2
         case .addressBook: return 14
         case .settings: return 16
+        case .groupChats: return 17
         }
     }
 
     /// What the dock renders, in order.
-    static let dock: [AppTab] = [.addressBook, .chats, .profile, .settings]
+    static let dock: [AppTab] = [.addressBook, .groupChats, .chats, .profile, .settings]
 }
 
 /// Block explorer used for "view transaction" links, matching Android's KaspaExplorer enum.

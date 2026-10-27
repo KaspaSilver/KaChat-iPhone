@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "Ещё нет завершённых турниров.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Группы";
+"Group Chats" = "Групповые чаты";
+"Search group chats" = "Поиск групповых чатов";
+"Select a group chat" = "Выберите групповой чат";
+"Choose a group on the left" = "Выберите группу слева";
+"Keeps it first in your group chats." = "Останется первым в ваших групповых чатах.";
+"Pinned" = "Закреплено";

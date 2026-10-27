@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "Henüz biten turnuva yok.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Gruplar";
+"Group Chats" = "Grup Sohbetleri";
+"Search group chats" = "Grup sohbeti ara";
+"Select a group chat" = "Bir grup sohbeti seçin";
+"Choose a group on the left" = "Soldan bir grup seçin";
+"Keeps it first in your group chats." = "Grup sohbetlerinde ilk kalır.";
+"Pinned" = "Sabitlendi";

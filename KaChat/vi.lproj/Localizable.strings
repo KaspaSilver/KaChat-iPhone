@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "Chưa có giải đấu nào kết thúc.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Nhóm";
+"Group Chats" = "Trò chuyện nhóm";
+"Search group chats" = "Tìm kiếm trò chuyện nhóm";
+"Select a group chat" = "Chọn một cuộc trò chuyện nhóm";
+"Choose a group on the left" = "Chọn một nhóm ở bên trái";
+"Keeps it first in your group chats." = "Luôn đứng đầu trong các cuộc trò chuyện nhóm.";
+"Pinned" = "Đã ghim";

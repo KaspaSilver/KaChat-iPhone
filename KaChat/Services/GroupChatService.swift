@@ -51,13 +51,13 @@ final class GroupChatService: ObservableObject {
     /// The newest edit per message txId, per group - see `MessageEditCodec`.
     @Published var editsByGroupId: [String: [String: MessageEditSnapshot]] = [:]
 
-    /// Set when a group-chat push notification is tapped before `ChatListView` exists yet
-    /// (cold start) - consumed and cleared by `ChatListView.checkPendingGroupNavigation()`.
+    /// Set when a group-chat push notification is tapped before `GroupChatListView` exists yet
+    /// (cold start) - consumed and cleared by `GroupChatListView.checkPendingGroupNavigation()`.
     @Published var pendingGroupNavigation: String?
 
     /// Set when a group notification that names no group is tapped - the undecryptable-push
     /// fallback (thread id "group", see `NotificationService.deliverGroupFallback`). There's no
-    /// room to open, so the Groups LIST is the destination; consumed by `ChatListView`.
+    /// room to open, so the Group Chats list is the destination; consumed by `GroupChatListView`.
     @Published var pendingGroupListNavigation = false
 
     /// The group currently on-screen, if any - mirrors `ChatService.activeConversationAddress`.

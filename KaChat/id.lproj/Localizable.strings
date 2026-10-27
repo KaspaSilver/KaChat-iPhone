@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "Belum ada turnamen yang selesai.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Grup";
+"Group Chats" = "Obrolan Grup";
+"Search group chats" = "Cari obrolan grup";
+"Select a group chat" = "Pilih obrolan grup";
+"Choose a group on the left" = "Pilih grup di sebelah kiri";
+"Keeps it first in your group chats." = "Tetap pertama di obrolan grup Anda.";
+"Pinned" = "Disematkan";

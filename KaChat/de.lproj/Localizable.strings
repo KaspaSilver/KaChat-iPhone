@@ -1416,3 +1416,12 @@
 "No finished tournaments yet." = "Noch keine beendeten Turniere.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Gruppen";
+"Group Chats" = "Gruppenchats";
+"Search group chats" = "Gruppenchats durchsuchen";
+"Select a group chat" = "Wählen Sie einen Gruppenchat aus";
+"Choose a group on the left" = "Wählen Sie links eine Gruppe aus";
+"Keeps it first in your group chats." = "Bleibt an erster Stelle in deinen Gruppenchats.";
+"Pinned" = "Angeheftet";

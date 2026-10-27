@@ -1469,3 +1469,12 @@
 "No finished tournaments yet." = "Aucun tournoi terminé pour l'instant.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Groupes";
+"Group Chats" = "Discussions de groupe";
+"Search group chats" = "Rechercher dans les discussions de groupe";
+"Select a group chat" = "Sélectionnez une discussion de groupe";
+"Choose a group on the left" = "Choisissez un groupe à gauche";
+"Keeps it first in your group chats." = "Reste en premier dans vos discussions de groupe.";
+"Pinned" = "Épinglé";

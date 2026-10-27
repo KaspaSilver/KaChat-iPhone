@@ -7,8 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 KaChat is a native iOS messaging and payment application built on the Kaspa blockchain. It enables encrypted peer-to-peer messaging with on-chain payments using SwiftUI.
 
 **Scope (since 2026-10-24):** KaChat is 1:1 chats and group chats, kept small enough for an App
-Store 4+ rating. The dock is a fixed four: Addresses, Chats, Profile, Settings (no Kaspa Hub, no
-Customize Dock). The KaChat bots are always circles in the row above the chats, beside the groups.
+Store 4+ rating. The dock is a fixed five: Addresses, Groups, Chats, Profile, Settings (Chats
+in the center; no Kaspa Hub, no Customize Dock). Group Chats is its own screen again since 2026-10-26
+(`GroupChatListView`: pins, Select, its + opens New Group Chat, and group notification taps land
+there); Chats' + no longer offers New Group Chat. The KaChat bots are always circles in the row
+above the chats.
 Removed from the app: KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments), KaChat
 Stats, Portfolio, Cold Storage (KasSigner), Kaspa Websites, Swap, the `.kachat` market (claim, buy,
 sell, offers, name notifications), the home-screen widget and Simple Mode (with the onboarding's

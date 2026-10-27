@@ -1469,3 +1469,12 @@
 "No finished tournaments yet." = "No finished tournaments yet.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "Groups";
+"Group Chats" = "Group Chats";
+"Search group chats" = "Search group chats";
+"Select a group chat" = "Select a group chat";
+"Choose a group on the left" = "Choose a group on the left";
+"Keeps it first in your group chats." = "Keeps it first in your group chats.";
+"Pinned" = "Pinned";

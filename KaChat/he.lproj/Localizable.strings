@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "עדיין אין טורנירים שהסתיימו.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "קבוצות";
+"Group Chats" = "צ'אטים קבוצתיים";
+"Search group chats" = "חפש צ'אטים קבוצתיים";
+"Select a group chat" = "בחר צ'אט קבוצתי";
+"Choose a group on the left" = "בחר קבוצה משמאל";
+"Keeps it first in your group chats." = "נשאר ראשון בצ'אטים הקבוצתיים שלך.";
+"Pinned" = "מוצמד";

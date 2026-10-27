@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "अभी तक कोई टूर्नामेंट पूरा नहीं हुआ।";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "समूह";
+"Group Chats" = "समूह चैट";
+"Search group chats" = "समूह चैट खोजें";
+"Select a group chat" = "एक समूह चैट चुनें";
+"Choose a group on the left" = "बाईं ओर कोई समूह चुनें";
+"Keeps it first in your group chats." = "आपकी समूह चैट्स में सबसे आगे रहता है।";
+"Pinned" = "पिन किया गया";

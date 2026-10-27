@@ -51,7 +51,7 @@ struct MainTabView: View {
     @ObservedObject private var nextcloudService = NextcloudService.shared
 
     /// The dock's TabView on its own, so `body` stays small enough for the type checker. The
-    /// dock is the fixed `AppTab.dock`: Addresses, Chats, Profile, Settings.
+    /// dock is the fixed `AppTab.dock`: Addresses, Groups, Chats, Profile, Settings.
     private var dockTabView: some View {
         TabView(selection: tabSelection) {
             ForEach(AppTab.dock) { tab in
@@ -163,7 +163,8 @@ struct MainTabView: View {
         // A payment request tapped or pasted anywhere: Send Kaspa with it filled in.
         .modifier(PaymentRequestSheetPresenter())
         .onReceive(NotificationCenter.default.publisher(for: .openGroup)) { _ in
-            selectedTab = 1
+            PendingTabRoute.pending = nil
+            handleTabSelectionChange(AppTab.groupChats.tag)
         }
         .onReceive(NotificationCenter.default.publisher(for: .localStoreLoadFailed)) { note in
             storeLoadFailure = Self.storeFailureMessage(from: note)
@@ -192,6 +193,8 @@ struct MainTabView: View {
             // Bare ChatListView, no ZStack, no wrappers - a permanent compositing wrapper on the
             // app's main screen was the 4.0 "lag everywhere" regression.
             ChatListView()
+        case .groupChats:
+            GroupChatListView()
         case .addressBook:
             AddressBookView()
         case .profile:
@@ -222,7 +225,8 @@ struct MainTabView: View {
         tabWorkTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 500_000_000)
             if Task.isCancelled { return }
-            if newValue == AppTab.chats.tag {
+            // Chats and Group Chats both want live traffic.
+            if newValue == AppTab.chats.tag || newValue == AppTab.groupChats.tag {
                 await NodePoolService.shared.resumeDiscovery()
                 chatService.startPolling()
             } else {
@@ -255,10 +259,11 @@ struct MainTabView: View {
             handleTabSelectionChange(tab.tag)
             return
         }
-        if chatService.pendingChatNavigation != nil ||
-            chatService.pendingProfileAddress != nil ||
-            GroupChatService.shared.pendingGroupNavigation != nil ||
+        if GroupChatService.shared.pendingGroupNavigation != nil ||
             GroupChatService.shared.pendingGroupListNavigation {
+            selectedTab = AppTab.groupChats.tag
+        } else if chatService.pendingChatNavigation != nil ||
+            chatService.pendingProfileAddress != nil {
             selectedTab = AppTab.chats.tag
         }
     }

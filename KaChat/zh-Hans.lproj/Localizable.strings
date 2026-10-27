@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "还没有已结束的锦标赛。";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "群组";
+"Group Chats" = "群聊";
+"Search group chats" = "搜索群聊";
+"Select a group chat" = "选择群聊";
+"Choose a group on the left" = "选择左侧的群组";
+"Keeps it first in your group chats." = "在你的群聊中保持在最前。";
+"Pinned" = "已置顶";

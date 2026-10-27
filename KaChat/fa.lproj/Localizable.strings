@@ -1468,3 +1468,12 @@
 "No finished tournaments yet." = "هنوز تورنمنت تمام‌شده‌ای نیست.";
 
 /* KaPosts: post activity cards */
+
+/* Group Chats tab */
+"Groups" = "گروه‌ها";
+"Group Chats" = "گفتگوهای گروهی";
+"Search group chats" = "جستجوی گفتگوهای گروهی";
+"Select a group chat" = "یک گفتگوی گروهی را انتخاب کنید";
+"Choose a group on the left" = "یک گروه را در سمت چپ انتخاب کنید";
+"Keeps it first in your group chats." = "در گفتگوهای گروهی‌تان اول می‌ماند.";
+"Pinned" = "سنجاق‌شده";

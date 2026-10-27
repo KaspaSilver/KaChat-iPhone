@@ -24,6 +24,7 @@ struct SettingsView: View {
 
     @State private var showSeedPhrase = false
     @State private var showDeleteConfirmation = false
+    @State private var showLogoutConfirmation = false
     @State private var showWipeIncomingConfirmation = false
     @State private var showResyncChatPicker = false
     /// Selection handed back by the chat picker sheet; the resync starts from the sheet's
@@ -93,6 +94,35 @@ struct SettingsView: View {
                 }
                 settingsCategoryRow("Danger Zone", icon: "exclamationmark.triangle", tint: .red) {
                     dangerZonePage
+                }
+
+                // Back in Settings (it spent a while on Profile): its own section at the very
+                // bottom, apart from the category rows, so it is easy to find and hard to hit
+                // by accident.
+                Section {
+                    Button(role: .destructive) {
+                        showLogoutConfirmation = true
+                    } label: {
+                        Label {
+                            Text("Log Out")
+                                .foregroundColor(.red)
+                        } icon: {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundColor(.red)
+                        }
+                    }
+                    // Half sheet rather than a confirmation dialog, matching every other chooser
+                    // in the app - and it gives the consequence a row of its own beside the action.
+                    .sheet(isPresented: $showLogoutConfirmation) {
+                        ConfirmActionSheet(
+                            title: "Log Out",
+                            confirmTitle: "Log Out",
+                            confirmSubtitle: "Signs out of this account. Wallet and message data stay on this device.",
+                            confirmSystemImage: "rectangle.portrait.and.arrow.right"
+                        ) {
+                            Task { await walletManager.logout() }
+                        }
+                    }
                 }
             }
             .toast(message: toastMessage, style: toastStyle)

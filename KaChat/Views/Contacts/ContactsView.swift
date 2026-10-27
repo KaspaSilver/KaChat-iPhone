@@ -81,7 +81,6 @@ struct ProfileView: View {
         KaspaAddress.onActiveNetwork(donationAddressMainnet) ?? donationAddressMainnet
     }
     @State private var showOpenSourceLicenses = false
-    @State private var showLogoutConfirmation = false
     @State private var showWelcomeGuideReplay = false
     @State private var isEditingAccountName = false
 
@@ -103,7 +102,6 @@ struct ProfileView: View {
                         addressDropdownsSection(wallet)
                         yourDomainsSection
                         helpSection
-                        logOutSection
                         aboutSection(wallet)
                     } else {
                         Text("No active account")
@@ -1380,40 +1378,6 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showOpenSourceLicenses) {
             OpenSourceLicensesView()
-        }
-    }
-
-    /// Moved here from Settings > Actions - Profile is where the rest of the account-level
-    /// actions (address management, About) already live, so Log Out belongs alongside them
-    /// rather than buried in Settings.
-    private var logOutSection: some View {
-        Button(role: .destructive) {
-            showLogoutConfirmation = true
-        } label: {
-            HStack {
-                Text("Log Out")
-                    .foregroundColor(.red)
-                Spacer()
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .foregroundColor(.red)
-            }
-            .padding(16)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(glassBackground(cornerRadius: 18))
-        // Half sheet rather than a confirmation dialog, matching every other chooser in the app -
-        // and it gives the consequence a row of its own beside the action, which a dialog of bare
-        // verbs under a grey line cannot.
-        .sheet(isPresented: $showLogoutConfirmation) {
-            ConfirmActionSheet(
-                title: "Log Out",
-                confirmTitle: "Log Out",
-                confirmSubtitle: "Signs out of this account. Wallet and message data stay on this device.",
-                confirmSystemImage: "rectangle.portrait.and.arrow.right"
-            ) {
-                Task { await walletManager.logout() }
-            }
         }
     }
 

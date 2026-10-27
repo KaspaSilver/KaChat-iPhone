@@ -23,19 +23,16 @@ struct ChatListView: View {
     /// its own sheet, like Profile's.
     @State private var afterCreateSheet: (() -> Void)?
     @State private var qrScreen: ChatsQRScreen?
-    /// "Send Kaspa" in the New sheet: Profile's send from the current spending address.
-    @State private var showSpendingSend = false
-    /// Chats > + > Request Payment (`CreatePaymentRequestView`).
-    @State private var showPaymentRequest = false
     private enum ChatsQRScreen: String, Identifiable {
-        case fundChatting, receive
+        case fundChatting
         var id: String { rawValue }
     }
     /// From a profile link: the person whose User Info is up.
     @State private var linkedProfileContact: Contact?
-    /// Bot chats pinned to the front of the circles row, in order - ids "b:<address>", saved per
-    /// wallet. (The key once held group circles too, as "g:<groupId>"; Group Chats took those
-    /// over and the row ignores them.)
+    /// What is pinned in the circles row, in order, saved per wallet: bots ("b:<address>") pinned
+    /// to its front, and chats ("c:<address>") pinned up out of the list into the row. (The key
+    /// once held group circles too, as "g:<groupId>"; Group Chats took those over and the row
+    /// ignores them.)
     @State private var circlePins: [String] = []
     /// The circle whose long-press half sheet is up ("b:<address>").
     @State private var circleActionTarget: CircleActionTarget?
@@ -263,22 +260,6 @@ struct ChatListView: View {
             createSheet
                 .environmentObject(walletManager)
         }
-        .sheet(isPresented: $showSpendingSend) {
-            Group {
-                if let wallet = walletManager.currentWallet {
-                    WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi)
-                }
-            }
-                .environmentObject(chatService)
-                .environmentObject(contactsManager)
-                .environmentObject(settingsViewModel)
-                .environmentObject(walletManager)
-        }
-        .sheet(isPresented: $showPaymentRequest) {
-            CreatePaymentRequestView()
-                .environmentObject(walletManager)
-                .environmentObject(settingsViewModel)
-        }
         .sheet(item: $qrScreen) { screen in
             NavigationStack {
                 Group {
@@ -287,11 +268,9 @@ struct ChatListView: View {
                         if let wallet = walletManager.currentWallet {
                             ChattingAddressQRView(address: wallet.publicAddress, balanceSompi: wallet.balanceSompi)
                         }
-                    case .receive:
-                        ProfileView.ReceiveKaspaQRView()
                     }
                 }
-                .navigationTitle(screen == .fundChatting ? "Chatting Address" : "Receive Kaspa")
+                .navigationTitle("Chatting Address")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
@@ -508,7 +487,8 @@ struct ChatListView: View {
         .presentationDragIndicator(.visible)
     }
 
-    /// The New options as square tiles, three to a row.
+    /// The New options as square tiles: New Chat and Fund Chatting Address. Send, Receive and
+    /// Request Payment live on Profile's floating send / receive button.
     private var createMenu: some View {
         let columns = Array(repeating: GridItem(.fixed(Self.createTileSize), spacing: 14), count: 3)
         return VStack(spacing: 16) {
@@ -520,15 +500,6 @@ struct ChatListView: View {
                 CreateTile(title: "New Chat", hint: "Message someone by their address or name.", systemImage: "bubble.left") {
                     createDetent = .large
                     showsCreateChat = true
-                }
-                CreateTile(title: "Send Kaspa", hint: "Send Kaspa from any of your addresses.", systemImage: "arrow.up.circle") {
-                    closeCreateSheet { showSpendingSend = true }
-                }
-                CreateTile(title: "Receive Kaspa", hint: "Show a fresh address to get paid.", systemImage: "arrow.down.circle") {
-                    closeCreateSheet { qrScreen = .receive }
-                }
-                CreateTile(title: "Request Payment", hint: "A link asking for an exact amount, with what it's for.", systemImage: "doc.text") {
-                    closeCreateSheet { showPaymentRequest = true }
                 }
                 CreateTile(title: "Fund Chatting Address", hint: "Show the QR code to add Kaspa for sending messages.", systemImage: "qrcode") {
                     closeCreateSheet { qrScreen = .fundChatting }
@@ -544,9 +515,9 @@ struct ChatListView: View {
 
     static let createTileSize: CGFloat = 104
 
-    /// Two rows of tiles. The create forms open at full height; the QR options leave for their
-    /// own white sheet.
-    static let createSheetHeight: PresentationDetent = .height(380)
+    /// One row of tiles. New Chat opens at full height; Fund Chatting Address leaves for its own
+    /// white sheet.
+    static let createSheetHeight: PresentationDetent = .height(262)
 
     /// Closes the New sheet and runs `action` once it's gone (a sheet can't present while
     /// another is still going down).
@@ -640,20 +611,48 @@ struct ChatListView: View {
         circlePins = UserDefaults.standard.stringArray(forKey: key) ?? []
     }
 
-    /// Hold a circle: pin it to the front (newest pin first), or unpin it.
+    /// Pin a bot to the front of the row or a chat up into it (newest pin first), or unpin it.
     private func toggleCirclePin(_ id: String) {
         if let index = circlePins.firstIndex(of: id) {
             circlePins.remove(at: index)
             showToast(AppLocalization.string("Unpinned"))
         } else {
             circlePins.insert(id, at: 0)
-            showToast(AppLocalization.string("Pinned to the front"))
+            showToast(AppLocalization.string(id.hasPrefix("c:") ? "Pinned to the top row" : "Pinned to the front"))
         }
         if let key = circlePinsKey { UserDefaults.standard.set(circlePins, forKey: key) }
     }
 
+    /// A chat's id in the row's pins.
+    private static func chatPinId(_ address: String) -> String { "c:\(address.lowercased())" }
+
+    /// The chats pinned up into the row, by pin id. A deleted chat's pin finds nothing and shows
+    /// nothing.
+    private var pinnedChatConversations: [String: Conversation] {
+        let ids = Set(circlePins.filter { $0.hasPrefix("c:") })
+        guard !ids.isEmpty else { return [:] }
+        var result: [String: Conversation] = [:]
+        for conversation in chatService.conversations where !contactsManager.isAddressDeleted(conversation.contact.address) {
+            let id = Self.chatPinId(conversation.contact.address)
+            if ids.contains(id) { result[id] = conversation }
+        }
+        return result
+    }
+
+    /// A pinned chat's name in the row: as its list row names it.
+    private func circleName(for conversation: Conversation) -> String {
+        isOwnChat(conversation.contact)
+            ? AppLocalization.string("Your Address")
+            : contactsManager.displayName(for: conversation.contact)
+    }
+
     private var chatsTabContent: some View {
-        let filtered = filteredConversationsCache
+        // Pinned chats live in the circles row, not the list - except while searching, when the
+        // results are the whole match, pinned or not.
+        let pinnedChats = searchText.isEmpty ? pinnedChatConversations : [:]
+        let filtered = pinnedChats.isEmpty
+            ? filteredConversationsCache
+            : filteredConversationsCache.filter { pinnedChats[Self.chatPinId($0.contact.address)] == nil }
         let totalCount = filtered.count
         let displayed: [Conversation]
         if searchText.isEmpty {
@@ -666,16 +665,25 @@ struct ChatListView: View {
         let showsRequestsRow = searchText.isEmpty && editMode != .active
         let requestCount = showsRequestsRow ? chatService.messageRequestCount : 0
         return List(selection: $selectedContactIDs) {
-            // The bot chats, as circles under the search bar - swipe sideways for all of them.
-            // Tap opens, hold opens their half sheet.
+            // The bot chats and the chats you pinned, as circles under the search bar - swipe
+            // sideways for all of them. Tap opens, hold opens their half sheet.
             ChatCirclesStrip(
                 searchText: searchText,
                 pins: circlePins,
                 bots: botCircles,
+                pinnedChats: pinnedChats,
+                chatName: circleName(for:),
                 // The open is guarded on the hold's half sheet: the hold's touch-up still fires
                 // the circle's Button (simultaneousGesture), and opened the chat behind it.
                 onOpenBot: { guard circleActionTarget == nil else { return }; openBotFromCircle($0) },
-                onLongPress: { circleActionTarget = CircleActionTarget(id: $0) }
+                onOpenChat: { conversation in
+                    guard conversationActionTarget == nil else { return }
+                    selectedContactStartInPaymentMode = false
+                    selectedContact = conversation.contact
+                },
+                onLongPress: { circleActionTarget = CircleActionTarget(id: $0) },
+                // A pinned chat holds to the chat row's own half sheet (with Unpin).
+                onLongPressChat: { conversationActionTarget = $0 }
             )
             .listRowInsets(EdgeInsets())
             .listRowSeparator(.hidden)
@@ -758,7 +766,7 @@ struct ChatListView: View {
         .listStyle(.plain)
         .overlay(alignment: .center) {
             // Below the circles row rather than over it: only when there are no chats at all.
-            if displayed.isEmpty && searchText.isEmpty {
+            if displayed.isEmpty && searchText.isEmpty && pinnedChats.isEmpty {
                 emptyStateView
                     .padding(.top, 120)
                     .allowsHitTesting(false)
@@ -990,6 +998,9 @@ struct ChatListView: View {
     /// `deleteConversations`. Empty while Select mode is active - the bulk bar owns actions there.
     private func conversationRowSheet(for conversation: Conversation) -> some View {
         let isSilent = conversation.contact.notificationModeOverride == .off
+        let pinId = Self.chatPinId(conversation.contact.address)
+        let isPinned = circlePins.contains(pinId)
+        let isOwn = isOwnChat(conversation.contact)
         return VStack(spacing: 12) {
             Text(contactsManager.displayName(for: conversation.contact))
                 .font(.headline)
@@ -1016,6 +1027,18 @@ struct ChatListView: View {
                         conversationActionTarget = nil
                         chatService.markConversationAsUnread(conversation)
                     }
+                }
+
+                // Up into the circles row above the list, out of the list itself.
+                ActionSheetRow(
+                    title: isPinned ? "Unpin" : "Pin to Top Row",
+                    subtitle: isPinned
+                        ? "Moves it back into your chats list."
+                        : "Moves it into the row above your chats.",
+                    systemImage: isPinned ? "pin.slash" : "pin"
+                ) {
+                    conversationActionTarget = nil
+                    toggleCirclePin(pinId)
                 }
 
                 ActionSheetRow(
@@ -1066,7 +1089,7 @@ struct ChatListView: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .presentationDetents([.height(ActionSheetTileMetrics.sheetHeight(tiles: 4))])
+        .presentationDetents([.height(ActionSheetTileMetrics.sheetHeight(tiles: isOwn ? 3 : 5))])
         .presentationDragIndicator(.visible)
     }
 
@@ -1162,6 +1185,12 @@ struct ChatListView: View {
         for contact in contacts {
             chatService.removeConversation(for: contact.address)
             contactsManager.deleteContact(contact)
+        }
+        // A deleted chat leaves the row too.
+        let deletedPins = Set(contacts.map { Self.chatPinId($0.address) })
+        if circlePins.contains(where: deletedPins.contains) {
+            circlePins.removeAll { deletedPins.contains($0) }
+            if let key = circlePinsKey { UserDefaults.standard.set(circlePins, forKey: key) }
         }
         chatService.checkAndResubscribeIfNeeded()
         selectedContactIDs = []
@@ -1590,8 +1619,8 @@ struct ChatRowPressStyle: ButtonStyle {
         .environmentObject(WalletManager.shared)
 }
 
-/// The red unread count - on the bot circles.
-private struct ChatsTabUnreadBadge: View {
+/// The red unread count - on the circles above the Chats and Groups lists.
+struct ChatsTabUnreadBadge: View {
     let count: Int
 
     var body: some View {
@@ -1615,32 +1644,65 @@ struct BotCircle {
     var id: String { "b:\(bot.address.lowercased())" }
 }
 
-/// The bot chats as a row of circles above the chats list, under the search bar. Swipe sideways
-/// for all of them. Pinned ones come first (in pin order), then the rest by latest activity. A
-/// red count shows unread messages. Tap opens; hold opens its half sheet (read state, pin,
-/// notifications, delete). Group chats have their own tab (`GroupChatListView`).
+/// One circle in the row: a bot, or a chat pinned up out of the list.
+private enum ChatCircleItem {
+    case bot(BotCircle)
+    case chat(id: String, conversation: Conversation)
+
+    var id: String {
+        switch self {
+        case .bot(let bot): return bot.id
+        case .chat(let id, _): return id
+        }
+    }
+}
+
+/// The row of circles above the chats list, under the search bar: the bot chats and the chats
+/// you pinned there (Pin to Top Row on a chat's half sheet). Swipe sideways for all of them.
+/// Pinned ones come first, in pin order, then the other bots by latest activity. A red count
+/// shows unread messages. Tap opens; hold opens the half sheet (a bot's: read state, pin,
+/// notifications, delete; a pinned chat's: its chat row's, with Unpin). Group chats have their
+/// own tab (`GroupChatListView`).
 private struct ChatCirclesStrip: View {
     @Environment(\.editMode) private var editMode
+    @ObservedObject private var knsService = KNSService.shared
     let searchText: String
     let pins: [String]
     /// Every bot, with its chat when there is one (`ChatListView.botCircles`).
     let bots: [BotCircle]
+    /// The chats pinned into the row, by pin id ("c:<address>"). Empty while searching: the
+    /// search results list them instead.
+    let pinnedChats: [String: Conversation]
+    let chatName: (Conversation) -> String
     let onOpenBot: (KaChatBot) -> Void
-    /// Hold a circle: its half sheet (read state, pin, notifications, delete), like a chat row's.
+    let onOpenChat: (Conversation) -> Void
+    /// Hold a bot: its half sheet (read state, pin, notifications, delete), like a chat row's.
     let onLongPress: (String) -> Void
+    /// Hold a pinned chat: its chat row's half sheet.
+    let onLongPressChat: (Conversation) -> Void
 
     private var isSelecting: Bool { editMode?.wrappedValue == .active }
 
-    private var items: [BotCircle] {
-        var dated = bots.map { (item: $0, at: $0.conversation?.lastMessage?.timestamp ?? Date.distantPast) }
+    private var items: [ChatCircleItem] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !query.isEmpty {
-            dated = dated.filter { $0.item.bot.name.range(of: query, options: .caseInsensitive) != nil }
+        func matches(_ bot: BotCircle) -> Bool {
+            query.isEmpty || bot.bot.name.range(of: query, options: .caseInsensitive) != nil
         }
-        let byId = Dictionary(dated.map { ($0.item.id, $0.item) }, uniquingKeysWith: { a, _ in a })
-        let pinned = pins.compactMap { byId[$0] }
-        let pinnedIds = Set(pinned.map(\.id))
-        let rest = dated.filter { !pinnedIds.contains($0.item.id) }.sorted { $0.at > $1.at }.map(\.item)
+        let botsById = Dictionary(bots.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        var pinned: [ChatCircleItem] = []
+        for id in pins {
+            if let bot = botsById[id] {
+                if matches(bot) { pinned.append(.bot(bot)) }
+            } else if let conversation = pinnedChats[id] {
+                pinned.append(.chat(id: id, conversation: conversation))
+            }
+        }
+        let pinnedIds = Set(pins)
+        let rest = bots
+            .filter { !pinnedIds.contains($0.id) && matches($0) }
+            .map { (item: $0, at: $0.conversation?.lastMessage?.timestamp ?? Date.distantPast) }
+            .sorted { $0.at > $1.at }
+            .map { ChatCircleItem.bot($0.item) }
         return pinned + rest
     }
 
@@ -1663,23 +1725,69 @@ private struct ChatCirclesStrip: View {
         }
     }
 
-    private func circle(_ item: BotCircle) -> some View {
-        let pinned = pins.contains(item.id)
-        let unreadCount = item.conversation?.unreadCount ?? 0
-        return Button {
-            // A bot chat is deleted from its own half sheet, not in Select mode.
-            guard !isSelecting else { return }
-            onOpenBot(item.bot)
-        } label: {
-            VStack(spacing: 6) {
+    @ViewBuilder
+    private func circle(_ item: ChatCircleItem) -> some View {
+        switch item {
+        case .bot(let bot):
+            PinnedCircleButton(
+                name: bot.bot.name,
+                unreadCount: bot.conversation?.unreadCount ?? 0,
+                showsPin: pins.contains(bot.id),
+                isSelecting: isSelecting,
+                // A bot chat is deleted from its own half sheet, not in Select mode.
+                onTap: { onOpenBot(bot.bot) },
+                onLongPress: { onLongPress(bot.id) }
+            ) {
                 Circle()
                     .fill(Color.accentColor.opacity(0.2))
                     .overlay(
-                        Image(systemName: item.bot.systemImage)
+                        Image(systemName: bot.bot.systemImage)
                             .font(.scaled(size: 22, weight: .semibold))
                             .foregroundColor(.accentColor)
                     )
+            }
+        case .chat(_, let conversation):
+            let name = chatName(conversation)
+            PinnedCircleButton(
+                name: name,
+                unreadCount: conversation.unreadCount,
+                showsPin: true,
+                isSelecting: isSelecting,
+                onTap: { onOpenChat(conversation) },
+                onLongPress: { onLongPressChat(conversation) }
+            ) {
+                KNSAvatarView(
+                    avatarURLString: knsService.profileCache[conversation.contact.address]?.avatarURL,
+                    fallbackText: name,
+                    size: 60,
+                    contactAddress: conversation.contact.address
+                )
+            }
+        }
+    }
+}
+
+/// One circle in a row above a list (the Chats row, the Groups row): the avatar, the whole name
+/// under it, a red unread count and, when pinned, a pin. Tap opens; hold opens its half sheet.
+/// Dimmed and inert while the list is in Select mode.
+struct PinnedCircleButton<Avatar: View>: View {
+    let name: String
+    let unreadCount: Int
+    let showsPin: Bool
+    let isSelecting: Bool
+    let onTap: () -> Void
+    let onLongPress: () -> Void
+    @ViewBuilder let avatar: () -> Avatar
+
+    var body: some View {
+        Button {
+            guard !isSelecting else { return }
+            onTap()
+        } label: {
+            VStack(spacing: 6) {
+                avatar()
                     .frame(width: 60, height: 60)
+                    .clipShape(Circle())
                     .opacity(isSelecting ? 0.55 : 1)
                     .overlay(alignment: .topTrailing) {
                         if !isSelecting && unreadCount > 0 {
@@ -1688,7 +1796,7 @@ private struct ChatCirclesStrip: View {
                         }
                     }
                     .overlay(alignment: .bottomLeading) {
-                        if pinned && !isSelecting {
+                        if showsPin && !isSelecting {
                             Image(systemName: "pin.fill")
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundColor(.white)
@@ -1701,7 +1809,7 @@ private struct ChatCirclesStrip: View {
                 // being cut off. Every name reserves the three lines, so the row has one known
                 // height: sized from the names, the lazy row inside the list measured too short
                 // and the chat list cut the second and third lines off.
-                Text(verbatim: item.bot.name)
+                Text(verbatim: name)
                     .font(.caption2)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
@@ -1715,10 +1823,10 @@ private struct ChatCirclesStrip: View {
             LongPressGesture(minimumDuration: 0.4).onEnded { _ in
                 guard !isSelecting else { return }
                 Haptics.impact(.medium)
-                onLongPress(item.id)
+                onLongPress()
             }
         )
-        .accessibilityLabel(Text(verbatim: item.bot.name))
+        .accessibilityLabel(Text(verbatim: name))
         .accessibilityHint(Text("Hold for options"))
     }
 }
@@ -1811,8 +1919,9 @@ struct MessageRequestsView: View {
     }
 }
 
-/// One square option in the Chats New sheet: an icon over a two-line title, on glass.
-private struct CreateTile: View {
+/// One square option in the Chats New sheet and Profile's Send and Receive sheet: an icon over a
+/// two-line title, on glass.
+struct CreateTile: View {
     let title: LocalizedStringKey
     let hint: LocalizedStringKey
     let systemImage: String

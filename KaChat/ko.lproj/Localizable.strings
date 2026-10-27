@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Kaspa 주소(kaspa:...) 또는 도메인(예: alice.kachat)을 입력하세요. .kachat 이름을 먼저 찾습니다.";
 "Finds addresses holding a balance or a domain." = "잔액이나 도메인이 있는 주소를 찾습니다.";
 "Their profile, .kachat name and address." = "프로필, .kachat 이름, 주소.";
-"Resolved first, everywhere you can type an address." = "주소를 입력할 수 있는 모든 곳에서 가장 먼저 확인됩니다.";
+"KaChat Names Indexer URL" = "KaChat 이름 인덱서 URL";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat 이름과 프로필을 여기서 읽습니다. 직접 인덱서를 운영한다면 여기에 지정하세요. 이름을 제공하지 못하면 체인에서 직접 읽습니다. 주소를 입력할 수 있는 모든 곳에서 가장 먼저 확인됩니다.";
 "Other Domains" = "다른 도메인";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = ".kachat 다음에 찾으며, 입력한 이름이 그곳에도 있으면 다른 도메인 아래에 표시됩니다.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "이 시드가 이미 다른 주소에 신원을 갖고 있다면(.kachat, .kas, .k, .kaspa 도메인 또는 입금된 채팅 잔액) 여기에서 선택하세요. 잔액이나 도메인이 있는 주소만 표시됩니다.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "이 네트워크에서는 아직 .kachat 이름을 사용할 수 없습니다";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "주소록과 포트폴리오도 같은 백업에 포함되며 같은 방식으로 기기 간에 동기화됩니다.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "유예 기간 종료 %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "왼쪽에서 그룹을 선택하세요";
 "Keeps it first in your group chats." = "그룹 채팅의 맨 앞에 유지됩니다.";
 "Pinned" = "고정됨";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Nextcloud에 업로드 중…";
+"Upload failed. Sends on chain." = "업로드 실패. 체인으로 보냅니다.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Nextcloud 업로드에 실패했습니다. 보내면 사진은 체인으로 전송됩니다.";
+"Video" = "동영상";
+"Sending video…" = "동영상 보내는 중…";
+"Video ready to send" = "동영상을 보낼 준비가 됨";
+"Photo ready to send" = "사진을 보낼 준비가 됨";
+"Sending photo…" = "사진 보내는 중…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "위로 밀어서 보내기";
+"Swipe up to Consolidate" = "위로 밀어서 통합";
+"Release to Send" = "손을 떼면 보내기";
+"Keep Swiping" = "계속 밀기";
+"Sending" = "보내는 중";
+"Failed" = "실패";
+"Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG에 전파하는 중...";
+"Let go past halfway to send." = "절반을 넘긴 뒤 손을 떼면 보냅니다.";
+"The send didn't go out." = "전송되지 않았습니다.";
+"Compound UTXOs" = "UTXO 통합";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "위쪽 줄에 고정";
+"Moves it into the row above your chats." = "채팅 위의 줄로 옮깁니다.";
+"Moves it back into your chats list." = "채팅 목록으로 되돌립니다.";
+"Moves it into the row above your group chats." = "그룹 채팅 위의 줄로 옮깁니다.";
+"Moves it back into your group chats list." = "그룹 채팅 목록으로 되돌립니다.";
+"Pinned to the top row" = "위쪽 줄에 고정됨";
+"Send and Receive" = "보내기 및 받기";

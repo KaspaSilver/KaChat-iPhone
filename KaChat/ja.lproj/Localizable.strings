@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Kaspaアドレス(kaspa:...)またはドメイン(例: alice.kachat)を入力してください。.kachatの名前が最初に検索されます。";
 "Finds addresses holding a balance or a domain." = "残高またはドメインを持つアドレスを探します。";
 "Their profile, .kachat name and address." = "プロフィール、.kachatの名前、アドレス。";
-"Resolved first, everywhere you can type an address." = "アドレスを入力できるすべての場所で最初に解決されます。";
+"KaChat Names Indexer URL" = "KaChat 名前インデクサーの URL";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat の名前とプロフィールはここから読み込まれます。自分でインデクサーを運用している場合はここに指定してください。名前を提供できない場合は、チェーンから直接読み込まれます。アドレスを入力できるすべての場所で最初に解決されます。";
 "Other Domains" = "その他のドメイン";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = ".kachatの次に検索され、入力した名前がそこにもある場合は「その他のドメイン」に表示されます。";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "このシードがすでに別のアドレスであなたのIDを持っている場合(.kachat、.kas、.k、.kaspaのドメイン、または入金済みのチャット残高)、ここで選択してください。残高かドメインがあるアドレスのみ表示されます。";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "このネットワークでは.kachatの名前はまだ利用できません";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "アドレス帳とポートフォリオも同じバックアップに含まれ、同じようにデバイス間で同期されます。";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "猶予期間の終了 %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "左側でグループを選択してください";
 "Keeps it first in your group chats." = "グループチャットの先頭に表示されます。";
 "Pinned" = "ピン留め";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Nextcloud にアップロード中…";
+"Upload failed. Sends on chain." = "アップロードに失敗しました。チェーンで送信します。";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Nextcloud へのアップロードに失敗しました。送信すると写真はチェーンで送られます。";
+"Video" = "動画";
+"Sending video…" = "動画を送信中…";
+"Video ready to send" = "動画を送信できます";
+"Photo ready to send" = "写真を送信できます";
+"Sending photo…" = "写真を送信中…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "上にスワイプして送信";
+"Swipe up to Consolidate" = "上にスワイプして統合";
+"Release to Send" = "指を離して送信";
+"Keep Swiping" = "そのままスワイプ";
+"Sending" = "送信中";
+"Failed" = "失敗";
+"Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG にブロードキャスト中...";
+"Let go past halfway to send." = "半分を超えてから指を離すと送信します。";
+"The send didn't go out." = "送信できませんでした。";
+"Compound UTXOs" = "UTXO を統合";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "上の列に固定";
+"Moves it into the row above your chats." = "チャットの上の列に移動します。";
+"Moves it back into your chats list." = "チャット一覧に戻します。";
+"Moves it into the row above your group chats." = "グループチャットの上の列に移動します。";
+"Moves it back into your group chats list." = "グループチャット一覧に戻します。";
+"Pinned to the top row" = "上の列に固定しました";
+"Send and Receive" = "送金と受け取り";

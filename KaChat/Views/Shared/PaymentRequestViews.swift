@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-// MARK: - Request Payment (Chats > + > Request Payment)
+// MARK: - Request Payment (Profile > the send / receive button > Request Payment)
 
 /// Makes a payment request link: to your chatting or spending address, an exact amount and what
 /// it's for. Copy (or share) the link and send it anywhere; in KaChat it opens Send Kaspa filled

@@ -37,7 +37,6 @@ from sync:
 | What | Where | Why it's a new file |
 |---|---|---|
 | Media sent "via Nextcloud" | `KaChat/Media/<name>` | one per photo, video or voice note; the chat carries its share link |
-| Manual exports: Portfolio CSV | `<backup folder>/<portfolio name> <timestamp>.csv` (the name the user gave the portfolio; "KaChat Portfolio" if none) | one per tap on Export |
 | Manual exports: Address Book | `<backup folder>/KaChat Address Book <timestamp>.json` | one per tap on Export to Nextcloud. Plain JSON `{type: "kachat-address-book", version: 1, exportedAt, walletAddress, entries: [<addressBook entry, with photo>]}` (entry shape in §5). Importing adds every address not saved (even one deleted since) and updates one already saved only from a newer `updatedAt`. Any wallet may import it |
 
 ## 2. Which folder
@@ -121,7 +120,12 @@ history, except by an explicit chat deletion (tombstones, §5).
   - A restore applies only to the archive's own wallet (or an unstamped archive).
   - In the app, a saved name is how that address is shown when the chat contact has no name of
     its own. The contact's `contactAlias` is unchanged.
-- **Portfolios** (iOS since 2026-10-09; optional top-level keys, older archives omit them). Per
+- **Portfolios** (legacy; optional top-level keys). KaChat iOS wrote these from 2026-10-09 until
+  Portfolio left the app on 2026-10-24. It now syncs only chats, groups and the Address Book
+  here. Portfolios live in KaChat Wallet, which backs them up to its own
+  `KaChat Wallet Portfolio.json`, not to this file. An archive that still carries these keys keeps
+  them untouched on every merge-upload (see "Keys this client doesn't model"). The rules below
+  describe what those older writes did. Per
   wallet like the rest of the file; a restore applies only to the archive's own wallet (or an
   unstamped archive).
   - `portfolios`: an array of `{id, name, sortOrder, createdAt, updatedAt?}` (`id` a UUID, dates

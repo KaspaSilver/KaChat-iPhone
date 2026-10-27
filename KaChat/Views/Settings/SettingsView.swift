@@ -1830,6 +1830,7 @@ struct ConnectionSettingsView: View {
 
     @State private var indexerURL: String = ""
     @State private var pushIndexerURL: String = ""
+    @State private var kachatNamesIndexerURL: String = ""
     @State private var kaspaRestAPIURL: String = ""
     @State private var trustedNodeValidationError: String?
 
@@ -2027,34 +2028,28 @@ struct ConnectionSettingsView: View {
         }
     }
 
-    /// Where .kachat names are read: the message indexer's address, as `KachatNamesRegistry`
-    /// uses it (no trailing slash).
-    private var kachatNamesURL: String {
-        let typed = normalizedHTTPSURL(indexerURL)
-        let base = typed.isEmpty ? ConnectionProfile.defaults(for: settingsViewModel.settings.networkType).indexerURL : typed
-        return base.hasSuffix("/") ? String(base.dropLast()) : base
-    }
-
     @ViewBuilder
     private var domainsSections: some View {
         // .kachat first: it is what every address field resolves before anything else.
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                Text("KaChat Names (.kachat)")
+                Text("KaChat Names Indexer URL")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                // Read through the message indexer (the Indexer tab) when it serves this network's
-                // names, else straight from the chain (KachatNamesRegistry.indexerBase). Shows what
-                // is typed on the Indexer tab, or its default when that is blank.
-                Text(kachatNamesURL)
+                // Its own field, apart from the message indexer, so anyone can run the names
+                // indexer themselves. Names come from here when it serves this network's registry
+                // and is caught up, else straight from the chain (KachatNamesRegistry.indexerBase).
+                TextField(indexerPlaceholder(AppSettings.defaultIndexerURL), text: $kachatNamesIndexerURL)
                     .font(.system(.body, design: .monospaced))
-                    .foregroundColor(.secondary)
-                    .textSelection(.enabled)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+                httpsInlineError(for: kachatNamesIndexerURL)
             }
         } header: {
             Text(".kachat Names")
         } footer: {
-            Text("Resolved first, everywhere you can type an address.")
+            Text("Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address.")
         }
         // The other name services this app reads (see `NameServicesClient`). Shown, not
         // editable. The .kas URL had no empty-string fallback, so saving it blank wrote "" and
@@ -2220,6 +2215,7 @@ struct ConnectionSettingsView: View {
     private func loadCurrentSettings() {
         indexerURL = settingsViewModel.settings.indexerURL
         pushIndexerURL = settingsViewModel.settings.pushIndexerURL
+        kachatNamesIndexerURL = settingsViewModel.settings.kachatNamesIndexerURL
         kaspaRestAPIURL = settingsViewModel.settings.kaspaRestAPIURL
     }
 
@@ -2235,7 +2231,7 @@ struct ConnectionSettingsView: View {
     /// https:// (Decision 3A).
     @discardableResult
     private func saveSettings() -> Bool {
-        let allFields = [indexerURL, pushIndexerURL, kaspaRestAPIURL]
+        let allFields = [indexerURL, pushIndexerURL, kachatNamesIndexerURL, kaspaRestAPIURL]
         guard !allFields.contains(where: isCleartextHTTP) else {
             showToast(Self.httpsRequiredError, style: .error)
             return false
@@ -2250,8 +2246,15 @@ struct ConnectionSettingsView: View {
         let defaults = ConnectionProfile.defaults(for: settingsViewModel.settings.networkType)
         settingsViewModel.settings.indexerURL = normalizedOrDefault(indexerURL, defaults.indexerURL)
         settingsViewModel.settings.pushIndexerURL = normalizedOrDefault(pushIndexerURL, defaults.pushIndexerURL)
+        let previousNamesIndexer = settingsViewModel.settings.kachatNamesIndexerURL
+        settingsViewModel.settings.kachatNamesIndexerURL = normalizedOrDefault(kachatNamesIndexerURL, defaults.kachatNamesIndexerURL)
         settingsViewModel.settings.kaspaRestAPIURL = normalizedOrDefault(kaspaRestAPIURL, defaults.kaspaRestAPIURL)
         settingsViewModel.saveSettings()
+        // A new names indexer is checked right away (the refresh re-picks indexer or chain)
+        // instead of at the next stale refresh, so names show from it as soon as Save is tapped.
+        if settingsViewModel.settings.kachatNamesIndexerURL != previousNamesIndexer {
+            Task { @MainActor in await KachatNamesRegistry.shared.refresh() }
+        }
         return true
     }
 

@@ -9,9 +9,13 @@ KaChat is a native iOS messaging and payment application built on the Kaspa bloc
 **Scope (since 2026-10-24):** KaChat is 1:1 chats and group chats, kept small enough for an App
 Store 4+ rating. The dock is a fixed five: Addresses, Groups, Chats, Profile, Settings (Chats
 in the center; no Kaspa Hub, no Customize Dock). Group Chats is its own screen again since 2026-10-26
-(`GroupChatListView`: pins, Select, its + opens New Group Chat, and group notification taps land
-there); Chats' + no longer offers New Group Chat. The KaChat bots are always circles in the row
-above the chats.
+(`GroupChatListView`: Select, its + opens New Group Chat, and group notification taps land
+there). The KaChat bots are always circles in the row above the chats. **Pin to Top Row** (a
+chat's or group's half sheet) moves it out of its list into the circle row above it (Chats: pins
+"c:<address>" beside the bots' "b:" in `kachat_chat_circle_pins_<wallet>`; Groups: their own row,
+`kachat_group_pins_<wallet>`); while searching, pinned ones show in the results instead. Chats' +
+offers only New Chat and Fund Chatting Address; Send Kaspa, Receive Kaspa and Request Payment
+are on Profile's floating up/down-arrow button (a half sheet of tiles).
 Removed from the app: KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments), KaChat
 Stats, Portfolio, Cold Storage (KasSigner), Kaspa Websites, Swap, the `.kachat` market (claim, buy,
 sell, offers, name notifications), the home-screen widget and Simple Mode (with the onboarding's
@@ -93,6 +97,7 @@ The app uses MVVM architecture with global singleton services injected via Swift
 All network endpoints are configurable in Settings > Connection Settings:
 - **Network**: mainnet / testnet toggle
 - **Indexer URL**: Kasia message indexer endpoint
+- **KaChat Names Indexer URL** (Domains tab, `AppSettings.kachatNamesIndexerURL`): where `.kachat` names, profiles and the market are read. Separate from the message indexer so a user can run their own names indexer; same KaChat indexer by default, and settings saved before it existed copy the message indexer. Falls back to the chain walker when it can't serve the registry.
 - **KNS URL**: Kaspa Name Service API endpoint
 - **Kaspa REST API URL**: Block explorer API for transaction lookups
 
@@ -318,10 +323,12 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
   - Paste, drop and share-extension photos go on chain.
 - **Paying:** Send Kaspa (and `startInPaymentMode`) opens the Send KAS sheet, not a composer
   mode. It has an exact amount (KAS or fiat, Max), an encrypted memo (the payment payload's
-  note, ≤140 chars, shown in the bubble) and `SendActionButton` (slide to send). The sender's
+  note, ≤140 chars, shown in the bubble) and `SwipeUpToSendScrollView` (swipe up to send; an
+  amount under the dust limit is warned about on the form, not asked again). The sender's
   bubble keeps the memo from send time, because the memo is encrypted to the recipient and can't
   be read back from the chain.
-- **After paying:** no confirmation sheet. Tapping a payment bubble (sent or received) opens its
+- **After paying:** the swipe-up screen shows Sent with the transaction until Done (a deferred
+  payment just closes the sheet). Tapping a payment bubble (sent or received) opens its
   details half sheet: amount, memo, time, View in Explorer (the Settings explorer) and Copy
   Transaction ID. A payment that isn't on chain yet says so instead.
 
@@ -338,8 +345,8 @@ and room rows. The chat composers' **+** sheets (1:1 and group) use the same til
 ### Send Kaspa screens
 
 Every Send Kaspa screen is built from the shared pieces in `Views/Shared/SendKaspaComponents.swift`,
-so they match: the 1:1 chat's Send KAS sheet, Send Kaspa (`WithdrawKaspaView`: Chats > + > Send
-Kaspa, Donate, the Address Book, an address's Send, paying a payment request). Coin Control
+so they match: the 1:1 chat's Send KAS sheet, Send Kaspa (`WithdrawKaspaView`: Profile's up/down
+button > Send Kaspa, Donate, the Address Book, an address's Send, paying a payment request). Coin Control
 (`CoinControlView`) lives there too. `SpendingAddressWithdrawView` is left for compounding one
 spending address's coins.
 
@@ -363,6 +370,7 @@ first, then the spending addresses.
 | `SendFeeControls` | Network fee (tap for a custom one), the speed, and Coin Control |
 | `SendInfoPill` | A small one-line pill (available balance, fee) |
 | `SendActionButton` | Slide the knob to the right end to send. `requiresSlide: false` makes it a tap, for KasSigner's Build step |
+| `SwipeUpToSendScrollView` | Profile's Send Kaspa and a spending address's Send (as in KaChat Wallet): swipe the bottom bar up past halfway and the whole screen rises into a full-screen BlockDAG (`BlockDAGAnimationView`) while sending, then Sent with the transaction, or Failed with the error and Try Again. Draws its own Cancel/title header. Debug builds launched with `KACHAT_FAIL_SEND=1` fail every send (`SendFailureSimulation`). Also the chat's Send KAS sheet. Payment requests and domain sends still slide, as in the wallet |
 
 Change these pieces rather than one screen, so the screens stay matched.
 

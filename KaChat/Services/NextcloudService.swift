@@ -1597,13 +1597,13 @@ final class NextcloudService: ObservableObject {
         return try await createPublicShareLink(for: "\(Self.mediaFolderPath)/\(storedName)")
     }
 
-    // MARK: - Plain files in the KaChat folder (Portfolio CSV export / import)
+    // MARK: - Plain files in the KaChat folder (Address Book export / import)
 
     /// Uploads `data` as `filename` into the KaChat folder (`backupFolderPath` - the same folder
     /// the chat backup lives in), creating the folder chain if it isn't there yet, and returns
     /// the stored path. A file of the same name is replaced - exports carry a timestamp in their
     /// name, so in practice each one is a new file.
-    /// `keepSpaces` keeps a name the user gave (a portfolio's, "KaChat Address Book") readable in
+    /// `keepSpaces` keeps a name like "KaChat Address Book" readable in
     /// Nextcloud instead of turning its spaces into underscores.
     func uploadToKaChatFolder(data: Data, filename: String, contentType: String, keepSpaces: Bool = false) async throws -> String {
         guard let account, let server = account.serverURL else { throw NextcloudError.badCredentials }

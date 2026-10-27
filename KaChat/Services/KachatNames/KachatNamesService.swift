@@ -159,7 +159,7 @@ final class KachatNamesService: ObservableObject {
            let data = try? Data(contentsOf: url) {
             return (data, "bundle")
         }
-        let base = AppSettings.load().indexerURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let base = AppSettings.load().kachatNamesIndexerURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !base.isEmpty else {
             throw ServiceError.noManifest("none in the app and no indexer is configured")
         }

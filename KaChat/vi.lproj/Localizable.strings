@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Nhập địa chỉ Kaspa (kaspa:...) hoặc tên miền (vd. alice.kachat). Tên .kachat được tra trước.";
 "Finds addresses holding a balance or a domain." = "Tìm các địa chỉ có số dư hoặc tên miền.";
 "Their profile, .kachat name and address." = "Hồ sơ, tên .kachat và địa chỉ của họ.";
-"Resolved first, everywhere you can type an address." = "Được phân giải trước, ở mọi nơi bạn có thể nhập địa chỉ.";
+"KaChat Names Indexer URL" = "URL trình lập chỉ mục tên KaChat";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Tên và hồ sơ .kachat được đọc từ đây. Hãy trỏ đến trình lập chỉ mục của riêng bạn nếu bạn tự chạy. Nếu nó không cung cấp được tên, tên sẽ được đọc trực tiếp từ chuỗi. Được phân giải trước tiên, ở mọi nơi bạn có thể nhập địa chỉ.";
 "Other Domains" = "Tên miền khác";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Được tra sau .kachat, và hiển thị trong Tên miền khác khi tên đã nhập cũng có ở đó.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Nếu cụm seed này đã giữ danh tính của bạn ở một địa chỉ khác - một tên miền (.kachat, .kas, .k hoặc .kaspa) hoặc số dư chat đã nạp - hãy chọn ở đây. Chỉ hiển thị địa chỉ có số dư hoặc tên miền.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Tên .kachat chưa hoạt động trên mạng này";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Sổ địa chỉ và danh mục đầu tư của bạn nằm trong cùng bản sao lưu và được đồng bộ giữa các thiết bị theo cùng cách.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Hết ân hạn %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "Chọn một nhóm ở bên trái";
 "Keeps it first in your group chats." = "Luôn đứng đầu trong các cuộc trò chuyện nhóm.";
 "Pinned" = "Đã ghim";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Đang tải lên Nextcloud…";
+"Upload failed. Sends on chain." = "Tải lên thất bại. Sẽ gửi qua chuỗi.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Tải lên Nextcloud thất bại. Khi gửi, ảnh sẽ đi qua chuỗi.";
+"Video" = "Video";
+"Sending video…" = "Đang gửi video…";
+"Video ready to send" = "Video sẵn sàng để gửi";
+"Photo ready to send" = "Ảnh sẵn sàng để gửi";
+"Sending photo…" = "Đang gửi ảnh…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Vuốt lên để gửi";
+"Swipe up to Consolidate" = "Vuốt lên để hợp nhất";
+"Release to Send" = "Thả để gửi";
+"Keep Swiping" = "Tiếp tục vuốt";
+"Sending" = "Đang gửi";
+"Failed" = "Thất bại";
+"Broadcasting to the Kaspa BlockDAG..." = "Đang phát lên BlockDAG của Kaspa...";
+"Let go past halfway to send." = "Thả sau nửa đường để gửi.";
+"The send didn't go out." = "Giao dịch chưa được gửi đi.";
+"Compound UTXOs" = "Hợp nhất UTXO";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Ghim lên hàng trên cùng";
+"Moves it into the row above your chats." = "Chuyển nó lên hàng phía trên các cuộc trò chuyện.";
+"Moves it back into your chats list." = "Đưa nó trở lại danh sách trò chuyện.";
+"Moves it into the row above your group chats." = "Chuyển nó lên hàng phía trên các nhóm chat.";
+"Moves it back into your group chats list." = "Đưa nó trở lại danh sách nhóm chat.";
+"Pinned to the top row" = "Đã ghim lên hàng trên cùng";
+"Send and Receive" = "Gửi và nhận";

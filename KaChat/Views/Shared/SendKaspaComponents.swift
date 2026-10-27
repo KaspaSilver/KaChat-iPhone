@@ -642,6 +642,576 @@ struct SendActionButton: View {
     }
 }
 
+// MARK: - Testing a failed send
+
+/// Debug builds only: launched with `KACHAT_FAIL_SEND=1` in the environment (in the Simulator:
+/// `SIMCTL_CHILD_KACHAT_FAIL_SEND=1 xcrun simctl launch ...`), every Send Kaspa send fails after a
+/// moment as if the phone were offline - so the failure path can be seen without cutting the
+/// Mac's network. Nothing is built or broadcast. Does nothing in release builds.
+enum SendFailureSimulation {
+    static func failIfEnabled() async throws {
+        #if DEBUG
+        guard ProcessInfo.processInfo.environment["KACHAT_FAIL_SEND"] == "1" else { return }
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        throw URLError(.notConnectedToInternet)
+        #endif
+    }
+}
+
+// MARK: - Swipe up to send
+
+/// The words a swipe-up screen uses: a Kaspa send by default, a .kachat claim with `.claim`.
+struct SwipeUpLabels {
+    var release: LocalizedStringKey = "Release to Send"
+    var working: LocalizedStringKey = "Sending"
+    var workingDetail: LocalizedStringKey = "Broadcasting to the Kaspa BlockDAG..."
+    var done: LocalizedStringKey = "Sent"
+    var hint: LocalizedStringKey = "Let go past halfway to send."
+    /// Before the recipient line: "to kaspa:..." or "for name.kachat".
+    var recipientWord = "to"
+    var failedFallback = "The send didn't go out."
+
+    static let send = SwipeUpLabels()
+    static let claim = SwipeUpLabels(
+        release: "Release to Claim",
+        working: "Claiming",
+        workingDetail: "Committing to the Kaspa BlockDAG...",
+        done: "Claim Started",
+        hint: "Let go past halfway to claim.",
+        recipientWord: "for",
+        failedFallback: "The claim didn't start."
+    )
+}
+
+/// A send screen's scroll view with "Swipe up to Send" pinned at the bottom. Press the bar and
+/// drag it up: the whole screen moves up with the finger, and the send screen rises from below
+/// in its place. Letting go past halfway up sends: the send screen takes over the full screen,
+/// a BlockDAG runs across it while the transaction goes out, and then it shows the
+/// confirmation (`sent`). Letting go sooner springs it back. A send that fails or never starts
+/// shows "Failed" there with the screen's error, and Try Again brings the form back as it was.
+/// Only the bar answers - scrolling the form never sends.
+/// VoiceOver gets a plain activate action on the bar.
+///
+/// It draws its own header (Cancel and the screen's title) in place of the navigation bar, so
+/// the header goes up with the rest of the screen.
+struct SwipeUpToSendScrollView<Content: View>: View {
+    /// The header's title, e.g. "Send Kaspa".
+    let screenTitle: String
+    let onCancel: () -> Void
+    let title: LocalizedStringKey
+    let isBusy: Bool
+    let isEnabled: Bool
+    /// What is being sent, for the sending screen; nil leaves the line out.
+    var amountSompi: UInt64?
+    var recipient: String?
+    /// Set by the screen once the send went out: the confirmation shows it.
+    let sent: SentTransaction?
+    /// The screen's error for a send that failed, shown under "Failed".
+    var failureMessage: String?
+    var labels: SwipeUpLabels = .send
+    /// For an action that ends without a `SentTransaction` (a .kachat claim): true once it
+    /// worked, and `outcome` shows under the title in place of the transaction.
+    var succeeded = false
+    var outcome: AnyView?
+    /// The confirmation's Done.
+    let onDone: () -> Void
+    let action: () -> Void
+    @ViewBuilder let content: Content
+
+    private enum Phase { case form, sending }
+
+    /// How far the screen has been pushed up.
+    @State private var lift: CGFloat = 0
+    /// Past halfway: letting go sends.
+    @State private var armed = false
+    @State private var phase: Phase = .form
+    /// The DAG gets a moment on screen before the confirmation, however fast the send was.
+    @State private var dagShown = false
+    /// The screen went busy after the swipe: the send really started. State, not `isBusy`
+    /// itself, so the delayed check in `startSending` reads today's value rather than the one
+    /// its closure captured.
+    @State private var sendStarted = false
+    /// `sent` arrived. Read through state for the same reason as `sendStarted`: an `onChange`
+    /// closure can still hold the view from before the change.
+    @State private var confirmed = false
+    /// The send ended without a transaction: the sending screen shows "Failed".
+    @State private var failed = false
+
+    private static var barHeight: CGFloat { 64 }
+    private static var settle: Animation { .spring(response: 0.45, dampingFraction: 0.86) }
+
+    private var active: Bool { isEnabled && !isBusy }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let height = geometry.size.height + geometry.safeAreaInsets.bottom
+            let threshold = max(160, height * 0.5)
+            ZStack(alignment: .top) {
+                form(threshold: threshold)
+                    .offset(y: -lift)
+                if lift > 0 || phase == .sending {
+                    SendProgressScreen(
+                        amountSompi: amountSompi,
+                        recipient: recipient,
+                        sent: dagShown ? sent : nil,
+                        done: dagShown && (sent != nil || succeeded),
+                        outcome: outcome,
+                        labels: labels,
+                        failure: failed && dagShown
+                            ? (failureMessage ?? AppLocalization.string(labels.failedFallback))
+                            : nil,
+                        isSending: phase == .sending,
+                        armed: armed,
+                        onDone: onDone,
+                        onTryAgain: returnToForm
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+                    .offset(y: max(0, height - lift))
+                }
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .interactiveDismissDisabled(phase == .sending)
+        .onChange(of: isBusy) { busy in
+            if busy {
+                sendStarted = true
+            } else {
+                // The screen sets `sent` as it stops being busy; give that a moment to land.
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    if !confirmed { showFailure() }
+                }
+            }
+        }
+        .onChange(of: sent) { sent in
+            if sent != nil {
+                confirmed = true
+                Haptics.success()
+            }
+        }
+        .onChange(of: succeeded) { ok in
+            if ok {
+                confirmed = true
+                Haptics.success()
+            }
+        }
+    }
+
+    private func form(threshold: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            header
+            ScrollView {
+                content
+            }
+        }
+        .background(Color(.systemBackground))
+        .safeAreaInset(edge: .bottom) { bar(threshold: threshold) }
+    }
+
+    /// Cancel and the title, where the navigation bar would be.
+    private var header: some View {
+        ZStack {
+            // A plain String would show untranslated, as the navigation title it replaced did not.
+            Text(verbatim: AppLocalization.string(screenTitle))
+                .font(.headline)
+                .lineLimit(1)
+                .padding(.horizontal, 110)
+            HStack {
+                Button(action: onCancel) {
+                    Text("Cancel")
+                        .font(.body)
+                        .foregroundColor(.accentColor)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 9)
+                        .background(Capsule().fill(.regularMaterial))
+                }
+                .buttonStyle(.plain)
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 6)
+    }
+
+    private func bar(threshold: CGFloat) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: armed ? "checkmark" : "chevron.up")
+                .font(.headline.weight(.bold))
+            Text(armed ? labels.release : title)
+                .font(.headline)
+        }
+        .foregroundColor(.black)
+        .frame(maxWidth: .infinity)
+        .frame(height: Self.barHeight)
+        .background(
+            Capsule()
+                .fill(Color.accentColor.opacity(isEnabled ? 1 : 0.4))
+        )
+        .contentShape(Capsule())
+        .gesture(
+            // Global coordinates: the bar moves with the screen, so its own space would chase
+            // the finger.
+            DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                .onChanged { value in
+                    guard active, phase == .form else { return }
+                    if lift == 0 && value.translation.height < 0 { Haptics.impact(.light) }
+                    lift = max(0, -value.translation.height)
+                    let pastThreshold = lift >= threshold
+                    if pastThreshold != armed {
+                        armed = pastThreshold
+                        Haptics.impact(pastThreshold ? .medium : .light)
+                    }
+                }
+                .onEnded { _ in
+                    guard phase == .form else { return }
+                    if armed && active {
+                        startSending()
+                    } else {
+                        armed = false
+                        withAnimation(Self.settle) { lift = 0 }
+                    }
+                }
+        )
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .background(.bar)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction {
+            guard active, phase == .form else { return }
+            startSending()
+        }
+    }
+
+    private func startSending() {
+        armed = false
+        dagShown = false
+        sendStarted = isBusy
+        confirmed = false
+        failed = false
+        // Only the movement animates: switching the screen's text and DAG to "sending" inside
+        // the animation cross-faded two copies of them.
+        phase = .sending
+        withAnimation(Self.settle) {
+            lift = UIScreen.main.bounds.height * 2
+        }
+        action()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            withAnimation(.easeInOut(duration: 0.35)) { dagShown = true }
+        }
+        // A send that never started (a check failed before it went busy) fails too.
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            if !sendStarted { showFailure() }
+        }
+    }
+
+    /// The send ended without a transaction: "Failed" with the error, once the DAG has had its
+    /// moment.
+    private func showFailure() {
+        guard phase == .sending, !confirmed, !failed else { return }
+        withAnimation(.easeInOut(duration: 0.35)) { failed = true }
+        Haptics.error()
+    }
+
+    /// Try Again: back down to the form, filled in as it was.
+    private func returnToForm() {
+        guard phase == .sending, !confirmed else { return }
+        withAnimation(Self.settle) {
+            lift = 0
+        }
+        // After the screen is back down, so the sending screen doesn't change on its way out.
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 450_000_000)
+            phase = .form
+            failed = false
+        }
+    }
+}
+
+/// The full screen a swipe-up send moves to: a BlockDAG running across while the transaction
+/// goes out, then the confirmation - what was sent, to whom, and the transaction id as a link to
+/// the block explorer Settings names - or "Failed" with the error and Try Again.
+private struct SendProgressScreen: View {
+    let amountSompi: UInt64?
+    let recipient: String?
+    /// Non-nil once confirmed.
+    let sent: SentTransaction?
+    /// It worked: `sent` (with its transaction) or a screen's own `outcome`.
+    let done: Bool
+    let outcome: AnyView?
+    let labels: SwipeUpLabels
+    /// Non-nil once the send failed: the error to show.
+    let failure: String?
+    /// False while the swipe is still being dragged (a preview of what's coming).
+    let isSending: Bool
+    let armed: Bool
+    let onDone: () -> Void
+    let onTryAgain: () -> Void
+
+    /// Sent or failed: the DAG steps back and the outcome takes over.
+    private var finished: Bool { done || failure != nil }
+
+    private var explorerURL: URL? {
+        sent.flatMap { AppSettings.load().kaspaExplorer.txURL(for: $0.txId) }
+    }
+
+    private func kasText(_ sompi: UInt64) -> String {
+        var text = String(format: "%.8f", Double(sompi) / 100_000_000.0)
+        while text.hasSuffix("0") { text.removeLast() }
+        if text.hasSuffix(".") { text.removeLast() }
+        return "\(text) \(KaspaUnit.symbol)"
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // From the top rather than centred: while the swipe is still rising, the DAG is the
+            // first thing that comes into view.
+            ZStack {
+                BlockDAGAnimationView(highlight: isSending && failure == nil)
+                    .frame(height: 200)
+                    .opacity(finished ? 0.35 : 1)
+                if done {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.scaled(size: 72, weight: .semibold))
+                        .foregroundStyle(.black, Color.accentColor)
+                        .transition(.scale(scale: 0.4).combined(with: .opacity))
+                } else if failure != nil {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.scaled(size: 72, weight: .semibold))
+                        .foregroundStyle(.white, Color.red)
+                        .transition(.scale(scale: 0.4).combined(with: .opacity))
+                }
+            }
+
+            VStack(spacing: 6) {
+                Text(done ? labels.done : failure != nil ? "Failed"
+                     : (isSending ? labels.working : (armed ? labels.release : "Keep Swiping")))
+                    .font(.largeTitle.weight(.bold))
+                if let amount = sent?.amountSompi ?? amountSompi {
+                    Text(verbatim: kasText(amount))
+                        .font(.title3.weight(.semibold))
+                        .foregroundColor(.accentColor)
+                }
+                if let to = sent?.recipient ?? recipient, !to.isEmpty {
+                    Text(verbatim: "\(AppLocalization.string(labels.recipientWord)) \(to)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .padding(.horizontal, 32)
+                }
+                if !finished {
+                    Text(isSending ? labels.workingDetail : labels.hint)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 8)
+                }
+            }
+            .padding(.top, 24)
+
+            if let failure {
+                Label {
+                    Text(verbatim: failure)
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                }
+                .font(.subheadline)
+                .foregroundColor(.red)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(sendKaspaGlass(cornerRadius: 14))
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .transition(.opacity)
+            }
+
+            if let sent {
+                VStack(spacing: 8) {
+                    if let explorerURL {
+                        Link(destination: explorerURL) {
+                            HStack(spacing: 6) {
+                                Text(sent.txId)
+                                    .font(.system(.footnote, design: .monospaced))
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Image(systemName: "arrow.up.right.square")
+                                    .font(.footnote)
+                            }
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .frame(maxWidth: .infinity)
+                            .background(sendKaspaGlass(cornerRadius: 14))
+                        }
+                        .buttonStyle(.plain)
+                        Text("Tap the transaction to open it in the explorer.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text(sent.txId)
+                            .font(.system(.footnote, design: .monospaced))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                .transition(.opacity)
+            }
+
+            if done, let outcome {
+                ScrollView {
+                    outcome
+                        .padding(.horizontal, 20)
+                }
+                .padding(.top, 20)
+                .transition(.opacity)
+            }
+
+            Spacer(minLength: 0)
+
+            if done {
+                Button(action: onDone) {
+                    Text("Done")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .foregroundColor(.black)
+                        .background(Capsule().fill(Color.accentColor))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            } else if failure != nil {
+                Button(action: onTryAgain) {
+                    Text("Try Again")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .foregroundColor(.black)
+                        .background(Capsule().fill(Color.accentColor))
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .padding(.top, 70)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(.systemBackground))
+    }
+}
+
+/// Kaspa's BlockDAG drifting right to left: columns of blocks, each pointing back at one to three
+/// blocks of the column before (several parents, not a chain). With `highlight`, one block -
+/// the transaction going out - lights up as it enters on the right, and the blocks after it
+/// point back at it in the same colour. Laid out from each
+/// column's index, so the picture is stable as it moves.
+struct BlockDAGAnimationView: View {
+    var highlight = true
+
+    @State private var start = Date()
+    /// When `highlight` turned on: the block entering on the right then is the transaction's.
+    @State private var highlightStart: Date?
+
+    private static let spacing: CGFloat = 54
+    /// Points per second.
+    private static let speed: CGFloat = 60
+    private static let block: CGFloat = 18
+
+    /// A stable pseudo-random number for (column, salt).
+    private static func hash(_ column: Int, _ salt: Int) -> Int {
+        var x = UInt64(bitPattern: Int64(column &* 73_856_093 ^ salt &* 19_349_663))
+        x ^= x >> 33; x &*= 0xff51afd7ed558ccd; x ^= x >> 33
+        return Int(x % 1_000_003)
+    }
+
+    private static func count(_ column: Int) -> Int { 1 + hash(column, 1) % 3 }
+
+    /// Block `row` of `column`'s centre height, as a fraction of the view.
+    private static func y(_ column: Int, _ row: Int) -> CGFloat {
+        let n = count(column)
+        let jitter = CGFloat(hash(column, 10 + row) % 100) / 100 * 0.12 - 0.06
+        return (CGFloat(row) + 1) / CGFloat(n + 1) + jitter
+    }
+
+    /// The parents of block `row` in `column`: rows of `column - 1`.
+    private static func parents(_ column: Int, _ row: Int) -> [Int] {
+        let previous = count(column - 1)
+        let first = hash(column, 20 + row) % previous
+        var result = [first]
+        if previous > 1, hash(column, 30 + row) % 2 == 0 { result.append((first + 1) % previous) }
+        return result
+    }
+
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            Canvas { context, size in
+                let elapsed = timeline.date.timeIntervalSince(start)
+                let scroll = CGFloat(elapsed) * Self.speed
+                let firstVisible = Int(floor(scroll / Self.spacing)) - 1
+                let visibleColumns = Int(size.width / Self.spacing) + 3
+                // The column just off the right edge when the send started is the transaction's.
+                let highlightScroll = CGFloat((highlightStart ?? start).timeIntervalSince(start)) * Self.speed
+                let txColumn = Int((highlightScroll + size.width) / Self.spacing) + 1
+                func x(_ column: Int) -> CGFloat { CGFloat(column) * Self.spacing - scroll }
+                func point(_ column: Int, _ row: Int) -> CGPoint {
+                    CGPoint(x: x(column), y: Self.y(column, row) * size.height)
+                }
+                let accent = Color.accentColor
+                let dim = Color.primary.opacity(0.28)
+
+                // Edges first, under the blocks.
+                for column in firstVisible...(firstVisible + visibleColumns) {
+                    for row in 0..<Self.count(column) {
+                        for parent in Self.parents(column, row) {
+                            var path = Path()
+                            path.move(to: point(column, row))
+                            path.addLine(to: point(column - 1, parent))
+                            let lit = highlight && column - 1 == txColumn && parent == 0
+                            context.stroke(path, with: .color(lit ? accent.opacity(0.8) : dim), lineWidth: lit ? 2 : 1)
+                        }
+                    }
+                }
+                for column in firstVisible...(firstVisible + visibleColumns) {
+                    for row in 0..<Self.count(column) {
+                        let center = point(column, row)
+                        let rect = CGRect(x: center.x - Self.block / 2, y: center.y - Self.block / 2,
+                                          width: Self.block, height: Self.block)
+                        let shape = Path(roundedRect: rect, cornerRadius: 5)
+                        if highlight && column == txColumn && row == 0 {
+                            let glow = Path(roundedRect: rect.insetBy(dx: -7, dy: -7), cornerRadius: 9)
+                            let pulse = 0.25 + 0.2 * sin(elapsed * 4)
+                            context.fill(glow, with: .color(accent.opacity(pulse)))
+                            context.fill(shape, with: .color(accent))
+                        } else {
+                            context.fill(shape, with: .color(Color.primary.opacity(0.16)))
+                            context.stroke(shape, with: .color(Color.primary.opacity(0.45)), lineWidth: 1)
+                        }
+                    }
+                }
+            }
+        }
+        .onAppear {
+            start = Date()
+            if highlight { highlightStart = start }
+        }
+        .onChange(of: highlight) { on in
+            highlightStart = on ? Date() : nil
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 // MARK: - From (which of your addresses a send comes out of)
 
 /// Where a send comes from: the chatting address (every send screen's default), or one of the

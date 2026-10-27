@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Digite um endereço Kaspa (kaspa:...) ou um domínio (ex.: alice.kachat). Nomes .kachat são procurados primeiro.";
 "Finds addresses holding a balance or a domain." = "Encontra endereços com saldo ou um domínio.";
 "Their profile, .kachat name and address." = "O perfil, o nome .kachat e o endereço.";
-"Resolved first, everywhere you can type an address." = "Resolvidos primeiro, em todo lugar onde você pode digitar um endereço.";
+"KaChat Names Indexer URL" = "URL do indexador de nomes KaChat";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "É daqui que os nomes e perfis .kachat são lidos. Aponte para o seu próprio indexador se tiver um. Se ele não puder fornecer nomes, eles são lidos diretamente da chain. Resolvido primeiro, em qualquer lugar onde você possa digitar um endereço.";
 "Other Domains" = "Outros domínios";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Procurados depois de .kachat e listados em Outros domínios quando um nome digitado também existe lá.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Se esta seed já guarda sua identidade em outro endereço (um domínio .kachat, .kas, .k ou .kaspa, ou um saldo de chat com fundos), escolha-o aqui. Só aparecem endereços com saldo ou domínios.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Os nomes .kachat ainda não estão ativos nesta rede";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Sua Agenda de Endereços e seus portfólios estão no mesmo backup e sincronizam entre seus dispositivos do mesmo jeito.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Carência termina %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "Escolha um grupo à esquerda";
 "Keeps it first in your group chats." = "Fica em primeiro nos seus chats em grupo.";
 "Pinned" = "Fixado";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Enviando para o Nextcloud…";
+"Upload failed. Sends on chain." = "Falha no envio. Vai pela chain.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Falha no envio para o Nextcloud. Ao enviar, a foto vai pela chain.";
+"Video" = "Vídeo";
+"Sending video…" = "Enviando vídeo…";
+"Video ready to send" = "Vídeo pronto para enviar";
+"Photo ready to send" = "Foto pronta para enviar";
+"Sending photo…" = "Enviando foto…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Deslize para cima para enviar";
+"Swipe up to Consolidate" = "Deslize para cima para consolidar";
+"Release to Send" = "Solte para enviar";
+"Keep Swiping" = "Continue deslizando";
+"Sending" = "Enviando";
+"Failed" = "Falhou";
+"Broadcasting to the Kaspa BlockDAG..." = "Transmitindo para o BlockDAG do Kaspa...";
+"Let go past halfway to send." = "Solte depois da metade para enviar.";
+"The send didn't go out." = "O envio não saiu.";
+"Compound UTXOs" = "Consolidar UTXOs";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Fixar na linha de cima";
+"Moves it into the row above your chats." = "Move para a linha acima das suas conversas.";
+"Moves it back into your chats list." = "Volta para a sua lista de conversas.";
+"Moves it into the row above your group chats." = "Move para a linha acima das suas conversas em grupo.";
+"Moves it back into your group chats list." = "Volta para a sua lista de conversas em grupo.";
+"Pinned to the top row" = "Fixado na linha de cima";
+"Send and Receive" = "Enviar e receber";

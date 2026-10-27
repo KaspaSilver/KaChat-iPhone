@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Bir Kaspa adresi (kaspa:...) veya alan adı girin (ör. alice.kachat). Önce .kachat adları aranır.";
 "Finds addresses holding a balance or a domain." = "Bakiyesi veya alan adı olan adresleri bulur.";
 "Their profile, .kachat name and address." = "Profili, .kachat adı ve adresi.";
-"Resolved first, everywhere you can type an address." = "Adres girebildiğiniz her yerde önce çözümlenir.";
+"KaChat Names Indexer URL" = "KaChat Ad Dizinleyici URL'si";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat adları ve profilleri buradan okunur. Kendi dizinleyicini çalıştırıyorsan buraya gir. Ad sunamazsa adlar doğrudan zincirden okunur. Adres yazabileceğin her yerde ilk olarak çözümlenir.";
 "Other Domains" = "Diğer Alan Adları";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = ".kachat'tan sonra aranır; yazılan ad orada da varsa Diğer alan adları altında listelenir.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Bu seed kimliğinizi zaten başka bir adreste tutuyorsa (bir alan adı .kachat, .kas, .k veya .kaspa ya da bakiyeli bir sohbet adresi), burada seçin. Yalnızca bakiyesi veya alan adı olan adresler gösterilir.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat adları bu ağda henüz etkin değil";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Adres Defteriniz ve portföyleriniz aynı yedektedir ve cihazlarınız arasında aynı şekilde eşitlenir.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Ek süre bitişi %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "Soldan bir grup seçin";
 "Keeps it first in your group chats." = "Grup sohbetlerinde ilk kalır.";
 "Pinned" = "Sabitlendi";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Nextcloud'a yükleniyor…";
+"Upload failed. Sends on chain." = "Yükleme başarısız. Zincir üzerinden gönderilecek.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Nextcloud'a yükleme başarısız. Gönderince fotoğraf zincir üzerinden gider.";
+"Video" = "Video";
+"Sending video…" = "Video gönderiliyor…";
+"Video ready to send" = "Video gönderilmeye hazır";
+"Photo ready to send" = "Fotoğraf gönderilmeye hazır";
+"Sending photo…" = "Fotoğraf gönderiliyor…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Göndermek için yukarı kaydır";
+"Swipe up to Consolidate" = "Birleştirmek için yukarı kaydır";
+"Release to Send" = "Göndermek için bırak";
+"Keep Swiping" = "Kaydırmaya devam et";
+"Sending" = "Gönderiliyor";
+"Failed" = "Başarısız";
+"Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG'e yayınlanıyor...";
+"Let go past halfway to send." = "Göndermek için yarıyı geçince bırak.";
+"The send didn't go out." = "Gönderim yapılamadı.";
+"Compound UTXOs" = "UTXO'ları Birleştir";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Üst Sıraya Sabitle";
+"Moves it into the row above your chats." = "Sohbetlerinin üstündeki sıraya taşır.";
+"Moves it back into your chats list." = "Sohbet listene geri taşır.";
+"Moves it into the row above your group chats." = "Grup sohbetlerinin üstündeki sıraya taşır.";
+"Moves it back into your group chats list." = "Grup sohbeti listene geri taşır.";
+"Pinned to the top row" = "Üst sıraya sabitlendi";
+"Send and Receive" = "Gönder ve Al";

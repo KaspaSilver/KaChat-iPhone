@@ -188,7 +188,7 @@ enum KaChatInternalLink: Equatable {
 }
 
 /// A request to be paid, carried in a link (`KaChatInternalLink.paymentRequest`): who to pay, the
-/// exact amount and what it's for. Made in Chats > + > Request Payment; pasting one anywhere in
+/// exact amount and what it's for. Made from Profile's send / receive button > Request Payment; pasting one anywhere in
 /// KaChat, or tapping one, opens Send Kaspa with it filled in.
 ///
 /// `https://kachat.app/pay/<address>?amount=<KAS>&memo=<text>&chat=1` (or `kachat://pay/...`):

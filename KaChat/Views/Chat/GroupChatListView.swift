@@ -2,8 +2,9 @@ import SwiftUI
 import UIKit
 
 /// Group Chats, a dock tab of its own (since 2026-10-26; from 2026-10-05 they were circles in the
-/// row above the chats). Every group, pinned ones first, then the rest by latest activity. Tap
-/// opens; hold opens the half sheet (read state, pin, notifications, delete); Select marks read,
+/// row above the chats). Pinned groups live in a row of circles above the list (Pin to Top Row);
+/// the list holds the rest by latest activity. Tap opens; hold opens the half sheet (read state,
+/// pin, notifications, delete); Select marks read,
 /// unread or deletes several at once. The + starts a new group. A tapped group notification lands
 /// here (`MainTabView` switches to this tab) and opens its group.
 struct GroupChatListView: View {
@@ -15,7 +16,7 @@ struct GroupChatListView: View {
     @State private var searchText = ""
     @State private var selectedGroup: GroupChat?
     @State private var showCreateGroup = false
-    /// Group ids pinned to the top of the list, newest pin first, saved per wallet.
+    /// Group ids pinned up into the row above the list, newest pin first, saved per wallet.
     @State private var pins: [String] = []
     /// The row whose long-press half sheet is up.
     @State private var actionTarget: GroupChat?
@@ -161,7 +162,15 @@ struct GroupChatListView: View {
 
     private var groupList: some View {
         let groups = displayedGroups
+        let pinned = pinnedGroups
         return List(selection: $selectedGroupIDs) {
+            // The pinned groups, as circles above the list - swipe sideways for all of them.
+            if !pinned.isEmpty {
+                pinnedRow(pinned)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
             ForEach(groups) { group in
                 Button {
                     // The hold that opened the half sheet ends in a touch-up that still fires
@@ -181,17 +190,6 @@ struct GroupChatListView: View {
                     }
                 } label: {
                     GroupChatRow(group: group)
-                        .overlay(alignment: .bottomLeading) {
-                            if pins.contains(group.id) && editMode != .active {
-                                Image(systemName: "pin.fill")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(4)
-                                    .background(Circle().fill(Color.accentColor))
-                                    .offset(x: -2, y: 0)
-                                    .accessibilityLabel("Pinned")
-                            }
-                        }
                 }
                 .buttonStyle(ChatRowPressStyle())
                 // A Button label needs simultaneousGesture (see the chat rows).
@@ -212,7 +210,7 @@ struct GroupChatListView: View {
         }
         .listStyle(.plain)
         .overlay(alignment: .center) {
-            if groups.isEmpty && searchText.isEmpty {
+            if groups.isEmpty && pinned.isEmpty && searchText.isEmpty {
                 emptyStateView
                     .allowsHitTesting(false)
             }
@@ -263,6 +261,31 @@ struct GroupChatListView: View {
         }
     }
 
+    /// The pinned groups as circles: tap opens, hold opens the group's half sheet (with Unpin).
+    private func pinnedRow(_ groups: [GroupChat]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            // A plain HStack: it measures every circle, so the row is as tall as its tallest.
+            HStack(alignment: .top, spacing: 14) {
+                ForEach(groups) { group in
+                    PinnedCircleButton(
+                        name: group.name,
+                        unreadCount: groupChatService.unreadCount(for: group),
+                        showsPin: false,
+                        isSelecting: editMode == .active,
+                        // The hold's touch-up still fires the circle's Button (simultaneousGesture).
+                        onTap: { guard actionTarget == nil else { return }; selectedGroup = group },
+                        onLongPress: { actionTarget = group }
+                    ) {
+                        GroupAvatar(group: group, size: 60)
+                    }
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+        }
+    }
+
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "person.3")
@@ -306,10 +329,19 @@ struct GroupChatListView: View {
 
     // MARK: - Groups shown
 
-    /// Pinned groups first (newest pin first), then the rest by latest activity - the last
+    /// The groups in the row above the list, in pin order (newest pin first). Empty while
+    /// searching: the results list them with the rest.
+    private var pinnedGroups: [GroupChat] {
+        guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
+        let byId = Dictionary(groupChatService.groups.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        return pins.compactMap { byId[$0] }
+    }
+
+    /// The list under the pinned row: the unpinned groups by latest activity - the last
     /// message, else when the group was created, so a brand-new empty group still sorts by when
-    /// it was added. Filtered by search on the group name, each member's alias or address, and
-    /// message content. Shared by Select All and the bulk actions so they agree on what's visible.
+    /// it was added. While searching, every group matching the group name, a member's alias or
+    /// address, or message content, pinned or not. Shared by Select All and the bulk actions so
+    /// they agree on what's visible.
     private var displayedGroups: [GroupChat] {
         // Decorate-sort-undecorate: the key is computed once per group. Group message arrays are
         // kept in chronological order, so the last message carries the newest timestamp.
@@ -318,14 +350,12 @@ struct GroupChatListView: View {
             .map { (key: groupMessages[$0.id]?.last?.timestamp ?? $0.createdAt, value: $0) }
             .sorted { $0.key > $1.key }
             .map(\.value)
-        let byId = Dictionary(sorted.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-        let pinned = pins.compactMap { byId[$0] }
-        let pinnedIds = Set(pinned.map(\.id))
-        let ordered = pinned + sorted.filter { !pinnedIds.contains($0.id) }
-
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return ordered }
-        return ordered.filter { group in
+        guard !query.isEmpty else {
+            let pinnedIds = Set(pins)
+            return sorted.filter { !pinnedIds.contains($0.id) }
+        }
+        return sorted.filter { group in
             if group.name.range(of: query, options: .caseInsensitive) != nil {
                 return true
             }
@@ -376,14 +406,14 @@ struct GroupChatListView: View {
         UserDefaults.standard.set(pins, forKey: key)
     }
 
-    /// Hold a group: pin it to the top (newest pin first), or unpin it.
+    /// Hold a group: pin it up into the row above the list (newest pin first), or unpin it.
     private func togglePin(_ groupId: String) {
         if let index = pins.firstIndex(of: groupId) {
             pins.remove(at: index)
             showToast(AppLocalization.string("Unpinned"))
         } else {
             pins.insert(groupId, at: 0)
-            showToast(AppLocalization.string("Pinned to the front"))
+            showToast(AppLocalization.string("Pinned to the top row"))
         }
         if let key = pinsKey { UserDefaults.standard.set(pins, forKey: key) }
     }
@@ -456,8 +486,8 @@ struct GroupChatListView: View {
                     }
                 }
                 ActionSheetRow(
-                    title: isPinned ? "Unpin" : "Pin to Front",
-                    subtitle: isPinned ? "Goes back to its place by latest activity." : "Keeps it first in your group chats.",
+                    title: isPinned ? "Unpin" : "Pin to Top Row",
+                    subtitle: isPinned ? "Moves it back into your group chats list." : "Moves it into the row above your group chats.",
                     systemImage: isPinned ? "pin.slash" : "pin"
                 ) {
                     actionTarget = nil
@@ -643,47 +673,9 @@ struct GroupChatRow: View {
         contactsManager.displayName(for: address)
     }
 
-    /// Decoded group photos, keyed on the group id, the hex length and the payload's tail:
-    /// hex-decoding and then JPEG-decoding the photo on every body pass made each row pay for
-    /// the whole image on every list refresh. A photo change always changes the hex payload
-    /// (and almost always its length), so a stale entry could only survive a same-length
-    /// replacement whose final bytes also match - and hashing only the tail keeps the key
-    /// itself cheap for a payload that can run to hundreds of kilobytes.
-    private static let groupPhotoCache: NSCache<NSString, UIImage> = {
-        let cache = NSCache<NSString, UIImage>()
-        cache.countLimit = 64
-        return cache
-    }()
-
-    private var groupPhotoImage: UIImage? {
-        guard let hex = groupChatService.groupPhotos[group.id] else { return nil }
-        let cacheKey = "\(group.id)|\(hex.count)|\(hex.suffix(256).hashValue)" as NSString
-        if let cached = Self.groupPhotoCache.object(forKey: cacheKey) {
-            return cached
-        }
-        guard let data = Data(hexString: hex), let image = UIImage(data: data) else { return nil }
-        Self.groupPhotoCache.setObject(image, forKey: cacheKey)
-        return image
-    }
-
     var body: some View {
         HStack(spacing: 12) {
-            if let img = groupPhotoImage {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 50, height: 50)
-                    .clipShape(Circle())
-            } else {
-                Circle()
-                    .fill(Color.accentColor.opacity(0.2))
-                    .frame(width: 50, height: 50)
-                    .overlay(
-                        Image(systemName: "person.3.fill")
-                            .font(.scaled(size: 18))
-                            .foregroundColor(.accentColor)
-                    )
-            }
+            GroupAvatar(group: group, size: 50)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
@@ -753,6 +745,56 @@ struct GroupChatRow: View {
             return "Yesterday"
         } else {
             return SharedFormatting.chatDay.string(from: date)
+        }
+    }
+}
+
+/// A group's photo in a circle, or the group symbol when it has none - the Groups list rows and
+/// the pinned row above them.
+struct GroupAvatar: View {
+    let group: GroupChat
+    let size: CGFloat
+    @EnvironmentObject var groupChatService: GroupChatService
+
+    /// Decoded group photos, keyed on the group id, the hex length and the payload's tail:
+    /// hex-decoding and then JPEG-decoding the photo on every body pass made each row pay for
+    /// the whole image on every list refresh. A photo change always changes the hex payload
+    /// (and almost always its length), so a stale entry could only survive a same-length
+    /// replacement whose final bytes also match - and hashing only the tail keeps the key
+    /// itself cheap for a payload that can run to hundreds of kilobytes.
+    private static let groupPhotoCache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = 64
+        return cache
+    }()
+
+    private var groupPhotoImage: UIImage? {
+        guard let hex = groupChatService.groupPhotos[group.id] else { return nil }
+        let cacheKey = "\(group.id)|\(hex.count)|\(hex.suffix(256).hashValue)" as NSString
+        if let cached = Self.groupPhotoCache.object(forKey: cacheKey) {
+            return cached
+        }
+        guard let data = Data(hexString: hex), let image = UIImage(data: data) else { return nil }
+        Self.groupPhotoCache.setObject(image, forKey: cacheKey)
+        return image
+    }
+
+    var body: some View {
+        if let img = groupPhotoImage {
+            Image(uiImage: img)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size, height: size)
+                .clipShape(Circle())
+        } else {
+            Circle()
+                .fill(Color.accentColor.opacity(0.2))
+                .frame(width: size, height: size)
+                .overlay(
+                    Image(systemName: "person.3.fill")
+                        .font(.scaled(size: size * 0.36))
+                        .foregroundColor(.accentColor)
+                )
         }
     }
 }

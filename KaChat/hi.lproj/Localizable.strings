@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "एक Kaspa पता (kaspa:...) या डोमेन दर्ज करें (जैसे alice.kachat)। .kachat नाम पहले खोजे जाते हैं।";
 "Finds addresses holding a balance or a domain." = "बैलेंस या डोमेन वाले पते ढूँढता है।";
 "Their profile, .kachat name and address." = "उनकी प्रोफ़ाइल, .kachat नाम और पता।";
-"Resolved first, everywhere you can type an address." = "जहाँ भी आप पता लिख सकते हैं, वहाँ सबसे पहले हल होते हैं।";
+"KaChat Names Indexer URL" = "KaChat नाम इंडेक्सर URL";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat नाम और प्रोफ़ाइल यहीं से पढ़े जाते हैं। अगर आप अपना इंडेक्सर चलाते हैं तो उसे यहाँ डालें। अगर यह नाम नहीं दे पाता, तो वे सीधे चेन से पढ़े जाते हैं। जहाँ भी आप पता लिख सकते हैं, यह सबसे पहले हल होता है।";
 "Other Domains" = "अन्य डोमेन";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = ".kachat के बाद खोजे जाते हैं, और लिखा गया नाम वहाँ भी हो तो अन्य डोमेन में दिखते हैं।";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "अगर यह सीड पहले से किसी दूसरे पते पर आपकी पहचान रखता है - एक डोमेन (.kachat, .kas, .k या .kaspa) या फ़ंड किया हुआ चैट बैलेंस - तो उसे यहाँ चुनें। केवल बैलेंस या डोमेन वाले पते दिखाए जाते हैं।";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat नाम अभी इस नेटवर्क पर चालू नहीं हैं";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "आपकी एड्रेस बुक और पोर्टफ़ोलियो उसी बैकअप में हैं और आपके डिवाइसों के बीच उसी तरह सिंक होते हैं।";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "ग्रेस अवधि समाप्त %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "बाईं ओर कोई समूह चुनें";
 "Keeps it first in your group chats." = "आपकी समूह चैट्स में सबसे आगे रहता है।";
 "Pinned" = "पिन किया गया";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Nextcloud पर अपलोड हो रहा है…";
+"Upload failed. Sends on chain." = "अपलोड विफल। चेन पर भेजा जाएगा।";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Nextcloud अपलोड विफल। भेजने पर फ़ोटो चेन पर जाएगी।";
+"Video" = "वीडियो";
+"Sending video…" = "वीडियो भेजा जा रहा है…";
+"Video ready to send" = "वीडियो भेजने के लिए तैयार";
+"Photo ready to send" = "फ़ोटो भेजने के लिए तैयार";
+"Sending photo…" = "फ़ोटो भेजी जा रही है…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "भेजने के लिए ऊपर स्वाइप करें";
+"Swipe up to Consolidate" = "समेकित करने के लिए ऊपर स्वाइप करें";
+"Release to Send" = "भेजने के लिए छोड़ें";
+"Keep Swiping" = "स्वाइप करते रहें";
+"Sending" = "भेजा जा रहा है";
+"Failed" = "विफल";
+"Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG पर प्रसारित हो रहा है...";
+"Let go past halfway to send." = "भेजने के लिए आधे से आगे छोड़ें।";
+"The send didn't go out." = "भेजना नहीं हो पाया।";
+"Compound UTXOs" = "UTXO समेकित करें";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "ऊपरी पंक्ति में पिन करें";
+"Moves it into the row above your chats." = "इसे आपकी चैट के ऊपर की पंक्ति में ले जाता है।";
+"Moves it back into your chats list." = "इसे वापस आपकी चैट सूची में ले जाता है।";
+"Moves it into the row above your group chats." = "इसे आपकी ग्रुप चैट के ऊपर की पंक्ति में ले जाता है।";
+"Moves it back into your group chats list." = "इसे वापस आपकी ग्रुप चैट सूची में ले जाता है।";
+"Pinned to the top row" = "ऊपरी पंक्ति में पिन किया गया";
+"Send and Receive" = "भेजें और पाएँ";

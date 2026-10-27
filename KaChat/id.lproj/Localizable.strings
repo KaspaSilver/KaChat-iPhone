@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Masukkan alamat Kaspa (kaspa:...) atau domain (mis. alice.kachat). Nama .kachat dicari lebih dulu.";
 "Finds addresses holding a balance or a domain." = "Menemukan alamat yang punya saldo atau domain.";
 "Their profile, .kachat name and address." = "Profil, nama .kachat, dan alamatnya.";
-"Resolved first, everywhere you can type an address." = "Diresolusikan lebih dulu, di mana pun Anda bisa mengetik alamat.";
+"KaChat Names Indexer URL" = "URL Pengindeks Nama KaChat";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Nama dan profil .kachat dibaca dari sini. Arahkan ke pengindeks Anda sendiri jika Anda menjalankannya. Jika tidak bisa menyajikan nama, nama dibaca langsung dari chain. Diselesaikan pertama, di mana pun Anda bisa mengetik alamat.";
 "Other Domains" = "Domain Lain";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Dicari setelah .kachat, dan ditampilkan di Domain lain jika nama yang diketik juga ada di sana.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Jika seed ini sudah menyimpan identitas Anda di alamat lain - domain (.kachat, .kas, .k, atau .kaspa) atau saldo chat yang terisi - pilih di sini. Hanya alamat dengan saldo atau domain yang ditampilkan.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Nama .kachat belum aktif di jaringan ini";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Buku Alamat dan portofolio Anda ada di cadangan yang sama dan tersinkron antarperangkat dengan cara yang sama.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Tenggang berakhir %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "Pilih grup di sebelah kiri";
 "Keeps it first in your group chats." = "Tetap pertama di obrolan grup Anda.";
 "Pinned" = "Disematkan";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Mengunggah ke Nextcloud…";
+"Upload failed. Sends on chain." = "Unggahan gagal. Dikirim lewat chain.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Unggahan ke Nextcloud gagal. Saat dikirim, foto akan lewat chain.";
+"Video" = "Video";
+"Sending video…" = "Mengirim video…";
+"Video ready to send" = "Video siap dikirim";
+"Photo ready to send" = "Foto siap dikirim";
+"Sending photo…" = "Mengirim foto…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Geser ke atas untuk mengirim";
+"Swipe up to Consolidate" = "Geser ke atas untuk menggabungkan";
+"Release to Send" = "Lepaskan untuk mengirim";
+"Keep Swiping" = "Terus geser";
+"Sending" = "Mengirim";
+"Failed" = "Gagal";
+"Broadcasting to the Kaspa BlockDAG..." = "Menyiarkan ke BlockDAG Kaspa...";
+"Let go past halfway to send." = "Lepaskan lewat setengah untuk mengirim.";
+"The send didn't go out." = "Pengiriman tidak terkirim.";
+"Compound UTXOs" = "Gabungkan UTXO";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Sematkan di Baris Atas";
+"Moves it into the row above your chats." = "Memindahkannya ke baris di atas obrolan Anda.";
+"Moves it back into your chats list." = "Mengembalikannya ke daftar obrolan Anda.";
+"Moves it into the row above your group chats." = "Memindahkannya ke baris di atas obrolan grup Anda.";
+"Moves it back into your group chats list." = "Mengembalikannya ke daftar obrolan grup Anda.";
+"Pinned to the top row" = "Disematkan di baris atas";
+"Send and Receive" = "Kirim dan Terima";

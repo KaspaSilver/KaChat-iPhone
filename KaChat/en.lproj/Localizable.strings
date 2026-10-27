@@ -1237,7 +1237,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first.";
 "Finds addresses holding a balance or a domain." = "Finds addresses holding a balance or a domain.";
 "Their profile, .kachat name and address." = "Their profile, .kachat name and address.";
-"Resolved first, everywhere you can type an address." = "Resolved first, everywhere you can type an address.";
+"KaChat Names Indexer URL" = "KaChat Names Indexer URL";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address.";
 "Other Domains" = "Other Domains";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Looked up after .kachat, and listed under Other domains when a typed name also exists there.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown.";
@@ -1253,9 +1254,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat names aren't live on this network yet";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Your Address Book and portfolios are in the same backup and sync between your devices the same way.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Grace ends %@";
@@ -1478,3 +1476,34 @@
 "Choose a group on the left" = "Choose a group on the left";
 "Keeps it first in your group chats." = "Keeps it first in your group chats.";
 "Pinned" = "Pinned";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Uploading to Nextcloud…";
+"Upload failed. Sends on chain." = "Upload failed. Sends on chain.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Nextcloud upload failed. Send puts the photo on chain instead.";
+"Video" = "Video";
+"Sending video…" = "Sending video…";
+"Video ready to send" = "Video ready to send";
+"Photo ready to send" = "Photo ready to send";
+"Sending photo…" = "Sending photo…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Swipe up to Send";
+"Swipe up to Consolidate" = "Swipe up to Consolidate";
+"Release to Send" = "Release to Send";
+"Keep Swiping" = "Keep Swiping";
+"Sending" = "Sending";
+"Failed" = "Failed";
+"Broadcasting to the Kaspa BlockDAG..." = "Broadcasting to the Kaspa BlockDAG...";
+"Let go past halfway to send." = "Let go past halfway to send.";
+"The send didn't go out." = "The send didn't go out.";
+"Compound UTXOs" = "Compound UTXOs";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Pin to Top Row";
+"Moves it into the row above your chats." = "Moves it into the row above your chats.";
+"Moves it back into your chats list." = "Moves it back into your chats list.";
+"Moves it into the row above your group chats." = "Moves it into the row above your group chats.";
+"Moves it back into your group chats list." = "Moves it back into your group chats list.";
+"Pinned to the top row" = "Pinned to the top row";
+"Send and Receive" = "Send and Receive";

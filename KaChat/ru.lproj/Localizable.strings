@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Введите адрес Kaspa (kaspa:...) или домен (например, alice.kachat). Сначала ищутся имена .kachat.";
 "Finds addresses holding a balance or a domain." = "Находит адреса с балансом или доменом.";
 "Their profile, .kachat name and address." = "Профиль, имя .kachat и адрес.";
-"Resolved first, everywhere you can type an address." = "Ищутся первыми — везде, где можно ввести адрес.";
+"KaChat Names Indexer URL" = "URL индексатора имён KaChat";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Отсюда читаются имена и профили .kachat. Укажите свой индексатор, если он у вас есть. Если он не может отдавать имена, они читаются прямо из блокчейна. Разрешается первым везде, где можно ввести адрес.";
 "Other Domains" = "Другие домены";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Ищутся после .kachat и показываются в разделе «Другие домены», если введённое имя есть и там.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Если эта сид-фраза уже хранит вашу личность на другом адресе — домен (.kachat, .kas, .k или .kaspa) или пополненный баланс для чата, — выберите его здесь. Показаны только адреса с балансом или доменами.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Имена .kachat в этой сети пока не работают";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Адресная книга и портфели хранятся в той же резервной копии и так же синхронизируются между устройствами.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Льготный период до %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "Выберите группу слева";
 "Keeps it first in your group chats." = "Останется первым в ваших групповых чатах.";
 "Pinned" = "Закреплено";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Загрузка в Nextcloud…";
+"Upload failed. Sends on chain." = "Не удалось загрузить. Отправится в блокчейн.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Не удалось загрузить в Nextcloud. При отправке фото уйдёт в блокчейн.";
+"Video" = "Видео";
+"Sending video…" = "Отправка видео…";
+"Video ready to send" = "Видео готово к отправке";
+"Photo ready to send" = "Фото готово к отправке";
+"Sending photo…" = "Отправка фото…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Смахните вверх, чтобы отправить";
+"Swipe up to Consolidate" = "Смахните вверх, чтобы объединить";
+"Release to Send" = "Отпустите, чтобы отправить";
+"Keep Swiping" = "Продолжайте смахивать";
+"Sending" = "Отправка";
+"Failed" = "Ошибка";
+"Broadcasting to the Kaspa BlockDAG..." = "Передача в BlockDAG Kaspa...";
+"Let go past halfway to send." = "Отпустите выше середины, чтобы отправить.";
+"The send didn't go out." = "Отправка не состоялась.";
+"Compound UTXOs" = "Объединить UTXO";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Закрепить в верхнем ряду";
+"Moves it into the row above your chats." = "Переносит чат в ряд над вашими чатами.";
+"Moves it back into your chats list." = "Возвращает чат в список чатов.";
+"Moves it into the row above your group chats." = "Переносит группу в ряд над вашими групповыми чатами.";
+"Moves it back into your group chats list." = "Возвращает группу в список групповых чатов.";
+"Pinned to the top row" = "Закреплено в верхнем ряду";
+"Send and Receive" = "Отправить и получить";

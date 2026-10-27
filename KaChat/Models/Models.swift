@@ -2221,6 +2221,11 @@ struct AppSettings: Codable {
     // Connection settings
     var indexerURL: String
     var pushIndexerURL: String
+    /// Where `.kachat` names, profiles and the market are read (Settings > Connection Settings >
+    /// Domains). Its own field so anyone can run the names indexer themselves without also moving
+    /// their chats. Starts as the same KaChat indexer as `indexerURL`; settings saved before the
+    /// field existed take whatever `indexerURL` held then, which is where names were read from.
+    var kachatNamesIndexerURL: String
     /// The Kaspa Name Service endpoint. Fixed to the current network's default, never stored and
     /// never user-editable.
     ///
@@ -2309,6 +2314,7 @@ struct AppSettings: Codable {
         ConnectionProfile(
             indexerURL: indexerURL,
             pushIndexerURL: pushIndexerURL,
+            kachatNamesIndexerURL: kachatNamesIndexerURL,
             kaspaRestAPIURL: kaspaRestAPIURL,
             trustedNodeAddress: trustedNodeAddress,
             savedNodeAddresses: savedNodeAddresses
@@ -2325,6 +2331,7 @@ struct AppSettings: Codable {
         let next = connectionProfiles[network.rawValue] ?? .defaults(for: network)
         indexerURL = next.indexerURL
         pushIndexerURL = next.pushIndexerURL
+        kachatNamesIndexerURL = next.kachatNamesIndexerURL
         kaspaRestAPIURL = next.kaspaRestAPIURL
         trustedNodeAddress = next.trustedNodeAddress
         savedNodeAddresses = next.savedNodeAddresses
@@ -2363,6 +2370,7 @@ struct AppSettings: Codable {
             biometricSpendingKeyEnabled: true,
             indexerURL: defaultIndexerURL,
             pushIndexerURL: defaultPushIndexerURL,
+            kachatNamesIndexerURL: defaultIndexerURL,
             kaspaRestAPIURL: defaultKaspaMainnetURL,
             kaspaExplorer: .default,
             trustedNodeAddress: defaultTrustedNodeAddress,
@@ -2398,6 +2406,7 @@ struct AppSettings: Codable {
         case verboseAPILogging
         case indexerURL
         case pushIndexerURL
+        case kachatNamesIndexerURL
         case kaspaRestAPIURL
         case kaspaExplorer
         case trustedNodeAddress
@@ -2442,6 +2451,7 @@ struct AppSettings: Codable {
         verboseAPILogging: Bool = false,
         indexerURL: String,
         pushIndexerURL: String,
+        kachatNamesIndexerURL: String? = nil,
         kaspaRestAPIURL: String,
         kaspaExplorer: KaspaExplorer = .default,
         trustedNodeAddress: String = AppSettings.defaultTrustedNodeAddress,
@@ -2475,6 +2485,7 @@ struct AppSettings: Codable {
         self.verboseAPILogging = verboseAPILogging
         self.indexerURL = indexerURL
         self.pushIndexerURL = pushIndexerURL
+        self.kachatNamesIndexerURL = kachatNamesIndexerURL ?? indexerURL
         self.kaspaRestAPIURL = kaspaRestAPIURL
         self.kaspaExplorer = kaspaExplorer
         self.trustedNodeAddress = trustedNodeAddress
@@ -2575,6 +2586,11 @@ struct AppSettings: Codable {
             indexerURL = try testnetIndexer(.indexerURL)
             pushIndexerURL = try testnetIndexer(.pushIndexerURL)
         }
+        // Absent before it had its own field: names were read from the message indexer, so they
+        // stay there. Blank means the same.
+        let storedNamesIndexer = try container.decodeIfPresent(String.self, forKey: .kachatNamesIndexerURL) ?? ""
+        kachatNamesIndexerURL = storedNamesIndexer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? indexerURL : storedNamesIndexer
         // The same for the stashed testnet profile, used when switching back to testnet.
         if var stashed = connectionProfiles[NetworkType.testnet.rawValue] {
             func filled(_ value: String) -> String {
@@ -2582,6 +2598,7 @@ struct AppSettings: Codable {
             }
             stashed.indexerURL = filled(stashed.indexerURL)
             stashed.pushIndexerURL = filled(stashed.pushIndexerURL)
+            stashed.kachatNamesIndexerURL = filled(stashed.kachatNamesIndexerURL)
             connectionProfiles[NetworkType.testnet.rawValue] = stashed
         }
         kaspaExplorer = try container.decodeIfPresent(KaspaExplorer.self, forKey: .kaspaExplorer) ?? .default
@@ -2629,6 +2646,7 @@ struct AppSettings: Codable {
         try container.encode(verboseAPILogging, forKey: .verboseAPILogging)
         try container.encode(indexerURL, forKey: .indexerURL)
         try container.encode(pushIndexerURL, forKey: .pushIndexerURL)
+        try container.encode(kachatNamesIndexerURL, forKey: .kachatNamesIndexerURL)
         try container.encode(kaspaRestAPIURL, forKey: .kaspaRestAPIURL)
         try container.encode(kaspaExplorer, forKey: .kaspaExplorer)
         try container.encode(trustedNodeAddress, forKey: .trustedNodeAddress)
@@ -2830,9 +2848,42 @@ enum EndpointOrigin: Int, Codable {
 struct ConnectionProfile: Codable, Equatable {
     var indexerURL: String
     var pushIndexerURL: String
+    var kachatNamesIndexerURL: String
     var kaspaRestAPIURL: String
     var trustedNodeAddress: String
     var savedNodeAddresses: [SavedNodeAddress]
+
+    init(
+        indexerURL: String,
+        pushIndexerURL: String,
+        kachatNamesIndexerURL: String,
+        kaspaRestAPIURL: String,
+        trustedNodeAddress: String,
+        savedNodeAddresses: [SavedNodeAddress]
+    ) {
+        self.indexerURL = indexerURL
+        self.pushIndexerURL = pushIndexerURL
+        self.kachatNamesIndexerURL = kachatNamesIndexerURL
+        self.kaspaRestAPIURL = kaspaRestAPIURL
+        self.trustedNodeAddress = trustedNodeAddress
+        self.savedNodeAddresses = savedNodeAddresses
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case indexerURL, pushIndexerURL, kachatNamesIndexerURL, kaspaRestAPIURL, trustedNodeAddress, savedNodeAddresses
+    }
+
+    /// A profile stashed before `.kachat` names had their own indexer field read names from its
+    /// message indexer, so that is where they stay.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        indexerURL = try container.decode(String.self, forKey: .indexerURL)
+        pushIndexerURL = try container.decode(String.self, forKey: .pushIndexerURL)
+        kachatNamesIndexerURL = try container.decodeIfPresent(String.self, forKey: .kachatNamesIndexerURL) ?? indexerURL
+        kaspaRestAPIURL = try container.decode(String.self, forKey: .kaspaRestAPIURL)
+        trustedNodeAddress = try container.decode(String.self, forKey: .trustedNodeAddress)
+        savedNodeAddresses = try container.decode([SavedNodeAddress].self, forKey: .savedNodeAddresses)
+    }
 
     /// What a network starts with. Testnet: the public testnet REST API, automatic node
     /// discovery, and KaChat's testnet-10 indexer for chat and push.
@@ -2842,6 +2893,7 @@ struct ConnectionProfile: Codable, Equatable {
             return ConnectionProfile(
                 indexerURL: AppSettings.defaultIndexerURL,
                 pushIndexerURL: AppSettings.defaultPushIndexerURL,
+                kachatNamesIndexerURL: AppSettings.defaultIndexerURL,
                 kaspaRestAPIURL: AppSettings.defaultKaspaMainnetURL,
                 trustedNodeAddress: AppSettings.defaultTrustedNodeAddress,
                 savedNodeAddresses: []
@@ -2850,6 +2902,7 @@ struct ConnectionProfile: Codable, Equatable {
             return ConnectionProfile(
                 indexerURL: AppSettings.defaultTestnetIndexerURL,
                 pushIndexerURL: AppSettings.defaultTestnetIndexerURL,
+                kachatNamesIndexerURL: AppSettings.defaultTestnetIndexerURL,
                 kaspaRestAPIURL: AppSettings.defaultKaspaTestnetURL,
                 trustedNodeAddress: "",
                 savedNodeAddresses: []

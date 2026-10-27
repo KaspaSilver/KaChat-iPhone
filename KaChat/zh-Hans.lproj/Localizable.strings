@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "输入 Kaspa 地址(kaspa:...)或域名(例如 alice.kachat)。会先查找 .kachat 名称。";
 "Finds addresses holding a balance or a domain." = "查找有余额或域名的地址。";
 "Their profile, .kachat name and address." = "其个人资料、.kachat 名称和地址。";
-"Resolved first, everywhere you can type an address." = "在所有可以输入地址的地方优先解析。";
+"KaChat Names Indexer URL" = "KaChat 名称索引器 URL";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat 名称和资料从这里读取。如果你自己运行索引器，可以填在这里。如果它无法提供名称，则直接从链上读取。在所有可以输入地址的地方都会优先解析。";
 "Other Domains" = "其他域名";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "在 .kachat 之后查找;如果输入的名称在那里也存在,会列在“其他域名”下。";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "如果此助记词已在其他地址上保存了你的身份(.kachat、.kas、.k 或 .kaspa 域名,或有余额的聊天地址),请在此选择。只显示有余额或域名的地址。";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat 名称尚未在此网络上线";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "你的地址簿和投资组合也在同一份备份中,并以同样方式在你的设备之间同步。";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "宽限期结束 %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "选择左侧的群组";
 "Keeps it first in your group chats." = "在你的群聊中保持在最前。";
 "Pinned" = "已置顶";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "正在上传到 Nextcloud…";
+"Upload failed. Sends on chain." = "上传失败。将通过链上发送。";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "上传到 Nextcloud 失败。发送时照片将改为通过链上发送。";
+"Video" = "视频";
+"Sending video…" = "正在发送视频…";
+"Video ready to send" = "视频可以发送了";
+"Photo ready to send" = "照片可以发送了";
+"Sending photo…" = "正在发送照片…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "向上滑动发送";
+"Swipe up to Consolidate" = "向上滑动合并";
+"Release to Send" = "松开即发送";
+"Keep Swiping" = "继续滑动";
+"Sending" = "正在发送";
+"Failed" = "失败";
+"Broadcasting to the Kaspa BlockDAG..." = "正在广播到 Kaspa BlockDAG...";
+"Let go past halfway to send." = "滑过一半后松开即可发送。";
+"The send didn't go out." = "发送未成功。";
+"Compound UTXOs" = "合并 UTXO";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "固定到顶部一行";
+"Moves it into the row above your chats." = "将它移到聊天列表上方的一行。";
+"Moves it back into your chats list." = "将它移回聊天列表。";
+"Moves it into the row above your group chats." = "将它移到群聊列表上方的一行。";
+"Moves it back into your group chats list." = "将它移回群聊列表。";
+"Pinned to the top row" = "已固定到顶部一行";
+"Send and Receive" = "发送和接收";

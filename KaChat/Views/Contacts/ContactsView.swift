@@ -71,6 +71,16 @@ struct ProfileView: View {
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared
     /// Donate: the Send screen, addressed to KaChat's donation address
     @State private var showDonateSheet = false
+    /// The floating up/down-arrow button's half sheet: Send Kaspa, Receive Kaspa, Request Payment.
+    @State private var showWalletActions = false
+    /// The tile tapped in that sheet, opened once the sheet is down (a sheet can't present while
+    /// another is still going down).
+    @State private var pendingWalletAction: WalletAction?
+    @State private var walletAction: WalletAction?
+    private enum WalletAction: String, Identifiable {
+        case send, receive, request
+        var id: String { rawValue }
+    }
     private static let donateName = "kachat.kachat"
     /// The address Donate pays, pinned (IOS-067): a name is first-come, so resolving
     /// `kachat.kachat` would pay whoever registered it. This is the address `kachat.kas` has
@@ -88,6 +98,65 @@ struct ProfileView: View {
         ProfileQRCodeCache.preload(address: address, completion: nil)
     }
 
+    /// The floating glass up/down arrow in the bottom-right corner (KaChat Wallet's Wallet tab
+    /// has the up-arrow form), opening Send Kaspa, Receive Kaspa and Request Payment - which
+    /// left the Chats + menu for it.
+    private var sendKaspaButton: some View {
+        Button {
+            Haptics.impact(.light)
+            showWalletActions = true
+        } label: {
+            Image(systemName: "arrow.up.arrow.down")
+                .font(.scaled(size: 22, weight: .semibold))
+                .foregroundColor(.accentColor)
+                .frame(width: 56, height: 56)
+                .background(
+                    Circle()
+                        .fill(.regularMaterial)
+                        .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
+                        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 5)
+                )
+        }
+        .padding(.trailing, 20)
+        .padding(.bottom, 16)
+        .accessibilityLabel(Text("Send and Receive"))
+    }
+
+    /// The floating button's half sheet: the three wallet actions as tiles, like the Chats New
+    /// sheet.
+    private var walletActionsSheet: some View {
+        let columns = Array(repeating: GridItem(.fixed(ChatListView.createTileSize), spacing: 14), count: 3)
+        return VStack(spacing: 16) {
+            Text("Send and Receive")
+                .font(.headline)
+                .padding(.top, 20)
+
+            LazyVGrid(columns: columns, spacing: 14) {
+                CreateTile(title: "Send Kaspa", hint: "Send Kaspa from any of your addresses.", systemImage: "arrow.up.circle") {
+                    closeWalletActions(then: .send)
+                }
+                CreateTile(title: "Receive Kaspa", hint: "Show a fresh address to get paid.", systemImage: "arrow.down.circle") {
+                    closeWalletActions(then: .receive)
+                }
+                CreateTile(title: "Request Payment", hint: "A link asking for an exact amount, with what it's for.", systemImage: "doc.text") {
+                    closeWalletActions(then: .request)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .presentationDetents([ChatListView.createSheetHeight])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func closeWalletActions(then action: WalletAction) {
+        pendingWalletAction = action
+        showWalletActions = false
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -103,6 +172,8 @@ struct ProfileView: View {
                         yourDomainsSection
                         helpSection
                         aboutSection(wallet)
+                        // room to scroll the last row out from under the floating send button
+                        Color.clear.frame(height: 56)
                     } else {
                         Text("No active account")
                             .foregroundColor(.secondary)
@@ -234,6 +305,40 @@ struct ProfileView: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isSavingKNSProfile)
+            // Quick send: the floating glass button in the bottom-right corner (the same button
+            // Addresses uses for +). Out of the way while the KNS save banner is up.
+            .overlay(alignment: .bottomTrailing) {
+                if walletManager.currentWallet != nil, !isSavingKNSProfile, failedKNSUpdates.isEmpty {
+                    sendKaspaButton
+                }
+            }
+            .sheet(isPresented: $showWalletActions, onDismiss: {
+                walletAction = pendingWalletAction
+                pendingWalletAction = nil
+            }) {
+                walletActionsSheet
+            }
+            .sheet(item: $walletAction) { action in
+                switch action {
+                case .send:
+                    if let wallet = walletManager.currentWallet {
+                        WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi)
+                    }
+                case .receive:
+                    NavigationStack {
+                        ReceiveKaspaQRView()
+                            .navigationTitle("Receive Kaspa")
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button("Done") { walletAction = nil }
+                                }
+                            }
+                    }
+                case .request:
+                    CreatePaymentRequestView()
+                }
+            }
             // Posted from elsewhere in the app to open the editor this screen's state already
             // drives, rather than rebuilding it.
             .onReceive(NotificationCenter.default.publisher(for: .openKNSProfileEditor)) { _ in
@@ -1085,7 +1190,7 @@ struct ProfileView: View {
     /// A view of its own rather than resolving in the NavigationLink's destination builder: that
     /// builder is evaluated eagerly while the row is merely on screen, so any work in it would
     /// run whether or not the user ever taps, and it cannot await.
-    /// Also opened from the Chats New sheet ("Receive Kaspa").
+    /// Also opened from Profile's send / receive button ("Receive Kaspa").
     struct ReceiveKaspaQRView: View {
         @EnvironmentObject private var walletManager: WalletManager
         @State private var address: String?
@@ -4700,7 +4805,24 @@ struct WithdrawKaspaView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            // Swipe up anywhere on the screen to send (the bar at the bottom says so).
+            SwipeUpToSendScrollView(
+                screenTitle: isCompoundMode ? "Compound UTXOs" : (activeRequest != nil ? "Payment Request" : "Send Kaspa"),
+                onCancel: { dismiss() },
+                title: isCompoundMode ? "Swipe up to Consolidate" : "Swipe up to Send",
+                isBusy: isSending,
+                isEnabled: canSend,
+                amountSompi: amountSompi,
+                recipient: isCompoundMode ? nil : (resolvedDomain ?? effectiveAddress),
+                sent: sentTransaction,
+                failureMessage: errorMessage,
+                onDone: {
+                    sentTransaction = nil
+                    dismiss()
+                    onComplete?()
+                },
+                action: send
+            ) {
                 VStack(spacing: 18) {
                     if !isCompoundMode {
                         SendFromSection(source: $source, availableSompi: $sourceBalanceSompi,
@@ -4757,13 +4879,6 @@ struct WithdrawKaspaView: View {
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                     }
-
-                    SendActionButton(
-                        title: isCompoundMode ? "Slide to Consolidate" : "Slide to Send",
-                        isBusy: isSending,
-                        isEnabled: canSend,
-                        action: send
-                    )
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -4777,13 +4892,7 @@ struct WithdrawKaspaView: View {
                 customExtraFeeSompi = nil
                 isEditingFee = false
             }
-            .navigationTitle(isCompoundMode ? "Compound UTXOs" : (activeRequest != nil ? "Payment Request" : "Send Kaspa"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
+            // The header (Cancel, title) is SwipeUpToSendScrollView's own, so it moves with the swipe.
             .scrollDismissesKeyboard(.interactively)
             .sheet(isPresented: $showQRScanner) {
                 QRScannerView { code in
@@ -4795,17 +4904,7 @@ struct WithdrawKaspaView: View {
                     manualUtxos = selection
                 }
             }
-            // A half sheet rather than the dimmed overlay card this used to be, so every send in
-            // the app finishes the same way - see `SentConfirmationSheet`.
-            .sheet(item: $sentTransaction) { sent in
-                SentConfirmationSheet(transaction: sent) {
-                    sentTransaction = nil
-                    dismiss()
-                    onComplete?()
-                }
-                .presentationDetents([.height(sent.sheetHeight)])
-                .presentationDragIndicator(.visible)
-            }
+            // The confirmation is the swipe-up's own full screen (SwipeUpToSendScrollView).
             .task(id: feeEstimationKey) {
                 guard hasValidRecipient, let amountSompi else {
                     normalFeeSompi = nil
@@ -4997,6 +5096,7 @@ struct WithdrawKaspaView: View {
         let spendingIndex = source.spendingIndex
         Task {
             do {
+                try await SendFailureSimulation.failIfEnabled()
                 let txId: String
                 if let request, request.toChattingAddress, request.address.lowercased() == recipient.lowercased(),
                    let contact = (try? contactsManager.addContact(address: recipient, alias: "", isAutoAdded: true))

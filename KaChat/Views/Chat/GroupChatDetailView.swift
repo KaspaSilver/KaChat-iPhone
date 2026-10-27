@@ -176,6 +176,10 @@ struct GroupChatDetailView: View {
     /// photo - mirrors `ChatDetailView.pendingPhotoOriginalData` exactly.
     @State private var pendingPhotoOriginalData: Data?
     @State private var isSendingPhoto = false
+    /// The pending photo or video's Nextcloud upload, running while it waits in the composer.
+    /// Mirrors `ChatDetailView.nextcloudStaged`.
+    @State private var nextcloudStaged: NextcloudStagedMedia?
+    @State private var nextcloudUploadTask: Task<Void, Never>?
     @State private var showNextcloudPicker = false
     @State private var showPlusSheet = false
     /// The "+" sheet's second step (on chain or via Nextcloud), or nil for the options.
@@ -979,6 +983,7 @@ struct GroupChatDetailView: View {
                     pendingPhotoImage = image
                     pendingPhotoOriginalData = data
                     schedulePhotoFeeEstimate()
+                    if photoViaNextcloud { startNextcloudPhotoUpload(for: image) }
                 },
                 onCancel: {
                     showCamera = false
@@ -989,8 +994,7 @@ struct GroupChatDetailView: View {
                 onCaptureVideo: photoViaNextcloud
                     ? { fileURL in
                         showCamera = false
-                        nextcloudPhotoRequested = false
-                        sendNextcloudVideo(fileURL)
+                        stageNextcloudVideo(fileURL)
                     }
                     : nil
             )
@@ -998,31 +1002,98 @@ struct GroupChatDetailView: View {
         }
     }
 
-    /// Uploads a just-recorded camera clip to Nextcloud and sends its share link - the
-    /// recipients' link previews render it as a playable video bubble. On failure the clip can't
-    /// fall back on-chain (videos don't fit a payload), so the error surfaces directly. Mirrors
-    /// `ChatDetailView.sendNextcloudVideo`, adapted to the group text-send API.
-    private func sendNextcloudVideo(_ fileURL: URL) {
+    // MARK: - Nextcloud staged media (uploads while it waits in the composer)
+
+    /// A video picked or recorded "via Nextcloud" waits in the composer like a photo and starts
+    /// uploading right away; it used to send on its own. Mirrors `ChatDetailView.stageNextcloudVideo`.
+    private func stageNextcloudVideo(_ fileURL: URL) {
         errorMessage = nil
         Task {
             defer { try? FileManager.default.removeItem(at: fileURL) }
+            let data: Data
             do {
-                let data = try Data(contentsOf: fileURL)
-                let ext = fileURL.pathExtension.isEmpty ? "mov" : fileURL.pathExtension.lowercased()
-                let contentType = ext == "mp4" ? "video/mp4" : "video/quicktime"
+                data = try await Task.detached { try Data(contentsOf: fileURL) }.value
+            } catch {
+                await MainActor.run {
+                    nextcloudPhotoRequested = false
+                    errorMessage = "Couldn't load that video. Please try another."
+                }
+                return
+            }
+            let thumbnail = await VideoThumbnail.image(for: fileURL)
+            let ext = fileURL.pathExtension.isEmpty ? "mov" : fileURL.pathExtension.lowercased()
+            let contentType = ext == "mp4" ? "video/mp4" : "video/quicktime"
+            let filename = "video_\(Self.mediaTimestampFormatter.string(from: Date())).\(ext)"
+            await MainActor.run {
+                guard canAcceptImageAttachment else { return }
+                isComposerFocused = false
+                pendingPhotoImage = thumbnail ?? UIImage(systemName: "video.fill")
+                pendingPhotoOriginalData = nil
+                schedulePhotoFeeEstimate()
+                startNextcloudUpload(kind: .video, data: data, filename: filename, contentType: contentType)
+            }
+        }
+    }
+
+    /// A photo staged "via Nextcloud" starts uploading its best-quality bytes right away.
+    private func startNextcloudPhotoUpload(for image: UIImage) {
+        guard let upload = nextcloudPhotoUpload(for: image) else {
+            nextcloudStaged = NextcloudStagedMedia(kind: .image, phase: .failed)
+            nextcloudPhotoRequested = false
+            schedulePhotoFeeEstimate()
+            showToast("Nextcloud upload failed. Send puts the photo on chain instead.", style: .error)
+            return
+        }
+        startNextcloudUpload(kind: .image, data: upload.data, filename: upload.filename, contentType: upload.contentType)
+    }
+
+    /// Uploads the staged media while it sits in the composer; send spins until the share link
+    /// is back. A failed photo goes on chain when sent; a failed video is dropped. Mirrors
+    /// `ChatDetailView.startNextcloudUpload`.
+    private func startNextcloudUpload(kind: NextcloudStagedMedia.Kind, data: Data, filename: String, contentType: String) {
+        nextcloudUploadTask?.cancel()
+        let staged = NextcloudStagedMedia(kind: kind)
+        nextcloudStaged = staged
+        nextcloudUploadTask = Task {
+            do {
                 let shareURL = try await NextcloudService.shared.uploadMediaAndShare(
                     data: data,
-                    filename: "video_\(Int(Date().timeIntervalSince1970)).\(ext)",
+                    filename: filename,
                     contentType: contentType
                 )
-                try await groupChatService.sendGroupMessage(shareURL.absoluteString, to: group.id)
-            } catch {
-                AppLog.log("[GroupChatDetailView] Nextcloud video send failed: %@", error.localizedDescription)
                 await MainActor.run {
-                    errorMessage = UserFacingError.message(for: error)
+                    guard nextcloudStaged?.id == staged.id else { return }
+                    nextcloudStaged?.phase = .ready(shareURL)
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                AppLog.log("[GroupChatDetailView] Nextcloud %@ upload failed: %@",
+                           kind == .video ? "video" : "photo", error.localizedDescription)
+                await MainActor.run {
+                    guard nextcloudStaged?.id == staged.id else { return }
+                    if kind == .video {
+                        clearPendingPhoto()
+                        errorMessage = UserFacingError.message(for: error)
+                    } else {
+                        nextcloudStaged?.phase = .failed
+                        nextcloudPhotoRequested = false
+                        schedulePhotoFeeEstimate()
+                        showToast("Nextcloud upload failed. Send puts the photo on chain instead.", style: .error)
+                    }
                 }
             }
         }
+    }
+
+    /// Drops the pending photo or video and cancels its upload if one is running.
+    private func clearPendingPhoto() {
+        nextcloudUploadTask?.cancel()
+        nextcloudUploadTask = nil
+        nextcloudStaged = nil
+        pendingPhotoImage = nil
+        pendingPhotoOriginalData = nil
+        nextcloudPhotoRequested = false
+        feeEstimateSompi = nil
     }
 
     /// Stages a picked file's share link in the composer instead of auto-sending — the user
@@ -1202,6 +1273,7 @@ struct GroupChatDetailView: View {
         pendingPhotoOriginalData = data
         isComposerFocused = false
         schedulePhotoFeeEstimate()
+        if photoViaNextcloud { startNextcloudPhotoUpload(for: image) }
         return true
     }
 
@@ -1579,8 +1651,7 @@ struct GroupChatDetailView: View {
                         return
                     }
                     await MainActor.run {
-                        nextcloudPhotoRequested = false
-                        sendNextcloudVideo(movie.url)
+                        stageNextcloudVideo(movie.url)
                     }
                     return
                 }
@@ -1595,6 +1666,7 @@ struct GroupChatDetailView: View {
                     pendingPhotoImage = image
                     pendingPhotoOriginalData = data
                     schedulePhotoFeeEstimate()
+                    if photoViaNextcloud { startNextcloudPhotoUpload(for: image) }
                 }
             }
         }
@@ -1607,18 +1679,38 @@ struct GroupChatDetailView: View {
                 .scaledToFill()
                 .frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay {
+                    if nextcloudStaged?.kind == .video {
+                        Image(systemName: "play.fill")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .shadow(radius: 2)
+                    }
+                }
 
-            Text(isSendingPhoto ? "Sending photo…" : "Photo ready to send")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            Group {
+                if isSendingPhoto {
+                    Text(nextcloudStaged?.kind == .video ? "Sending video…" : "Sending photo…")
+                } else if let staged = nextcloudStaged {
+                    switch staged.phase {
+                    case .uploading:
+                        Text("Uploading to Nextcloud…")
+                    case .ready:
+                        Text(staged.kind == .video ? "Video ready to send" : "Photo ready to send")
+                    case .failed:
+                        Text("Upload failed. Sends on chain.")
+                    }
+                } else {
+                    Text("Photo ready to send")
+                }
+            }
+            .font(.subheadline)
+            .foregroundColor(.secondary)
 
             Spacer()
 
             Button {
-                pendingPhotoImage = nil
-                pendingPhotoOriginalData = nil
-                nextcloudPhotoRequested = false
-                feeEstimateSompi = nil
+                clearPendingPhoto()
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title3)
@@ -1626,10 +1718,12 @@ struct GroupChatDetailView: View {
             }
             .disabled(isSendingPhoto)
 
+            // Spins while the Nextcloud upload runs, not just while sending: the link has to be
+            // back before there is anything to send.
             Button {
                 sendPendingPhoto()
             } label: {
-                if isSendingPhoto {
+                if isSendingPhoto || nextcloudStaged?.isUploading == true {
                     ProgressView()
                         .frame(width: 30, height: 30)
                 } else {
@@ -1638,7 +1732,7 @@ struct GroupChatDetailView: View {
                         .foregroundColor(.accentColor)
                 }
             }
-            .disabled(isSendingPhoto)
+            .disabled(isSendingPhoto || nextcloudStaged?.isUploading == true)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -1736,41 +1830,25 @@ struct GroupChatDetailView: View {
     }
 
     private func sendPendingPhoto() {
-        guard let pendingPhotoImage else { return }
+        guard let pendingPhotoImage, !isSendingPhoto, nextcloudStaged?.isUploading != true else { return }
         isSendingPhoto = true
         errorMessage = nil
         Task {
-            // "Via Nextcloud" (chosen in the "+" sheet): upload the best-quality bytes we have and
-            // send the public share link as a normal group text message (the members' link-preview
-            // feature renders it as a media bubble). Any upload/share failure falls back to the
-            // on-chain envelope below, with a toast so the sender knows the full-quality upload
-            // didn't happen. Mirrors `ChatDetailView.sendPendingPhotoAsync`. An on-chain photo
-            // skips this.
-            if photoViaNextcloud {
-                var shareURL: URL?
-                do {
-                    guard let upload = nextcloudPhotoUpload(for: pendingPhotoImage) else {
-                        throw KasiaError.networkError("Couldn't encode the photo for upload.")
-                    }
-                    shareURL = try await NextcloudService.shared.uploadMediaAndShare(
-                        data: upload.data,
-                        filename: upload.filename,
-                        contentType: upload.contentType
-                    )
-                } catch {
-                    AppLog.log("[GroupChatDetailView] Nextcloud photo upload failed, falling back to on-chain: %@",
-                               error.localizedDescription)
-                    await MainActor.run {
-                        showToast("Nextcloud upload failed — sending on-chain instead", style: .error)
-                    }
-                }
-                if let shareURL {
+            // "Via Nextcloud": the upload ran while the photo or video waited in the composer
+            // (`startNextcloudUpload`), and send stays disabled until it finishes. The share link
+            // goes out as a normal group text message (members' link previews render it as media).
+            // A photo whose upload failed falls through to the on-chain envelope below. Mirrors
+            // `ChatDetailView.sendPendingPhotoAsync`.
+            if let staged = nextcloudStaged {
+                switch staged.phase {
+                case .uploading:
+                    await MainActor.run { self.isSendingPhoto = false }
+                    return
+                case .ready(let shareURL):
                     do {
                         try await groupChatService.sendGroupMessage(shareURL.absoluteString, to: group.id)
                         await MainActor.run {
-                            self.pendingPhotoImage = nil
-                            self.pendingPhotoOriginalData = nil
-                            self.nextcloudPhotoRequested = false
+                            self.clearPendingPhoto()
                             self.isSendingPhoto = false
                         }
                     } catch {
@@ -1782,17 +1860,16 @@ struct GroupChatDetailView: View {
                         }
                     }
                     return
+                case .failed:
+                    break
                 }
-                // No share link - fall through to the on-chain envelope path.
             }
 
             do {
                 let prepared = try ImagePrep.prepareForChatMessage(pendingPhotoImage, targetBytes: Self.groupPhotoTargetBytes)
                 try await groupChatService.sendGroupImage(prepared.data, to: group.id, fileName: prepared.fileName, mimeType: prepared.mimeType)
                 await MainActor.run {
-                    self.pendingPhotoImage = nil
-                    self.pendingPhotoOriginalData = nil
-                    self.nextcloudPhotoRequested = false
+                    self.clearPendingPhoto()
                     self.isSendingPhoto = false
                 }
             } catch {

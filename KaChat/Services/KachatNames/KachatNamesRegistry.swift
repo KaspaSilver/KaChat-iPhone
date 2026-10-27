@@ -5,7 +5,8 @@ import UserNotifications
 /// The `.kachat` registry for the screens: lookups, an owner's names, listings, lapsed names,
 /// offers, history and identities, from one of two sources -
 ///
-/// - **the names indexer** (KACHAT_NAMES_INDEXER.md Part D) at `AppSettings.indexerURL`, used when
+/// - **the names indexer** (KACHAT_NAMES_INDEXER.md Part D) at `AppSettings.kachatNamesIndexerURL`
+///   (Connection Settings > Domains, separate from the message indexer), used when
 ///   that field is set and `GET /names/status` answers 200 for this manifest's registry id;
 /// - **the chain walker** otherwise: the registry's live UTXO set (gaps and names, plus the offers
 ///   this device made) kept from the manifest's genesis gap forward. A refresh asks a node which
@@ -145,7 +146,7 @@ final class KachatNamesRegistry: ObservableObject {
     }
 
     static func indexerBase() -> String? {
-        let raw = AppSettings.load().indexerURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = AppSettings.load().kachatNamesIndexerURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !raw.isEmpty else { return nil }
         return raw.hasSuffix("/") ? String(raw.dropLast()) : raw
     }

@@ -66,8 +66,19 @@ extension AppSettings {
         // offline kasia.fyi, or the previous community default kasia.wtf now replaced by KaChat's
         // own indexer (kachat.duckdns.org). Users who set a custom indexer keep it; only the old
         // shipped defaults are moved.
-        if settings.indexerURL == legacyDefaultIndexerURL || settings.indexerURL == legacyDefaultIndexerURLKasiaWtf {
+        let legacyDefaults = [legacyDefaultIndexerURL, legacyDefaultIndexerURLKasiaWtf]
+        var migrated = false
+        if legacyDefaults.contains(settings.indexerURL) {
             settings.indexerURL = defaultIndexerURL
+            migrated = true
+        }
+        // The .kachat names indexer started as a copy of the message indexer, so it can hold the
+        // same old default (neither of those hosts serves names).
+        if legacyDefaults.contains(settings.kachatNamesIndexerURL) {
+            settings.kachatNamesIndexerURL = defaultIndexerURL
+            migrated = true
+        }
+        if migrated {
             save(settings)
         }
         AppSettingsCache.shared.set(settings)

@@ -356,14 +356,19 @@ struct ChatDetailView: View {
     /// resolution) instead of a re-encode of the decoded UIImage. Cleared with the pending photo.
     @State private var pendingPhotoOriginalData: Data?
     @State private var isCompressingPhoto = false
+    /// The pending photo or video's Nextcloud upload, running while it waits in the composer
+    /// (see `startNextcloudUpload`). Nil for an on-chain photo.
+    @State private var nextcloudStaged: NextcloudStagedMedia?
+    @State private var nextcloudUploadTask: Task<Void, Never>?
     @State private var hasPerformedInitialSetup = false
     @State private var isImageDropTarget = false
     @State private var isMessageFocused = false
     @State private var showDesktopEmojiPicker = false
     @State private var emojiInsertionRequest: ComposerTextView.TextInsertionRequest?
     @State private var viewportResetTrigger = UUID()
-    @State private var showDustWarning = false
-    @State private var pendingDustAmountSompi: UInt64 = 0
+    /// The Send KAS sheet's confirmation: set once the payment went out, shown by the swipe-up
+    /// send screen until Done.
+    @State private var sentPayment: SentTransaction?
     @State private var activeChessGameId: String?
 
     /// On-chain voice notes: as long as one transaction carries with margin (~31 KB of 6 kbps
@@ -1275,7 +1280,6 @@ struct ChatDetailView: View {
             activeChessGameId = nil
             showChatInfo = false
             showFeeEditor = false
-            showDustWarning = false
             showCamera = false
             showPaymentSheet = false
             // Tear down current conversation (same as onDisappear)
@@ -1954,8 +1958,7 @@ struct ChatDetailView: View {
                 onCaptureVideo: photoViaNextcloud
                     ? { fileURL in
                         showCamera = false
-                        nextcloudPhotoRequested = false
-                        sendNextcloudVideo(fileURL)
+                        stageNextcloudVideo(fileURL)
                     }
                     : nil
             )
@@ -1980,28 +1983,86 @@ struct ChatDetailView: View {
         ))
     }
 
-    /// Uploads a just-recorded camera clip to Nextcloud and sends its share link — the
-    /// recipient's preview renders it as a playable video bubble. On failure the clip can't
-    /// fall back on-chain (videos don't fit a payload), so the error surfaces directly.
-    private func sendNextcloudVideo(_ fileURL: URL) {
+    // MARK: - Nextcloud staged media (uploads while it waits in the composer)
+
+    /// A video picked or recorded "via Nextcloud" waits in the composer like a photo (its first
+    /// frame as the thumbnail) and starts uploading right away. It used to send on its own the
+    /// moment it was picked.
+    private func stageNextcloudVideo(_ fileURL: URL) {
         Task {
             defer { try? FileManager.default.removeItem(at: fileURL) }
+            let data: Data
             do {
-                let data = try Data(contentsOf: fileURL)
-                let ext = fileURL.pathExtension.isEmpty ? "mov" : fileURL.pathExtension.lowercased()
-                let contentType = ext == "mp4" ? "video/mp4" : "video/quicktime"
-                let videoFilename = "video_\(Int(Date().timeIntervalSince1970)).\(ext)"
+                data = try await Task.detached { try Data(contentsOf: fileURL) }.value
+            } catch {
+                await MainActor.run {
+                    nextcloudPhotoRequested = false
+                    self.error = "Couldn't load that video. Please try another."
+                }
+                return
+            }
+            let thumbnail = await VideoThumbnail.image(for: fileURL)
+            let ext = fileURL.pathExtension.isEmpty ? "mov" : fileURL.pathExtension.lowercased()
+            let contentType = ext == "mp4" ? "video/mp4" : "video/quicktime"
+            let filename = "video_\(Self.mediaTimestampFormatter.string(from: Date())).\(ext)"
+            await MainActor.run {
+                guard canAcceptImageAttachment else { return }
+                pendingPhotoImage = thumbnail ?? UIImage(systemName: "video.fill")
+                pendingPhotoOriginalData = nil
+                isMessageFocused = false
+                schedulePhotoFeeEstimate()
+                startNextcloudUpload(kind: .video, data: data, filename: filename, contentType: contentType)
+            }
+        }
+    }
+
+    /// A photo staged "via Nextcloud" starts uploading its best-quality bytes right away.
+    private func startNextcloudPhotoUpload(for image: UIImage) {
+        guard let upload = nextcloudPhotoUpload(for: image) else {
+            nextcloudStaged = NextcloudStagedMedia(kind: .image, phase: .failed)
+            nextcloudPhotoRequested = false
+            schedulePhotoFeeEstimate()
+            showToast("Nextcloud upload failed. Send puts the photo on chain instead.", style: .error)
+            return
+        }
+        startNextcloudUpload(kind: .image, data: upload.data, filename: upload.filename, contentType: upload.contentType)
+    }
+
+    /// Uploads the staged media while it sits in the composer; the send button spins until the
+    /// share link is back, and a tap then sends it (`sendPendingPhotoAsync`). A photo that fails
+    /// to upload goes on chain when sent; a video that fails is dropped, as nothing else carries
+    /// one. Removing the pending media cancels the upload.
+    private func startNextcloudUpload(kind: NextcloudStagedMedia.Kind, data: Data, filename: String, contentType: String) {
+        nextcloudUploadTask?.cancel()
+        let staged = NextcloudStagedMedia(kind: kind)
+        nextcloudStaged = staged
+        nextcloudUploadTask = Task {
+            do {
                 let shareURL = try await NextcloudService.shared.uploadMediaAndShare(
                     data: data,
-                    filename: videoFilename,
+                    filename: filename,
                     contentType: contentType
                 )
-                await seedNextcloudPreview(for: shareURL, kind: .video, title: videoFilename, byteSize: data.count)
-                try await chatService.sendMessage(to: contact, content: shareURL.absoluteString, feeOverride: nil)
-            } catch {
-                AppLog.log("[ChatDetailView] Nextcloud video send failed: %@", error.localizedDescription)
+                await seedNextcloudPreview(for: shareURL, kind: kind == .video ? .video : .image, title: filename, byteSize: data.count)
                 await MainActor.run {
-                    self.error = displayErrorMessage(error)
+                    guard nextcloudStaged?.id == staged.id else { return }
+                    nextcloudStaged?.phase = .ready(shareURL)
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                AppLog.log("[ChatDetailView] Nextcloud %@ upload failed: %@",
+                           kind == .video ? "video" : "photo", error.localizedDescription)
+                await MainActor.run {
+                    guard nextcloudStaged?.id == staged.id else { return }
+                    if kind == .video {
+                        cancelPendingPhoto()
+                        self.error = displayErrorMessage(error)
+                    } else {
+                        nextcloudStaged?.phase = .failed
+                        nextcloudPhotoRequested = false
+                        schedulePhotoFeeEstimate()
+                        showToast("Nextcloud upload failed. Send puts the photo on chain instead.", style: .error)
+                    }
                 }
             }
         }
@@ -2194,8 +2255,7 @@ struct ChatDetailView: View {
                         return
                     }
                     await MainActor.run {
-                        nextcloudPhotoRequested = false
-                        sendNextcloudVideo(movie.url)
+                        stageNextcloudVideo(movie.url)
                     }
                     return
                 }
@@ -2573,6 +2633,11 @@ struct ChatDetailView: View {
         if isSending && inputMode != .message {
             return true
         }
+        // A pending photo or video: spinning while its Nextcloud upload runs and while it sends.
+        if inputMode == .message && pendingPhotoImage != nil
+            && (isCompressingPhoto || nextcloudStaged?.isUploading == true) {
+            return true
+        }
         return false
     }
 
@@ -2584,7 +2649,7 @@ struct ChatDetailView: View {
             // tappable for the whole compress+upload window and a second tap starts a fully
             // concurrent duplicate send of the same photo.
             if pendingPhotoImage != nil {
-                return !isSending && !isCompressingPhoto
+                return !isSending && !isCompressingPhoto && nextcloudStaged?.isUploading != true
             }
             return true
         case .audio:
@@ -2789,12 +2854,37 @@ struct ChatDetailView: View {
                 .scaledToFill()
                 .frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay {
+                    if nextcloudStaged?.kind == .video {
+                        Image(systemName: "play.fill")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .shadow(radius: 2)
+                    }
+                }
                 .accessibilityHidden(true)
 
             if isCompressingPhoto {
                 ProgressView()
                 Text("Sending…")
                     .foregroundColor(.secondary)
+            } else if let staged = nextcloudStaged {
+                switch staged.phase {
+                case .uploading:
+                    ProgressView()
+                    Text("Uploading to Nextcloud…")
+                        .foregroundColor(.secondary)
+                case .ready:
+                    Image(systemName: "checkmark.icloud")
+                        .foregroundColor(.accentColor)
+                    Text(staged.kind == .video ? "Video" : "Photo")
+                        .foregroundColor(.primary)
+                case .failed:
+                    Image(systemName: "exclamationmark.icloud")
+                        .foregroundColor(.orange)
+                    Text("Upload failed. Sends on chain.")
+                        .foregroundColor(.secondary)
+                }
             } else {
                 Text("Photo")
                     .foregroundColor(.primary)
@@ -2951,6 +3041,7 @@ struct ChatDetailView: View {
         paymentManualUtxos = nil
         paymentFeeSompi = nil
         isEstimatingPaymentFee = false
+        sentPayment = nil
         showPaymentSheet = true
     }
 
@@ -2958,34 +3049,42 @@ struct ChatDetailView: View {
         let amountSompi = paymentAmountSompi
         guard amountSompi > 0, !isSending else { return }
         paymentError = nil
-        // The amount field (KaspaAmountEntry) keeps its own focus: drop the keyboard for the
-        // dust question or the send.
+        // The amount field (KaspaAmountEntry) keeps its own focus: drop the keyboard for the send.
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        // 0.10000001 KAS = 10_000_001 sompi (network dust limit)
-        if amountSompi < 10_000_001 {
-            pendingDustAmountSompi = amountSompi
-            showDustWarning = true
-            return
-        }
+        // An amount under the network dust limit (0.10000001 KAS) is not asked about again: the
+        // form already says in orange that it may fail, and the swipe is deliberate. A dialog
+        // here would stop the send the swipe screen is already showing.
         executePayment(amountSompi: amountSompi)
     }
 
     /// "Send KAS": who it goes to, the exact amount (KAS or fiat), an encrypted memo, the fee
-    /// and available balance, and a slide-to-send button - sliding rather than tapping, so a
-    /// payment can't go out on a stray touch.
+    /// and available balance, and the swipe-up send screen Send Kaspa uses (from KaChat Wallet):
+    /// swipe the bar up past halfway to send, so a payment can't go out on a stray touch. The
+    /// screen then runs the BlockDAG while it goes out and shows Sent, or Failed with Try Again.
     private var paymentSheet: some View {
-        ScrollView {
+        SwipeUpToSendScrollView(
+            screenTitle: KaspaUnit.label(AppLocalization.string("Send KAS")),
+            onCancel: { showPaymentSheet = false },
+            title: "Swipe up to Send",
+            isBusy: isSending,
+            isEnabled: paymentAmountSompi > 0,
+            amountSompi: paymentAmountSompi,
+            recipient: contactsManager.displayName(for: contact),
+            sent: sentPayment,
+            failureMessage: paymentError,
+            onDone: {
+                sentPayment = nil
+                showPaymentSheet = false
+            },
+            action: submitPayment
+        ) {
             VStack(spacing: 18) {
-                VStack(spacing: 4) {
-                    Text(KaspaUnit.label(AppLocalization.string("Send KAS")))
-                        .font(.headline)
-                    Text("to \(contactsManager.displayName(for: contact))")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                .padding(.top, 24)
+                Text("to \(contactsManager.displayName(for: contact))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .padding(.top, 4)
 
                 SendFromSection(source: $paymentFrom, availableSompi: $paymentFromBalanceSompi)
 
@@ -3031,20 +3130,12 @@ struct ChatDetailView: View {
                         .foregroundColor(.orange)
                         .multilineTextAlignment(.center)
                 }
-
-                SendActionButton(
-                    title: "Slide to Send",
-                    isBusy: isSending,
-                    isEnabled: paymentAmountSompi > 0 && !isSending,
-                    action: submitPayment
-                )
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 24)
         }
         .scrollDismissesKeyboard(.interactively)
         .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(isSending)
         .onChange(of: paymentFeeTier) { _ in
             paymentCustomExtraFeeSompi = nil
@@ -3059,14 +3150,6 @@ struct ChatDetailView: View {
                     paymentManualUtxos = selection
                 }
             }
-        }
-        .confirmationDialog("Small Amount", isPresented: $showDustWarning, titleVisibility: .visible) {
-            Button("Send Anyway") {
-                executePayment(amountSompi: pendingDustAmountSompi)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            KaspaUnit.text("Sending less than 0.1 KAS may fail due to the network dust protection limit.")
         }
     }
 
@@ -3266,7 +3349,7 @@ struct ChatDetailView: View {
                 let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
                 // nil means DEFERRED (no confirmed inputs yet) - the retry timer owns it; either
                 // way the payment bubble is already in the chat.
-                _ = try await chatService.sendPayment(
+                let txId = try await chatService.sendPayment(
                     to: contact,
                     amountSompi: amountSompi,
                     note: note,
@@ -3275,20 +3358,30 @@ struct ChatDetailView: View {
                     manualUtxos: manualUtxos
                 )
                 await MainActor.run {
-                    Haptics.success()
                     amountText = ""
                     fiatAmountState.reset()
                     paymentNote = ""
                     paymentFeeSompi = nil
                     isEstimatingPaymentFee = false
-                    // No confirmation sheet: tapping the payment bubble gives the transaction
-                    // (View in Explorer, Copy Transaction ID).
-                    showPaymentSheet = false
+                    if let txId, !txId.isEmpty {
+                        // The swipe-up screen shows Sent with the transaction until Done (it
+                        // plays the success haptic itself).
+                        sentPayment = SentTransaction(
+                            txId: txId,
+                            amountSompi: amountSompi,
+                            recipient: contactsManager.displayName(for: contact)
+                        )
+                    } else {
+                        // Deferred (no confirmed inputs yet): no transaction to show, and the
+                        // payment bubble is already in the chat - the retry timer sends it.
+                        Haptics.success()
+                        showPaymentSheet = false
+                    }
                 }
             } catch {
                 await MainActor.run {
-                    Haptics.error()
-                    // Shown in the payment sheet, which is still up.
+                    // Shown under "Failed" on the swipe-up screen (which plays the error
+                    // haptic), and on the form after Try Again.
                     self.paymentError = displayErrorMessage(error)
                 }
             }
@@ -4105,6 +4198,9 @@ struct ChatDetailView: View {
     }
 
     private func cancelPendingPhoto() {
+        nextcloudUploadTask?.cancel()
+        nextcloudUploadTask = nil
+        nextcloudStaged = nil
         pendingPhotoImage = nil
         pendingPhotoOriginalData = nil
         photoPickerItem = nil
@@ -4136,6 +4232,9 @@ struct ChatDetailView: View {
         pendingPhotoOriginalData = data
         isMessageFocused = false
         schedulePhotoFeeEstimate()
+        if photoViaNextcloud {
+            startNextcloudPhotoUpload(for: image)
+        }
         return true
     }
 
@@ -4186,53 +4285,29 @@ struct ChatDetailView: View {
             isSending = false
         }
 
-        // "Via Nextcloud" (chosen in the "+" sheet): upload the best-quality bytes we have and
-        // send the public share link as a normal text message (the recipient's link-preview
-        // feature renders it as a media bubble). Any upload/share failure falls back to the
-        // on-chain envelope below, with a toast so the sender knows the full-quality upload
-        // didn't happen. An on-chain photo skips all of this.
-        if photoViaNextcloud {
-            var shareURL: URL?
-            do {
-                guard let upload = nextcloudPhotoUpload(for: image) else {
-                    throw KasiaError.networkError("Couldn't encode the photo for upload.")
-                }
-                shareURL = try await NextcloudService.shared.uploadMediaAndShare(
-                    data: upload.data,
-                    filename: upload.filename,
-                    contentType: upload.contentType
-                )
-                if let shareURL {
-                    await seedNextcloudPreview(for: shareURL, kind: .image, title: upload.filename, byteSize: upload.data.count)
-                }
-            } catch {
-                AppLog.log("[ChatDetailView] Nextcloud photo upload failed, falling back to on-chain: %@",
-                           error.localizedDescription)
-                await MainActor.run {
-                    showToast("Nextcloud upload failed — sending on-chain instead", style: .error)
-                }
-            }
-            if let shareURL {
+        // "Via Nextcloud": the upload ran while the photo or video waited in the composer
+        // (`startNextcloudUpload`), and send stays disabled until it finishes. The share link goes
+        // out as a normal text message (the recipient's link preview renders it as media). A photo
+        // whose upload failed falls through to the on-chain envelope below.
+        if let staged = nextcloudStaged {
+            switch staged.phase {
+            case .uploading:
+                return
+            case .ready(let shareURL):
                 do {
                     try await chatService.sendMessage(to: contact, content: shareURL.absoluteString, feeOverride: nil)
-                    await MainActor.run {
-                        pendingPhotoImage = nil
-                        pendingPhotoOriginalData = nil
-                        photoPickerItem = nil
-                        nextcloudPhotoRequested = false
-                        feeEstimateSompi = nil
-                        isEstimatingFee = false
-                    }
+                    await MainActor.run { cancelPendingPhoto() }
                 } catch {
-                    // The chain send itself failed — an on-chain image envelope would fail the
+                    // The chain send itself failed; an on-chain image envelope would fail the
                     // same way, so surface the error instead of falling back.
                     await MainActor.run {
                         self.error = displayErrorMessage(error)
                     }
                 }
                 return
+            case .failed:
+                break
             }
-            // No share link — fall through to the on-chain envelope path.
         }
 
         do {
@@ -4246,12 +4321,7 @@ struct ChatDetailView: View {
                 mimeType: preparedImage.mimeType
             )
             await MainActor.run {
-                pendingPhotoImage = nil
-                pendingPhotoOriginalData = nil
-                photoPickerItem = nil
-                nextcloudPhotoRequested = false
-                feeEstimateSompi = nil
-                isEstimatingFee = false
+                cancelPendingPhoto()
             }
         } catch {
             await MainActor.run {

@@ -70,9 +70,17 @@ struct ManageAddressesView: View {
         entries.filter { $0.hidden }.count
     }
 
-    /// The spending addresses in number order, #0 first.
+    /// The spending addresses under the Chatting Address: unused ones first, newest first - so a
+    /// freshly generated address lands right under the Chatting Address - then the used ones in
+    /// number order (owner's call, 2026-10-27, from KaChat Wallet). One still being checked counts
+    /// as unused until its check says otherwise.
     private var sortedEntries: [SpendingAddressEntry] {
-        visibleEntries.sorted { $0.index < $1.index }
+        func isUsed(_ entry: SpendingAddressEntry) -> Bool { entry.everUsed || entry.balanceSompi > 0 }
+        return visibleEntries.sorted { a, b in
+            let aUsed = isUsed(a), bUsed = isUsed(b)
+            if aUsed != bUsed { return !aUsed }
+            return aUsed ? a.index < b.index : a.index > b.index
+        }
     }
 
     var body: some View {
@@ -1311,7 +1319,25 @@ struct SpendingAddressWithdrawView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            // Swipe up anywhere on the screen to send (the bar at the bottom says so).
+            SwipeUpToSendScrollView(
+                screenTitle: isCompoundMode ? "Compound UTXOs"
+                    : "Send Kaspa from Address #\(WalletManager.isQuantumIndex(source.index) ? source.index - WalletManager.quantumIndexBase : source.index)",
+                onCancel: { dismiss() },
+                title: isCompoundMode ? "Swipe up to Consolidate" : "Swipe up to Send",
+                isBusy: isSending,
+                isEnabled: canSend,
+                amountSompi: amountSompi,
+                recipient: isCompoundMode ? nil : effectiveAddress,
+                sent: sentTransaction,
+                failureMessage: errorMessage,
+                onDone: {
+                    sentTransaction = nil
+                    onComplete()
+                    dismiss()
+                },
+                action: send
+            ) {
                 VStack(spacing: 18) {
                     SendRecipientCard(
                         input: $addressInput,
@@ -1375,13 +1401,6 @@ struct SpendingAddressWithdrawView: View {
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                     }
-
-                    SendActionButton(
-                        title: isCompoundMode ? "Slide to Consolidate" : "Slide to Send",
-                        isBusy: isSending,
-                        isEnabled: canSend,
-                        action: send
-                    )
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 12)
@@ -1418,14 +1437,7 @@ struct SpendingAddressWithdrawView: View {
                     setMaxAmount()
                 }
             }
-            .navigationTitle(isCompoundMode ? "Compound UTXOs"
-                             : "Send Kaspa from Address #\(WalletManager.isQuantumIndex(source.index) ? source.index - WalletManager.quantumIndexBase : source.index)")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
+            // The header (Cancel, title) is SwipeUpToSendScrollView's own, so it moves with the swipe.
             .scrollDismissesKeyboard(.interactively)
             .sheet(isPresented: $showQRScanner) {
                 QRScannerView { code in
@@ -1446,17 +1458,7 @@ struct SpendingAddressWithdrawView: View {
                     manualUtxos = selection
                 }
             }
-            // A half sheet rather than the dimmed overlay card this used to be, so every send in
-            // the app finishes the same way - see `SentConfirmationSheet`.
-            .sheet(item: $sentTransaction) { sent in
-                SentConfirmationSheet(transaction: sent) {
-                    sentTransaction = nil
-                    onComplete()
-                    dismiss()
-                }
-                .presentationDetents([.height(sent.sheetHeight)])
-                .presentationDragIndicator(.visible)
-            }
+            // The confirmation is the swipe-up's own full screen (SwipeUpToSendScrollView).
         }
         .interactiveDismissDisabled()
     }
@@ -1603,6 +1605,7 @@ struct SpendingAddressWithdrawView: View {
         let tipSompi = extraFeeSompi
         Task {
             do {
+                try await SendFailureSimulation.failIfEnabled()
                 let txId = try await chatService.sendFromSpendingAddress(index: source.index, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                 await MainActor.run {
                     isSending = false

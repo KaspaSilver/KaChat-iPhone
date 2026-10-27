@@ -1237,7 +1237,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Saisissez une adresse Kaspa (kaspa:...) ou un domaine (p. ex. alice.kachat). Les noms .kachat sont recherchés en premier.";
 "Finds addresses holding a balance or a domain." = "Trouve les adresses qui détiennent un solde ou un domaine.";
 "Their profile, .kachat name and address." = "Son profil, son nom .kachat et son adresse.";
-"Resolved first, everywhere you can type an address." = "Résolus en premier, partout où vous pouvez saisir une adresse.";
+"KaChat Names Indexer URL" = "URL de l'indexeur de noms KaChat";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "C'est ici que sont lus les noms et profils .kachat. Indiquez votre propre indexeur si vous en exécutez un. S'il ne peut pas fournir les noms, ils sont lus directement sur la chaîne. Résolu en premier, partout où vous pouvez saisir une adresse.";
 "Other Domains" = "Autres domaines";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Recherchés après .kachat, et listés sous Autres domaines quand un nom saisi y existe aussi.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Si cette phrase de récupération détient déjà votre identité à une autre adresse (un domaine .kachat, .kas, .k ou .kaspa, ou un solde de discussion approvisionné), choisissez-la ici. Seules les adresses avec un solde ou des domaines sont affichées.";
@@ -1253,9 +1254,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Les noms .kachat ne sont pas encore actifs sur ce réseau";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Votre carnet d’adresses et vos portefeuilles sont dans la même sauvegarde et se synchronisent de la même façon entre vos appareils.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "Grâce jusqu’au %@";
@@ -1478,3 +1476,34 @@
 "Choose a group on the left" = "Choisissez un groupe à gauche";
 "Keeps it first in your group chats." = "Reste en premier dans vos discussions de groupe.";
 "Pinned" = "Épinglé";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Envoi vers Nextcloud…";
+"Upload failed. Sends on chain." = "Échec de l'envoi. Envoyée sur la chaîne.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Échec de l'envoi vers Nextcloud. La photo partira sur la chaîne à l'envoi.";
+"Video" = "Vidéo";
+"Sending video…" = "Envoi de la vidéo…";
+"Video ready to send" = "Vidéo prête à envoyer";
+"Photo ready to send" = "Photo prête à envoyer";
+"Sending photo…" = "Envoi de la photo…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Balayez vers le haut pour envoyer";
+"Swipe up to Consolidate" = "Balayez vers le haut pour consolider";
+"Release to Send" = "Relâchez pour envoyer";
+"Keep Swiping" = "Continuez à balayer";
+"Sending" = "Envoi";
+"Failed" = "Échec";
+"Broadcasting to the Kaspa BlockDAG..." = "Diffusion sur le BlockDAG de Kaspa...";
+"Let go past halfway to send." = "Relâchez au-delà de la moitié pour envoyer.";
+"The send didn't go out." = "L'envoi n'est pas parti.";
+"Compound UTXOs" = "Consolider les UTXO";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Épingler en haut";
+"Moves it into the row above your chats." = "Le place dans la rangée au-dessus de vos discussions.";
+"Moves it back into your chats list." = "Le remet dans votre liste de discussions.";
+"Moves it into the row above your group chats." = "Le place dans la rangée au-dessus de vos discussions de groupe.";
+"Moves it back into your group chats list." = "Le remet dans votre liste de discussions de groupe.";
+"Pinned to the top row" = "Épinglé dans la rangée du haut";
+"Send and Receive" = "Envoyer et recevoir";

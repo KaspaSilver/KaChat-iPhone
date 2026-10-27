@@ -384,7 +384,7 @@ private struct NextcloudFolderSelectList: View {
     }
 }
 
-// MARK: - File selection (Portfolio > Import from Nextcloud)
+// MARK: - File selection (Addresses > Import from Nextcloud)
 
 /// Browses the connected account's files and hands back the file the user taps - no share
 /// link, unlike `NextcloudPickerView`. Starts in the KaChat folder (where Export to Nextcloud

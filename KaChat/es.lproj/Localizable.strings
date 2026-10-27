@@ -1236,7 +1236,8 @@
 "Enter a Kaspa address (kaspa:...) or a domain (e.g. alice.kachat). .kachat names are looked up first." = "Introduce una dirección de Kaspa (kaspa:...) o un dominio (p. ej., alice.kachat). Los nombres .kachat se buscan primero.";
 "Finds addresses holding a balance or a domain." = "Encuentra direcciones con saldo o con un dominio.";
 "Their profile, .kachat name and address." = "Su perfil, nombre .kachat y dirección.";
-"Resolved first, everywhere you can type an address." = "Se resuelven primero, en cualquier lugar donde puedas escribir una dirección.";
+"KaChat Names Indexer URL" = "URL del indexador de nombres de KaChat";
+"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Desde aquí se leen los nombres y perfiles .kachat. Apúntalo a tu propio indexador si tienes uno. Si no puede servir nombres, se leen directamente de la cadena. Se resuelve primero, en cualquier lugar donde puedas escribir una dirección.";
 "Other Domains" = "Otros dominios";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Se buscan después de .kachat y aparecen en Otros dominios cuando un nombre escrito también existe ahí.";
 "If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Si esta semilla ya guarda tu identidad en otra dirección (un dominio .kachat, .kas, .k o .kaspa, o un saldo de chat con fondos), elígela aquí. Solo se muestran direcciones con saldo o dominios.";
@@ -1252,9 +1253,6 @@
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Los nombres .kachat aún no están activos en esta red";
-
-/* Nextcloud sync carries portfolios */
-"Your Address Book and portfolios are in the same backup and sync between your devices the same way." = "Tu libreta de direcciones y tus portafolios están en la misma copia y se sincronizan igual entre tus dispositivos.";
 
 /* Your Domains card: when a .kachat name's grace period ends */
 "Grace ends %@" = "La gracia termina %@";
@@ -1477,3 +1475,34 @@
 "Choose a group on the left" = "Elige un grupo a la izquierda";
 "Keeps it first in your group chats." = "Se queda primero en tus chats grupales.";
 "Pinned" = "Fijado";
+
+/* Nextcloud media waits in the composer while it uploads */
+"Uploading to Nextcloud…" = "Subiendo a Nextcloud…";
+"Upload failed. Sends on chain." = "Error al subir. Se envía en la cadena.";
+"Nextcloud upload failed. Send puts the photo on chain instead." = "Error al subir a Nextcloud. Al enviar, la foto irá en la cadena.";
+"Video" = "Vídeo";
+"Sending video…" = "Enviando vídeo…";
+"Video ready to send" = "Vídeo listo para enviar";
+"Photo ready to send" = "Foto lista para enviar";
+"Sending photo…" = "Enviando foto…";
+
+/* Swipe-up send screen (from KaChat Wallet) */
+"Swipe up to Send" = "Desliza hacia arriba para enviar";
+"Swipe up to Consolidate" = "Desliza hacia arriba para consolidar";
+"Release to Send" = "Suelta para enviar";
+"Keep Swiping" = "Sigue deslizando";
+"Sending" = "Enviando";
+"Failed" = "Fallido";
+"Broadcasting to the Kaspa BlockDAG..." = "Transmitiendo al BlockDAG de Kaspa...";
+"Let go past halfway to send." = "Suelta pasada la mitad para enviar.";
+"The send didn't go out." = "El envío no salió.";
+"Compound UTXOs" = "Consolidar UTXOs";
+
+/* Pin to Top Row; Profile's Send and Receive sheet */
+"Pin to Top Row" = "Fijar en la fila superior";
+"Moves it into the row above your chats." = "Lo mueve a la fila sobre tus chats.";
+"Moves it back into your chats list." = "Lo devuelve a tu lista de chats.";
+"Moves it into the row above your group chats." = "Lo mueve a la fila sobre tus chats de grupo.";
+"Moves it back into your group chats list." = "Lo devuelve a tu lista de chats de grupo.";
+"Pinned to the top row" = "Fijado en la fila superior";
+"Send and Receive" = "Enviar y recibir";

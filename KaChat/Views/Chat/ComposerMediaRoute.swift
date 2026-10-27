@@ -1,5 +1,7 @@
+import AVFoundation
 import SwiftUI
 import PhotosUI
+import UIKit
 import UniformTypeIdentifiers
 
 /// What a "+"-sheet media row captures. With a Nextcloud server linked, each of these asks where
@@ -117,8 +119,41 @@ struct PickedMovieFile: Transferable {
 }
 
 extension PhotosPickerItem {
-    /// The library item is a video rather than a still.
+    /// The library item is a video rather than a still. A Live Photo can list a movie type
+    /// beside its image types; it is a photo, so anything that also offers an image is one.
     var isMovie: Bool {
         supportedContentTypes.contains { $0.conforms(to: .movie) }
+            && !supportedContentTypes.contains { $0.conforms(to: .image) }
+    }
+}
+
+/// A photo or video picked "via Nextcloud", waiting in the composer. Its upload starts the
+/// moment it is staged, not when send is tapped, and the send button spins until the share
+/// link is back - then a tap sends the link. Shared by 1:1 and group chats.
+struct NextcloudStagedMedia: Identifiable, Equatable {
+    enum Kind: Equatable { case image, video }
+    enum Phase: Equatable {
+        case uploading
+        case ready(URL)
+        /// Photos only: send then puts the photo on chain. A video that fails is dropped from the
+        /// composer instead, since no on-chain path fits one.
+        case failed
+    }
+
+    let id = UUID()
+    let kind: Kind
+    var phase: Phase = .uploading
+
+    var isUploading: Bool { phase == .uploading }
+}
+
+/// The first frame of a picked or recorded video, for the composer's thumbnail.
+enum VideoThumbnail {
+    static func image(for fileURL: URL) async -> UIImage? {
+        let generator = AVAssetImageGenerator(asset: AVURLAsset(url: fileURL))
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 300, height: 300)
+        guard let cgImage = try? await generator.image(at: .zero).image else { return nil }
+        return UIImage(cgImage: cgImage)
     }
 }

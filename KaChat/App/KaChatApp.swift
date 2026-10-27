@@ -1110,16 +1110,19 @@ extension Notification.Name {
     static let openGroup = Notification.Name("openGroup")
 }
 
-/// What the App Switcher and a system prompt see instead of the app's contents.
+/// What the App Switcher and a system prompt see instead of the app's contents: the app's own
+/// icon (`KaChatAppIcon`, the home-screen icon's light and dark versions), not the Kaspa logo.
 private struct PrivacyCoverView: View {
     var body: some View {
         ZStack {
             Rectangle().fill(.ultraThinMaterial)
-            Image("KaspaLogo")
+            Image("KaChatAppIcon")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 72, height: 72)
-                .opacity(0.9)
+                .frame(width: 84, height: 84)
+                // The icon's own corner shape, as on the home screen.
+                .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+                .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
         }
         .ignoresSafeArea()
     }

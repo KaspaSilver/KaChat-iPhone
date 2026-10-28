@@ -350,6 +350,12 @@ button > Send Kaspa, Donate, the Address Book, an address's Send, paying a payme
 (`CoinControlView`) lives there too. `SpendingAddressWithdrawView` is left for compounding one
 spending address's coins.
 
+Someone else's payment request (tapped, pasted or opened from a link) is paid in KaPay, KaChat's
+wallet app: `KaChatLinkRouter.openPaymentRequest` opens `kapay://pay/<same tail as kachat://pay/>`
+(`KaPayHandoff`, `Views/Shared/PaymentRequestViews.swift`). A chat-payment request (`chat=1`) is
+paid here instead, as an encrypted chat payment KaPay can't make; so is any request when KaPay
+isn't installed. Your own request shows here. KaPost follows the same rule.
+
 Every send starts with **From** (`SendFromSection`): Chatting Address (the
 default) or Choose an Address (`OwnAddressPicker`: every address of the account, each marked Used
 or Unused), so it is always plain which address the Kaspa leaves. There is no "primary spending

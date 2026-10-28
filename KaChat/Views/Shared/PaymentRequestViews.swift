@@ -286,6 +286,28 @@ final class PaymentRequestAwareTextView: UITextView {
     }
 }
 
+/// Payment requests are paid in KaPay, KaChat's wallet app: someone else's request opens there
+/// on Send, filled in, through KaPay's own scheme (`kapay://pay/...`, the same tail as
+/// `kachat://pay/`). Two stay here: your own (nothing to pay - `OwnPaymentRequestView`), and one
+/// asking for a chat payment (`toChattingAddress`, made from a 1:1 chat), which KaChat pays as an
+/// encrypted chat payment so it lands in your chat with them - KaPay can't. Without KaPay
+/// installed, `fallback` runs: KaChat's own Send Kaspa.
+enum KaPayHandoff {
+    static let scheme = "kapay"
+
+    @MainActor
+    static func pay(_ request: PaymentRequest, fallback: @escaping () -> Void) {
+        guard !request.isOwn, !request.toChattingAddress,
+              let url = URL(string: "\(scheme)://pay/\(request.linkTail)") else {
+            fallback()
+            return
+        }
+        UIApplication.shared.open(url) { opened in
+            if !opened { fallback() }
+        }
+    }
+}
+
 /// Pasting a payment request anywhere in KaChat opens Send Kaspa with it. Only text that is the
 /// link and nothing else, and only someone else's request: your own pastes as text, so you can
 /// send it to the person who should pay.

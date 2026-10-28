@@ -5,7 +5,7 @@
 
 **Audience:** the AI/engineer on the server box. This doc specifies a translation endpoint that
 serves the KaChat apps (iOS and Android) so a reader can translate a KaPost written in another
-language. It runs on the same host as the KaPosts indexer by default (`kachat.duckdns.org`), but
+language. It runs on the same host as the KaPosts indexer by default (`indexer.kachat.app`), but
 has its own client setting — Settings → Connection Settings → **Translation Service** — so anyone
 can point the app at a translator they host themselves without also having to run their own
 KaPosts indexer.

@@ -22,9 +22,10 @@ const crypto = require('crypto');
 
 const PORT = Number(process.env.PORT || 8080);
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || 'https://kachat.app').replace(/\/$/, '');
-const INDEXER_URL = (process.env.INDEXER_URL || 'https://kachat.duckdns.org').replace(/\/$/, '');
+const INDEXER_URL = (process.env.INDEXER_URL || 'https://indexer.kachat.app').replace(/\/$/, '');
 // kaspatest: profile links are looked up on the testnet indexer.
-const TESTNET_INDEXER_URL = (process.env.TESTNET_INDEXER_URL || 'https://tnkachat.duckdns.org:7443').replace(/\/$/, '');
+// No default: without one, kaspatest: profile links show the shortened address, no lookup.
+const TESTNET_INDEXER_URL = (process.env.TESTNET_INDEXER_URL || '').replace(/\/$/, '');
 // The indexer's get-post refuses to answer without a requesterPubkey (it only personalises
 // isUpvoted & co.); a site has none, so it sends a fixed placeholder that is a valid
 // compressed pubkey shape and belongs to nobody.
@@ -521,6 +522,7 @@ function loadIdentityForAddress(address) {
   return cachedWithRetry('id:' + address, 600_000, 60_000, async () => {
     const identity = { address, name: null, avatar: null, banner: null, bio: null, linktree: null };
     const base = address.startsWith('kaspatest:') ? TESTNET_INDEXER_URL : INDEXER_URL;
+    if (!base) return { result: identity, transient: false };
     const res = await fetchJSON(`${base}/identity/${encodeURIComponent(address)}`, 5000);
     if (isTransient(res)) return { result: identity, transient: true };
     const body = res.body || {};
@@ -1077,4 +1079,4 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => console.log(`kachat.app link site on :${PORT} (indexer ${INDEXER_URL}, testnet ${TESTNET_INDEXER_URL})`));
+server.listen(PORT, () => console.log(`kachat.app link site on :${PORT} (indexer ${INDEXER_URL}, testnet ${TESTNET_INDEXER_URL || 'none'})`));

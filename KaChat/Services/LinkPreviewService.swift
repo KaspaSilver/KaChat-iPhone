@@ -36,8 +36,6 @@ enum KaChatInternalLink: Equatable {
     /// request with the download buttons, and unfurls a preview in every chat app
     /// (see KACHAT_APP_LINKS.md).
     static let universalLinkHost = "kachat.app"
-    /// Links from before kachat.app: still opened, never written.
-    static let legacyUniversalLinkHosts: Set<String> = ["kachat.duckdns.org"]
 
     /// The one profile link every share button hands out - your own (Profile, beside the title)
     /// and anyone else's (User Info > Share) - so the two can never drift apart:
@@ -89,7 +87,7 @@ enum KaChatInternalLink: Equatable {
         case "http", "https":
             var host = url.host?.lowercased() ?? ""
             if host.hasPrefix("www.") { host.removeFirst(4) }
-            guard host == universalLinkHost || legacyUniversalLinkHosts.contains(host), parts.count == 2 else { return nil }
+            guard host == universalLinkHost, parts.count == 2 else { return nil }
             switch parts[0].lowercased() {
             case "u": return profileLink(rawAddress: parts[1])
             case "pay": return PaymentRequest(rawAddress: parts[1], url: url).map { .paymentRequest($0) }
@@ -130,7 +128,7 @@ enum KaChatInternalLink: Equatable {
     /// universal form is matched here too so it is claimed as INTERNAL before the generic
     /// preview path can fetch it over the network.
     private static let pattern =
-        #"(?:kachat://(?:profile|pay)/|https?://(?:www\.)?kachat\.(?:app|duckdns\.org)/(?:u|pay)/)[^\s<>"']+"#
+        #"(?:kachat://(?:profile|pay)/|https?://(?:www\.)?kachat\.app/(?:u|pay)/)[^\s<>"']+"#
 
     private static let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
 
@@ -162,8 +160,7 @@ enum KaChatInternalLink: Equatable {
         // Cheap bail-out before paying for the regex: neither form can appear without one of
         // these two literals, and the overwhelming majority of messages contain neither.
         let lowered = text.lowercased()
-        guard lowered.contains("kachat://") || lowered.contains(universalLinkHost)
-                || legacyUniversalLinkHosts.contains(where: { lowered.contains($0) }) else { return nil }
+        guard lowered.contains("kachat://") || lowered.contains(universalLinkHost) else { return nil }
         guard let regex else { return nil }
         let ns = text as NSString
         let full = NSRange(location: 0, length: ns.length)

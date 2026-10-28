@@ -42,9 +42,9 @@ Environment (`server/.env`):
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `INDEXER_URL` | `https://kachat.duckdns.org` | The KaPosts indexer; the site calls `GET /get-post?id=<txid>`. |
+| `INDEXER_URL` | `https://indexer.kachat.app` | The KaPosts indexer; the site calls `GET /get-post?id=<txid>`. |
 | `INDEXER_REQUESTER_PUBKEY` | a nobody placeholder | `get-post` requires a `requesterPubkey` (it only personalises `isUpvoted` & co.); the placeholder is accepted as-is by the current indexer. |
-| `TESTNET_INDEXER_URL` | `https://tnkachat.duckdns.org:7443` | Where `/u/kaspatest:...` links look the person up. |
+| `TESTNET_INDEXER_URL` | none | Where `/u/kaspatest:...` links look the person up. Unset: no lookup, the page shows the shortened address. |
 | `HOME_URL` | `https://home.kachat.app` | The home page. Every link page uses its logo (`/kachat-logo.png`) and its 1200x630 preview image (`/og-image.png`, also `OG_IMAGE`), so the two sites look the same. |
 | `APP_STORE_URL` | `https://apps.apple.com/app/id6759102359` | iOS download button + Safari's Smart App Banner. |
 | `PLAY_URL` | `https://play.google.com/store/apps/details?id=com.kachat.app` | Android download button. |
@@ -95,8 +95,8 @@ Environment (`server/.env`):
   address. No avatar shows the app's empty-avatar glyph.
 - `GET /.well-known/apple-app-site-association` - `applinks` for `/post/*`, `/broadcast/*`, `/u/*` and `/pay/*`
   for every `IOS_APP_IDS` entry. Served as `application/json`, no redirect - exactly what Apple
-  requires. The iOS app carries `applinks:kachat.app` (and still `applinks:kachat.duckdns.org`
-  for links already out there).
+  requires. The iOS app carries `applinks:kachat.app` only (the old `kachat.duckdns.org` links
+  were dropped 2026-10-28).
 - `GET /.well-known/assetlinks.json` - the Android equivalent, from `ANDROID_PACKAGE` and
   `ANDROID_SHA256`. The Android app must declare an `autoVerify` intent filter for
   `https://kachat.app/post/*`, `/broadcast/*`, `/u/*` and `/pay/*` (and keep the `kachat://` scheme filter).
@@ -121,8 +121,8 @@ opens Safari). Facebook's and X's crawlers cache aggressively: use their "sharin
 
 ## Apps
 
-- **iOS** (done in this repo): writes `https://kachat.app/...` in every share, opens both
-  `kachat.app` and the old `kachat.duckdns.org` links, entitlement `applinks:kachat.app`.
+- **iOS** (done in this repo): writes `https://kachat.app/...` in every share, opens
+  `kachat.app` links, entitlement `applinks:kachat.app`.
 - **Android / desktop**: write the same `https://kachat.app/post/<txid>`,
   `/broadcast/<room>` and `/u/<address>` links in their share texts (the `kachat://` scheme form is no longer
   included in share text on iOS - it previews nowhere), accept `kachat.app` links on the way

@@ -92,7 +92,7 @@ struct KaChatApp: App {
                     handleIncomingURL(url)
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                    // Universal links (https://kachat.app/post/<txid>, and the old duckdns host) - same router.
+                    // Universal links (https://kachat.app/post/<txid>) - same router.
                     if let url = activity.webpageURL {
                         handleIncomingURL(url)
                     }
@@ -1011,8 +1011,7 @@ enum OwnAddressRoute {
 /// the in-chat preview cards (`KaChatInternalLinkCardView`), so a link opens the same screen
 /// whichever way the user reached it - and never bounces out to Safari for an in-app target.
 enum KaChatLinkRouter {
-    /// Any URL a user taps inside the app: a KaChat link (kachat.app, the old duckdns host, or
-    /// the kachat:// scheme) goes straight to its profile or payment request; everything else leaves the
+    /// Any URL a user taps inside the app: a KaChat link (kachat.app or the kachat:// scheme) goes straight to its profile or payment request; everything else leaves the
     /// app as usual. The one call every "Open" button should make.
     @MainActor
     static func openAnywhere(_ url: URL) {

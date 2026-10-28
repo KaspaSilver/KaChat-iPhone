@@ -51,7 +51,7 @@
 > section 4.1. Name objects in the API carry `periodStart`; transfer, list, buy and offer accept
 > keep it unchanged.
 
-For the KaChat indexer (the `kachat.duckdns.org` service: messages, push, KaPosts, public chats,
+For the KaChat indexer (the `indexer.kachat.app` service, formerly `kachat.duckdns.org`: messages, push, KaPosts, public chats,
 groups, stats). Two jobs:
 
 - **Part A - run a testnet-10 instance** of the whole indexer, so the app's Testnet mode has a

@@ -9,8 +9,8 @@ The app is the source of truth for payload shapes: `PushNotificationManager.swif
 
 ## 0a. Deployment reality (read first)
 
-**LIVE:** the push service runs on `kachat.duckdns.org` and the app's default Push Indexer
-URL points there (stored kasia.wtf values migrate forward; hand-entered custom URLs are
+**LIVE:** the push service runs on `indexer.kachat.app` (formerly `kachat.duckdns.org`) and the
+app's default Push Indexer URL points there (stored kasia.wtf and kachat.duckdns.org values migrate forward; hand-entered custom URLs are
 honored). This box must therefore serve the FULL push spec - the base chat/group system from
 `PUSH_NOTIFICATIONS.md` (registration, auth, encrypted chat payloads, blinded group ids)
 PLUS everything in this doc, signed with the operator-supplied APNs auth key (.p8) for team

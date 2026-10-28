@@ -934,7 +934,8 @@ final class PushNotificationManager: ObservableObject {
     }
 
     /// Unregister device (call on logout/wallet delete)
-    /// The push URL changed (e.g. the kasia.wtf -> kachat.duckdns.org default migration) but
+    /// The push URL changed (e.g. the kasia.wtf -> kachat.duckdns.org -> indexer.kachat.app
+    /// default migrations) but
     /// the OLD service still has this device registered and keeps pushing - the source of
     /// duplicated notifications. One best-effort DELETE against the old base before
     /// registering with the new one; unsigned (legacy backends accept it), single attempt.

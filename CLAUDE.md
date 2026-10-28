@@ -98,7 +98,7 @@ The app uses MVVM architecture with global singleton services injected via Swift
 All network endpoints are configurable in Settings > Connection Settings:
 - **Network**: mainnet / testnet toggle
 - **Indexer URL**: Kasia message indexer endpoint
-- **KaChat Names Indexer URL** (Domains tab, `AppSettings.kachatNamesIndexerURL`): where `.kachat` names, profiles and the market are read. Separate from the message indexer so a user can run their own names indexer; same KaChat indexer by default, and settings saved before it existed copy the message indexer. Falls back to the chain walker when it can't serve the registry.
+- **KaChat Names Indexer URL** (Domains tab, `AppSettings.kachatNamesIndexerURL`): where `.kachat` names, profiles and the market are read. Separate from the message indexer so a user can run their own names indexer; same KaChat indexer by default (`indexer.kachat.app`, `AppSettings.defaultIndexerURL`; saved `kachat.duckdns.org` defaults migrate forward as settings decode; testnet has no default indexer, so its chat, push and names fields start blank and the retired `tnkachat.duckdns.org` is cleared), and settings saved before it existed copy the message indexer. Falls back to the chain walker when it can't serve the registry.
 - **KNS URL**: Kaspa Name Service API endpoint
 - **Kaspa REST API URL**: Block explorer API for transaction lookups
 

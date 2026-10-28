@@ -58,7 +58,7 @@ struct ChatListView: View {
     @State private var rowDeleteContact: Contact?
     /// The row whose long-press action sheet is up.
     @State private var conversationActionTarget: Conversation?
-    /// The chat row's "Add to Address Book" tile: the contact whose entry sheet is up.
+    /// The chat row's "Add to Contacts" tile: the contact whose entry sheet is up.
     @State private var addressBookTarget: Contact?
     @ObservedObject private var addressBook = AddressBookManager.shared
     @State private var editMode: EditMode = .inactive
@@ -1056,11 +1056,11 @@ struct ChatListView: View {
                 if !isOwnChat(conversation.contact) {
                     let saved = addressBook.entry(for: conversation.contact.address) != nil
                     ActionSheetRow(
-                        title: saved ? "Address Book" : "Add to Address Book",
+                        title: saved ? "Contacts" : "Add to Contacts",
                         subtitle: saved
                             ? "Edit or remove this saved address."
                             : "Save this address with a name you'll recognize.",
-                        systemImage: saved ? "book.closed.fill" : "book.closed"
+                        systemImage: saved ? "person.text.rectangle.fill" : "person.text.rectangle"
                     ) {
                         conversationActionTarget = nil
                         // One turn later, like Delete: a sheet cannot present while this one leaves.

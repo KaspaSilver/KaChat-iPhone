@@ -384,8 +384,8 @@ struct ChatInfoView: View {
                         ) { activeSheet = .aliases }
 
                         infoCard(
-                            addressBook.entry(for: contact.address) == nil ? localized("Add to Address Book") : localized("Address Book"),
-                            systemImage: addressBook.entry(for: contact.address) == nil ? "book.closed" : "book.closed.fill"
+                            addressBook.entry(for: contact.address) == nil ? localized("Add to Contacts") : localized("Contacts"),
+                            systemImage: addressBook.entry(for: contact.address) == nil ? "person.text.rectangle" : "person.text.rectangle.fill"
                         ) { activeSheet = .addressBook }
 
                         infoCard(
@@ -427,8 +427,8 @@ struct ChatInfoView: View {
                         suggestedName: contact.assignedName ?? contactsManager.displayName(for: contact)
                     ) { result in
                         switch result {
-                        case .saved: showToast(localized("Saved to Address Book."))
-                        case .removed: showToast(localized("Removed from Address Book."))
+                        case .saved: showToast(localized("Saved to Contacts."))
+                        case .removed: showToast(localized("Removed from Contacts."))
                         }
                     }
                     .presentationDetents([.medium, .large])

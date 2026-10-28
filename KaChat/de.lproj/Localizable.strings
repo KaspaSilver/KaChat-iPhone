@@ -1454,3 +1454,50 @@
 "Moves it back into your group chats list." = "Verschiebt sie zurück in deine Gruppenchat-Liste.";
 "Pinned to the top row" = "In die obere Reihe angeheftet";
 "Send and Receive" = "Senden und Empfangen";
+
+/* Send steps */
+"Who are you sending to?" = "An wen sendest du?";
+"Review" = "Prüfen";
+"You're sending" = "Du sendest";
+"Consolidating" = "Wird zusammengeführt";
+"This address (consolidating)" = "Diese Adresse (Zusammenführung)";
+"This address" = "Diese Adresse";
+"This is more than the address you're sending from holds." = "Das ist mehr, als die Adresse hat, von der du sendest.";
+"Set your network fee" = "Lege deine Netzwerkgebühr fest";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "Das Netzwerk braucht mindestens %@ KAS. Eine niedrigere Gebühr wird darauf angehoben.";
+"This is much more than the network needs." = "Das ist viel mehr, als das Netzwerk braucht.";
+"Decimal point" = "Dezimalzeichen";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "Ist das Netzwerk ausgelastet, zahlen Schnell oder Priorität eine höhere Gebühr, damit die Zahlung schneller bestätigt wird. Mit Bearbeiten legst du eine eigene Gebühr fest.";
+"Available: %@ KAS" = "Verfügbar: %@ KAS";
+"Amount (KAS)" = "Betrag (KAS)";
+"Where are you sending from?" = "Von wo sendest du?";
+"Pick which of your addresses the Kaspa leaves from." = "Wähle, von welcher deiner Adressen das Kaspa abgeht.";
+"Where do you want to be paid?" = "Wohin möchtest du bezahlt werden?";
+"How much?" = "Wie viel?";
+"You're requesting" = "Du forderst an";
+"A brand-new address of yours that has never been used or handed out." = "Eine brandneue Adresse von dir, die noch nie benutzt oder weitergegeben wurde.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Wer sie in KaPay oder KaChat öffnet, bekommt Kaspa senden mit diesen Angaben ausgefüllt und sieht, dass sie von deiner Chat-Adresse stammt (mit ihrem Schlüssel signiert).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "Zu Kontakten hinzufügen";
+"Saved to Contacts." = "In Kontakten gespeichert.";
+"Removed from Contacts." = "Aus Kontakten entfernt.";
+"Remove Contact Photos" = "Kontaktfotos entfernen";
+"Remove Contact Photos?" = "Kontaktfotos entfernen?";
+"Your contacts are in the same backup and sync between your devices the same way." = "Deine Kontakte sind im selben Backup und werden genauso zwischen deinen Geräten synchronisiert.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "Wähle Personen aus deinen Kontakten oder füge jemanden per Kaspa-Adresse oder Domain hinzu.";
+"No members added yet. Add people from your contacts or by address below." = "Noch keine Mitglieder. Füge Personen aus deinen Kontakten oder unten per Adresse hinzu.";
+"Add contacts from a contacts export." = "Kontakte aus einem Kontakte-Export hinzufügen.";
+"Save your contacts, with their photos, to a file." = "Deine Kontakte mit ihren Fotos in einer Datei sichern.";
+"Pick a contacts export from your Nextcloud." = "Wähle einen Kontakte-Export aus deiner Nextcloud.";
+"Delete Contact" = "Kontakt löschen";
+"Not in your contacts" = "Nicht in deinen Kontakten";
+"Remove from Contacts" = "Aus Kontakten entfernen";
+"Add them in Contacts." = "Füge sie unter Kontakte hinzu.";
+"That file isn't a KaChat contacts export." = "Diese Datei ist kein KaChat-Kontakte-Export.";
+"That contacts export has no contacts." = "Dieser Kontakte-Export enthält keine Kontakte.";
+"Edit Contact" = "Kontakt bearbeiten";
+"No contacts yet" = "Noch keine Kontakte";
+"Delete %@ from your contacts?" = "%@ aus deinen Kontakten löschen?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Speichere die Kaspa-Adressen, die du nutzt, mit einem Namen, den du wiedererkennst. Sie bleiben in KaChat, nur für diese Wallet, und landen nie in der Kontakte-App deines Telefons.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Nur in KaChat für diese Wallet gespeichert. Nie in der Kontakte-App deines Telefons.";

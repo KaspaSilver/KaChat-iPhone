@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "Grup sohbeti listene geri taşır.";
 "Pinned to the top row" = "Üst sıraya sabitlendi";
 "Send and Receive" = "Gönder ve Al";
+
+/* Send steps */
+"Who are you sending to?" = "Kime gönderiyorsun?";
+"Review" = "Gözden Geçir";
+"You're sending" = "Gönderiyorsun";
+"Consolidating" = "Birleştiriliyor";
+"This address (consolidating)" = "Bu adres (birleştirme)";
+"This address" = "Bu adres";
+"This is more than the address you're sending from holds." = "Bu, gönderdiğin adresteki tutardan fazla.";
+"Set your network fee" = "Ağ ücretini belirle";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "Ağ en az %@ KAS istiyor. Daha düşük bir ücret bu tutara yükseltilir.";
+"This is much more than the network needs." = "Bu, ağın ihtiyacından çok daha fazla.";
+"Decimal point" = "Ondalık ayırıcı";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "Ağ yoğunsa Hızlı veya Öncelikli, daha erken onaylanması için daha yüksek ücret öder. Düzenle ile kendi ücretini belirlersin.";
+"Available: %@ KAS" = "Kullanılabilir: %@ KAS";
+"Amount (KAS)" = "Tutar (KAS)";
+"Where are you sending from?" = "Nereden gönderiyorsun?";
+"Pick which of your addresses the Kaspa leaves from." = "Kaspa'nın hangi adresinden çıkacağını seç.";
+"Where do you want to be paid?" = "Ödemeyi nereye almak istiyorsun?";
+"How much?" = "Ne kadar?";
+"You're requesting" = "İstediğin tutar";
+"A brand-new address of yours that has never been used or handed out." = "Hiç kullanılmamış ve kimseye verilmemiş yepyeni bir adresin.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "KaPay veya KaChat'te açan herkes bu bilgilerle doldurulmuş Kaspa Gönder ekranını görür ve isteğin sohbet adresin tarafından yapıldığını (onun anahtarıyla imzalı) görür.";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "Kişilere Ekle";
+"Saved to Contacts." = "Kişilere kaydedildi.";
+"Removed from Contacts." = "Kişilerden kaldırıldı.";
+"Remove Contact Photos" = "Kişi Fotoğraflarını Kaldır";
+"Remove Contact Photos?" = "Kişi fotoğrafları kaldırılsın mı?";
+"Your contacts are in the same backup and sync between your devices the same way." = "Kişilerin aynı yedekte ve cihazların arasında aynı şekilde eşitlenir.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "Kişilerinden birini seç ya da herkesi Kaspa adresi veya alan adıyla ekle.";
+"No members added yet. Add people from your contacts or by address below." = "Henüz üye yok. Kişilerinden ya da aşağıdan adresle kişi ekle.";
+"Add contacts from a contacts export." = "Bir kişiler dışa aktarımından kişi ekle.";
+"Save your contacts, with their photos, to a file." = "Kişilerini fotoğraflarıyla birlikte bir dosyaya kaydet.";
+"Pick a contacts export from your Nextcloud." = "Nextcloud'undan bir kişiler dışa aktarımı seç.";
+"Delete Contact" = "Kişiyi Sil";
+"Not in your contacts" = "Kişilerinde yok";
+"Remove from Contacts" = "Kişilerden Kaldır";
+"Add them in Contacts." = "Onları Kişiler'e ekle.";
+"That file isn't a KaChat contacts export." = "Bu dosya bir KaChat kişiler dışa aktarımı değil.";
+"That contacts export has no contacts." = "Bu kişiler dışa aktarımında kişi yok.";
+"Edit Contact" = "Kişiyi Düzenle";
+"No contacts yet" = "Henüz kişi yok";
+"Delete %@ from your contacts?" = "%@ kişilerinden silinsin mi?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Kullandığın Kaspa adreslerini tanıyacağın bir adla kaydet. KaChat'te, yalnızca bu cüzdan için kalırlar ve telefonunun Kişiler uygulamasına asla girmezler.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Yalnızca bu cüzdan için KaChat'te kaydedilir. Telefonunun Kişiler uygulamasına asla eklenmez.";

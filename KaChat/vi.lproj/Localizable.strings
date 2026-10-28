@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "Đưa nó trở lại danh sách nhóm chat.";
 "Pinned to the top row" = "Đã ghim lên hàng trên cùng";
 "Send and Receive" = "Gửi và nhận";
+
+/* Send steps */
+"Who are you sending to?" = "Bạn gửi cho ai?";
+"Review" = "Xem lại";
+"You're sending" = "Bạn đang gửi";
+"Consolidating" = "Đang gộp";
+"This address (consolidating)" = "Địa chỉ này (đang gộp)";
+"This address" = "Địa chỉ này";
+"This is more than the address you're sending from holds." = "Số này nhiều hơn số dư của địa chỉ bạn gửi từ đó.";
+"Set your network fee" = "Đặt phí mạng";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "Mạng cần ít nhất %@ KAS. Phí thấp hơn sẽ được nâng lên mức đó.";
+"This is much more than the network needs." = "Mức này cao hơn nhiều so với mạng cần.";
+"Decimal point" = "Dấu thập phân";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "Khi mạng bận, Nhanh hoặc Ưu tiên trả phí cao hơn để xác nhận sớm hơn. Sửa để đặt phí riêng.";
+"Available: %@ KAS" = "Khả dụng: %@ KAS";
+"Amount (KAS)" = "Số tiền (KAS)";
+"Where are you sending from?" = "Bạn gửi từ đâu?";
+"Pick which of your addresses the Kaspa leaves from." = "Chọn địa chỉ nào của bạn sẽ gửi Kaspa đi.";
+"Where do you want to be paid?" = "Bạn muốn nhận tiền ở đâu?";
+"How much?" = "Bao nhiêu?";
+"You're requesting" = "Bạn đang yêu cầu";
+"A brand-new address of yours that has never been used or handed out." = "Một địa chỉ hoàn toàn mới của bạn, chưa từng được dùng hay chia sẻ.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Ai mở nó trong KaPay hoặc KaChat sẽ thấy màn hình Gửi Kaspa đã điền sẵn và biết yêu cầu này do địa chỉ trò chuyện của bạn tạo (ký bằng khóa của nó).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "Thêm vào Danh bạ";
+"Saved to Contacts." = "Đã lưu vào Danh bạ.";
+"Removed from Contacts." = "Đã xóa khỏi Danh bạ.";
+"Remove Contact Photos" = "Xóa ảnh danh bạ";
+"Remove Contact Photos?" = "Xóa ảnh danh bạ?";
+"Your contacts are in the same backup and sync between your devices the same way." = "Danh bạ của bạn nằm trong cùng bản sao lưu và đồng bộ giữa các thiết bị theo cùng cách.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "Chọn người từ danh bạ, hoặc thêm bất kỳ ai bằng địa chỉ Kaspa hay tên miền.";
+"No members added yet. Add people from your contacts or by address below." = "Chưa có thành viên. Thêm người từ danh bạ hoặc bằng địa chỉ bên dưới.";
+"Add contacts from a contacts export." = "Thêm liên hệ từ một tệp xuất danh bạ.";
+"Save your contacts, with their photos, to a file." = "Lưu danh bạ của bạn, kèm ảnh, vào một tệp.";
+"Pick a contacts export from your Nextcloud." = "Chọn một tệp xuất danh bạ từ Nextcloud của bạn.";
+"Delete Contact" = "Xóa liên hệ";
+"Not in your contacts" = "Không có trong danh bạ";
+"Remove from Contacts" = "Xóa khỏi Danh bạ";
+"Add them in Contacts." = "Thêm họ trong Danh bạ.";
+"That file isn't a KaChat contacts export." = "Tệp đó không phải tệp xuất danh bạ của KaChat.";
+"That contacts export has no contacts." = "Tệp xuất danh bạ đó không có liên hệ nào.";
+"Edit Contact" = "Sửa liên hệ";
+"No contacts yet" = "Chưa có liên hệ";
+"Delete %@ from your contacts?" = "Xóa %@ khỏi danh bạ?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Lưu các địa chỉ Kaspa bạn dùng với tên dễ nhận ra. Chúng ở lại trong KaChat, chỉ cho ví này, và không bao giờ vào ứng dụng Danh bạ của điện thoại.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Lưu trong KaChat chỉ cho ví này. Không bao giờ thêm vào ứng dụng Danh bạ của điện thoại.";

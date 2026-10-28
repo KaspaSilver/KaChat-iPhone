@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "מחזיר אותה לרשימת הצ'אטים הקבוצתיים שלך.";
 "Pinned to the top row" = "הוצמד לשורה העליונה";
 "Send and Receive" = "שליחה וקבלה";
+
+/* Send steps */
+"Who are you sending to?" = "למי אתה שולח?";
+"Review" = "סקירה";
+"You're sending" = "אתה שולח";
+"Consolidating" = "מאחד";
+"This address (consolidating)" = "הכתובת הזאת (איחוד)";
+"This address" = "הכתובת הזאת";
+"This is more than the address you're sending from holds." = "זה יותר ממה שיש בכתובת שממנה אתה שולח.";
+"Set your network fee" = "קבע עמלת רשת";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "הרשת צריכה לפחות %@ KAS. עמלה נמוכה יותר תועלה לסכום הזה.";
+"This is much more than the network needs." = "זה הרבה יותר ממה שהרשת צריכה.";
+"Decimal point" = "נקודה עשרונית";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "כשהרשת עמוסה, מהיר או עדיפות משלמים עמלה גבוהה יותר כדי שהאישור יגיע מהר יותר. ערוך קובע עמלה משלך.";
+"Available: %@ KAS" = "זמין: %@ KAS";
+"Amount (KAS)" = "סכום (KAS)";
+"Where are you sending from?" = "מאיפה אתה שולח?";
+"Pick which of your addresses the Kaspa leaves from." = "בחר מאיזו מהכתובות שלך ייצא הקספה.";
+"Where do you want to be paid?" = "לאן תרצה לקבל את התשלום?";
+"How much?" = "כמה?";
+"You're requesting" = "אתה מבקש";
+"A brand-new address of yours that has never been used or handed out." = "כתובת חדשה לגמרי שלך שמעולם לא נעשה בה שימוש ולא נמסרה לאיש.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "מי שפותח אותה ב-KaPay או ב-KaChat מקבל את שליחת קספה עם הפרטים האלה ממולאים, ורואה שהיא נוצרה על ידי כתובת הצ'אט שלך (חתומה במפתח שלה).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "הוסף לאנשי קשר";
+"Saved to Contacts." = "נשמר באנשי הקשר.";
+"Removed from Contacts." = "הוסר מאנשי הקשר.";
+"Remove Contact Photos" = "הסר תמונות אנשי קשר";
+"Remove Contact Photos?" = "להסיר תמונות אנשי קשר?";
+"Your contacts are in the same backup and sync between your devices the same way." = "אנשי הקשר שלך נמצאים באותו גיבוי ומסתנכרנים בין המכשירים שלך באותו אופן.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "בחר אנשים מאנשי הקשר שלך, או הוסף כל אחד לפי כתובת Kaspa או דומיין.";
+"No members added yet. Add people from your contacts or by address below." = "עדיין אין חברים. הוסף אנשים מאנשי הקשר שלך או לפי כתובת למטה.";
+"Add contacts from a contacts export." = "הוסף אנשי קשר מקובץ ייצוא של אנשי קשר.";
+"Save your contacts, with their photos, to a file." = "שמור את אנשי הקשר שלך, עם התמונות שלהם, בקובץ.";
+"Pick a contacts export from your Nextcloud." = "בחר קובץ ייצוא של אנשי קשר מה-Nextcloud שלך.";
+"Delete Contact" = "מחק איש קשר";
+"Not in your contacts" = "לא באנשי הקשר שלך";
+"Remove from Contacts" = "הסר מאנשי הקשר";
+"Add them in Contacts." = "הוסף אותם באנשי קשר.";
+"That file isn't a KaChat contacts export." = "הקובץ הזה אינו ייצוא אנשי קשר של KaChat.";
+"That contacts export has no contacts." = "בייצוא אנשי הקשר הזה אין אנשי קשר.";
+"Edit Contact" = "ערוך איש קשר";
+"No contacts yet" = "עדיין אין אנשי קשר";
+"Delete %@ from your contacts?" = "למחוק את %@ מאנשי הקשר שלך?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "שמור את כתובות ה-Kaspa שאתה משתמש בהן עם שם שתזהה. הן נשארות ב-KaChat, לארנק הזה בלבד, ולעולם לא נכנסות לאפליקציית אנשי הקשר בטלפון.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "נשמר ב-KaChat לארנק הזה בלבד. לעולם לא נוסף לאפליקציית אנשי הקשר בטלפון.";

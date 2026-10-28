@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "يعيدها إلى قائمة محادثاتك الجماعية.";
 "Pinned to the top row" = "مثبّتة في الصف العلوي";
 "Send and Receive" = "إرسال واستلام";
+
+/* Send steps */
+"Who are you sending to?" = "إلى من ترسل؟";
+"Review" = "مراجعة";
+"You're sending" = "أنت ترسل";
+"Consolidating" = "جارٍ الدمج";
+"This address (consolidating)" = "هذا العنوان (دمج)";
+"This address" = "هذا العنوان";
+"This is more than the address you're sending from holds." = "هذا أكثر مما يحمله العنوان الذي ترسل منه.";
+"Set your network fee" = "حدّد رسوم الشبكة";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "تحتاج الشبكة إلى %@ KAS على الأقل. تُرفع الرسوم الأقل إلى هذا المبلغ.";
+"This is much more than the network needs." = "هذا أكثر بكثير مما تحتاجه الشبكة.";
+"Decimal point" = "الفاصلة العشرية";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "إذا كانت الشبكة مزدحمة، يدفع السريع أو الأولوية رسومًا أعلى ليتم التأكيد أسرع. تعديل يحدّد رسومًا من اختيارك.";
+"Available: %@ KAS" = "المتاح: %@ KAS";
+"Amount (KAS)" = "المبلغ (KAS)";
+"Where are you sending from?" = "من أين ترسل؟";
+"Pick which of your addresses the Kaspa leaves from." = "اختر العنوان الذي يخرج منه الكاسبا.";
+"Where do you want to be paid?" = "أين تريد أن تستلم الدفعة؟";
+"How much?" = "كم؟";
+"You're requesting" = "أنت تطلب";
+"A brand-new address of yours that has never been used or handed out." = "عنوان جديد تمامًا لك لم يُستخدم أو يُشارك من قبل.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "من يفتحه في KaPay أو KaChat يحصل على إرسال كاسبا معبأً بهذه البيانات، ويرى أنه صادر عن عنوان الدردشة الخاص بك (موقّع بمفتاحه).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "إضافة إلى جهات الاتصال";
+"Saved to Contacts." = "تم الحفظ في جهات الاتصال.";
+"Removed from Contacts." = "تمت الإزالة من جهات الاتصال.";
+"Remove Contact Photos" = "إزالة صور جهات الاتصال";
+"Remove Contact Photos?" = "إزالة صور جهات الاتصال؟";
+"Your contacts are in the same backup and sync between your devices the same way." = "جهات اتصالك في النسخة الاحتياطية نفسها وتتزامن بين أجهزتك بالطريقة نفسها.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "اختر أشخاصًا من جهات اتصالك، أو أضف أي شخص بعنوان كاسبا أو نطاق.";
+"No members added yet. Add people from your contacts or by address below." = "لا أعضاء بعد. أضف أشخاصًا من جهات اتصالك أو بعنوان أدناه.";
+"Add contacts from a contacts export." = "أضف جهات اتصال من ملف تصدير جهات اتصال.";
+"Save your contacts, with their photos, to a file." = "احفظ جهات اتصالك مع صورها في ملف.";
+"Pick a contacts export from your Nextcloud." = "اختر ملف تصدير جهات اتصال من Nextcloud.";
+"Delete Contact" = "حذف جهة الاتصال";
+"Not in your contacts" = "ليس في جهات اتصالك";
+"Remove from Contacts" = "إزالة من جهات الاتصال";
+"Add them in Contacts." = "أضفهم في جهات الاتصال.";
+"That file isn't a KaChat contacts export." = "هذا الملف ليس تصدير جهات اتصال من KaChat.";
+"That contacts export has no contacts." = "لا يحتوي ملف التصدير هذا على جهات اتصال.";
+"Edit Contact" = "تعديل جهة الاتصال";
+"No contacts yet" = "لا جهات اتصال بعد";
+"Delete %@ from your contacts?" = "حذف %@ من جهات اتصالك؟";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "احفظ عناوين كاسبا التي تستخدمها باسم تعرفه. تبقى في KaChat لهذه المحفظة فقط، ولا تدخل أبدًا تطبيق جهات الاتصال في هاتفك.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "محفوظ في KaChat لهذه المحفظة فقط. لا يُضاف أبدًا إلى تطبيق جهات الاتصال في هاتفك.";

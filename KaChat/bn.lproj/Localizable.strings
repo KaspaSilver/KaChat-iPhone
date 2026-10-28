@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "এটি আবার আপনার গ্রুপ চ্যাট তালিকায় ফিরিয়ে আনে।";
 "Pinned to the top row" = "উপরের সারিতে পিন করা হয়েছে";
 "Send and Receive" = "পাঠান ও গ্রহণ করুন";
+
+/* Send steps */
+"Who are you sending to?" = "আপনি কাকে পাঠাচ্ছেন?";
+"Review" = "পর্যালোচনা";
+"You're sending" = "আপনি পাঠাচ্ছেন";
+"Consolidating" = "একত্র করা হচ্ছে";
+"This address (consolidating)" = "এই ঠিকানা (একত্রকরণ)";
+"This address" = "এই ঠিকানা";
+"This is more than the address you're sending from holds." = "যে ঠিকানা থেকে পাঠাচ্ছেন তাতে এর চেয়ে কম আছে।";
+"Set your network fee" = "নেটওয়ার্ক ফি ঠিক করুন";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "নেটওয়ার্কের অন্তত %@ KAS লাগে। এর চেয়ে কম ফি এতটা বাড়িয়ে দেওয়া হয়।";
+"This is much more than the network needs." = "এটা নেটওয়ার্কের প্রয়োজনের চেয়ে অনেক বেশি।";
+"Decimal point" = "দশমিক বিন্দু";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "নেটওয়ার্ক ব্যস্ত থাকলে দ্রুত বা অগ্রাধিকার দ্রুত নিশ্চিত হতে বেশি ফি দেয়। সম্পাদনা দিয়ে নিজের ফি ঠিক করুন।";
+"Available: %@ KAS" = "উপলব্ধ: %@ KAS";
+"Amount (KAS)" = "পরিমাণ (KAS)";
+"Where are you sending from?" = "আপনি কোথা থেকে পাঠাচ্ছেন?";
+"Pick which of your addresses the Kaspa leaves from." = "আপনার কোন ঠিকানা থেকে Kaspa যাবে বেছে নিন।";
+"Where do you want to be paid?" = "আপনি কোথায় পেমেন্ট নিতে চান?";
+"How much?" = "কত?";
+"You're requesting" = "আপনি চাইছেন";
+"A brand-new address of yours that has never been used or handed out." = "আপনার একেবারে নতুন ঠিকানা, যা কখনো ব্যবহার বা শেয়ার করা হয়নি।";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "যে কেউ এটি KaPay বা KaChat-এ খুললে এই তথ্য ভরা Kaspa পাঠান স্ক্রিন পাবে, এবং দেখবে এটি আপনার চ্যাট ঠিকানা তৈরি করেছে (এর কী দিয়ে স্বাক্ষরিত)।";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "পরিচিতিতে যোগ করুন";
+"Saved to Contacts." = "পরিচিতিতে সংরক্ষিত হয়েছে।";
+"Removed from Contacts." = "পরিচিতি থেকে সরানো হয়েছে।";
+"Remove Contact Photos" = "পরিচিতির ছবি সরান";
+"Remove Contact Photos?" = "পরিচিতির ছবি সরাবেন?";
+"Your contacts are in the same backup and sync between your devices the same way." = "আপনার পরিচিতি একই ব্যাকআপে আছে এবং একইভাবে আপনার ডিভাইসগুলোর মধ্যে সিঙ্ক হয়।";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "আপনার পরিচিতি থেকে লোক বেছে নিন, বা Kaspa ঠিকানা বা ডোমেইন দিয়ে যে কাউকে যোগ করুন।";
+"No members added yet. Add people from your contacts or by address below." = "এখনো কোনো সদস্য নেই। আপনার পরিচিতি থেকে বা নিচে ঠিকানা দিয়ে লোক যোগ করুন।";
+"Add contacts from a contacts export." = "পরিচিতি এক্সপোর্ট থেকে পরিচিতি যোগ করুন।";
+"Save your contacts, with their photos, to a file." = "আপনার পরিচিতি ছবিসহ একটি ফাইলে সংরক্ষণ করুন।";
+"Pick a contacts export from your Nextcloud." = "আপনার Nextcloud থেকে একটি পরিচিতি এক্সপোর্ট বেছে নিন।";
+"Delete Contact" = "পরিচিতি মুছুন";
+"Not in your contacts" = "আপনার পরিচিতিতে নেই";
+"Remove from Contacts" = "পরিচিতি থেকে সরান";
+"Add them in Contacts." = "পরিচিতিতে গিয়ে যোগ করুন।";
+"That file isn't a KaChat contacts export." = "এই ফাইলটি KaChat পরিচিতি এক্সপোর্ট নয়।";
+"That contacts export has no contacts." = "এই পরিচিতি এক্সপোর্টে কোনো পরিচিতি নেই।";
+"Edit Contact" = "পরিচিতি সম্পাদনা করুন";
+"No contacts yet" = "এখনো কোনো পরিচিতি নেই";
+"Delete %@ from your contacts?" = "%@ কে আপনার পরিচিতি থেকে মুছবেন?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "যে Kaspa ঠিকানাগুলো ব্যবহার করেন সেগুলো চেনা নামে সংরক্ষণ করুন। এগুলো শুধু এই ওয়ালেটের জন্য KaChat-এ থাকে এবং কখনো আপনার ফোনের পরিচিতি অ্যাপে যায় না।";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "শুধু এই ওয়ালেটের জন্য KaChat-এ সংরক্ষিত। কখনো আপনার ফোনের পরিচিতি অ্যাপে যোগ হয় না।";

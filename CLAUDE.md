@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 KaChat is a native iOS messaging and payment application built on the Kaspa blockchain. It enables encrypted peer-to-peer messaging with on-chain payments using SwiftUI.
 
 **Scope (since 2026-10-24):** KaChat is 1:1 chats and group chats, kept small enough for an App
-Store 4+ rating. The dock is a fixed five: Addresses, Groups, Chats, Profile, Settings (Chats
+Store 4+ rating. The dock is a fixed five: Contacts, Groups, Chats, Profile, Settings (Chats
 in the center; no Kaspa Hub, no Customize Dock). Chats and Groups show their unread counts on
 the dock, Profile a dot for the bell (`AppTabBadge`, synced from `ChatService.updateAppBadge`). Group Chats is its own screen again since 2026-10-26
 (`GroupChatListView`: Select, its + opens New Group Chat, and group notification taps land
@@ -71,7 +71,7 @@ The app uses MVVM architecture with global singleton services injected via Swift
 | `KeychainService` | Device-specific Secure Enclave credential storage |
 | `MessageStore` | Core Data message persistence, device-local, one SQLite store per wallet |
 | `ContactsManager` | Chat contacts (per wallet): names, deletion tombstones, KNS domain integration. KaChat no longer reads or writes the phone's Contacts (removed 2026-10-08; no `NSContactsUsageDescription`) |
-| `AddressBookManager` | The Address Book (its own dock tab, `AddressBookView.swift`): saved Kaspa addresses with a name and note, per wallet, on device and in the chat backup (`addressBook` / `addressBookDeleted`, NEXTCLOUD_SYNC.md §5). A saved name is the display-name fallback after a name you gave the chat. An entry's picture is a photo you assign (files in Application Support/AddressBookPhotos/<wallet hash>/, `photo` in the backup, size and removal in Settings > Storage) or else exactly the avatar the address set on its own profile (`AddressBookAvatar`, never the chat contact's backup photo). Import / export (the button next to +): a JSON file via Files or the KaChat folder in Nextcloud (NEXTCLOUD_SYNC.md §1). It replaced phone-Contacts sync, which wrote Kaspa addresses into people's iCloud/Google contacts |
+| `AddressBookManager` | Contacts, called the Address Book in code (its own dock tab, `AddressBookView.swift`; shown as "Contacts" since 2026-10-28, "Addresses" before): saved Kaspa addresses with a name and note, per wallet, on device and in the chat backup (`addressBook` / `addressBookDeleted`, NEXTCLOUD_SYNC.md §5). A saved name is the display-name fallback after a name you gave the chat. An entry's picture is a photo you assign (files in Application Support/AddressBookPhotos/<wallet hash>/, `photo` in the backup, size and removal in Settings > Storage) or else exactly the avatar the address set on its own profile (`AddressBookAvatar`, never the chat contact's backup photo). Import / export (the button next to +): a JSON file via Files or the KaChat folder in Nextcloud (NEXTCLOUD_SYNC.md §1). It replaced phone-Contacts sync, which wrote Kaspa addresses into people's iCloud/Google contacts |
 | `KNSService` | Kaspa Name Service API client for domain resolution |
 | `KasiaTransactionBuilder` | Constructs signed Kaspa transactions |
 | `KachatNamesService` | `.kachat` names. **Live on both networks**: testnet-10, and **mainnet since 2026-10-09** ("mainnet v1", kachat-domains docs/MAINNET.md: registry `348bd2c8…75a4`, the audited v4 contracts with yearly periods, 90-day grace, 30-day renewal window, register 4000/2000/1000/250/35 KAS). `isLaunched` is true on both; `networkName` / `addressPrefix` pick the network's bundled manifest (`Resources/kachat-names-<network>.json`), pins and price tables (per network in `KachatNames.Manifest`), address prefix and cache folder, and a network switch resets the manifest and registry. Mainnet opened to everyone in the app on Friday 2026-10-16 8:00 AM Eastern; the countdown that gated it until then was removed (audit XP-028). **Before any registry switch on mainnet**, build the old-registry offer clean-up first: the app only reads its manifest's registry, so offers on the old one vanish and stay locked (audit IOS-066, left as is; KACHAT_NAMES.md warning at the top). Mainnet launch guards (MAINNET.md section 5): offers refundable before the name expires and withdrawn once it has (C1), an owner sees only offers made since they got the name (C6). The v4 compute budgets are the audited ones (register 9, merge 5). **Address profiles are not registry data** (`profilesEnabled`, every network since 2026-10-05): a `kchat:1:profile:` self-send from the chatting address (`KachatNamesActions.profileSigner()`), so "Edit KaChat Profile" saves on mainnet too (primary name greyed out there), and mainnet identities are profile-only (`GET /profiles/{address}`; the indexer side is kachat-indexer `docs/KACHAT_PROFILES.md`). Any UI change must work on both networks: loads and verifies the registry manifest (registry v4 or v5, `registryVersion`: fixed register and renew price tables baked into the gap and name, one genesis whose covenant-id binding is verified; v5 adds `import` from a migration snapshot of the previous registry and keeps `register` closed until `params.migration.deadlineMs` (the claim sheet says when it opens), with a bigger gap and its own compute budgets (`Budgets.recommendedV5`). The name template hash and the price tables are pinned in the app (`Manifest.pinnedTemplateHashes` by version, `pinnedRegisterPrices` / `pinnedRenewPrices`), the v4 gap too; the offer and the v5 gap per deployment in `Manifest.deployedTemplateHashes`; an indexer-served manifest is accepted only when every template hash is pinned. The bundled `Resources/kachat-names-testnet-10.json` is the live testnet-10 v5 registry on the audited contracts since 2026-10-09 (audit C2; the name template changed with it): genesis `b6223f0f…e24f`, registry `1283f749…bfa2`, imported from the drill registry `fdc403f5…571d` (6 names; 24-hour periods, 6-hour grace, 2-hour renewal window, offers' fee cap 0.1 KAS)), signs (P256K, v1 SIGHASH_ALL) and submits the version-1 covenant transactions built by the pure core in `Services/KachatNames/` (`KachatNames.Builder`, a port of the kachat-domains CLI checked against `KaChatTests/KachatNamesVectors.json` by `scripts/test_kachat_names_core.swift`; see KACHAT_NAMES.md section 9) |
@@ -323,9 +323,10 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
     notes up to ~25 s, both in the binary media frame (MESSAGING.md).
   - Paste, drop and share-extension photos go on chain.
 - **Paying:** Send Kaspa (and `startInPaymentMode`) opens the Send KAS sheet, not a composer
-  mode. It has an exact amount (KAS or fiat, Max), an encrypted memo (the payment payload's
-  note, ≤140 chars, shown in the bubble) and `SwipeUpToSendScrollView` (swipe up to send; an
-  amount under the dust limit is warned about on the form, not asked again). The sender's
+  mode: the Send Kaspa steps from Amount (the keypad, KAS or fiat, Max) to the Review, which holds
+  the encrypted memo (the payment payload's note, ≤140 chars, shown in the bubble), and
+  `SwipeUpToSendScrollView` (swipe up to send; an amount under the dust limit is warned about on
+  the Review, not asked again). See "Send Kaspa screens". The sender's
   bubble keeps the memo from send time, because the memo is encrypted to the recipient and can't
   be read back from the chain.
 - **After paying:** the swipe-up screen shows Sent with the transaction until Done (a deferred
@@ -349,7 +350,47 @@ Every Send Kaspa screen is built from the shared pieces in `Views/Shared/SendKas
 so they match: the 1:1 chat's Send KAS sheet, Send Kaspa (`WithdrawKaspaView`: Profile's up/down
 button > Send Kaspa, Donate, the Address Book, an address's Send, paying a payment request). Coin Control
 (`CoinControlView`) lives there too. `SpendingAddressWithdrawView` is left for compounding one
-spending address's coins.
+spending address's coins: a review ("Consolidating X KAS", read-only) whose fee row's Edit swaps
+in `SendFeeEditorScreen` in place (`editingFee`, `showFeeEditor(_:)`); the Max amount is worked
+out again when the fee speed, a custom fee or the coins change. Amounts on the step screens are
+`KaspaUnit.plain` (trailing zeros trimmed, "2.5 KAS"), never `%.8f`. The pieces and the step flow are KaPay's (KaChat Wallet's), ported
+2026-10-28; keep them matched with KaPay's copy.
+
+A send is steps, each sliding in (forward from the right, back from the left: a `Step` enum and
+`go(to:)`), each drawing its own header (`SendStepHeader`) with the navigation bar hidden:
+1. **To**: `SendStepScreen` + `SendStepQuestion` ("Who are you sending to?") + `SendRecipientCard`
+   (`focusOnAppear`; Paste, Scan QR and Addresses pills under the field). On this first step the
+   header has only the title and Cancel sits at the bottom beside Continue (`SendContinueButton`);
+   later steps have Back and Cancel in the header.
+2. **From**: "Where are you sending from?" with the Chatting Address and Choose an Address pills.
+   Chatting Address shows a card with its address and balance; Choose an Address lists every
+   address right on the screen (`OwnAddressList`: cards with Used / Unused and the balance, a
+   check and teal outline on the picked one), no sheet. Picking the chatting address from the
+   list goes back to its pill; Continue stays off while Choose an Address is on with nothing
+   picked. The screen loads the From balance itself (`.task(id: source)`).
+3. **Amount**: `KaspaKeypadAmountEntry`, the app's own number pad (`KaspaKeypad`,
+   `KeypadAmountText`: 1-9, the locale's decimal point, 0, delete - hold to clear; at most 8
+   decimals in KAS, 2 in your currency), so no system keyboard comes up. Above it a "To" chip and
+   a "From" chip. The KAS / currency switch and Max stay; the footnote says Available, red when
+   the amount is more than the From address holds. Continue reads "Review".
+4. **Review**: `SwipeUpToSendScrollView` with `onBack`: "You're sending" with its value in your
+   currency, a To / From / Total (amount + fee) card, then `SendFeeControls`. Only the fee speed,
+   Coin Control and the fee's Edit can change; a Max amount is worked out again when they or From
+   change. Starting the swipe dismisses any keyboard (`dismissSystemKeyboard()`).
+5. **Fee editor**: the fee row's Edit (`onEditFee`) opens `SendFeeEditorScreen`: the whole fee on
+   the keypad, "The network needs at least X KAS. A lower fee is raised to that.", an orange
+   warning above ten times the minimum; Cancel and Confirm at the bottom, Confirm back to the review.
+
+Where the steps start:
+- `WithdrawKaspaView` opens on To; a pre-filled recipient (Donate, the Address Book) or a payment
+  request on From, with Back still reaching To (a request's Amount has the amount fixed: no
+  keypad, the request summary instead); From is skipped when it's fixed (an address's own Send,
+  `lockedSource`); Compound UTXOs opens on the Review.
+- The chat's Send KAS sheet (`ChatDetailView.paymentSheet`, `PaymentStep`) has no To step (the
+  recipient is the chat): it opens on From, with a "To <name>" chip above the question, then
+  Amount with the To and From chips, and its Review also holds
+  the encrypted memo field (it changes the fee, so a Max amount is worked out again), the
+  empty-chatting-address warning and the dust warning.
 
 Someone else's payment request (tapped, pasted or opened from a link) is paid in KaPay, KaChat's
 wallet app: `KaChatLinkRouter.openPaymentRequest` opens `kapay://pay/<same tail as kachat://pay/>`
@@ -358,9 +399,12 @@ paid here instead, as an encrypted chat payment KaPay can't make. Without KaPay 
 App Store opens (`KaPayHandoff.appStoreURL`: a search for KaPay until it is listed). Your own
 request shows here. KaPost follows the same rule.
 
-Every send starts with **From** (`SendFromSection`): Chatting Address (the
-default) or Choose an Address (`OwnAddressPicker`: every address of the account, each marked Used
-or Unused), so it is always plain which address the Kaspa leaves. There is no "primary spending
+Every send has a **From** step: Chatting Address (the default) or Choose an Address
+(`OwnAddressList`: every address of the account, each marked Used or Unused), so it is always
+plain which address the Kaspa leaves. Request Payment (`CreatePaymentRequestView`) is steps
+too: "Where do you want to be paid?" (Fresh Address, or Choose an Address with `OwnAddressList`
+on the screen), "How much?" on the keypad, then a review with the memo; its bottom button is Copy
+Payment Request (Share sits under the memo), or Send Payment Request when it was opened from a chat. There is no "primary spending
 address" in the UI and no Chats Payment Privacy (removed 2026-10-13: no fresh-address offers to
 contacts; payments go to the contact's chatting address; other clients' `addr_pool` envelopes are
 swallowed). A 1:1 chat payment From a spending address is a plain transfer plus a `payment_notice`
@@ -369,16 +413,22 @@ first, then the spending addresses.
 
 | Piece | What it is |
 |---|---|
-| `SendRecipientCard` | Address or name, with Paste, Scan QR and the lookup status. The screen runs the lookup (`NameServicesClient.resolveEverywhere`, .kachat first) and passes every answer in for the dropdown |
+| `SendStepHeader` / `SendStepScreen` / `SendContinueButton` / `SendStepQuestion` | A step's header (Back, title, Cancel), its frame with Continue pinned at the bottom (Cancel beside it on a first step), and its big question |
+| `SendStepChip` | The "To …" / "From …" glass chip above a step's content (the From and Amount steps, the chat sheet's "To <name>"); `isAddress` shows an address monospaced and cut in the middle |
+| `KaspaKeypadAmountEntry` / `KaspaKeypad` / `KeypadAmountText` | The Amount step: the app's own number pad and the big typed amount |
+| `SendFromCompactRow` | The two From pills without the address card (no screen uses it since the From step) |
+| `SendFeeEditorScreen` | The Review's fee editor (the fee on the keypad, the network minimum, the high-fee warning) |
+| `SendRecipientCard` | Address or name, with Paste, Scan QR and Addresses pills under the field and the lookup status. The screen runs the lookup (`NameServicesClient.resolveEverywhere`, .kachat first) and passes every answer in for the dropdown |
 | `OtherDomainsDropdown` | "Other domains" under the resolved name: the same typed name on the other services, each selectable. Every address field in the app shows it (Create chat, New Group rows, Group Add Members, the Send screens, Send Domain, the Address Book editor); .kachat is always listed first |
-| `SendFromSection` / `SendSource` | From: Chatting Address or Choose an Address, the chosen address and its balance |
-| `OwnAddressPicker` | The account's addresses (chatting first) with balance and Used / Unused - Choose an Address, Request Payment |
+| `SendFromSection` / `SendSource` | From: Chatting Address or Choose an Address, the chosen address and its balance (the step screens have their own From step) |
+| `OwnAddressList` | The account's addresses (chatting first) as cards with balance and Used / Unused, the picked one checked - the From step and Request Payment's "Where do you want to be paid?" |
+| `OwnAddressPicker` | `OwnAddressList` in a sheet |
 | `SelectablePill` | A choice pill, the chosen one filled in (From, Request Payment's address) |
-| `KaspaAmountEntry` | The big amount, the KAS / currency switch and Max |
-| `SendFeeControls` | Network fee (tap for a custom one), the speed, and Coin Control |
+| `KaspaAmountEntry` | The big amount typed on the system keyboard, the KAS / currency switch and Max (screens not yet on the steps) |
+| `SendFeeControls` | Network fee, the speed, and Coin Control. With `onEditFee` (the Review) the fee has an Edit pill that opens `SendFeeEditorScreen`; without it, tap the fee to type a custom one |
 | `SendInfoPill` | A small one-line pill (available balance, fee) |
 | `SendActionButton` | Slide the knob to the right end to send. `requiresSlide: false` makes it a tap, for KasSigner's Build step |
-| `SwipeUpToSendScrollView` | Profile's Send Kaspa and a spending address's Send (as in KaChat Wallet): swipe the bottom bar up past halfway and the whole screen rises into a full-screen BlockDAG (`BlockDAGAnimationView`) while sending, then Sent with the transaction, or Failed with the error and Try Again. Draws its own Cancel/title header. Debug builds launched with `KACHAT_FAIL_SEND=1` fail every send (`SendFailureSimulation`). Also the chat's Send KAS sheet. Payment requests and domain sends still slide, as in the wallet |
+| `SwipeUpToSendScrollView` | Profile's Send Kaspa and a spending address's Send (as in KaChat Wallet): swipe the bottom bar up past halfway and the whole screen rises into a full-screen BlockDAG (`BlockDAGAnimationView`) while sending, then Sent with the transaction, or Failed with the error and Try Again. Draws its own header (`SendStepHeader`; with `onBack`, Back and Cancel - the Review step). Debug builds launched with `KACHAT_FAIL_SEND=1` fail every send (`SendFailureSimulation`). Also the chat's Send KAS sheet. `dismissSystemKeyboard()` puts any keyboard away |
 
 Change these pieces rather than one screen, so the screens stay matched.
 

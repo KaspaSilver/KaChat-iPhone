@@ -299,7 +299,7 @@ struct SettingsView: View {
             // Cache, whose "clear" must never delete anything you'd miss.
             Section {
                 HStack {
-                    Label("Address Book Photos", systemImage: "book.closed")
+                    Label("Contact Photos", systemImage: "person.text.rectangle")
                     Spacer()
                     if let bytes = addressBookPhotoBytes {
                         Text(CacheManager.formatted(bytes))
@@ -313,7 +313,7 @@ struct SettingsView: View {
                     Button(role: .destructive) {
                         confirmRemoveAddressBookPhotos = true
                     } label: {
-                        Text("Remove Address Book Photos")
+                        Text("Remove Contact Photos")
                             .foregroundColor(.red)
                     }
                 }
@@ -323,7 +323,7 @@ struct SettingsView: View {
             .task { await refreshAddressBookPhotoBytes() }
             .sheet(isPresented: $confirmRemoveAddressBookPhotos) {
                 ConfirmActionSheet(
-                    title: AppLocalization.string("Remove Address Book Photos?"),
+                    title: AppLocalization.string("Remove Contact Photos?"),
                     confirmTitle: AppLocalization.string("Remove"),
                     confirmSubtitle: String(
                         format: AppLocalization.string("Frees %@. Saved addresses keep their names; they show the avatar their owner set instead."),
@@ -3476,7 +3476,7 @@ struct NextcloudSettingsView: View {
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Keeps your chat history in \(NextcloudService.backupFileName) in the folder above (choosing All Files resets to the default \(NextcloudService.backupFolderName) folder). Automatic Sync keeps your devices in near-live sync: new messages upload moments after they arrive, and while the app is open it also watches the server and quietly pulls in what your other devices upload, fastest while you are in a chat. A wallet that connects to an existing backup restores it once automatically. Every upload merges with what is already on the server, so no device can erase another's history. Restoring merges the archive into this device's history.")
-                        Text("Your Address Book is in the same backup and syncs between your devices the same way.")
+                        Text("Your contacts are in the same backup and sync between your devices the same way.")
                     }
                 }
 

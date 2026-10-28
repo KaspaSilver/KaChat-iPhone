@@ -201,7 +201,7 @@ struct AddContactView: View {
                         Button {
                             showAddressBookPicker = true
                         } label: {
-                            Label("Address Book", systemImage: "book.closed")
+                            Label("Contacts", systemImage: "person.text.rectangle")
                         }
 
                         Spacer()
@@ -531,7 +531,7 @@ struct AddContactView: View {
                         Button {
                             showGroupAddressBook = true
                         } label: {
-                            Label("Address Book", systemImage: "book.closed")
+                            Label("Contacts", systemImage: "person.text.rectangle")
                         }
 
                         Spacer()
@@ -570,7 +570,7 @@ struct AddContactView: View {
         } header: {
             Text("Add Members")
         } footer: {
-            Text("Pick people from your Address Book, or add anyone by Kaspa address or domain.")
+            Text("Pick people from your contacts, or add anyone by Kaspa address or domain.")
         }
     }
 
@@ -587,7 +587,7 @@ struct AddContactView: View {
             // address field below out of sight.
             DisclosureGroup(isExpanded: $membersExpanded) {
                 if selectedMemberAddresses.isEmpty {
-                    Text("No members added yet. Add people from your Address Book or by address below.")
+                    Text("No members added yet. Add people from your contacts or by address below.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 } else {

@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "Volta para a sua lista de conversas em grupo.";
 "Pinned to the top row" = "Fixado na linha de cima";
 "Send and Receive" = "Enviar e receber";
+
+/* Send steps */
+"Who are you sending to?" = "Para quem você está enviando?";
+"Review" = "Revisar";
+"You're sending" = "Você está enviando";
+"Consolidating" = "Consolidando";
+"This address (consolidating)" = "Este endereço (consolidando)";
+"This address" = "Este endereço";
+"This is more than the address you're sending from holds." = "Isso é mais do que o endereço de origem tem.";
+"Set your network fee" = "Defina sua taxa de rede";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "A rede exige pelo menos %@ KAS. Uma taxa menor é elevada para esse valor.";
+"This is much more than the network needs." = "Isso é muito mais do que a rede precisa.";
+"Decimal point" = "Separador decimal";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "Se a rede estiver ocupada, Rápida ou Prioritária pagam uma taxa maior para confirmar mais cedo. Editar define uma taxa sua.";
+"Available: %@ KAS" = "Disponível: %@ KAS";
+"Amount (KAS)" = "Valor (KAS)";
+"Where are you sending from?" = "De onde você está enviando?";
+"Pick which of your addresses the Kaspa leaves from." = "Escolha de qual dos seus endereços o Kaspa sai.";
+"Where do you want to be paid?" = "Onde você quer receber?";
+"How much?" = "Quanto?";
+"You're requesting" = "Você está pedindo";
+"A brand-new address of yours that has never been used or handed out." = "Um endereço seu totalmente novo, nunca usado nem compartilhado.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Quem abrir no KaPay ou no KaChat recebe Enviar Kaspa já preenchido e vê que foi criado pelo seu endereço de chat (assinado com a chave dele).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "Adicionar aos contatos";
+"Saved to Contacts." = "Salvo nos contatos.";
+"Removed from Contacts." = "Removido dos contatos.";
+"Remove Contact Photos" = "Remover fotos dos contatos";
+"Remove Contact Photos?" = "Remover fotos dos contatos?";
+"Your contacts are in the same backup and sync between your devices the same way." = "Seus contatos estão no mesmo backup e sincronizam entre seus dispositivos da mesma forma.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "Escolha pessoas dos seus contatos ou adicione qualquer pessoa por endereço Kaspa ou domínio.";
+"No members added yet. Add people from your contacts or by address below." = "Nenhum membro ainda. Adicione pessoas dos seus contatos ou por endereço abaixo.";
+"Add contacts from a contacts export." = "Adicione contatos de uma exportação de contatos.";
+"Save your contacts, with their photos, to a file." = "Salve seus contatos, com as fotos, em um arquivo.";
+"Pick a contacts export from your Nextcloud." = "Escolha uma exportação de contatos do seu Nextcloud.";
+"Delete Contact" = "Excluir contato";
+"Not in your contacts" = "Não está nos seus contatos";
+"Remove from Contacts" = "Remover dos contatos";
+"Add them in Contacts." = "Adicione-os em Contatos.";
+"That file isn't a KaChat contacts export." = "Esse arquivo não é uma exportação de contatos do KaChat.";
+"That contacts export has no contacts." = "Essa exportação de contatos não tem contatos.";
+"Edit Contact" = "Editar contato";
+"No contacts yet" = "Nenhum contato ainda";
+"Delete %@ from your contacts?" = "Excluir %@ dos seus contatos?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Salve os endereços Kaspa que você usa com um nome que reconheça. Eles ficam no KaChat, só para esta carteira, e nunca vão para o app Contatos do seu telefone.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Salvo no KaChat só para esta carteira. Nunca adicionado ao app Contatos do seu telefone.";

@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "将它移回群聊列表。";
 "Pinned to the top row" = "已固定到顶部一行";
 "Send and Receive" = "发送和接收";
+
+/* Send steps */
+"Who are you sending to?" = "你要发送给谁？";
+"Review" = "检查";
+"You're sending" = "你将发送";
+"Consolidating" = "正在合并";
+"This address (consolidating)" = "此地址（合并）";
+"This address" = "此地址";
+"This is more than the address you're sending from holds." = "超出了发送地址的余额。";
+"Set your network fee" = "设置网络手续费";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "网络至少需要 %@ KAS。低于此值的手续费会提高到该金额。";
+"This is much more than the network needs." = "这远高于网络所需。";
+"Decimal point" = "小数点";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "网络繁忙时，“快速”或“优先”会支付更高的手续费，以便更快确认。“编辑”可设置你自己的手续费。";
+"Available: %@ KAS" = "可用：%@ KAS";
+"Amount (KAS)" = "金额（KAS）";
+"Where are you sending from?" = "你要从哪里发送？";
+"Pick which of your addresses the Kaspa leaves from." = "选择 Kaspa 从你的哪个地址发出。";
+"Where do you want to be paid?" = "你想收款到哪里？";
+"How much?" = "多少？";
+"You're requesting" = "你要请求";
+"A brand-new address of yours that has never been used or handed out." = "一个从未使用或分享过的全新地址。";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "任何人在 KaPay 或 KaChat 中打开它，都会看到已填好的“发送 Kaspa”，并看到它由你的聊天地址创建（用其密钥签名）。";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "添加到联系人";
+"Saved to Contacts." = "已保存到联系人。";
+"Removed from Contacts." = "已从联系人中移除。";
+"Remove Contact Photos" = "移除联系人照片";
+"Remove Contact Photos?" = "移除联系人照片？";
+"Your contacts are in the same backup and sync between your devices the same way." = "你的联系人在同一个备份中，并以同样的方式在设备间同步。";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "从联系人中选择，或通过 Kaspa 地址或域名添加任何人。";
+"No members added yet. Add people from your contacts or by address below." = "还没有成员。从联系人中添加，或在下方通过地址添加。";
+"Add contacts from a contacts export." = "从联系人导出文件中添加联系人。";
+"Save your contacts, with their photos, to a file." = "将你的联系人连同照片保存到文件。";
+"Pick a contacts export from your Nextcloud." = "从你的 Nextcloud 中选择一个联系人导出文件。";
+"Delete Contact" = "删除联系人";
+"Not in your contacts" = "不在你的联系人中";
+"Remove from Contacts" = "从联系人中移除";
+"Add them in Contacts." = "在“联系人”中添加。";
+"That file isn't a KaChat contacts export." = "该文件不是 KaChat 联系人导出文件。";
+"That contacts export has no contacts." = "该联系人导出文件中没有联系人。";
+"Edit Contact" = "编辑联系人";
+"No contacts yet" = "还没有联系人";
+"Delete %@ from your contacts?" = "要从联系人中删除 %@ 吗？";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "用你认得出的名字保存你常用的 Kaspa 地址。它们只保存在 KaChat 中、仅限此钱包，绝不会进入手机的通讯录应用。";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "仅为此钱包保存在 KaChat 中。绝不会添加到手机的通讯录应用。";

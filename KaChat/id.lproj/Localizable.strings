@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "Mengembalikannya ke daftar obrolan grup Anda.";
 "Pinned to the top row" = "Disematkan di baris atas";
 "Send and Receive" = "Kirim dan Terima";
+
+/* Send steps */
+"Who are you sending to?" = "Kamu mengirim ke siapa?";
+"Review" = "Tinjau";
+"You're sending" = "Kamu mengirim";
+"Consolidating" = "Menggabungkan";
+"This address (consolidating)" = "Alamat ini (menggabungkan)";
+"This address" = "Alamat ini";
+"This is more than the address you're sending from holds." = "Ini lebih dari isi alamat pengirim.";
+"Set your network fee" = "Atur biaya jaringan";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "Jaringan memerlukan setidaknya %@ KAS. Biaya yang lebih rendah dinaikkan ke jumlah itu.";
+"This is much more than the network needs." = "Ini jauh lebih banyak dari yang dibutuhkan jaringan.";
+"Decimal point" = "Pemisah desimal";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "Jika jaringan sibuk, Cepat atau Prioritas membayar biaya lebih tinggi agar lebih cepat terkonfirmasi. Edit menetapkan biaya sendiri.";
+"Available: %@ KAS" = "Tersedia: %@ KAS";
+"Amount (KAS)" = "Jumlah (KAS)";
+"Where are you sending from?" = "Kamu mengirim dari mana?";
+"Pick which of your addresses the Kaspa leaves from." = "Pilih dari alamat mana Kaspa dikirim.";
+"Where do you want to be paid?" = "Kamu ingin dibayar ke mana?";
+"How much?" = "Berapa?";
+"You're requesting" = "Kamu meminta";
+"A brand-new address of yours that has never been used or handed out." = "Alamat baru milikmu yang belum pernah dipakai atau dibagikan.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Siapa pun yang membukanya di KaPay atau KaChat mendapat Kirim Kaspa yang sudah terisi, dan melihat bahwa ini dibuat oleh alamat chat-mu (ditandatangani dengan kuncinya).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "Tambahkan ke Kontak";
+"Saved to Contacts." = "Disimpan ke Kontak.";
+"Removed from Contacts." = "Dihapus dari Kontak.";
+"Remove Contact Photos" = "Hapus Foto Kontak";
+"Remove Contact Photos?" = "Hapus foto kontak?";
+"Your contacts are in the same backup and sync between your devices the same way." = "Kontakmu ada di cadangan yang sama dan disinkronkan antarperangkat dengan cara yang sama.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "Pilih orang dari kontakmu, atau tambahkan siapa saja lewat alamat Kaspa atau domain.";
+"No members added yet. Add people from your contacts or by address below." = "Belum ada anggota. Tambahkan orang dari kontakmu atau lewat alamat di bawah.";
+"Add contacts from a contacts export." = "Tambahkan kontak dari ekspor kontak.";
+"Save your contacts, with their photos, to a file." = "Simpan kontakmu, beserta fotonya, ke sebuah file.";
+"Pick a contacts export from your Nextcloud." = "Pilih ekspor kontak dari Nextcloud-mu.";
+"Delete Contact" = "Hapus Kontak";
+"Not in your contacts" = "Tidak ada di kontakmu";
+"Remove from Contacts" = "Hapus dari Kontak";
+"Add them in Contacts." = "Tambahkan di Kontak.";
+"That file isn't a KaChat contacts export." = "File itu bukan ekspor kontak KaChat.";
+"That contacts export has no contacts." = "Ekspor kontak itu tidak berisi kontak.";
+"Edit Contact" = "Edit Kontak";
+"No contacts yet" = "Belum ada kontak";
+"Delete %@ from your contacts?" = "Hapus %@ dari kontakmu?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Simpan alamat Kaspa yang kamu pakai dengan nama yang mudah dikenali. Alamat tetap di KaChat, hanya untuk dompet ini, dan tidak pernah masuk ke app Kontak di ponselmu.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Disimpan di KaChat hanya untuk dompet ini. Tidak pernah ditambahkan ke app Kontak di ponselmu.";

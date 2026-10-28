@@ -1507,3 +1507,50 @@
 "Moves it back into your group chats list." = "Moves it back into your group chats list.";
 "Pinned to the top row" = "Pinned to the top row";
 "Send and Receive" = "Send and Receive";
+
+/* Send steps */
+"Who are you sending to?" = "Who are you sending to?";
+"Review" = "Review";
+"You're sending" = "You're sending";
+"Consolidating" = "Consolidating";
+"This address (consolidating)" = "This address (consolidating)";
+"This address" = "This address";
+"This is more than the address you're sending from holds." = "This is more than the address you're sending from holds.";
+"Set your network fee" = "Set your network fee";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "The network needs at least %@ KAS. A lower fee is raised to that.";
+"This is much more than the network needs." = "This is much more than the network needs.";
+"Decimal point" = "Decimal point";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own.";
+"Available: %@ KAS" = "Available: %@ KAS";
+"Amount (KAS)" = "Amount (KAS)";
+"Where are you sending from?" = "Where are you sending from?";
+"Pick which of your addresses the Kaspa leaves from." = "Pick which of your addresses the Kaspa leaves from.";
+"Where do you want to be paid?" = "Where do you want to be paid?";
+"How much?" = "How much?";
+"You're requesting" = "You're requesting";
+"A brand-new address of yours that has never been used or handed out." = "A brand-new address of yours that has never been used or handed out.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key).";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "Add to Contacts";
+"Saved to Contacts." = "Saved to Contacts.";
+"Removed from Contacts." = "Removed from Contacts.";
+"Remove Contact Photos" = "Remove Contact Photos";
+"Remove Contact Photos?" = "Remove Contact Photos?";
+"Your contacts are in the same backup and sync between your devices the same way." = "Your contacts are in the same backup and sync between your devices the same way.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "Pick people from your contacts, or add anyone by Kaspa address or domain.";
+"No members added yet. Add people from your contacts or by address below." = "No members added yet. Add people from your contacts or by address below.";
+"Add contacts from a contacts export." = "Add contacts from a contacts export.";
+"Save your contacts, with their photos, to a file." = "Save your contacts, with their photos, to a file.";
+"Pick a contacts export from your Nextcloud." = "Pick a contacts export from your Nextcloud.";
+"Delete Contact" = "Delete Contact";
+"Not in your contacts" = "Not in your contacts";
+"Remove from Contacts" = "Remove from Contacts";
+"Add them in Contacts." = "Add them in Contacts.";
+"That file isn't a KaChat contacts export." = "That file isn't a KaChat contacts export.";
+"That contacts export has no contacts." = "That contacts export has no contacts.";
+"Edit Contact" = "Edit Contact";
+"No contacts yet" = "No contacts yet";
+"Delete %@ from your contacts?" = "Delete %@ from your contacts?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Saved in KaChat for this wallet only. Never added to your phone's Contacts app.";

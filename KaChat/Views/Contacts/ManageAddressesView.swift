@@ -1277,6 +1277,9 @@ struct SpendingAddressWithdrawView: View {
     @State private var customExtraFeeSompi: UInt64?
     @State private var isEditingFee = false
     @State private var customFeeText = ""
+    /// The fee editor (the fee row's Edit) is on screen in place of the review.
+    @State private var editingFee = false
+    @State private var feeDraft = ""
 
     @State private var manualUtxos: [UTXO]?
     @State private var showCoinControl = false
@@ -1319,7 +1322,35 @@ struct SpendingAddressWithdrawView: View {
 
     var body: some View {
         NavigationStack {
-            // Swipe up anywhere on the screen to send (the bar at the bottom says so).
+            ZStack {
+                if editingFee {
+                    // The send flow's fee editor: the whole fee on the keypad, Confirm back here.
+                    SendFeeEditorScreen(draft: $feeDraft, minimumSompi: normalFeeSompi,
+                                        onCancel: { showFeeEditor(false) }) { typed in
+                        if let normalFeeSompi {
+                            customExtraFeeSompi = typed > normalFeeSompi ? typed - normalFeeSompi : 0
+                        }
+                        showFeeEditor(false)
+                    }
+                    .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
+                } else {
+                    review
+                        .transition(.asymmetric(insertion: .move(edge: .leading), removal: .move(edge: .leading)))
+                }
+            }
+            .toolbar(.hidden, for: .navigationBar)
+        }
+        .interactiveDismissDisabled()
+    }
+
+    private func showFeeEditor(_ show: Bool) {
+        if show, let totalFeeSompi { feeDraft = formatKas(totalFeeSompi) }
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { editingFee = show }
+    }
+
+    /// The review: in Compound UTXOs (this screen's one use) the recipient is this address and
+    /// the amount everything on it, so only the fee and coin control change before swiping up.
+    private var review: some View {
             SwipeUpToSendScrollView(
                 screenTitle: isCompoundMode ? "Compound UTXOs"
                     : "Send Kaspa from Address #\(WalletManager.isQuantumIndex(source.index) ? source.index - WalletManager.quantumIndexBase : source.index)",
@@ -1353,14 +1384,33 @@ struct SpendingAddressWithdrawView: View {
                         onSelectResolution: selectResolution
                     )
 
-                    KaspaAmountEntry(
-                        fiatAmountState: fiatAmountState,
-                        onAmountChange: { amountInput = $0 },
-                        isEstimatingMax: isEstimatingMax,
-                        maxEnabled: hasValidRecipient,
-                        onMax: setMaxAmount
-                    )
-                    .padding(.top, 8)
+                    if isCompoundMode {
+                        VStack(spacing: 6) {
+                            Text("Consolidating")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            if let amountSompi {
+                                Text(verbatim: "\(formatKas(amountSompi)) \(KaspaUnit.symbol)")
+                                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                                    .monospacedDigit()
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
+                            } else {
+                                ProgressView().frame(height: 48)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 8)
+                    } else {
+                        KaspaAmountEntry(
+                            fiatAmountState: fiatAmountState,
+                            onAmountChange: { amountInput = $0 },
+                            isEstimatingMax: isEstimatingMax,
+                            maxEnabled: hasValidRecipient,
+                            onMax: setMaxAmount
+                        )
+                        .padding(.top, 8)
+                    }
 
                     // Tap to send from a different spending address (not in Compound, which is
                     // about this one address).
@@ -1392,7 +1442,8 @@ struct SpendingAddressWithdrawView: View {
                         onStartEditing: startEditingFee,
                         onCommit: commitCustomFee,
                         coinControlSummary: coinControlSummary(manualUtxos),
-                        onCoinControl: { showCoinControl = true }
+                        onCoinControl: { showCoinControl = true },
+                        onEditFee: { showFeeEditor(true) }
                     )
 
                     if let errorMessage {
@@ -1411,6 +1462,11 @@ struct SpendingAddressWithdrawView: View {
             .onChange(of: feeTier) { _ in
                 customExtraFeeSompi = nil
                 isEditingFee = false
+                if isCompoundMode { setMaxAmount() }
+            }
+            .onChange(of: customExtraFeeSompi) { _ in
+                // Compound sends everything: the amount is what's left after the fee
+                if isCompoundMode { setMaxAmount() }
             }
             .task(id: feeEstimationKey) {
                 guard hasValidRecipient, let amountSompi else {
@@ -1456,11 +1512,10 @@ struct SpendingAddressWithdrawView: View {
             .sheet(isPresented: $showCoinControl) {
                 CoinControlView(fromAddress: source.address, initialSelection: manualUtxos) { selection in
                     manualUtxos = selection
+                    if isCompoundMode { setMaxAmount() }
                 }
             }
             // The confirmation is the swipe-up's own full screen (SwipeUpToSendScrollView).
-        }
-        .interactiveDismissDisabled()
     }
 
     private func handleInputChange(_ input: String) {

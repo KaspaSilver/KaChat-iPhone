@@ -4758,6 +4758,19 @@ struct WithdrawKaspaView: View {
     @State private var manualUtxos: [UTXO]?
     @State private var showCoinControl = false
 
+    /// The step on screen; nil until the first move (then `initialStep`).
+    @State private var step: Step?
+    /// The last move went forward: the next step comes in from the right.
+    @State private var stepForward = true
+    /// The amount is Max: a fee or coin change works it out again.
+    @State private var usedMax = false
+    /// The From step's Choose an Address is on (its list shows), before or after a pick.
+    @State private var choosingFrom = false
+    /// Why the fee couldn't be worked out (usually: not enough Kaspa for the amount and fee).
+    @State private var feeError: String?
+    /// The fee being typed on the fee screen, in KAS.
+    @State private var feeDraft = ""
+
     private let knsService = KNSService.shared
 
     /// The actual address to use (resolved from a KNS domain, or the direct input).
@@ -4803,97 +4816,115 @@ struct WithdrawKaspaView: View {
         return "\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(source.spendingIndex ?? -1)"
     }
 
+    /// The three steps of a send: who it goes to, how much (on the app's own keypad, so no
+    /// keyboard stays up), and a review where only the fee and coin control can change before
+    /// swiping up to send.
+    private enum Step: Int { case recipient, from, amount, review, fee }
+
+    /// The step a send opens on: Compound UTXOs straight to the review (its recipient and amount
+    /// are set), a payment request or a pre-filled recipient to From (or the amount, when From
+    /// is fixed).
+    private var initialStep: Step {
+        if isCompoundMode { return .review }
+        if paymentRequest != nil || prefillAddress != nil { return afterRecipient }
+        return .recipient
+    }
+
+    /// The step after To: From, unless the send's From is fixed (an address's own Send).
+    private var afterRecipient: Step { lockedSource == nil ? .from : .amount }
+
+    private var currentStep: Step { step ?? initialStep }
+
+    private var screenTitle: String {
+        isCompoundMode ? "Compound UTXOs" : (activeRequest != nil ? "Payment Request" : "Send Kaspa")
+    }
+
+    /// Where Back goes from a step; nil for the first one. A payment request opened from a link
+    /// has no recipient step (its address is fixed).
+    private func backStep(from step: Step) -> Step? {
+        switch step {
+        case .recipient: return nil
+        case .from: return paymentRequest != nil ? nil : .recipient
+        case .amount:
+            if lockedSource == nil { return .from }
+            return (isCompoundMode || paymentRequest != nil) ? nil : .recipient
+        case .review: return isCompoundMode ? nil : .amount
+        case .fee: return .review
+        }
+    }
+
+    private func go(to next: Step) {
+        dismissSystemKeyboard()
+        if next == .recipient, activeRequest != nil, paymentRequest == nil {
+            // back from a pasted request: start the recipient over
+            activeRequest = nil
+            addressInput = ""
+            amountInput = ""
+            fiatAmountState.reset()
+            usedMax = false
+        }
+        stepForward = next.rawValue > currentStep.rawValue
+        // The leaving step re-renders with the new direction before it animates out.
+        DispatchQueue.main.async {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { step = next }
+        }
+    }
+
+    private var stepTransition: AnyTransition {
+        .asymmetric(insertion: .move(edge: stepForward ? .trailing : .leading),
+                    removal: .move(edge: stepForward ? .leading : .trailing))
+    }
+
+    /// The amount is more than the From address holds.
+    private var exceedsBalance: Bool {
+        guard let amountSompi, let sourceBalanceSompi else { return false }
+        return amountSompi > sourceBalanceSompi
+    }
+
+    private var canContinueFromAmount: Bool {
+        hasValidRecipient && amountSompi != nil && !exceedsBalance && !isEstimatingMax
+    }
+
     var body: some View {
         NavigationStack {
-            // Swipe up anywhere on the screen to send (the bar at the bottom says so).
-            SwipeUpToSendScrollView(
-                screenTitle: isCompoundMode ? "Compound UTXOs" : (activeRequest != nil ? "Payment Request" : "Send Kaspa"),
-                onCancel: { dismiss() },
-                title: isCompoundMode ? "Swipe up to Consolidate" : "Swipe up to Send",
-                isBusy: isSending,
-                isEnabled: canSend,
-                amountSompi: amountSompi,
-                recipient: isCompoundMode ? nil : (resolvedDomain ?? effectiveAddress),
-                sent: sentTransaction,
-                failureMessage: errorMessage,
-                onDone: {
-                    sentTransaction = nil
-                    dismiss()
-                    onComplete?()
-                },
-                action: send
-            ) {
-                VStack(spacing: 18) {
-                    if !isCompoundMode {
-                        SendFromSection(source: $source, availableSompi: $sourceBalanceSompi,
-                                        isLocked: lockedSource != nil)
-                    }
-
-                    SendRecipientCard(
-                        input: $addressInput,
-                        lockedAddress: isCompoundMode ? fromAddress : activeRequest?.address,
-                        isResolving: isResolvingKNS,
-                        resolvedAddress: resolvedAddress,
-                        resolvedName: resolvedDomain,
-                        lookupError: knsError,
-                        isValidAddress: isValidAddress,
-                        onScan: { showQRScanner = true },
-                        nameResolutions: nameResolutions,
-                        selectedTLD: selectedTLD,
-                        onSelectResolution: selectResolution
-                    )
-
-                    if let activeRequest {
-                        PaymentRequestSummary(request: activeRequest)
-                    }
-
-                    KaspaAmountEntry(
-                        fiatAmountState: fiatAmountState,
-                        onAmountChange: { amountInput = $0 },
-                        isEstimatingMax: isEstimatingMax,
-                        maxEnabled: hasValidRecipient,
-                        onMax: setMaxAmount
-                    )
-                    .padding(.top, 8)
-
-                    // Compound UTXOs has no From (it merges this one address); the balance shows here.
-                    if isCompoundMode, let availableBalanceSompi {
-                        SendInfoPill { KaspaUnit.text("Available: %@ KAS", trimmedKas(availableBalanceSompi)) }
-                    }
-
-                    SendFeeControls(
-                        feeTier: $feeTier,
-                        isEditingFee: $isEditingFee,
-                        customFeeText: $customFeeText,
-                        isEstimatingFee: isEstimatingFee,
-                        feeText: totalFeeSompi.map { "\(trimmedKas($0)) \(KaspaUnit.symbol)" },
-                        onStartEditing: startEditingFee,
-                        onCommit: commitCustomFee,
-                        coinControlSummary: coinControlSummary(manualUtxos),
-                        onCoinControl: { showCoinControl = true }
-                    )
-
-                    if let errorMessage {
-                        Text(errorMessage)
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-                    }
+            ZStack {
+                switch currentStep {
+                case .recipient:
+                    recipientStep.transition(stepTransition)
+                case .from:
+                    fromStep.transition(stepTransition)
+                case .amount:
+                    amountStep.transition(stepTransition)
+                case .review:
+                    reviewStep.transition(stepTransition)
+                case .fee:
+                    feeStep.transition(stepTransition)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 24)
             }
+            .toolbar(.hidden, for: .navigationBar)
             // The recipient card only shows the lookup; this screen runs it.
             .onChange(of: addressInput) { handleInputChange($0) }
             // coins picked on one address can't pay from another
-            .onChange(of: source) { _ in manualUtxos = nil }
+            .onChange(of: source) { _ in
+                manualUtxos = nil
+                if usedMax { setMaxAmount() }
+            }
+            // the From address's balance: the amount's Available and its check
+            .task(id: source) {
+                sourceBalanceSompi = nil
+                guard let address = source.address else { return }
+                let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
+                guard !Task.isCancelled else { return }
+                sourceBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
+            }
             .onChange(of: feeTier) { _ in
                 customExtraFeeSompi = nil
                 isEditingFee = false
+                if usedMax { setMaxAmount() }
             }
-            // The header (Cancel, title) is SwipeUpToSendScrollView's own, so it moves with the swipe.
-            .scrollDismissesKeyboard(.interactively)
+            .onChange(of: customExtraFeeSompi) { _ in
+                if usedMax { setMaxAmount() }
+            }
             .sheet(isPresented: $showQRScanner) {
                 QRScannerView { code in
                     handleScannedQRCode(code)
@@ -4902,12 +4933,14 @@ struct WithdrawKaspaView: View {
             .sheet(isPresented: $showCoinControl) {
                 CoinControlView(fromAddress: isCompoundMode ? fromAddress : (source.address ?? fromAddress), initialSelection: manualUtxos) { selection in
                     manualUtxos = selection
+                    if usedMax { setMaxAmount() }
                 }
             }
             // The confirmation is the swipe-up's own full screen (SwipeUpToSendScrollView).
             .task(id: feeEstimationKey) {
                 guard hasValidRecipient, let amountSompi else {
                     normalFeeSompi = nil
+                    feeError = nil
                     return
                 }
                 isEstimatingFee = true
@@ -4922,9 +4955,11 @@ struct WithdrawKaspaView: View {
                     }
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = fee
+                    feeError = nil
                 } catch {
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = nil
+                    feeError = UserFacingError.message(for: error)
                 }
                 isEstimatingFee = false
             }
@@ -4946,6 +4981,338 @@ struct WithdrawKaspaView: View {
         .interactiveDismissDisabled()
     }
 
+    // MARK: Step 1 - To
+
+    private var recipientStep: some View {
+        SendStepScreen(title: Text(LocalizedStringKey(screenTitle)), onCancel: { dismiss() },
+                       canContinue: hasValidRecipient) {
+            go(to: afterRecipient)
+        } content: {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    SendStepQuestion(text: "Who are you sending to?")
+                    SendRecipientCard(
+                        input: $addressInput,
+                        isResolving: isResolvingKNS,
+                        resolvedAddress: resolvedAddress,
+                        resolvedName: resolvedDomain,
+                        lookupError: knsError,
+                        isValidAddress: isValidAddress,
+                        onScan: { showQRScanner = true },
+                        nameResolutions: nameResolutions,
+                        selectedTLD: selectedTLD,
+                        onSelectResolution: selectResolution,
+                        focusOnAppear: true
+                    )
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+            }
+            .scrollDismissesKeyboard(.interactively)
+        }
+    }
+
+    // MARK: Step 3 - Amount
+
+    private var amountStep: some View {
+        SendStepScreen(title: Text(LocalizedStringKey(screenTitle)),
+                       onBack: backStep(from: .amount).map { back in { go(to: back) } },
+                       onCancel: { dismiss() }, continueTitle: "Review",
+                       canContinue: canContinueFromAmount) {
+            go(to: .review)
+        } content: {
+            VStack(spacing: 0) {
+                VStack(spacing: 8) {
+                    recipientChip
+                    fromChip
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
+
+                if let activeRequest {
+                    // A request's amount is fixed: no keypad, the request itself instead.
+                    ScrollView {
+                        VStack(spacing: 18) {
+                            reviewAmount
+                            PaymentRequestSummary(request: activeRequest)
+                            if exceedsBalance {
+                                Text("This is more than the address you're sending from holds.")
+                                    .font(.footnote)
+                                    .foregroundColor(.red)
+                                    .multilineTextAlignment(.center)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 24)
+                    }
+                } else {
+                    KaspaKeypadAmountEntry(
+                        fiatAmountState: fiatAmountState,
+                        onAmountChange: { amountInput = $0 },
+                        isEstimatingMax: isEstimatingMax,
+                        maxEnabled: hasValidRecipient,
+                        footnote: amountFootnote,
+                        footnoteIsError: exceedsBalance || errorMessage != nil,
+                        onMax: setMaxAmount,
+                        onKeyTyped: {
+                            usedMax = false
+                            errorMessage = nil
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    /// Under the typed amount: what's wrong with it, else what's available.
+    private var amountFootnote: String? {
+        if let errorMessage { return errorMessage }
+        if exceedsBalance { return AppLocalization.string("This is more than the address you're sending from holds.") }
+        guard let sourceBalanceSompi else { return nil }
+        return KaspaUnit.label(String(format: AppLocalization.string("Available: %@ KAS"), locale: AppLocalization.locale, trimmedKas(sourceBalanceSompi)))
+    }
+
+    // MARK: Step 2 - From
+
+    /// "Where are you sending from?": the Chatting Address, or Choose an Address with your
+    /// addresses listed right here (no sheet).
+    private var fromStep: some View {
+        SendStepScreen(title: Text(LocalizedStringKey(screenTitle)),
+                       onBack: backStep(from: .from).map { back in { go(to: back) } },
+                       onCancel: { dismiss() },
+                       canContinue: !(choosingFrom && source == .chatting)) {
+            go(to: .amount)
+        } content: {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    SendStepQuestion(text: "Where are you sending from?")
+                    HStack(spacing: 10) {
+                        SelectablePill(title: "Chatting Address", selected: !choosingFrom) {
+                            choosingFrom = false
+                            source = .chatting
+                        }
+                        SelectablePill(title: "Choose an Address", selected: choosingFrom) {
+                            choosingFrom = true
+                        }
+                    }
+                    if choosingFrom {
+                        Text("Pick which of your addresses the Kaspa leaves from.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                        OwnAddressList(selected: source == .chatting ? nil : source.address) { picked in
+                            source = picked
+                            // the chatting address picked from the list: back on its own pill
+                            if picked == .chatting { choosingFrom = false }
+                        }
+                    } else if let address = source.address {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Chatting Address")
+                                    .font(.subheadline.weight(.semibold))
+                                Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                                    .font(.caption.monospaced())
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            if let sourceBalanceSompi {
+                                Text(verbatim: "\(KaspaUnit.plain(sourceBalanceSompi)) \(KaspaUnit.symbol)")
+                                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                            } else {
+                                ProgressView().controlSize(.small)
+                            }
+                        }
+                        .padding(14)
+                        .background(sendKaspaGlass(cornerRadius: 16))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+            }
+        }
+    }
+
+    /// "From Chatting Address" (or the picked address), on the amount step.
+    private var fromChip: some View {
+        SendStepChip(label: "From", value: sourceTitle)
+    }
+
+    /// "To alice.kachat" (or the address), so the amount step says where it is going.
+    private var recipientChip: some View {
+        SendStepChip(label: "To", value: recipientName ?? effectiveAddress, isAddress: recipientName == nil)
+    }
+
+    /// The recipient's name: the domain it resolved from, else its Address Book name.
+    private var recipientName: String? {
+        resolvedDomain ?? AddressBookManager.shared.entry(for: effectiveAddress)?.customName
+    }
+
+    // MARK: Step 4 - Review
+
+    private var reviewStep: some View {
+        SwipeUpToSendScrollView(
+            screenTitle: isCompoundMode ? "Compound UTXOs" : "Review",
+            onCancel: { dismiss() },
+            onBack: backStep(from: .review).map { back in { go(to: back) } },
+            title: isCompoundMode ? "Swipe up to Consolidate" : "Swipe up to Send",
+            isBusy: isSending,
+            isEnabled: canSend,
+            amountSompi: amountSompi,
+            recipient: isCompoundMode ? nil : (resolvedDomain ?? effectiveAddress),
+            sent: sentTransaction,
+            failureMessage: errorMessage,
+            onDone: {
+                sentTransaction = nil
+                dismiss()
+                onComplete?()
+            },
+            action: send
+        ) {
+            VStack(spacing: 18) {
+                reviewAmount
+                    .padding(.top, 8)
+
+                VStack(alignment: .leading, spacing: 14) {
+                    reviewRow("To") {
+                        if isCompoundMode {
+                            Text("This address (consolidating)")
+                        } else {
+                            VStack(alignment: .trailing, spacing: 2) {
+                                if let name = recipientName {
+                                    Text(verbatim: name).fontWeight(.semibold)
+                                }
+                                Text(verbatim: effectiveAddress)
+                                    .font(.caption.monospaced())
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
+                        }
+                    }
+                    Divider()
+                    reviewRow("From") {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(verbatim: sourceTitle).fontWeight(.semibold)
+                            if let address = isCompoundMode ? fromAddress : source.address {
+                                Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                                    .font(.caption.monospaced())
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    Divider()
+                    reviewRow("Total") {
+                        if let amountSompi, let totalFeeSompi {
+                            Text(verbatim: "\(trimmedKas(amountSompi + totalFeeSompi)) \(KaspaUnit.symbol)")
+                                .fontWeight(.semibold)
+                                .monospacedDigit()
+                        } else if isEstimatingFee || isEstimatingMax {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Text(verbatim: "—").foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .font(.subheadline)
+                .padding(14)
+                .background(sendKaspaGlass(cornerRadius: 20))
+
+                if let activeRequest {
+                    PaymentRequestSummary(request: activeRequest)
+                }
+
+                // The only things that can still change: the fee and the coins it spends.
+                SendFeeControls(
+                    feeTier: $feeTier,
+                    isEditingFee: $isEditingFee,
+                    customFeeText: $customFeeText,
+                    isEstimatingFee: isEstimatingFee,
+                    feeText: totalFeeSompi.map { "\(trimmedKas($0)) \(KaspaUnit.symbol)" },
+                    onStartEditing: startEditingFee,
+                    onCommit: commitCustomFee,
+                    coinControlSummary: coinControlSummary(manualUtxos),
+                    onCoinControl: { showCoinControl = true },
+                    onEditFee: openFeeEditor
+                )
+
+                if let message = errorMessage ?? feeError {
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            .padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+    }
+
+    // MARK: Network fee (from the review)
+
+    /// The fee editor: the whole fee typed on the keypad, Confirm back to the review.
+    private var feeStep: some View {
+        SendFeeEditorScreen(draft: $feeDraft, minimumSompi: normalFeeSompi,
+                            onCancel: { go(to: .review) }) { typed in
+            // never under the network's minimum
+            guard let normalFeeSompi else { return }
+            customExtraFeeSompi = typed > normalFeeSompi ? typed - normalFeeSompi : 0
+            go(to: .review)
+        }
+    }
+
+    private func openFeeEditor() {
+        guard let totalFeeSompi else { return }
+        feeDraft = trimmedKas(totalFeeSompi)
+        go(to: .fee)
+    }
+
+    /// The amount being sent, big, with its value in your currency under it.
+    private var reviewAmount: some View {
+        VStack(spacing: 6) {
+            Text(isCompoundMode ? "Consolidating" : "You're sending")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            if let amountSompi {
+                Text(verbatim: "\(trimmedKas(amountSompi)) \(KaspaUnit.symbol)")
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                if let price = priceModel.currentPriceUsd, price > 0 {
+                    Text(verbatim: formatFiatAmount(Double(amountSompi) / 100_000_000.0 * price,
+                                                    currency: priceModel.currentCurrency))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                ProgressView()
+                    .frame(height: 48)
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func reviewRow<Value: View>(_ label: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(label)
+                .foregroundColor(.secondary)
+            Spacer(minLength: 12)
+            value()
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private var sourceTitle: String {
+        if isCompoundMode { return AppLocalization.string("This address") }
+        switch source {
+        case .chatting: return AppLocalization.string("Chatting Address")
+        case .spending(_, _, let label): return label
+        }
+    }
+
     private func handleInputChange(_ input: String) {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -4964,6 +5331,7 @@ struct WithdrawKaspaView: View {
         // A payment request pasted in fills in everything it carries.
         if !isCompoundMode, let request = PaymentRequest.found(in: trimmed) {
             apply(request)
+            if currentStep == .recipient { go(to: afterRecipient) }
             return
         }
 
@@ -5044,6 +5412,7 @@ struct WithdrawKaspaView: View {
 
     private func setMaxAmount() {
         guard hasValidRecipient else { return }
+        usedMax = true
         isEstimatingMax = true
         errorMessage = nil
         let recipient = effectiveAddress

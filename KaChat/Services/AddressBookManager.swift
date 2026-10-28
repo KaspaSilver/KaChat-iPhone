@@ -321,8 +321,8 @@ final class AddressBookManager: ObservableObject {
 
         var errorDescription: String? {
             switch self {
-            case .notAnAddressBook: return AppLocalization.string("That file isn't a KaChat Address Book export.")
-            case .empty: return AppLocalization.string("That Address Book export has no addresses.")
+            case .notAnAddressBook: return AppLocalization.string("That file isn't a KaChat contacts export.")
+            case .empty: return AppLocalization.string("That contacts export has no contacts.")
             case .otherNetwork: return AppLocalization.string(AppSettings.load().networkType == .testnet
                 ? "Every address in that file is a Mainnet address. KaChat is on Testnet."
                 : "Every address in that file is a Testnet address. KaChat is on Mainnet.")
@@ -342,7 +342,7 @@ final class AddressBookManager: ObservableObject {
     /// The export's file name, with the time so several exports don't overwrite each other.
     nonisolated static func exportFileName(at date: Date = Date()) -> String {
         let stamp = ISO8601DateFormatter().string(from: date).replacingOccurrences(of: ":", with: "-")
-        return "KaChat Address Book \(stamp).json"
+        return "KaChat Contacts \(stamp).json"
     }
 
     /// Imports an export file into this wallet's book: an address not saved here is added (even

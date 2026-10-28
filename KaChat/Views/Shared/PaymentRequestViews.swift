@@ -27,16 +27,14 @@ struct CreatePaymentRequestView: View {
     /// when it's copied, shared or sent, so opening the screen and cancelling uses none up. Once
     /// per screen: Copy, Share and Send all reuse it, so no two requests share an address.
     @State private var freshAddress: String?
-    /// The next brand-new address, shown before it's reserved: the one `reserveFreshSpendingAddresses`
-    /// hands out next (the slot after the last revealed one).
+    /// The next brand-new address, shown before it's reserved.
     @State private var nextFreshAddress: String?
     @State private var chosenAddress: String?
-    @State private var showAddressPicker = false
     @State private var amountInput = ""
     @State private var memo = ""
     @State private var copied = false
     @State private var isWorking = false
-    @State private var sendError: String?
+    @State private var errorMessage: String?
     @State private var shareItem: ShareURL?
 
     private struct ShareURL: Identifiable {
@@ -56,53 +54,180 @@ struct CreatePaymentRequestView: View {
         amountSompi != nil && (destination == .fresh || chosenAddress != nil)
     }
 
+    /// Like a send, in steps: where to be paid, how much (on the app's keypad), then the review
+    /// with the memo, Copy and Share (Send Payment Request for a chat).
+    private enum Step: Int { case destination, amount, review }
+    @State private var step: Step = .destination
+    @State private var stepForward = true
+
+    /// The address the request pays: the fresh one (reserved, else the one it will be), or the pick.
+    private var payeeAddress: String? {
+        switch destination {
+        case .fresh: return freshAddress ?? nextFreshAddress
+        case .chosen: return chosenAddress
+        }
+    }
+
     var body: some View {
         NavigationStack {
+            ZStack {
+                switch step {
+                case .destination: destinationStep.transition(stepTransition)
+                case .amount: amountStep.transition(stepTransition)
+                case .review: reviewStep.transition(stepTransition)
+                }
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: amountInput) { _ in copied = false }
+            .onChange(of: memo) { _ in copied = false }
+            .onChange(of: destination) { _ in copied = false }
+            .onChange(of: chosenAddress) { _ in copied = false }
+            .task {
+                // derived, not reserved: opening the screen and cancelling uses no address up.
+                // The fresh slot is quantum-safe (KIP-22) now, matching what reserving returns.
+                // Checked on chain (IOS-101), so the preview never shows a slot already used.
+                // Slot and address from the same account (IOS-109).
+                nextFreshAddress = await WalletManager.shared.verifiedFreshQuantumSlot()?.address
+            }
+            .sheet(item: $shareItem) { item in
+                PaymentRequestShareSheet(url: item.url)
+            }
+        }
+    }
+
+    private var stepTransition: AnyTransition {
+        .asymmetric(insertion: .move(edge: stepForward ? .trailing : .leading),
+                    removal: .move(edge: stepForward ? .leading : .trailing))
+    }
+
+    private func go(to next: Step) {
+        dismissSystemKeyboard()
+        stepForward = next.rawValue > step.rawValue
+        DispatchQueue.main.async {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { step = next }
+        }
+    }
+
+    // MARK: Where
+
+    private var destinationStep: some View {
+        SendStepScreen(title: Text("Request Payment"), onCancel: { dismiss() }, canContinue: payeeAddress != nil) {
+            go(to: .amount)
+        } content: {
             ScrollView {
-                VStack(spacing: 18) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 10) {
-                            SelectablePill(title: "Fresh Address", selected: destination == .fresh) {
-                                destination = .fresh
-                            }
-                            SelectablePill(title: "Choose an Address", selected: destination == .chosen) {
-                                destination = .chosen
-                                showAddressPicker = true
+                VStack(alignment: .leading, spacing: 14) {
+                    SendStepQuestion(text: "Where do you want to be paid?")
+                    HStack(spacing: 10) {
+                        SelectablePill(title: "Fresh Address", selected: destination == .fresh) {
+                            destination = .fresh
+                        }
+                        SelectablePill(title: "Choose an Address", selected: destination == .chosen) {
+                            destination = .chosen
+                        }
+                    }
+
+                    switch destination {
+                    case .fresh:
+                        if let address = freshAddress ?? nextFreshAddress {
+                            AddressResolutionCard(address: address)
+                            Text("A brand-new address of yours that has never been used or handed out.")
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        } else {
+                            HStack { Spacer(); ProgressView(); Spacer() }
+                                .padding(.vertical, 18)
+                        }
+                    case .chosen:
+                        // the list right here, no sheet: tap the address that gets paid
+                        Text("Pick which of your addresses gets paid.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                        OwnAddressList(selected: chosenAddress) { picked in
+                            chosenAddress = picked.address
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+            }
+        }
+    }
+
+    // MARK: How much
+
+    private var amountStep: some View {
+        SendStepScreen(title: Text("Request Payment"), onBack: { go(to: .destination) }, onCancel: { dismiss() },
+                       continueTitle: "Review", canContinue: amountSompi != nil) {
+            go(to: .review)
+        } content: {
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    SendStepQuestion(text: "How much?")
+                    if let payeeAddress {
+                        SendInfoPill {
+                            HStack(spacing: 4) {
+                                Text("Paid to")
+                                Text(verbatim: "\(payeeAddress.prefix(14))...\(payeeAddress.suffix(6))")
+                                    .font(.caption.monospaced())
                             }
                         }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                KaspaKeypadAmountEntry(
+                    fiatAmountState: fiatAmountState,
+                    onAmountChange: { amountInput = $0 },
+                    showsMax: false,
+                    onMax: {}
+                )
+            }
+        }
+    }
 
-                        switch destination {
-                        case .fresh:
-                            if let address = freshAddress ?? nextFreshAddress {
-                                AddressResolutionCard(address: address)
-                            } else {
-                                HStack { Spacer(); ProgressView(); Spacer() }
-                                    .padding(.vertical, 18)
-                            }
-                        case .chosen:
-                            if let chosenAddress {
-                                AddressResolutionCard(address: chosenAddress)
-                                Text(chosenAddress == chattingAddress
-                                     ? "The payment lands in your chat with whoever pays, with the memo."
-                                     : "The memo shows to whoever pays, but doesn't travel with the payment.")
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                Text("Pick which of your addresses gets paid.")
-                                    .font(.footnote)
+    // MARK: Review
+
+    private var reviewStep: some View {
+        SendStepScreen(title: Text("Review"), onBack: { go(to: .amount) }, onCancel: { dismiss() },
+                       continueTitle: recipient != nil ? "Send Payment Request" : (copied ? "Copied" : "Copy Payment Request"),
+                       canContinue: canMake && !isWorking) {
+            if let recipient {
+                send(to: recipient)
+            } else {
+                copy()
+            }
+        } content: {
+            ScrollView {
+                VStack(spacing: 18) {
+                    VStack(spacing: 6) {
+                        Text("You're requesting")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        if let amountSompi {
+                            Text(verbatim: "\(KaspaUnit.plain(amountSompi)) \(KaspaUnit.symbol)")
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
+                            if let price = KasPriceModel.shared.currentPriceUsd, price > 0 {
+                                Text(verbatim: formatFiatAmount(Double(amountSompi) / 100_000_000.0 * price,
+                                                                currency: KasPriceModel.shared.currentCurrency))
+                                    .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
                         }
                     }
-
-                    KaspaAmountEntry(
-                        fiatAmountState: fiatAmountState,
-                        onAmountChange: { amountInput = $0 },
-                        showsMax: false,
-                        focusOnAppear: true,
-                        onMax: {}
-                    )
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 8)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Paid to")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        AddressResolutionCard(address: payeeAddress)
+                    }
 
                     VStack(alignment: .trailing, spacing: 6) {
                         TextField("What it's for (optional)", text: $memo, axis: .vertical)
@@ -121,40 +246,34 @@ struct CreatePaymentRequestView: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
+                    Text(payeeAddress == chattingAddress
+                         ? "The payment lands in your chat with whoever pays, with the memo."
+                         : "The memo shows to whoever pays, but doesn't travel with the payment.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                    if let sendError {
-                        Text(sendError)
+                    if let errorMessage {
+                        Text(errorMessage)
                             .font(.footnote)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                     }
 
-                    if let recipient {
-                        SendActionButton(
-                            title: "Send Payment Request",
-                            isBusy: isWorking,
-                            isEnabled: canMake && !isWorking,
-                            requiresSlide: false
-                        ) {
-                            send(to: recipient)
-                        }
-                    } else {
-                        SendActionButton(
-                            title: copied ? "Copied" : "Copy Payment Request",
-                            isBusy: isWorking,
-                            isEnabled: canMake && !isWorking,
-                            requiresSlide: false,
-                            action: copy
-                        )
-
+                    if recipient == nil {
                         Button(action: share) {
                             Label("Share", systemImage: "square.and.arrow.up")
                                 .font(.subheadline.weight(.semibold))
+                                .foregroundColor(.accentColor)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 10)
+                                .background(Capsule().fill(Color.accentColor.opacity(0.15)))
                         }
+                        .buttonStyle(.plain)
                         .disabled(!canMake || isWorking)
                     }
 
-                    Text("Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key).")
+                    Text("Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key).")
                         .font(.footnote)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -164,32 +283,6 @@ struct CreatePaymentRequestView: View {
                 .padding(.bottom, 24)
             }
             .scrollDismissesKeyboard(.interactively)
-            .navigationTitle("Request Payment")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-            .onChange(of: amountInput) { _ in copied = false }
-            .onChange(of: memo) { _ in copied = false }
-            .onChange(of: destination) { _ in copied = false }
-            .onChange(of: chosenAddress) { _ in copied = false }
-            .task {
-                // derived, not reserved: opening the screen and cancelling uses no address up.
-                // The fresh slot is quantum-safe (KIP-22) now, matching what reserving returns.
-                // Checked on chain (IOS-101), so the preview never shows a slot already used.
-                // Slot and address from the same account (IOS-109).
-                nextFreshAddress = await WalletManager.shared.verifiedFreshQuantumSlot()?.address
-            }
-            .sheet(isPresented: $showAddressPicker) {
-                OwnAddressPicker(title: "Choose an Address", selected: chosenAddress) { picked in
-                    chosenAddress = picked.address
-                }
-            }
-            .sheet(item: $shareItem) { item in
-                PaymentRequestShareSheet(url: item.url)
-            }
         }
     }
 
@@ -205,7 +298,7 @@ struct CreatePaymentRequestView: View {
                 address = freshAddress
             } else {
                 guard let reserved = await walletManager.reserveFreshSpendingAddresses(count: 1).first?.address else {
-                    sendError = AppLocalization.string("Couldn't make a new address. Please try again.")
+                    errorMessage = AppLocalization.string("Couldn't make a new address. Please try again.")
                     return nil
                 }
                 freshAddress = reserved
@@ -228,7 +321,7 @@ struct CreatePaymentRequestView: View {
     /// which they tap to pay.
     private func send(to contact: Contact) {
         isWorking = true
-        sendError = nil
+        errorMessage = nil
         Task {
             guard let request = await makeRequest() else { isWorking = false; return }
             do {
@@ -237,14 +330,14 @@ struct CreatePaymentRequestView: View {
                 dismiss()
             } catch {
                 isWorking = false
-                sendError = UserFacingError.message(for: error)
+                errorMessage = UserFacingError.message(for: error)
             }
         }
     }
 
     private func copy() {
         isWorking = true
-        sendError = nil
+        errorMessage = nil
         Task {
             defer { isWorking = false }
             guard let request = await makeRequest() else { return }
@@ -256,7 +349,7 @@ struct CreatePaymentRequestView: View {
 
     private func share() {
         isWorking = true
-        sendError = nil
+        errorMessage = nil
         Task {
             defer { isWorking = false }
             guard let request = await makeRequest(), let url = URL(string: request.shareURLString) else { return }

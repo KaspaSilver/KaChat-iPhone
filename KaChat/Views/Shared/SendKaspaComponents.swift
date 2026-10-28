@@ -35,9 +35,12 @@ struct SendRecipientCard: View {
     var nameResolutions: [NameResolution] = []
     var selectedTLD: NameServiceTLD? = nil
     var onSelectResolution: (NameResolution) -> Void = { _ in }
+    /// Puts the cursor in the field when it appears empty (a send's first step).
+    var focusOnAppear = false
 
     @ObservedObject private var addressBook = AddressBookManager.shared
     @State private var showAddressBook = false
+    @FocusState private var isFocused: Bool
 
     private var trimmed: String { input.trimmingCharacters(in: .whitespacesAndNewlines) }
 
@@ -59,44 +62,26 @@ struct SendRecipientCard: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             } else {
-                HStack(spacing: 14) {
-                    TextField("kaspa:qr... or domain", text: $input)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    Button {
+                TextField("kaspa:qr... or domain", text: $input)
+                    .font(.system(.subheadline, design: .monospaced))
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .focused($isFocused)
+                HStack(spacing: 6) {
+                    inputPill("Paste", systemImage: "doc.on.clipboard") {
                         if let pasted = UIPasteboard.general.string {
                             input = pasted.trimmingCharacters(in: .whitespacesAndNewlines)
                         }
-                    } label: {
-                        Image(systemName: "doc.on.clipboard")
-                            .font(.body.weight(.semibold))
                     }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
-                    .accessibilityLabel(Text("Paste"))
-                    Button(action: onScan) {
-                        Image(systemName: "qrcode.viewfinder")
-                            .font(.body.weight(.semibold))
+                    inputPill("Scan QR", systemImage: "qrcode.viewfinder", action: onScan)
+                    inputPill("Contacts", systemImage: "person.text.rectangle") {
+                        showAddressBook = true
                     }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.accentColor)
-                    .accessibilityLabel(Text("Scan QR"))
-                    if !addressBook.entries.isEmpty {
-                        Button {
-                            showAddressBook = true
-                        } label: {
-                            Image(systemName: "book.closed")
-                                .font(.body.weight(.semibold))
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundColor(.accentColor)
-                        .accessibilityLabel(Text("Addresses"))
-                    }
+                    Spacer(minLength: 0)
                 }
                 AddressResolutionCard(address: resolvedAddress ?? (isValidAddress ? trimmed : nil), domain: resolvedName)
                 if let savedName = addressBook.entry(for: resolvedAddress ?? trimmed)?.customName {
-                    Label(savedName, systemImage: "book.closed.fill")
+                    Label(savedName, systemImage: "person.text.rectangle.fill")
                         .font(.caption.weight(.semibold))
                         .foregroundColor(.accentColor)
                 }
@@ -114,6 +99,29 @@ struct SendRecipientCard: View {
         .fullScreenCover(isPresented: $showAddressBook) {
             AddressBookPickerSheet { entry in input = entry.address }
         }
+        .onAppear {
+            guard focusOnAppear, lockedAddress == nil, trimmed.isEmpty else { return }
+            // The field doesn't exist yet on the tap that presented the screen.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { isFocused = true }
+        }
+    }
+
+    /// Paste, Scan QR, Contacts: a labelled pill under the field.
+    private func inputPill(_ title: LocalizedStringKey, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button {
+            Haptics.impact(.light)
+            action()
+        } label: {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.accentColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(Color.accentColor.opacity(0.15)))
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -420,6 +428,9 @@ struct SendFeeControls: View {
     var showsCoinControl = true
     var coinControlSummary: String = ""
     var onCoinControl: () -> Void = {}
+    /// Set: the fee shows with an Edit button that opens the screen's own fee editor (a send's
+    /// review), instead of being typed here.
+    var onEditFee: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -427,7 +438,29 @@ struct SendFeeControls: View {
                 Text("Network Fee")
                     .font(.subheadline)
                 Spacer()
-                if isEditingFee {
+                if let onEditFee {
+                    if isEstimatingFee {
+                        ProgressView().scaleEffect(0.75)
+                    } else {
+                        Text(verbatim: feeText ?? "—")
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundColor(feeText == nil ? .secondary : .primary)
+                    }
+                    Button {
+                        Haptics.impact(.light)
+                        onEditFee()
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.accentColor)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Color.accentColor.opacity(0.15)))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(feeText == nil)
+                    .opacity(feeText == nil ? 0.5 : 1)
+                } else if isEditingFee {
                     TextField("0.00", text: $customFeeText)
                         .keyboardType(.decimalPad)
                         .numericKeyboardDoneButton()
@@ -461,7 +494,9 @@ struct SendFeeControls: View {
                 }
             }
             .pickerStyle(.segmented)
-            Text("If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee.")
+            Text(onEditFee == nil
+                 ? LocalizedStringKey("If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee.")
+                 : LocalizedStringKey("If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own."))
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -507,6 +542,550 @@ struct SendInfoPill<Content: View>: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(sendKaspaGlass(cornerRadius: 14))
+    }
+}
+
+// MARK: - Send steps
+
+/// Puts the system keyboard away, wherever it is.
+@MainActor
+func dismissSystemKeyboard() {
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+}
+
+/// The header every send step draws in place of the navigation bar: Back (or Cancel on the
+/// first step) on the left, the title in the middle, Cancel on the right once there is a Back.
+/// Without `onCancel` (a step whose Cancel sits at the bottom, beside Continue) only the title
+/// and Back show.
+struct SendStepHeader: View {
+    let title: Text
+    var onBack: (() -> Void)? = nil
+    var onCancel: (() -> Void)? = nil
+
+    init(title: String, onBack: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+        self.init(titleText: Text(LocalizedStringKey(title)), onBack: onBack, onCancel: onCancel)
+    }
+
+    init(titleText: Text, onBack: (() -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+        self.title = titleText
+        self.onBack = onBack
+        self.onCancel = onCancel
+    }
+
+    var body: some View {
+        ZStack {
+            title
+                .font(.headline)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                // room for the buttons only when there are any
+                .padding(.horizontal, onBack != nil || onCancel != nil ? 96 : 16)
+            HStack {
+                if let onBack {
+                    Button(action: onBack) {
+                        Image(systemName: "chevron.left")
+                            .font(.body.weight(.semibold))
+                            .foregroundColor(.accentColor)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(.regularMaterial))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Back"))
+                } else if let onCancel {
+                    cancelButton(onCancel)
+                }
+                Spacer()
+                if onBack != nil, let onCancel {
+                    cancelButton(onCancel)
+                }
+            }
+        }
+        .frame(minHeight: 40)
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 6)
+    }
+
+    private func cancelButton(_ onCancel: @escaping () -> Void) -> some View {
+        Button(action: onCancel) {
+            Text("Cancel")
+                .font(.body)
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 9)
+                .background(Capsule().fill(.regularMaterial))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// A send step's Continue: a teal capsule pinned at the bottom, full width, or beside Cancel
+/// when the step has `onCancel` (its header then leaves Cancel out).
+struct SendContinueButton: View {
+    var title: LocalizedStringKey = "Continue"
+    let isEnabled: Bool
+    var onCancel: (() -> Void)? = nil
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let onCancel {
+                Button(action: onCancel) {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Capsule().fill(.regularMaterial))
+                        .overlay(Capsule().stroke(Color.accentColor.opacity(0.35), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+            Button {
+                Haptics.impact(.light)
+                action()
+            } label: {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Capsule().fill(Color.accentColor.opacity(isEnabled ? 1 : 0.4)))
+            }
+            .buttonStyle(.plain)
+            .disabled(!isEnabled)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .background(.bar)
+    }
+}
+
+/// One step of a send (who to, how much, a fee, a price...): the header, the step's content, and
+/// Continue pinned at the bottom. The first step (no `onBack`) has Cancel beside Continue; a
+/// later one has Back and Cancel in its header.
+struct SendStepScreen<Content: View>: View {
+    let title: Text
+    var onBack: (() -> Void)? = nil
+    let onCancel: () -> Void
+    var continueTitle: LocalizedStringKey = "Continue"
+    let canContinue: Bool
+    let onContinue: () -> Void
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            SendStepHeader(titleText: title, onBack: onBack, onCancel: onBack == nil ? nil : onCancel)
+            content
+                .frame(maxHeight: .infinity, alignment: .top)
+        }
+        .background(Color(.systemBackground))
+        .safeAreaInset(edge: .bottom) {
+            SendContinueButton(title: continueTitle, isEnabled: canContinue,
+                               onCancel: onBack == nil ? onCancel : nil, action: onContinue)
+        }
+    }
+}
+
+/// "To alice.kachat", "From Chatting Address": one line of what a step is about, as a glass
+/// chip above its content (the amount step).
+struct SendStepChip: View {
+    let label: LocalizedStringKey
+    let value: String
+    /// An address: monospaced, cut in the middle.
+    var isAddress = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .foregroundColor(.secondary)
+            if isAddress {
+                Text(verbatim: value)
+                    .font(.subheadline.monospaced())
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            } else {
+                Text(verbatim: value)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+            }
+        }
+        .font(.subheadline)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+        .background(sendKaspaGlass(cornerRadius: 18))
+    }
+}
+
+/// The question a step asks, big, at the top of its content ("Who are you sending to?").
+struct SendStepQuestion: View {
+    let text: LocalizedStringKey
+
+    var body: some View {
+        Text(text)
+            .font(.title2.weight(.bold))
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// A review's fee editor (its fee row's Edit): the whole network fee typed on `KaspaKeypad`,
+/// Confirm hands it back, Cancel leaves it as it was. Says the network's minimum when known
+/// (`minimumSompi`) and warns at more than ten times `referenceSompi` (the minimum, else the fee
+/// it opened with).
+struct SendFeeEditorScreen: View {
+    @Binding var draft: String
+    var minimumSompi: UInt64? = nil
+    var referenceSompi: UInt64? = nil
+    let onCancel: () -> Void
+    let onConfirm: (UInt64) -> Void
+
+    private var draftSompi: UInt64? {
+        guard let sompi = KaspaUnit.sompi(fromUserText: draft), sompi > 0 else { return nil }
+        return sompi
+    }
+
+    private var isHigh: Bool {
+        guard let draftSompi, let reference = minimumSompi ?? referenceSompi, reference > 0 else { return false }
+        return draftSompi > reference * 10
+    }
+
+    private var footnote: String? {
+        let minimum = minimumSompi.map {
+            KaspaUnit.label(String(format: AppLocalization.string("The network needs at least %@ KAS. A lower fee is raised to that."),
+                                   locale: AppLocalization.locale, KaspaUnit.plain($0)))
+        }
+        guard isHigh else { return minimum }
+        return [AppLocalization.string("This is much more than the network needs."), minimum]
+            .compactMap { $0 }.joined(separator: " ")
+    }
+
+    var body: some View {
+        // Cancel sits at the bottom, beside Confirm.
+        SendStepScreen(title: Text("Network Fee"), onCancel: onCancel, continueTitle: "Confirm",
+                       canContinue: draftSompi != nil) {
+            guard let draftSompi else { return }
+            Haptics.success()
+            onConfirm(draftSompi)
+        } content: {
+            VStack(spacing: 0) {
+                Text("Set your network fee")
+                    .font(.title3.weight(.bold))
+                    .padding(.top, 8)
+                Spacer(minLength: 8)
+                KeypadAmountText(typed: draft, unit: KaspaUnit.symbol,
+                                 accessibilityName: AppLocalization.string("Network Fee"))
+                Text(verbatim: footnote ?? " ")
+                    .font(.footnote)
+                    .foregroundColor(isHigh ? .orange : .secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 10)
+                    .padding(.horizontal, 24)
+                Spacer(minLength: 8)
+                KaspaKeypad { key in
+                    let text = KaspaKeypad.applying(key, to: draft, maxDecimals: 8)
+                    guard text != draft else {
+                        Haptics.impact(.rigid)
+                        return
+                    }
+                    draft = text
+                }
+                .padding(.horizontal, 12)
+            }
+        }
+    }
+}
+
+/// The amount step's From: the two pills of `SendFromSection` - Chatting Address and Choose an
+/// Address (any of your addresses; once picked, the pill shows its name) - without the address
+/// card under them, so the keypad has room. The balance it loads is the amount's Available.
+struct SendFromCompactRow: View {
+    @Binding var source: SendSource
+    /// The chosen address's balance, loaded here (nil while it loads).
+    @Binding var availableSompi: UInt64?
+    /// Opened from one address's own page: that address only, shown as the one pill.
+    var isLocked: Bool = false
+    @State private var showPicker = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text("From")
+                .font(.caption.weight(.semibold))
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+            if isLocked {
+                SelectablePill(title: LocalizedStringKey(sourceTitle), selected: true) {}
+                    .allowsHitTesting(false)
+            } else {
+                SelectablePill(title: "Chatting Address", selected: source == .chatting) {
+                    source = .chatting
+                }
+                SelectablePill(title: chooseTitle, selected: source != .chatting) {
+                    showPicker = true
+                }
+            }
+        }
+        .sheet(isPresented: $showPicker) {
+            OwnAddressPicker(title: "Send From", selected: source.address) { picked in
+                source = picked
+            }
+        }
+        .task(id: source) {
+            availableSompi = nil
+            guard let address = source.address else { return }
+            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
+            guard !Task.isCancelled else { return }
+            availableSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
+        }
+    }
+
+    /// "Choose an Address", or the picked address's name.
+    private var chooseTitle: LocalizedStringKey {
+        if case .spending(_, _, let label) = source { return LocalizedStringKey(label) }
+        return "Choose an Address"
+    }
+
+    private var sourceTitle: String {
+        switch source {
+        case .chatting: return AppLocalization.string("Chatting Address")
+        case .spending(_, _, let label): return label
+        }
+    }
+}
+
+/// The amount on a send's amount step, typed on the app's own number pad (`KaspaKeypad`), so no
+/// system keyboard comes up: the big amount and its unit, the KAS / your-currency switch and
+/// Max, then the keys. Hands the screen the KAS amount text after every key, like
+/// `KaspaAmountEntry`.
+struct KaspaKeypadAmountEntry: View {
+    @ObservedObject var fiatAmountState: KaspaFiatAmountState
+    @ObservedObject private var priceModel = KasPriceModel.shared
+    let onAmountChange: (String) -> Void
+    var isEstimatingMax = false
+    var maxEnabled = true
+    /// False leaves Max out (an offer, a price).
+    var showsMax = true
+    /// A line under the amount (Available, or why the amount can't be sent).
+    var footnote: String? = nil
+    var footnoteIsError = false
+    let onMax: () -> Void
+    /// Any key press (not Max): the screen stops treating the amount as Max.
+    var onKeyTyped: () -> Void = {}
+
+    var body: some View {
+        let price = priceModel.currentPriceUsd
+        VStack(spacing: 0) {
+            Spacer(minLength: 8)
+            amountLine
+            HStack(spacing: 10) {
+                if price != nil {
+                    Button {
+                        fiatAmountState.toggleMode(priceInCurrency: price)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.up.arrow.down")
+                                .font(.caption.weight(.semibold))
+                            if let conversion = fiatAmountState.conversionLabelText(priceInCurrency: price, currency: priceModel.currentCurrency) {
+                                Text(verbatim: conversion)
+                            } else {
+                                Text(verbatim: fiatAmountState.isFiatMode ? KaspaUnit.symbol : priceModel.currentCurrency.code)
+                            }
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(sendKaspaGlass(cornerRadius: 14))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("Switch between Kaspa and your currency"))
+                }
+                if showsMax {
+                    Button(action: onMax) {
+                        Group {
+                            if isEstimatingMax {
+                                ProgressView().scaleEffect(0.7)
+                            } else {
+                                Text("Max")
+                            }
+                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.accentColor)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(sendKaspaGlass(cornerRadius: 14))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!maxEnabled || isEstimatingMax)
+                    .opacity(maxEnabled ? 1 : 0.5)
+                }
+            }
+            .padding(.top, 12)
+            Text(verbatim: footnote ?? " ")
+                .font(.footnote)
+                .foregroundColor(footnoteIsError ? .red : .secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .padding(.top, 10)
+                .padding(.horizontal, 20)
+            Spacer(minLength: 8)
+            KaspaKeypad { key in
+                let text = KaspaKeypad.applying(key, to: fiatAmountState.displayText,
+                                                maxDecimals: fiatAmountState.isFiatMode ? 2 : 8)
+                guard text != fiatAmountState.displayText else {
+                    Haptics.impact(.rigid)
+                    return
+                }
+                onKeyTyped()
+                onAmountChange(fiatAmountState.onDisplayTextChange(text, priceInCurrency: price))
+            }
+            .padding(.horizontal, 12)
+        }
+    }
+
+    private var amountLine: some View {
+        KeypadAmountText(typed: fiatAmountState.displayText,
+                         unit: fiatAmountState.isFiatMode ? priceModel.currentCurrency.code : KaspaUnit.symbol,
+                         accessibilityName: KaspaUnit.label(AppLocalization.string("Amount (KAS)")))
+    }
+}
+
+/// The big number a keypad types into: the typed text grouped ("12,345.5", "0" while empty) and
+/// its unit, shrinking as it grows.
+struct KeypadAmountText: View {
+    let typed: String
+    let unit: String
+    let accessibilityName: String
+
+    var body: some View {
+        let display = typed.isEmpty ? "0" : KaspaAmountEntry.grouped(typed)
+        let fontSize: CGFloat = display.count <= 7 ? 60 : (display.count <= 10 ? 46 : 34)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(verbatim: display)
+                .font(.system(size: fontSize, weight: .bold, design: .rounded))
+                .foregroundColor(typed.isEmpty ? .secondary : .primary)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .contentTransition(.numericText())
+                .animation(.easeOut(duration: 0.15), value: display)
+            Text(verbatim: unit)
+                .font(.system(size: fontSize * 0.5, weight: .semibold, design: .rounded))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: accessibilityName))
+        .accessibilityValue(Text(verbatim: display))
+    }
+}
+
+/// The app's own number pad: 1-9, the decimal point, 0 and delete (hold to clear). Used where a
+/// system keyboard would cover the screen (a send's amount step).
+struct KaspaKeypad: View {
+    enum Key: Hashable {
+        case digit(Int)
+        case decimal
+        case delete
+        case clear
+    }
+
+    let onKey: (Key) -> Void
+
+    private static let rows: [[Key]] = [
+        [.digit(1), .digit(2), .digit(3)],
+        [.digit(4), .digit(5), .digit(6)],
+        [.digit(7), .digit(8), .digit(9)],
+        [.decimal, .digit(0), .delete],
+    ]
+
+    var body: some View {
+        VStack(spacing: 4) {
+            ForEach(Self.rows, id: \.self) { row in
+                HStack(spacing: 4) {
+                    ForEach(row, id: \.self) { key in
+                        keyButton(key)
+                    }
+                }
+            }
+        }
+    }
+
+    private func keyButton(_ key: Key) -> some View {
+        Button {
+            Haptics.impact(.light)
+            onKey(key)
+        } label: {
+            Group {
+                switch key {
+                case .digit(let n):
+                    Text(verbatim: "\(n)")
+                case .decimal:
+                    Text(verbatim: KaspaAmountEntry.usesCommaDecimal() ? "," : ".")
+                case .delete, .clear:
+                    Image(systemName: "delete.left")
+                        .font(.title2.weight(.medium))
+                }
+            }
+            .font(.system(size: 30, weight: .medium, design: .rounded))
+            .foregroundColor(.primary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 58)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(KaspaKeypadKeyStyle())
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+                guard key == .delete else { return }
+                Haptics.impact(.medium)
+                onKey(.clear)
+            }
+        )
+        .accessibilityLabel(Text(Self.accessibilityName(key)))
+    }
+
+    private static func accessibilityName(_ key: Key) -> String {
+        switch key {
+        case .digit(let n): return "\(n)"
+        case .decimal: return AppLocalization.string("Decimal point")
+        case .delete, .clear: return AppLocalization.string("Delete")
+        }
+    }
+
+    /// The amount text after a key: plain digits with "." as the point, at most `maxDecimals`
+    /// decimals and 11 whole digits (more than all the Kaspa there will ever be). A leading zero
+    /// gives way to the next digit; the point on an empty amount writes "0.". A key that can't
+    /// apply leaves the text as it was.
+    static func applying(_ key: Key, to text: String, maxDecimals: Int) -> String {
+        switch key {
+        case .clear:
+            return ""
+        case .delete:
+            return String(text.dropLast())
+        case .decimal:
+            if text.contains(".") || maxDecimals == 0 { return text }
+            return text.isEmpty ? "0." : text + "."
+        case .digit(let n):
+            if let point = text.firstIndex(of: ".") {
+                let decimals = text.distance(from: text.index(after: point), to: text.endIndex)
+                return decimals >= maxDecimals ? text : text + "\(n)"
+            }
+            if text == "0" { return "\(n)" }
+            if text.count >= 11 { return text }
+            return text + "\(n)"
+        }
+    }
+}
+
+/// A keypad key: a soft round highlight while pressed.
+private struct KaspaKeypadKeyStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.primary.opacity(configuration.isPressed ? 0.08 : 0))
+            )
+            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
@@ -698,6 +1277,12 @@ struct SwipeUpToSendScrollView<Content: View>: View {
     /// The header's title, e.g. "Send Kaspa".
     let screenTitle: String
     let onCancel: () -> Void
+    /// A step-by-step send's review: the header shows Back (and Cancel on the right).
+    var onBack: (() -> Void)? = nil
+    /// The title as a ready `Text` (a localized key with values), in place of `screenTitle`.
+    var titleText: Text? = nil
+    /// False: only Back in the header (a step pushed inside another sheet, which Back leaves).
+    var showsCancel = true
     let title: LocalizedStringKey
     let isBusy: Bool
     let isEnabled: Bool
@@ -809,30 +1394,10 @@ struct SwipeUpToSendScrollView<Content: View>: View {
         .safeAreaInset(edge: .bottom) { bar(threshold: threshold) }
     }
 
-    /// Cancel and the title, where the navigation bar would be.
+    /// Cancel (or Back) and the title, where the navigation bar would be.
     private var header: some View {
-        ZStack {
-            // A plain String would show untranslated, as the navigation title it replaced did not.
-            Text(verbatim: AppLocalization.string(screenTitle))
-                .font(.headline)
-                .lineLimit(1)
-                .padding(.horizontal, 110)
-            HStack {
-                Button(action: onCancel) {
-                    Text("Cancel")
-                        .font(.body)
-                        .foregroundColor(.accentColor)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .background(Capsule().fill(.regularMaterial))
-                }
-                .buttonStyle(.plain)
-                Spacer()
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 14)
-        .padding(.bottom, 6)
+        SendStepHeader(titleText: titleText ?? Text(LocalizedStringKey(screenTitle)), onBack: onBack,
+                       onCancel: showsCancel || onBack == nil ? onCancel : nil)
     }
 
     private func bar(threshold: CGFloat) -> some View {
@@ -856,7 +1421,11 @@ struct SwipeUpToSendScrollView<Content: View>: View {
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged { value in
                     guard active, phase == .form else { return }
-                    if lift == 0 && value.translation.height < 0 { Haptics.impact(.light) }
+                    if lift == 0 && value.translation.height < 0 {
+                        // a keyboard left up (a custom fee) would sit over the rising screen
+                        dismissSystemKeyboard()
+                        Haptics.impact(.light)
+                    }
                     lift = max(0, -value.translation.height)
                     let pastThreshold = lift >= threshold
                     if pastThreshold != armed {
@@ -1338,7 +1907,7 @@ struct SendFromSection: View {
 /// Manage Addresses shows, plus hidden ones holding Kaspa) - each with its name, balance and
 /// whether it was ever used (a balance means used, else the cached answer, else a history
 /// lookup, eight at a time; "Checking" until answered, never a possibly-wrong "Unused").
-/// A send's Choose an Address, and Request Payment's.
+/// A send's Choose an Address, as a sheet (`OwnAddressPicker`).
 struct OwnAddressPicker: View {
     let title: LocalizedStringKey
     let selected: String?
@@ -1347,29 +1916,16 @@ struct OwnAddressPicker: View {
     var excludeQuantum: Bool = false
     let onPick: (SendSource) -> Void
     @Environment(\.dismiss) private var dismiss
-    @State private var entries: [SpendingAddressEntry]?
-    @State private var used: [String: Bool] = [:]
 
     var body: some View {
         NavigationStack {
-            List {
-                if let chatting = WalletManager.shared.currentWallet {
-                    Section("Chatting Address") {
-                        row(title: AppLocalization.string("Chatting Address"), address: chatting.publicAddress,
-                            balance: chatting.balanceSompi) { .chatting }
-                    }
+            ScrollView {
+                OwnAddressList(selected: selected, excludeQuantum: excludeQuantum) { picked in
+                    onPick(picked)
+                    dismiss()
                 }
-                Section("Spending Addresses") {
-                    if let entries {
-                        ForEach(entries) { entry in
-                            row(title: entry.displayLabel, address: entry.address, balance: entry.balanceSompi) {
-                                .spending(index: entry.index, address: entry.address, label: entry.displayLabel)
-                            }
-                        }
-                    } else {
-                        HStack { Spacer(); ProgressView(); Spacer() }
-                    }
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
@@ -1381,6 +1937,39 @@ struct OwnAddressPicker: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+/// The address list itself, to sit on a screen (Request Payment's "Where do you want to be
+/// paid?") or in `OwnAddressPicker`'s sheet: the chatting address, then the spending addresses,
+/// as tappable cards with Used / Unused and the balance; the picked one has a check.
+struct OwnAddressList: View {
+    let selected: String?
+    var excludeQuantum: Bool = false
+    let onPick: (SendSource) -> Void
+    @State private var entries: [SpendingAddressEntry]?
+    @State private var used: [String: Bool] = [:]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let chatting = WalletManager.shared.currentWallet {
+                sectionTitle("Chatting Address")
+                row(title: AppLocalization.string("Chatting Address"), address: chatting.publicAddress,
+                    balance: chatting.balanceSompi) { .chatting }
+            }
+            sectionTitle("Spending Addresses")
+                .padding(.top, 8)
+            if let entries {
+                ForEach(entries) { entry in
+                    row(title: entry.displayLabel, address: entry.address, balance: entry.balanceSompi) {
+                        .spending(index: entry.index, address: entry.address, label: entry.displayLabel)
+                    }
+                }
+            } else {
+                HStack { Spacer(); ProgressView(); Spacer() }
+                    .padding(.vertical, 12)
+            }
+        }
         .task {
             let all = await WalletManager.shared.getSpendingAddressList()
             let shown = all
@@ -1390,6 +1979,13 @@ struct OwnAddressPicker: View {
             entries = shown
             await checkUsed(shown)
         }
+    }
+
+    private func sectionTitle(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(.secondary)
+            .textCase(.uppercase)
     }
 
     private func checkUsed(_ shown: [SpendingAddressEntry]) async {
@@ -1448,9 +2044,10 @@ struct OwnAddressPicker: View {
     }
 
     private func row(title: String, address: String, balance: UInt64?, source: @escaping () -> SendSource) -> some View {
-        Button {
+        let isSelected = address == selected
+        return Button {
+            Haptics.impact(.light)
             onPick(source())
-            dismiss()
         } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -1469,14 +2066,19 @@ struct OwnAddressPicker: View {
                         .font(.subheadline.monospacedDigit())
                         .foregroundColor(balance > 0 ? .primary : .secondary)
                 }
-                if address == selected {
-                    Image(systemName: "checkmark")
-                        .foregroundColor(.accentColor)
-                }
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(isSelected ? .accentColor : .secondary)
             }
-            .contentShape(Rectangle())
+            .padding(14)
+            .background(sendKaspaGlass(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.accentColor.opacity(isSelected ? 0.9 : 0), lineWidth: 1.5)
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

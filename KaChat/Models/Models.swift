@@ -2031,8 +2031,8 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
         switch self {
         case .chats: return "Chats"
         case .groupChats: return "Groups"
-        // "Addresses", as in the KaChat wallet app (owner's call, 2026-10-24).
-        case .addressBook: return "Addresses"
+        // "Contacts" (owner's call, 2026-10-28; "Addresses" before, as in the KaChat wallet app).
+        case .addressBook: return "Contacts"
         case .profile: return "Profile"
         case .settings: return "Settings"
         }
@@ -2042,7 +2042,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
         switch self {
         case .chats: return "bubble.left.and.bubble.right"
         case .groupChats: return "person.3"
-        case .addressBook: return "book.closed"
+        case .addressBook: return "person.text.rectangle"
         case .profile: return "person.crop.circle"
         case .settings: return "gearshape"
         }

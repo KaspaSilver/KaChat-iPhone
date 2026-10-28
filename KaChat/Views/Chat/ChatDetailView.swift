@@ -307,8 +307,10 @@ struct ChatDetailView: View {
     /// Where this payment comes from (the sheet's From): the chatting address, or one picked
     /// under Choose an Address. Back to the chatting address each time the sheet opens.
     @State private var paymentFrom: SendSource = .chatting
-    /// The From address's balance, loaded by `SendFromSection`.
+    /// The From address's balance (the amount's Available), loaded by the sheet.
     @State private var paymentFromBalanceSompi: UInt64?
+    /// The From step's Choose an Address is on (its list shows), before or after a pick.
+    @State private var paymentChoosingFrom = false
     /// Fee speed and a custom fee, and coin control - the same controls as every Send Kaspa
     /// screen (`SendFeeControls`). The extra over the base fee goes to `sendPayment`.
     @State private var paymentFeeTier: WithdrawFeeTier = .normal
@@ -317,6 +319,15 @@ struct ChatDetailView: View {
     @State private var paymentCustomFeeText = ""
     @State private var paymentManualUtxos: [UTXO]?
     @State private var showPaymentCoinControl = false
+    /// The Send KAS sheet's step (amount, review, fee editor) and which way the last move went,
+    /// so the next step slides in from the right (forward) or the left (back).
+    @State private var paymentStep: PaymentStep = .from
+    @State private var paymentStepForward = true
+    /// The amount is Max: a From, fee, coin or memo change works it out again.
+    @State private var paymentUsedMax = false
+    @State private var isEstimatingPaymentMax = false
+    /// The fee being typed on the fee editor, in KAS.
+    @State private var paymentFeeDraft = ""
     @State private var recordedAudioURL: URL?
     @State private var recordedAudioPreviewURL: URL?
     @State private var isRecording = false
@@ -3042,6 +3053,11 @@ struct ChatDetailView: View {
         paymentFeeSompi = nil
         isEstimatingPaymentFee = false
         sentPayment = nil
+        paymentStep = .from
+        paymentStepForward = true
+        paymentChoosingFrom = false
+        paymentUsedMax = false
+        isEstimatingPaymentMax = false
         showPaymentSheet = true
     }
 
@@ -3049,25 +3065,218 @@ struct ChatDetailView: View {
         let amountSompi = paymentAmountSompi
         guard amountSompi > 0, !isSending else { return }
         paymentError = nil
-        // The amount field (KaspaAmountEntry) keeps its own focus: drop the keyboard for the send.
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        // The memo field can still hold the keyboard: drop it for the send.
+        dismissSystemKeyboard()
         // An amount under the network dust limit (0.10000001 KAS) is not asked about again: the
         // form already says in orange that it may fail, and the swipe is deliberate. A dialog
         // here would stop the send the swipe screen is already showing.
         executePayment(amountSompi: amountSompi)
     }
 
-    /// "Send KAS": who it goes to, the exact amount (KAS or fiat), an encrypted memo, the fee
-    /// and available balance, and the swipe-up send screen Send Kaspa uses (from KaChat Wallet):
-    /// swipe the bar up past halfway to send, so a payment can't go out on a stray touch. The
+    /// The Send KAS sheet's steps, as in Send Kaspa: where it leaves from, how much (on the app's
+    /// own keypad), then a review where the memo, the fee speed and coin control can change before
+    /// swiping up to send, and the fee editor behind the review's Edit. The recipient is this
+    /// chat, so there is no To step: From comes first.
+    private enum PaymentStep: Int { case from, amount, review, fee }
+
+    private func goToPaymentStep(_ next: PaymentStep) {
+        dismissSystemKeyboard()
+        paymentStepForward = next.rawValue > paymentStep.rawValue
+        // The leaving step re-renders with the new direction before it animates out.
+        DispatchQueue.main.async {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) { paymentStep = next }
+        }
+    }
+
+    private var paymentStepTransition: AnyTransition {
+        .asymmetric(insertion: .move(edge: paymentStepForward ? .trailing : .leading),
+                    removal: .move(edge: paymentStepForward ? .leading : .trailing))
+    }
+
+    /// The amount is more than the From address holds.
+    private var paymentExceedsBalance: Bool {
+        guard let balance = paymentFromBalanceSompi, paymentAmountSompi > 0 else { return false }
+        return paymentAmountSompi > balance
+    }
+
+    /// "Send KAS": the swipe-up send screen Send Kaspa uses (from KaChat Wallet), in steps - swipe
+    /// the review's bar up past halfway to send, so a payment can't go out on a stray touch. The
     /// screen then runs the BlockDAG while it goes out and shows Sent, or Failed with Try Again.
     private var paymentSheet: some View {
+        ZStack {
+            switch paymentStep {
+            case .from:
+                paymentFromStep.transition(paymentStepTransition)
+            case .amount:
+                paymentAmountStep.transition(paymentStepTransition)
+            case .review:
+                paymentReviewStep.transition(paymentStepTransition)
+            case .fee:
+                paymentFeeStep.transition(paymentStepTransition)
+            }
+        }
+        .presentationDetents([.large])
+        .interactiveDismissDisabled(isSending)
+        // the From address's balance: the amount's Available and its check
+        .task(id: paymentFrom) {
+            paymentFromBalanceSompi = nil
+            guard let address = paymentFrom.address else { return }
+            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
+            guard !Task.isCancelled else { return }
+            paymentFromBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
+        }
+        .onChange(of: paymentFeeTier) { _ in
+            paymentCustomExtraFeeSompi = nil
+            isEditingPaymentFee = false
+            if paymentUsedMax { setPaymentMax() }
+        }
+        .onChange(of: paymentCustomExtraFeeSompi) { _ in
+            if paymentUsedMax { setPaymentMax() }
+        }
+        .onChange(of: paymentFrom) { _ in
+            if paymentUsedMax { setPaymentMax() }
+        }
+        .onChange(of: paymentNote) { _ in
+            // the memo rides in the payment, so it changes what Max leaves for the fee
+            if paymentUsedMax { setPaymentMax() }
+        }
+        .onChange(of: paymentManualUtxos?.map { "\($0.outpoint.transactionId):\($0.outpoint.index)" } ?? []) { _ in
+            schedulePaymentFee(for: amountText)
+            if paymentUsedMax { setPaymentMax() }
+        }
+        .sheet(isPresented: $showPaymentCoinControl) {
+            if let from = try? chatService.paymentFundingSourceAddress(spendingIndex: paymentFrom.spendingIndex) {
+                CoinControlView(fromAddress: from, initialSelection: paymentManualUtxos) { selection in
+                    paymentManualUtxos = selection
+                }
+            }
+        }
+    }
+
+    private var paymentScreenTitle: Text {
+        Text(verbatim: KaspaUnit.label(AppLocalization.string("Send KAS")))
+    }
+
+    // MARK: Step 1 - From
+
+    /// "Where are you sending from?": the Chatting Address, or Choose an Address with your
+    /// addresses listed right here (no sheet). The first step: Cancel sits at the bottom.
+    private var paymentFromStep: some View {
+        SendStepScreen(title: paymentScreenTitle, onCancel: { showPaymentSheet = false },
+                       canContinue: !(paymentChoosingFrom && paymentFrom == .chatting)) {
+            goToPaymentStep(.amount)
+        } content: {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    paymentRecipientChip
+                    SendStepQuestion(text: "Where are you sending from?")
+                    HStack(spacing: 10) {
+                        SelectablePill(title: "Chatting Address", selected: !paymentChoosingFrom) {
+                            paymentChoosingFrom = false
+                            paymentFrom = .chatting
+                        }
+                        SelectablePill(title: "Choose an Address", selected: paymentChoosingFrom) {
+                            paymentChoosingFrom = true
+                        }
+                    }
+                    if paymentChoosingFrom {
+                        Text("Pick which of your addresses the Kaspa leaves from.")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                        OwnAddressList(selected: paymentFrom == .chatting ? nil : paymentFrom.address) { picked in
+                            paymentFrom = picked
+                            // the chatting address picked from the list: back on its own pill
+                            if picked == .chatting { paymentChoosingFrom = false }
+                        }
+                    } else if let address = paymentFrom.address {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Chatting Address")
+                                    .font(.subheadline.weight(.semibold))
+                                Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                                    .font(.caption.monospaced())
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            if let balance = paymentFromBalanceSompi {
+                                Text(verbatim: "\(KaspaUnit.plain(balance)) \(KaspaUnit.symbol)")
+                                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                            } else {
+                                ProgressView().controlSize(.small)
+                            }
+                        }
+                        .padding(14)
+                        .background(sendKaspaGlass(cornerRadius: 16))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+            }
+        }
+    }
+
+    // MARK: Step 2 - Amount
+
+    private var paymentAmountStep: some View {
+        SendStepScreen(title: paymentScreenTitle, onBack: { goToPaymentStep(.from) },
+                       onCancel: { showPaymentSheet = false },
+                       continueTitle: "Review",
+                       canContinue: paymentAmountSompi > 0 && !paymentExceedsBalance && !isEstimatingPaymentMax) {
+            goToPaymentStep(.review)
+        } content: {
+            VStack(spacing: 0) {
+                VStack(spacing: 8) {
+                    paymentRecipientChip
+                    paymentFromChip
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
+
+                KaspaKeypadAmountEntry(
+                    fiatAmountState: fiatAmountState,
+                    onAmountChange: { amountText = $0 },
+                    isEstimatingMax: isEstimatingPaymentMax,
+                    footnote: paymentAmountFootnote,
+                    footnoteIsError: paymentExceedsBalance,
+                    onMax: setPaymentMax,
+                    onKeyTyped: {
+                        paymentUsedMax = false
+                        paymentError = nil
+                    }
+                )
+            }
+        }
+    }
+
+    /// Under the typed amount: that it's more than the From address holds, else what's available.
+    private var paymentAmountFootnote: String? {
+        if paymentExceedsBalance { return AppLocalization.string("This is more than the address you're sending from holds.") }
+        guard let balance = paymentFromBalanceSompi else { return nil }
+        return KaspaUnit.label(String(format: AppLocalization.string("Available: %@ KAS"),
+                                      locale: AppLocalization.locale, KaspaUnit.plain(balance)))
+    }
+
+    /// "To <this chat>", so the From and amount steps say where it is going.
+    private var paymentRecipientChip: some View {
+        SendStepChip(label: "To", value: contactsManager.displayName(for: contact))
+    }
+
+    /// "From Chatting Address" (or the picked address), on the amount step.
+    private var paymentFromChip: some View {
+        SendStepChip(label: "From", value: paymentSourceTitle)
+    }
+
+    // MARK: Step 3 - Review
+
+    private var paymentReviewStep: some View {
         SwipeUpToSendScrollView(
-            screenTitle: KaspaUnit.label(AppLocalization.string("Send KAS")),
+            screenTitle: "Review",
             onCancel: { showPaymentSheet = false },
+            onBack: { goToPaymentStep(.amount) },
             title: "Swipe up to Send",
             isBusy: isSending,
-            isEnabled: paymentAmountSompi > 0,
+            isEnabled: paymentAmountSompi > 0 && !paymentExceedsBalance && !isEstimatingPaymentMax,
             amountSompi: paymentAmountSompi,
             recipient: contactsManager.displayName(for: contact),
             sent: sentPayment,
@@ -3079,14 +3288,45 @@ struct ChatDetailView: View {
             action: submitPayment
         ) {
             VStack(spacing: 18) {
-                Text("to \(contactsManager.displayName(for: contact))")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .padding(.top, 4)
+                paymentReviewAmount
+                    .padding(.top, 8)
 
-                SendFromSection(source: $paymentFrom, availableSompi: $paymentFromBalanceSompi)
+                VStack(alignment: .leading, spacing: 14) {
+                    paymentReviewRow("To") {
+                        Text(verbatim: contactsManager.displayName(for: contact))
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                    Divider()
+                    paymentReviewRow("From") {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(verbatim: paymentSourceTitle).fontWeight(.semibold)
+                            if let address = try? chatService.paymentFundingSourceAddress(spendingIndex: paymentFrom.spendingIndex) {
+                                Text(verbatim: "\(address.prefix(14))...\(address.suffix(6))")
+                                    .font(.caption.monospaced())
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    Divider()
+                    paymentReviewRow("Total") {
+                        if paymentAmountSompi > 0, let fee = paymentTotalFeeSompi {
+                            Text(verbatim: "\(KaspaUnit.plain(paymentAmountSompi + fee)) \(KaspaUnit.symbol)")
+                                .fontWeight(.semibold)
+                                .monospacedDigit()
+                        } else if isEstimatingPaymentFee || isEstimatingPaymentMax {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Text(verbatim: "—").foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .font(.subheadline)
+                .padding(14)
+                .background(sendKaspaGlass(cornerRadius: 20))
+
+                paymentMemoField
 
                 // From a spending address the chatting address tells them about it (a small
                 // message fee); an empty one can't, until it has some KAS (IOS-086)
@@ -3099,24 +3339,22 @@ struct ChatDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                paymentAmountEntry
-
-                paymentMemoField
-
+                // The only things that can still change: the memo, the fee and the coins it spends.
                 SendFeeControls(
                     feeTier: $paymentFeeTier,
                     isEditingFee: $isEditingPaymentFee,
                     customFeeText: $paymentCustomFeeText,
                     isEstimatingFee: isEstimatingPaymentFee,
-                    feeText: paymentTotalFeeSompi.map { "\(formatKaspaExact($0)) \(KaspaUnit.symbol)" },
+                    feeText: paymentTotalFeeSompi.map { "\(KaspaUnit.plain($0)) \(KaspaUnit.symbol)" },
                     onStartEditing: {
                         guard let total = paymentTotalFeeSompi else { return }
-                        paymentCustomFeeText = formatKaspaExact(total)
+                        paymentCustomFeeText = KaspaUnit.plain(total)
                         isEditingPaymentFee = true
                     },
                     onCommit: commitPaymentCustomFee,
                     coinControlSummary: coinControlSummary(paymentManualUtxos),
-                    onCoinControl: { showPaymentCoinControl = true }
+                    onCoinControl: { showPaymentCoinControl = true },
+                    onEditFee: openPaymentFeeEditor
                 )
 
                 if let paymentError {
@@ -3132,25 +3370,67 @@ struct ChatDetailView: View {
                 }
             }
             .padding(.horizontal, 20)
+            .padding(.top, 12)
             .padding(.bottom, 24)
         }
         .scrollDismissesKeyboard(.interactively)
-        .presentationDetents([.large])
-        .interactiveDismissDisabled(isSending)
-        .onChange(of: paymentFeeTier) { _ in
-            paymentCustomExtraFeeSompi = nil
-            isEditingPaymentFee = false
-        }
-        .onChange(of: paymentManualUtxos?.map { "\($0.outpoint.transactionId):\($0.outpoint.index)" } ?? []) { _ in
-            schedulePaymentFee(for: amountText)
-        }
-        .sheet(isPresented: $showPaymentCoinControl) {
-            if let from = try? chatService.paymentFundingSourceAddress(spendingIndex: paymentFrom.spendingIndex) {
-                CoinControlView(fromAddress: from, initialSelection: paymentManualUtxos) { selection in
-                    paymentManualUtxos = selection
-                }
+    }
+
+    /// The amount being sent, big, with its value in your currency under it.
+    private var paymentReviewAmount: some View {
+        VStack(spacing: 6) {
+            Text("You're sending")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            Text(verbatim: "\(KaspaUnit.plain(paymentAmountSompi)) \(KaspaUnit.symbol)")
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            if let price = priceModel.currentPriceUsd, price > 0 {
+                Text(verbatim: formatFiatAmount(Double(paymentAmountSompi) / 100_000_000.0 * price,
+                                                currency: priceModel.currentCurrency))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
         }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func paymentReviewRow<Value: View>(_ label: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(label)
+                .foregroundColor(.secondary)
+            Spacer(minLength: 12)
+            value()
+                .multilineTextAlignment(.trailing)
+        }
+    }
+
+    private var paymentSourceTitle: String {
+        switch paymentFrom {
+        case .chatting: return AppLocalization.string("Chatting Address")
+        case .spending(_, _, let label): return label
+        }
+    }
+
+    // MARK: Network fee (from the review)
+
+    /// The fee editor: the whole fee typed on the keypad, Confirm back to the review.
+    private var paymentFeeStep: some View {
+        SendFeeEditorScreen(draft: $paymentFeeDraft, minimumSompi: paymentFeeSompi,
+                            onCancel: { goToPaymentStep(.review) }) { typed in
+            // never under the network's minimum
+            guard let base = paymentFeeSompi else { return }
+            paymentCustomExtraFeeSompi = typed > base ? typed - base : 0
+            goToPaymentStep(.review)
+        }
+    }
+
+    private func openPaymentFeeEditor() {
+        guard let total = paymentTotalFeeSompi else { return }
+        paymentFeeDraft = KaspaUnit.plain(total)
+        goToPaymentStep(.fee)
     }
 
     /// The extra over the base fee: a custom fee, else what the speed adds (Fast 2x, Priority 5x).
@@ -3171,53 +3451,51 @@ struct ChatDetailView: View {
         paymentCustomExtraFeeSompi = total > base ? total - base : 0
     }
 
-    /// The big centred amount, the KAS/fiat switch and Max - the shared Send Kaspa piece.
-    private var paymentAmountEntry: some View {
-        KaspaAmountEntry(
-            fiatAmountState: fiatAmountState,
-            onAmountChange: { amountText = $0 },
-            focusOnAppear: true,
-            onMax: {
-                // The typed memo rides in the payment, so it is priced in. A custom fee counts even
-                // before an amount is typed, and so does the speed: its extra is a multiple of the
-                // base fee, which needs an amount - with none yet, the max send itself is priced
-                // first. Without that, Max on Fast left too little for the fee it then charged.
-                let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
-                let source = paymentFrom.spendingIndex
-                let manual = paymentManualUtxos
-                let customExtra = paymentCustomExtraFeeSompi
-                let knownExtra = paymentExtraFeeSompi
-                let hasBase = paymentFeeSompi != nil
-                let multiplier = paymentFeeTier.multiplier
-                Task {
-                    do {
-                        var extra = customExtra ?? knownExtra
-                        if !hasBase, customExtra == nil, multiplier > 1 {
-                            let provisional = try await chatService.estimateMaxPaymentAmount(
-                                to: contact, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: 0
-                            )
-                            let base = try await chatService.estimatePaymentFee(
-                                to: contact, amountSompi: provisional, note: note, sourceSpendingIndex: source, manualUtxos: manual
-                            )
-                            extra = base * (multiplier - 1)
-                        }
-                        let maxSompi = try await chatService.estimateMaxPaymentAmount(
-                            to: contact,
-                            note: note,
-                            sourceSpendingIndex: source,
-                            manualUtxos: manual,
-                            extraFeeSompi: extra
-                        )
-                        await MainActor.run {
-                            let kas = Double(maxSompi) / 100_000_000.0
-                            amountText = fiatAmountState.setMaxKas(kas, priceInCurrency: priceModel.currentPriceUsd)
-                        }
-                    } catch {
-                        AppLog.log("[ChatDetail] Max calculation failed: %@", error.localizedDescription)
-                    }
+    /// Max: everything the From address can send after the fee. The memo rides in the payment,
+    /// so it is priced in. A custom fee counts even before an amount is typed, and so does the
+    /// speed: its extra is a multiple of the base fee, which needs an amount - with none yet, the
+    /// max send itself is priced first. Without that, Max on Fast left too little for the fee it
+    /// then charged.
+    private func setPaymentMax() {
+        paymentUsedMax = true
+        isEstimatingPaymentMax = true
+        paymentError = nil
+        let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
+        let source = paymentFrom.spendingIndex
+        let manual = paymentManualUtxos
+        let customExtra = paymentCustomExtraFeeSompi
+        let knownExtra = paymentExtraFeeSompi
+        let hasBase = paymentFeeSompi != nil
+        let multiplier = paymentFeeTier.multiplier
+        Task {
+            do {
+                var extra = customExtra ?? knownExtra
+                if !hasBase, customExtra == nil, multiplier > 1 {
+                    let provisional = try await chatService.estimateMaxPaymentAmount(
+                        to: contact, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: 0
+                    )
+                    let base = try await chatService.estimatePaymentFee(
+                        to: contact, amountSompi: provisional, note: note, sourceSpendingIndex: source, manualUtxos: manual
+                    )
+                    extra = base * (multiplier - 1)
                 }
+                let maxSompi = try await chatService.estimateMaxPaymentAmount(
+                    to: contact,
+                    note: note,
+                    sourceSpendingIndex: source,
+                    manualUtxos: manual,
+                    extraFeeSompi: extra
+                )
+                await MainActor.run {
+                    let kas = Double(maxSompi) / 100_000_000.0
+                    amountText = fiatAmountState.setMaxKas(kas, priceInCurrency: priceModel.currentPriceUsd)
+                    isEstimatingPaymentMax = false
+                }
+            } catch {
+                AppLog.log("[ChatDetail] Max calculation failed: %@", error.localizedDescription)
+                await MainActor.run { isEstimatingPaymentMax = false }
             }
-        )
+        }
     }
 
     private var paymentMemoField: some View {

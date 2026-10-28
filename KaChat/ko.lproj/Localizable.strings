@@ -1506,3 +1506,50 @@
 "Moves it back into your group chats list." = "그룹 채팅 목록으로 되돌립니다.";
 "Pinned to the top row" = "위쪽 줄에 고정됨";
 "Send and Receive" = "보내기 및 받기";
+
+/* Send steps */
+"Who are you sending to?" = "누구에게 보내나요?";
+"Review" = "검토";
+"You're sending" = "보내는 금액";
+"Consolidating" = "통합 중";
+"This address (consolidating)" = "이 주소(통합)";
+"This address" = "이 주소";
+"This is more than the address you're sending from holds." = "보내는 주소의 잔액보다 많습니다.";
+"Set your network fee" = "네트워크 수수료 설정";
+"The network needs at least %@ KAS. A lower fee is raised to that." = "네트워크에는 최소 %@ KAS가 필요합니다. 더 낮은 수수료는 이 금액으로 올라갑니다.";
+"This is much more than the network needs." = "네트워크에 필요한 금액보다 훨씬 많습니다.";
+"Decimal point" = "소수점";
+"If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Edit sets a fee of your own." = "네트워크가 혼잡하면 빠름 또는 우선이 더 높은 수수료를 내서 더 빨리 확인됩니다. 편집으로 직접 수수료를 정할 수 있습니다.";
+"Available: %@ KAS" = "사용 가능: %@ KAS";
+"Amount (KAS)" = "금액(KAS)";
+"Where are you sending from?" = "어디에서 보내나요?";
+"Pick which of your addresses the Kaspa leaves from." = "Kaspa를 보낼 내 주소를 고르세요.";
+"Where do you want to be paid?" = "어디로 받을까요?";
+"How much?" = "얼마인가요?";
+"You're requesting" = "요청 금액";
+"A brand-new address of yours that has never been used or handed out." = "한 번도 사용하거나 공유한 적 없는 새 주소입니다.";
+"Anyone who opens it in KaPay or KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "KaPay나 KaChat에서 열면 이 내용이 채워진 Kaspa 보내기 화면이 열리고, 내 채팅 주소가 만든 요청(그 키로 서명됨)임을 확인할 수 있습니다.";
+
+/* Contacts (was Address Book) */
+"Add to Contacts" = "연락처에 추가";
+"Saved to Contacts." = "연락처에 저장했습니다.";
+"Removed from Contacts." = "연락처에서 삭제했습니다.";
+"Remove Contact Photos" = "연락처 사진 삭제";
+"Remove Contact Photos?" = "연락처 사진을 삭제할까요?";
+"Your contacts are in the same backup and sync between your devices the same way." = "연락처는 같은 백업에 들어 있고 기기 간에 같은 방식으로 동기화됩니다.";
+"Pick people from your contacts, or add anyone by Kaspa address or domain." = "연락처에서 사람을 고르거나 Kaspa 주소나 도메인으로 누구든 추가하세요.";
+"No members added yet. Add people from your contacts or by address below." = "아직 멤버가 없습니다. 연락처에서 또는 아래 주소로 추가하세요.";
+"Add contacts from a contacts export." = "연락처 내보내기 파일에서 연락처를 추가합니다.";
+"Save your contacts, with their photos, to a file." = "연락처를 사진과 함께 파일로 저장합니다.";
+"Pick a contacts export from your Nextcloud." = "Nextcloud에서 연락처 내보내기 파일을 고르세요.";
+"Delete Contact" = "연락처 삭제";
+"Not in your contacts" = "연락처에 없음";
+"Remove from Contacts" = "연락처에서 제거";
+"Add them in Contacts." = "연락처에서 추가하세요.";
+"That file isn't a KaChat contacts export." = "그 파일은 KaChat 연락처 내보내기 파일이 아닙니다.";
+"That contacts export has no contacts." = "그 연락처 내보내기 파일에는 연락처가 없습니다.";
+"Edit Contact" = "연락처 편집";
+"No contacts yet" = "아직 연락처가 없습니다";
+"Delete %@ from your contacts?" = "%@님을 연락처에서 삭제할까요?";
+"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "사용하는 Kaspa 주소를 알아보기 쉬운 이름으로 저장하세요. 이 지갑 전용으로 KaChat에만 저장되고 휴대폰의 연락처 앱에는 들어가지 않습니다.";
+"Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "이 지갑 전용으로 KaChat에 저장됩니다. 휴대폰의 연락처 앱에는 추가되지 않습니다.";

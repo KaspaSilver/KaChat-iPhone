@@ -8,7 +8,8 @@ KaChat is a native iOS messaging and payment application built on the Kaspa bloc
 
 **Scope (since 2026-10-24):** KaChat is 1:1 chats and group chats, kept small enough for an App
 Store 4+ rating. The dock is a fixed five: Addresses, Groups, Chats, Profile, Settings (Chats
-in the center; no Kaspa Hub, no Customize Dock). Group Chats is its own screen again since 2026-10-26
+in the center; no Kaspa Hub, no Customize Dock). Chats and Groups show their unread counts on
+the dock, Profile a dot for the bell (`AppTabBadge`, synced from `ChatService.updateAppBadge`). Group Chats is its own screen again since 2026-10-26
 (`GroupChatListView`: Select, its + opens New Group Chat, and group notification taps land
 there). The KaChat bots are always circles in the row above the chats. **Pin to Top Row** (a
 chat's or group's half sheet) moves it out of its list into the circle row above it (Chats: pins

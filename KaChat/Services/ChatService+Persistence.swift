@@ -1171,13 +1171,20 @@ extension ChatService {
         }
     }
 
-    func updateAppBadge() {
-        // Message Requests and blocked chats don't count: an unaccepted sender must not be able
-        // to keep ringing the badge (NO_HANDSHAKE_MESSAGING.md).
-        let totalUnread = conversations.reduce(0) { total, conversation in
+    /// Unread messages across the chats the Chats list shows. Message Requests and blocked
+    /// chats don't count: an unaccepted sender must not be able to keep ringing the badge
+    /// (NO_HANDSHAKE_MESSAGING.md).
+    var chatListUnreadCount: Int {
+        conversations.reduce(0) { total, conversation in
             guard isConversationVisibleInChatList(conversation) else { return total }
             return total + max(0, conversation.unreadCount)
-        } + GroupChatService.shared.totalGroupUnreadCount
+        }
+    }
+
+    /// The app icon's count, and the Chats and Groups dock badges (`AppTabBadge`).
+    func updateAppBadge() {
+        AppTabBadge.syncDockBadges(dockTabs: AppTab.dock)
+        let totalUnread = chatListUnreadCount + GroupChatService.shared.totalGroupUnreadCount
         SharedDataManager.setUnreadCount(totalUnread)
         if #available(iOS 16.0, *) {
             UNUserNotificationCenter.current().setBadgeCount(totalUnread)

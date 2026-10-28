@@ -60,7 +60,7 @@ struct MainTabView: View {
                         Label(tab.label, systemImage: tab.icon)
                     }
                     // Profile hosts the notification bell and shows a dot while it holds
-                    // anything unread.
+                    // anything unread; Chats and Groups show their unread message counts.
                     .badge(dockBadge(for: tab))
                     .tag(tab.tag)
             }
@@ -70,9 +70,9 @@ struct MainTabView: View {
 
     var body: some View {
         dockTabView
-        // the bell has something unread: Profile's dock dot, from whichever tab is showing. Its
+        // The dock badges (Profile's dot, the Chats and Groups counts), from whichever tab is showing. Its
         // own modifier: inline, these pushed the body past what the type checker can solve.
-        .modifier(ProfileDockDotSync(selectedTab: selectedTab, dockTabs: AppTab.dock))
+        .modifier(DockBadgeSync(selectedTab: selectedTab, dockTabs: AppTab.dock))
         .toast(message: nextcloudService.syncStatusToast)
         .onAppear {
             LaunchTrace.mark("main tabs on screen")
@@ -448,10 +448,10 @@ private struct OwnAddressSheetPresenter: ViewModifier {
     }
 }
 
-/// Keeps Profile's dock dot in step with the bell (`AppTabBadge.syncProfileDot`): when the feed
-/// changes, the tab changes, the dock is rearranged, and on appear - set after the render that
+/// Keeps the dock badges in step (`AppTabBadge.syncDockBadges`): Profile's dot when the bell's
+/// feed changes (new messages sync them from `ChatService.updateAppBadge`), the tab changes, the dock is rearranged, and on appear - set after the render that
 /// triggered it, so it lands on the bar SwiftUI just updated.
-private struct ProfileDockDotSync: ViewModifier {
+private struct DockBadgeSync: ViewModifier {
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared
     let selectedTab: Int
     let dockTabs: [AppTab]
@@ -466,6 +466,6 @@ private struct ProfileDockDotSync: ViewModifier {
 
     private func sync() {
         let tabs = dockTabs
-        DispatchQueue.main.async { AppTabBadge.syncProfileDot(dockTabs: tabs) }
+        DispatchQueue.main.async { AppTabBadge.syncDockBadges(dockTabs: tabs) }
     }
 }

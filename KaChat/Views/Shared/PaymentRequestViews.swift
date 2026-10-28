@@ -290,20 +290,24 @@ final class PaymentRequestAwareTextView: UITextView {
 /// on Send, filled in, through KaPay's own scheme (`kapay://pay/...`, the same tail as
 /// `kachat://pay/`). Two stay here: your own (nothing to pay - `OwnPaymentRequestView`), and one
 /// asking for a chat payment (`toChattingAddress`, made from a 1:1 chat), which KaChat pays as an
-/// encrypted chat payment so it lands in your chat with them - KaPay can't. Without KaPay
-/// installed, `fallback` runs: KaChat's own Send Kaspa.
+/// encrypted chat payment so it lands in your chat with them - KaPay can't; `inApp` opens those.
+/// Without KaPay installed, the App Store opens to get it.
 enum KaPayHandoff {
     static let scheme = "kapay"
+    /// Where a request goes when KaPay isn't installed. KaPay isn't listed yet, so this is an App
+    /// Store search for it; swap in its page (`https://apps.apple.com/app/id<KaPay's id>`) once
+    /// it is.
+    static let appStoreURL = URL(string: "https://apps.apple.com/search?term=KaPay")!
 
     @MainActor
-    static func pay(_ request: PaymentRequest, fallback: @escaping () -> Void) {
+    static func pay(_ request: PaymentRequest, inApp: @escaping () -> Void) {
         guard !request.isOwn, !request.toChattingAddress,
               let url = URL(string: "\(scheme)://pay/\(request.linkTail)") else {
-            fallback()
+            inApp()
             return
         }
         UIApplication.shared.open(url) { opened in
-            if !opened { fallback() }
+            if !opened { UIApplication.shared.open(appStoreURL) }
         }
     }
 }

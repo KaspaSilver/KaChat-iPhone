@@ -1046,13 +1046,13 @@ enum KaChatLinkRouter {
         }
     }
 
-    /// A payment request: someone else's is paid in KaPay (`KaPayHandoff`); a chat-payment one,
-    /// or any without KaPay installed, opens Send Kaspa here with it filled in, and your own shows
-    /// it (amount, memo, the address it pays into) with its link to copy or share again
+    /// A payment request: someone else's is paid in KaPay (`KaPayHandoff`; the App Store when
+    /// it isn't installed). A chat-payment one opens Send Kaspa here with it filled in, and your
+    /// own shows it (amount, memo, the address it pays into) with its link to copy or share again
     /// (`PaymentRequestSheetPresenter`, in `MainTabView`).
     @MainActor
     static func openPaymentRequest(_ request: PaymentRequest) {
-        KaPayHandoff.pay(request) { PaymentRequestRouter.shared.pending = request }
+        KaPayHandoff.pay(request, inApp: { PaymentRequestRouter.shared.pending = request })
     }
 
     /// A profile link carrying `chat=1` (KaPosts' Chat button).

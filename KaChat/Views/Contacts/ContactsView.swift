@@ -4978,6 +4978,7 @@ struct WithdrawKaspaView: View {
                 }
             }
         }
+        .sendKaspaSheetSizing()
         .interactiveDismissDisabled()
     }
 

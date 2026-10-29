@@ -3116,6 +3116,7 @@ struct ChatDetailView: View {
             }
         }
         .presentationDetents([.large])
+        .sendKaspaSheetSizing()
         .interactiveDismissDisabled(isSending)
         // the From address's balance: the amount's Available and its check
         .task(id: paymentFrom) {

@@ -11,8 +11,8 @@ Store 4+ rating. The dock is a fixed five: Contacts, Groups, Chats, Profile, Set
 in the center; no Kaspa Hub, no Customize Dock). Chats and Groups show their unread counts on
 the dock, Profile a dot for the bell (`AppTabBadge`, synced from `ChatService.updateAppBadge`). Group Chats is its own screen again since 2026-10-26
 (`GroupChatListView`: Select, its + opens New Group Chat, and group notification taps land
-there). The KaChat bots are always circles in the row above the chats. **Pin to Top Row** (a
-chat's or group's half sheet) moves it out of its list into the circle row above it (Chats: pins
+there). The KaChat bots are always circles in the row above the chats. **Pin** (a chat's or
+group's swipe, or Pin to Top Row in a circle's half sheet) moves it out of its list into the circle row above it (Chats: pins
 "c:<address>" beside the bots' "b:" in `kachat_chat_circle_pins_<wallet>`; Groups: their own row,
 `kachat_group_pins_<wallet>`); while searching, pinned ones show in the results instead. Chats' +
 offers only New Chat and Fund Chatting Address; Send Kaspa, Receive Kaspa and Request Payment
@@ -336,13 +336,57 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
 
 ### Long-press menus
 
+Chat and group rows have no long-press menu: swipe left for Delete, Silence and Pin (your own chat
+has only Silence), right for Mark as Read or Unread. Pinned chats and groups, being circles, keep the hold.
+
 Every long-press menu is a half sheet of square tiles, three to a row: an icon over a short
-title. This covers the message menu (`MessageActionsSheet`), chat rows, group and room circles,
-and room rows. The chat composers' **+** sheets (1:1 and group) use the same tiles.
+title. This covers the message menu (`MessageActionsSheet`), and chat, bot and group circles. The
+chat composers' **+** sheets (1:1 and group) use the same tiles.
 - Build them with `ActionSheetRow`s inside `ActionSheetTiles`. The row's `subtitle` becomes the
   VoiceOver hint.
 - Size the sheet with `ActionSheetTileMetrics.sheetHeight(tiles:)`.
 - Other half sheets (confirmations, account menus) keep the row form.
+
+### List titles and search
+
+Contacts, Groups and Chats draw their title and search field themselves (`PinnedListHeader`,
+`Views/Shared/ActionSheet.swift`) above the list, so neither scrolls away; Settings uses it for its
+title alone. Not `.searchable` or a
+large title: the large title collapsed into the bar on a scroll, where the balance took its place,
+so the title could go missing. The bar stays `.inline` with a principal item, so it doesn't show
+the title a second time.
+
+### Creating an account, backups and Delete Account
+
+These match KaPay (ported 2026-11-01); keep them matched with KaPay's copy.
+
+Create New Account makes an account in one tap: 24 words, no passphrase, the next free default
+name (`WalletManager.nextDefaultAccountName`: My Account, My Account 2 and on), then the Welcome
+Guide as before (`commitCreatedWalletForOnboarding` arms it and holds sync). "Advanced: Create with
+a Passphrase" (`CreateWalletView`) is the only other way: also 24 words, through
+`PassphraseOptionView`, whose entry screen shows the chatting address and its balance as you type.
+Import still takes 12 or 24 words.
+
+Creating never shows the seed phrase: an account made here is owed a backup
+(`AccountBackupStatus`), and until the backup steps (`AccountBackupView`: why, get ready, the words
+six at a time, a check of four random words, the passphrase and its check if there is one, where
+to keep them) are finished, Profile shows `AccountBackupCard` above Manage Addresses (red once the
+account holds funds), Receive shows a reminder and the Delete Account warning leads with Back Up
+Account; deleting is never blocked. The steps never offer a copy; Settings > View Seed Phrase does
+(a reveal lasts 20 seconds). Imported and older accounts are never owed one. Finishing the steps
+starts a six-month timer; when it runs out Profile shows `BackupHygieneCard` in the same place, and
+`BackupHygieneView` asks for five random words in random order on `SeedPhraseKeyboardView`, then
+the passphrase if there is one. Passing, or Can't Complete This and the backup steps again, starts
+the timer over; closing leaves the card up.
+
+Settings' last rows are Delete Account (`DeleteAccountSheet`, the warning the sign-in screen's
+Delete also shows; `WalletManager.deleteCurrentAccount`) and Log Out. Deleting removes the account,
+its messages, contacts and the bell's notifications from this device and revokes the app password
+KaChat made on Nextcloud; the encrypted backup stays on the server.
+
+Every sign-in gets new tabs (`ContentView`'s `signInSession`, the `MainTabView` id, bumped on
+sign-out), opening on Chats; without it SwiftUI brought the last account's tabs back, on Settings
+and with no onAppear. Biometrics for account login are on by default for new installs.
 
 ### Send Kaspa screens
 

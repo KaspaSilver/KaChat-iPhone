@@ -52,11 +52,11 @@ struct ChatListView: View {
     @State private var avatarPrefetchTask: Task<Void, Never>?
     @State private var splitColumnVisibility: NavigationSplitViewVisibility = .all
     @State private var showBulkDeleteConfirmation = false
-    /// Row-level delete targets from the long-press context menu - separate from the Select-mode
-    /// bulk selection state so a context-menu delete never touches (or is blocked by) edit mode.
+    /// Row-level delete targets from a row's swipe or a circle's half sheet - separate from the
+    /// Select-mode bulk selection state so such a delete never touches (or is blocked by) edit mode.
     /// Confirmed via their own alerts below, which reuse `deleteConversations`.
     @State private var rowDeleteContact: Contact?
-    /// The row whose long-press action sheet is up.
+    /// The pinned chat whose long-press action sheet is up (list rows swipe instead).
     @State private var conversationActionTarget: Conversation?
     /// The chat row's "Add to Contacts" tile: the contact whose entry sheet is up.
     @State private var addressBookTarget: Contact?
@@ -105,9 +105,13 @@ struct ChatListView: View {
         // sheet + three `.alert`s + two custom modifiers + `.environment` all as a single
         // expression - that combination is what triggered "unable to type-check in reasonable
         // time" once the third `.alert` (bulk delete) was added.
-        let withToolbar = chatListContent
+        let withToolbar = VStack(spacing: 0) {
+            PinnedListHeader(title: "Chats", search: $searchText, prompt: "Search chats")
+            chatListContent
+                .scrollDismissesKeyboard(.immediately)
+        }
             .navigationTitle("Chats")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     ConnectionStatusIndicator()
@@ -136,16 +140,6 @@ struct ChatListView: View {
             }
 
         let withPresentation = withToolbar
-            // placement .always is load-bearing: the chats list used to live inside a paging
-            // TabView (chatListContent), so their scrolling no longer drives the navigation
-            // bar — with the default .automatic placement under a .large title, the search
-            // drawer waits for a nav-bar-linked scroll to reveal it and therefore NEVER
-            // appears. Pinning it keeps: bold "Chats" large title, search bar underneath.
-            .searchable(
-                text: $searchText,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search chats"
-            )
             .refreshable {
                 isPullRefreshing = true
                 // Group chats refresh on their own tab.
@@ -187,7 +181,7 @@ struct ChatListView: View {
                 Text(bulkDeleteAlertMessage)
             }
 
-        // Row context-menu deletes confirm through their own alerts (same destructive-confirm
+        // Single-row deletes confirm through their own alerts (same destructive-confirm
         // pattern and wording as the bulk alert above, singular) - staged as separate variables
         // for the same type-checker reason as the rest of this chain.
         let withRowDeleteAlert = withAlerts
@@ -703,11 +697,6 @@ struct ChatListView: View {
             if !displayed.isEmpty {
                 ForEach(Array(displayed.enumerated()), id: \.element.id) { index, conversation in
                     Button {
-                        // The hold that opened the actions half sheet ends in a touch-up, and a
-                        // simultaneousGesture leaves the Button's tap alive - so the chat opened
-                        // right behind the sheet. A long press always presents before the finger
-                        // lifts, so the target being set IS "this touch was the hold".
-                        guard conversationActionTarget == nil else { return }
                         // List(selection:)'s native edit-mode row-selection UI never gets a
                         // chance to see this tap - our own Button label already consumes it - so
                         // toggle selection here explicitly instead of relying on that.
@@ -725,21 +714,12 @@ struct ChatListView: View {
                         ConversationRow(conversation: conversation)
                     }
                     .buttonStyle(ChatRowPressStyle())
-                    // A sheet, not a context menu: the options each carry a line saying what
-                    // they do, and "Silence" needs one - it is not obvious that it survives the
-                    // app-wide notification setting.
-                    //
-                    // `.simultaneousGesture`, not `.onLongPressGesture`: the row's label IS a
-                    // Button, and a discrete gesture attached outside it loses the race to the
-                    // Button every time - the press did nothing at all. Same reason the message
-                    // bubbles use simultaneousGesture for their double-tap.
-                    .simultaneousGesture(
-                        LongPressGesture(minimumDuration: 0.4).onEnded { _ in
-                            guard editMode != .active else { return }
-                            Haptics.impact(.medium)
-                            conversationActionTarget = conversation
-                        }
-                    )
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        chatSwipeLeftActions(conversation)
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        chatSwipeRightActions(conversation)
+                    }
                     .tag(conversation.contact.id)
                     .listRowBackground(
                         shouldUseSplitLayout && selectedContact?.address == conversation.contact.address
@@ -771,6 +751,59 @@ struct ChatListView: View {
                     .padding(.top, 120)
                     .allowsHitTesting(false)
             }
+        }
+    }
+
+    /// A chat row swiped left: Delete, Silence and Pin; your own chat has only Silence. No full
+    /// swipe, so a long swipe can't start a delete; Delete still asks first.
+    @ViewBuilder
+    private func chatSwipeLeftActions(_ conversation: Conversation) -> some View {
+        let contact = conversation.contact
+        let isSilent = contact.notificationModeOverride == .off
+        let pinId = Self.chatPinId(contact.address)
+        let isPinned = circlePins.contains(pinId)
+        if !isOwnChat(contact) {
+            Button {
+                rowDeleteContact = contact
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            .tint(.red)
+        }
+        Button {
+            setSilent(!isSilent, for: contact)
+        } label: {
+            Label(LocalizedStringKey(isSilent ? "Unsilence" : "Silence"), systemImage: isSilent ? "bell" : "bell.slash")
+        }
+        .tint(.orange)
+        // your own chat already stays first in the list
+        if !isOwnChat(contact) {
+            Button {
+                toggleCirclePin(pinId)
+            } label: {
+                Label(LocalizedStringKey(isPinned ? "Unpin" : "Pin"), systemImage: isPinned ? "pin.slash" : "pin")
+            }
+            .tint(.accentColor)
+        }
+    }
+
+    /// A chat row swiped right: Mark as Read or Mark as Unread, by its unread state.
+    @ViewBuilder
+    private func chatSwipeRightActions(_ conversation: Conversation) -> some View {
+        if conversation.unreadCount > 0 {
+            Button {
+                Task { await chatService.markConversationAsRead(conversation) }
+            } label: {
+                Label("Mark as Read", systemImage: "envelope.open")
+            }
+            .tint(.accentColor)
+        } else {
+            Button {
+                chatService.markConversationAsUnread(conversation)
+            } label: {
+                Label("Mark as Unread", systemImage: "envelope.badge")
+            }
+            .tint(.accentColor)
         }
     }
 
@@ -992,7 +1025,7 @@ struct ChatListView: View {
         AppLocalization.string("This permanently deletes every message in each selected chat from this device. This cannot be undone.")
     }
 
-    /// Long-press context menu for a 1:1 conversation row. Read/Unread show contextually (the
+    /// Long-press half sheet for a pinned 1:1 chat's circle. Read/Unread show contextually (the
     /// relevant one only, matching Mail) and reuse the exact same service calls as the Select-mode
     /// bulk bar; Delete routes through its own confirmation alert, which then reuses
     /// `deleteConversations`. Empty while Select mode is active - the bulk bar owns actions there.
@@ -1173,8 +1206,8 @@ struct ChatListView: View {
         contactsManager.updateContact(updated)
     }
 
-    /// Shared delete path for both Select-mode bulk deletes and single-row context-menu deletes
-    /// (row swipes are gone) - per-contact cleanup with one resubscribe and toast at the end.
+    /// Shared delete path for both Select-mode bulk deletes and single-row deletes (a row's swipe,
+    /// a pinned chat's half sheet) - per-contact cleanup with one resubscribe and toast at the end.
     private func deleteConversations(_ contacts: [Contact]) {
         // Your own chat is never deleted, even when it was part of a Select All.
         let contacts = contacts.filter { !isOwnChat($0) }

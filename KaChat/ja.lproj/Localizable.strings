@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "Nextcloud の KaChat フォルダに保存し、どのデバイスでもインポートできます。";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "設定 > ストレージで Nextcloud を接続すると、そこにも保存して別のデバイスでインポートできます。";
 "Couldn't read that file." = "そのファイルを読み込めませんでした。";
+"Nothing to export yet. Add a contact first." = "まだ書き出すものがありません。先に連絡先を追加してください。";
 "Nothing to export yet. Add an address first." = "まだエクスポートするものがありません。先にアドレスを追加してください。";
 "Export failed. Couldn't write the file." = "エクスポートに失敗しました。ファイルを書き込めませんでした。";
 "Already up to date. Every address in the file is saved." = "すでに最新です。ファイルのアドレスはすべて保存済みです。";

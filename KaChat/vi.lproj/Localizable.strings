@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "Lưu vào thư mục KaChat trên Nextcloud để nhập trên mọi thiết bị.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Kết nối Nextcloud trong Cài đặt > Lưu trữ để lưu ở đó và nhập trên thiết bị khác.";
 "Couldn't read that file." = "Không đọc được tệp đó.";
+"Nothing to export yet. Add a contact first." = "Chưa có gì để xuất. Hãy thêm một liên hệ trước.";
 "Nothing to export yet. Add an address first." = "Chưa có gì để xuất. Hãy thêm một địa chỉ trước.";
 "Export failed. Couldn't write the file." = "Xuất thất bại. Không ghi được tệp.";
 "Already up to date. Every address in the file is saved." = "Đã cập nhật. Mọi địa chỉ trong tệp đều đã được lưu.";

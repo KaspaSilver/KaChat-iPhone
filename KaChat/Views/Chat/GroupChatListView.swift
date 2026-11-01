@@ -3,8 +3,8 @@ import UIKit
 
 /// Group Chats, a dock tab of its own (since 2026-10-26; from 2026-10-05 they were circles in the
 /// row above the chats). Pinned groups live in a row of circles above the list (Pin to Top Row);
-/// the list holds the rest by latest activity. Tap opens; hold opens the half sheet (read state,
-/// pin, notifications, delete); Select marks read,
+/// the list holds the rest by latest activity. Tap opens; swipe left for Delete, Silence and Pin,
+/// right for the read state; a pinned circle's hold opens the half sheet; Select marks read,
 /// unread or deletes several at once. The + starts a new group. A tapped group notification lands
 /// here (`MainTabView` switches to this tab) and opens its group.
 struct GroupChatListView: View {
@@ -18,7 +18,7 @@ struct GroupChatListView: View {
     @State private var showCreateGroup = false
     /// Group ids pinned up into the row above the list, newest pin first, saved per wallet.
     @State private var pins: [String] = []
-    /// The row whose long-press half sheet is up.
+    /// The pinned group whose long-press half sheet is up (list rows swipe instead).
     @State private var actionTarget: GroupChat?
     /// A group waiting on its delete confirmation, from that sheet.
     @State private var deleteTarget: GroupChat?
@@ -61,12 +61,20 @@ struct GroupChatListView: View {
     /// Staged like `ChatListView.chatListPane`, so the type checker never solves the whole
     /// modifier chain as one expression.
     private var listPane: some View {
-        let withToolbar = groupList
+        let withToolbar = VStack(spacing: 0) {
+            PinnedListHeader(title: "Groups", search: $searchText, prompt: "Search group chats")
+            groupList
+                .scrollDismissesKeyboard(.immediately)
+        }
             .navigationTitle("Groups")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     ConnectionStatusIndicator()
+                }
+                // holds the bar's middle, so the title shows only in the header
+                ToolbarItem(placement: .principal) {
+                    Color.clear.frame(width: 1, height: 1)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if editMode == .active {
@@ -85,11 +93,6 @@ struct GroupChatListView: View {
             }
 
         let withPresentation = withToolbar
-            .searchable(
-                text: $searchText,
-                placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Search group chats"
-            )
             .refreshable {
                 await groupChatService.performCatchUpSync()
             }
@@ -173,10 +176,6 @@ struct GroupChatListView: View {
             }
             ForEach(groups) { group in
                 Button {
-                    // The hold that opened the half sheet ends in a touch-up that still fires
-                    // this Button (simultaneousGesture) - the target being set IS "this touch
-                    // was the hold" (same guard as the chat rows).
-                    guard actionTarget == nil else { return }
                     // Our Button consumes the tap before List(selection:) sees it, so Select
                     // mode toggles here (as in `ChatListView`).
                     if editMode == .active {
@@ -192,14 +191,12 @@ struct GroupChatListView: View {
                     GroupChatRow(group: group)
                 }
                 .buttonStyle(ChatRowPressStyle())
-                // A Button label needs simultaneousGesture (see the chat rows).
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.4).onEnded { _ in
-                        guard editMode != .active else { return }
-                        Haptics.impact(.medium)
-                        actionTarget = group
-                    }
-                )
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    groupSwipeLeftActions(group)
+                }
+                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                    groupSwipeRightActions(group)
+                }
                 .tag(group.id)
                 .listRowBackground(
                     shouldUseSplitLayout && selectedGroup?.id == group.id
@@ -517,6 +514,52 @@ struct GroupChatListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .presentationDetents([.height(ActionSheetTileMetrics.sheetHeight(tiles: 4))])
         .presentationDragIndicator(.visible)
+    }
+
+    /// A group row swiped left: Delete, Silence and Pin. No full swipe, so a long swipe can't start
+    /// a delete; Delete still asks first.
+    @ViewBuilder
+    private func groupSwipeLeftActions(_ group: GroupChat) -> some View {
+        let isSilent = groupChatService.silentNotifications(for: group.id)
+        let isPinned = pins.contains(group.id)
+        Button {
+            deleteTarget = group
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+        .tint(.red)
+        Button {
+            groupChatService.setSilentNotifications(!isSilent, for: group.id)
+        } label: {
+            Label(LocalizedStringKey(isSilent ? "Unsilence" : "Silence"), systemImage: isSilent ? "bell" : "bell.slash")
+        }
+        .tint(.orange)
+        Button {
+            togglePin(group.id)
+        } label: {
+            Label(LocalizedStringKey(isPinned ? "Unpin" : "Pin"), systemImage: isPinned ? "pin.slash" : "pin")
+        }
+        .tint(.accentColor)
+    }
+
+    /// A group row swiped right: Mark as Read or Mark as Unread, by its unread state.
+    @ViewBuilder
+    private func groupSwipeRightActions(_ group: GroupChat) -> some View {
+        if groupChatService.unreadCount(for: group) > 0 {
+            Button {
+                groupChatService.markGroupAsRead(group.id)
+            } label: {
+                Label("Mark as Read", systemImage: "envelope.open")
+            }
+            .tint(.accentColor)
+        } else {
+            Button {
+                groupChatService.markGroupAsUnread(group.id)
+            } label: {
+                Label("Mark as Unread", systemImage: "envelope.badge")
+            }
+            .tint(.accentColor)
+        }
     }
 
     private var bulkDeleteAlertTitle: String {

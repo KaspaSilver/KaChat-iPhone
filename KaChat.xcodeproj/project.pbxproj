@@ -119,6 +119,7 @@
 		KCNMRES00000000000000002 /* kachat-names-testnet-10.json in Resources */ = {isa = PBXBuildFile; fileRef = KCNMRES00000000000000001 /* kachat-names-testnet-10.json */; };
 		KCNMRES00000000000000004 /* kachat-names-mainnet.json in Resources */ = {isa = PBXBuildFile; fileRef = KCNMRES00000000000000003 /* kachat-names-mainnet.json */; };
 		GN0001B0000000000000001 /* GlobalNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = GN0001A0000000000000001 /* GlobalNotificationCenter.swift */; };
+		ABST0000000000000001 /* AccountBackupStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABST0000000000000002 /* AccountBackupStatus.swift */; };
 		GRCP00010001000100000001 /* GroupCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRCP00010001000000000001 /* GroupCipher.swift */; };
 		GRCS00010001000100000001 /* GroupChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRCS00010001000000000001 /* GroupChatService.swift */; };
 		GRDV00010001000100000001 /* GroupChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRDV00010001000000000001 /* GroupChatDetailView.swift */; };
@@ -172,6 +173,7 @@
 		SPMPB000100010001 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = SPMPB000100010002 /* SwiftProtobuf */; };
 		SPMWEBRTC00010001001 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = SPMWEBRTC00010001003 /* WebRTC */; };
 		WLCM0000000000000001 /* WelcomeGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WLCM0000000000000002 /* WelcomeGuideView.swift */; };
+		ABVW0000000000000001 /* AccountBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABVW0000000000000002 /* AccountBackupView.swift */; };
 		WMSA00010001000100000001 /* WalletManager+SpendingAddresses.swift in Sources */ = {isa = PBXBuildFile; fileRef = WMSA00010001000000000001 /* WalletManager+SpendingAddresses.swift */; };
 /* End PBXBuildFile section */
 
@@ -333,6 +335,7 @@
 		KCNMRES00000000000000001 /* kachat-names-testnet-10.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "kachat-names-testnet-10.json"; sourceTree = "<group>"; };
 		KCNMRES00000000000000003 /* kachat-names-mainnet.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "kachat-names-mainnet.json"; sourceTree = "<group>"; };
 		GN0001A0000000000000001 /* GlobalNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalNotificationCenter.swift; sourceTree = "<group>"; };
+		ABST0000000000000002 /* AccountBackupStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBackupStatus.swift; sourceTree = "<group>"; };
 		GRCP00010001000000000001 /* GroupCipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupCipher.swift; sourceTree = "<group>"; };
 		GRCS00010001000000000001 /* GroupChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChatService.swift; sourceTree = "<group>"; };
 		GRDV00010001000000000001 /* GroupChatDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChatDetailView.swift; sourceTree = "<group>"; };
@@ -416,6 +419,7 @@
 		SHRT000100010000000002 /* KaChatShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaChatShortcuts.swift; sourceTree = "<group>"; };
 		SHSH00010001000000000001 /* SharedOutboundShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedOutboundShare.swift; sourceTree = "<group>"; };
 		WLCM0000000000000002 /* WelcomeGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGuideView.swift; sourceTree = "<group>"; };
+		ABVW0000000000000002 /* AccountBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBackupView.swift; sourceTree = "<group>"; };
 		WMSA00010001000000000001 /* WalletManager+SpendingAddresses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WalletManager+SpendingAddresses.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -621,6 +625,7 @@
 				CALL0009A000000000000001 /* CallPictureInPicture.swift */,
 				CALL0001A000000000000001 /* NextcloudTalkClient.swift */,
 				GN0001A0000000000000001 /* GlobalNotificationCenter.swift */,
+				ABST0000000000000002 /* AccountBackupStatus.swift */,
 				AB0001A0000000000000001 /* AppTabBadge.swift */,
 				CH0002A0000000000000001 /* ChessGameService.swift */,
 				LPRVA0000000000000001 /* LinkPreviewService.swift */,
@@ -700,6 +705,7 @@
 				E810FA112D4C00010000000B /* PassphraseOptionView.swift */,
 				E810FB112D4C00010000000B /* SeedPhraseKeyboardView.swift */,
 				WLCM0000000000000002 /* WelcomeGuideView.swift */,
+				ABVW0000000000000002 /* AccountBackupView.swift */,
 				CHAD00010001000000000001 /* ChattingAddressPickerView.swift */,
 				IMSW00010001000000000001 /* ImportSourceWalletView.swift */,
 			);
@@ -1169,6 +1175,7 @@
 				E810FA122D4C00010000000B /* PassphraseOptionView.swift in Sources */,
 				E810FB122D4C00010000000B /* SeedPhraseKeyboardView.swift in Sources */,
 				WLCM0000000000000001 /* WelcomeGuideView.swift in Sources */,
+				ABVW0000000000000001 /* AccountBackupView.swift in Sources */,
 				CHAD00010001000100000001 /* ChattingAddressPickerView.swift in Sources */,
 				IMSW00010001000100000001 /* ImportSourceWalletView.swift in Sources */,
 				E81000172D4C00010000000C /* ChatListView.swift in Sources */,
@@ -1193,6 +1200,7 @@
 				CALL0009B000000000000001 /* CallPictureInPicture.swift in Sources */,
 				CALL0001B000000000000001 /* NextcloudTalkClient.swift in Sources */,
 				GN0001B0000000000000001 /* GlobalNotificationCenter.swift in Sources */,
+				ABST0000000000000001 /* AccountBackupStatus.swift in Sources */,
 				AB0001B0000000000000001 /* AppTabBadge.swift in Sources */,
 				CH0002B0000000000000001 /* ChessGameService.swift in Sources */,
 				OSL0001B000000000000001 /* OpenSourceLicensesView.swift in Sources */,

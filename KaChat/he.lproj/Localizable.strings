@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "שמרו בתיקיית KaChat ב-Nextcloud כדי לייבא בכל מכשיר.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "חברו Nextcloud בהגדרות > אחסון כדי לשמור גם שם ולייבא במכשיר אחר.";
 "Couldn't read that file." = "לא ניתן לקרוא את הקובץ.";
+"Nothing to export yet. Add a contact first." = "עדיין אין מה לייצא. קודם צריך להוסיף איש קשר.";
 "Nothing to export yet. Add an address first." = "אין עדיין מה לייצא. הוסיפו קודם כתובת.";
 "Export failed. Couldn't write the file." = "הייצוא נכשל. לא ניתן לכתוב את הקובץ.";
 "Already up to date. Every address in the file is saved." = "כבר מעודכן. כל הכתובות בקובץ שמורות.";

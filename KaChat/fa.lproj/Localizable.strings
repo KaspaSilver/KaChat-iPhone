@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "آن را در پوشه KaChat در Nextcloud ذخیره کنید تا روی هر دستگاهی وارد شود.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Nextcloud را در تنظیمات > فضای ذخیره‌سازی وصل کنید تا آنجا هم ذخیره و روی دستگاه دیگری وارد شود.";
 "Couldn't read that file." = "خواندن آن فایل ممکن نشد.";
+"Nothing to export yet. Add a contact first." = "هنوز چیزی برای خروجی گرفتن نیست. اول یک مخاطب اضافه کنید.";
 "Nothing to export yet. Add an address first." = "هنوز چیزی برای صادر کردن نیست. ابتدا یک نشانی اضافه کنید.";
 "Export failed. Couldn't write the file." = "صدور ناموفق بود. نوشتن فایل ممکن نشد.";
 "Already up to date. Every address in the file is saved." = "به‌روز است. همه نشانی‌های فایل ذخیره شده‌اند.";

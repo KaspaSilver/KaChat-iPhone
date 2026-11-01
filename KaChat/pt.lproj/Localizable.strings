@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "Salve na pasta KaChat do seu Nextcloud para importar em qualquer dispositivo.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Conecte o Nextcloud em Ajustes > Armazenamento para salvar lá também e importar em outro dispositivo.";
 "Couldn't read that file." = "Não foi possível ler esse arquivo.";
+"Nothing to export yet. Add a contact first." = "Nada para exportar ainda. Adicione um contato primeiro.";
 "Nothing to export yet. Add an address first." = "Nada para exportar ainda. Adicione um endereço primeiro.";
 "Export failed. Couldn't write the file." = "Falha na exportação. Não foi possível gravar o arquivo.";
 "Already up to date. Every address in the file is saved." = "Já está atualizado. Todos os endereços do arquivo estão salvos.";

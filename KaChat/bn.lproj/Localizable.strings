@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "আপনার Nextcloud-এর KaChat ফোল্ডারে সংরক্ষণ করুন, যেকোনো ডিভাইসে ইমপোর্ট করতে।";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "সেটিংস > স্টোরেজ-এ Nextcloud যুক্ত করুন, যাতে সেখানেও সংরক্ষণ করে অন্য ডিভাইসে ইমপোর্ট করা যায়।";
 "Couldn't read that file." = "ফাইলটি পড়া গেল না।";
+"Nothing to export yet. Add a contact first." = "এখনো এক্সপোর্ট করার কিছু নেই। আগে একটি কন্টাক্ট যোগ করুন।";
 "Nothing to export yet. Add an address first." = "এখনো এক্সপোর্ট করার কিছু নেই। আগে একটি ঠিকানা যোগ করুন।";
 "Export failed. Couldn't write the file." = "এক্সপোর্ট ব্যর্থ। ফাইল লেখা গেল না।";
 "Already up to date. Every address in the file is saved." = "ইতিমধ্যে হালনাগাদ। ফাইলের সব ঠিকানা সংরক্ষিত আছে।";

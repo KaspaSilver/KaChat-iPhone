@@ -23,8 +23,13 @@ struct SettingsView: View {
     @ObservedObject private var resyncCoordinator = IncomingResyncCoordinator.shared
 
     @State private var showSeedPhrase = false
-    @State private var showDeleteConfirmation = false
     @State private var showLogoutConfirmation = false
+    @State private var showDeleteAccountConfirmation = false
+    /// The seed phrase over the Delete Account warning, which it closes back to.
+    @State private var showSeedPhraseOverDeleteWarning = false
+    /// The backup steps over the Delete Account warning, for an account that hasn't finished them.
+    @State private var showBackupOverDeleteWarning = false
+    @ObservedObject private var backupStatus = AccountBackupStatus.shared
     @State private var showWipeIncomingConfirmation = false
     @State private var showResyncChatPicker = false
     /// Selection handed back by the chat picker sheet; the resync starts from the sheet's
@@ -48,83 +53,111 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                settingsCategoryRow("Customization", icon: "paintbrush.pointed", tint: .accentColor) {
-                    customizationPage
-                }
-                settingsCategoryRow("Security", icon: "lock.shield", tint: .accentColor) {
-                    securityPage
-                }
-                settingsCategoryRow("Connection", icon: "antenna.radiowaves.left.and.right", tint: .accentColor) {
-                    connectionPage
-                }
-                settingsCategoryRow("Notifications", icon: "bell.badge", tint: .accentColor) {
-                    NotificationsHubPage()
-                }
-                settingsCategoryRow("Chats", icon: "bubble.left.and.bubble.right", tint: .accentColor) {
-                    chatsPage
-                }
-                settingsCategoryRow("Storage", icon: "internaldrive", tint: .accentColor) {
-                    storagePage
-                }
-                settingsCategoryRow("Chat History", icon: "clock.arrow.circlepath", tint: .accentColor) {
-                    chatHistoryPage
-                }
-                settingsCategoryRow("Diagnostics", icon: "stethoscope", tint: .accentColor) {
-                    diagnosticsPage
-                }
-                // Direct action, not a sub-page: straight into the seed phrase (behind the
-                // biometric gate when enabled).
-                Button {
-                    if settingsViewModel.settings.biometricSeedPhraseEnabled {
-                        DeviceAuth.authenticate(reason: "Unlock to view your seed phrase") {
-                            showSeedPhrase = true
-                        }
-                    } else {
-                        showSeedPhrase = true
+            VStack(spacing: 0) {
+                PinnedListHeader(title: "Settings")
+                Form {
+                    settingsCategoryRow("Customization", icon: "paintbrush.pointed", tint: .accentColor) {
+                        customizationPage
                     }
-                } label: {
-                    Label {
-                        Text("View Seed Phrase")
-                            .foregroundColor(.red)
-                    } icon: {
-                        Image(systemName: "key")
-                            .foregroundColor(.red)
+                    settingsCategoryRow("Security", icon: "lock.shield", tint: .accentColor) {
+                        securityPage
                     }
-                }
-                settingsCategoryRow("Danger Zone", icon: "exclamationmark.triangle", tint: .red) {
-                    dangerZonePage
-                }
-
-                // Back in Settings (it spent a while on Profile): its own section at the very
-                // bottom, apart from the category rows, so it is easy to find and hard to hit
-                // by accident.
-                Section {
-                    Button(role: .destructive) {
-                        showLogoutConfirmation = true
+                    settingsCategoryRow("Connection", icon: "antenna.radiowaves.left.and.right", tint: .accentColor) {
+                        connectionPage
+                    }
+                    settingsCategoryRow("Notifications", icon: "bell.badge", tint: .accentColor) {
+                        NotificationsHubPage()
+                    }
+                    settingsCategoryRow("Chats", icon: "bubble.left.and.bubble.right", tint: .accentColor) {
+                        chatsPage
+                    }
+                    settingsCategoryRow("Storage", icon: "internaldrive", tint: .accentColor) {
+                        storagePage
+                    }
+                    settingsCategoryRow("Chat History", icon: "clock.arrow.circlepath", tint: .accentColor) {
+                        chatHistoryPage
+                    }
+                    settingsCategoryRow("Diagnostics", icon: "stethoscope", tint: .accentColor) {
+                        diagnosticsPage
+                    }
+                    // Direct action, not a sub-page: straight into the seed phrase (behind the
+                    // biometric gate when enabled).
+                    Button {
+                        unlockSeedPhrase { showSeedPhrase = true }
                     } label: {
                         Label {
-                            Text("Log Out")
+                            Text("View Seed Phrase")
                                 .foregroundColor(.red)
                         } icon: {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            Image(systemName: "key")
                                 .foregroundColor(.red)
                         }
                     }
-                    // Half sheet rather than a confirmation dialog, matching every other chooser
-                    // in the app - and it gives the consequence a row of its own beside the action.
-                    .sheet(isPresented: $showLogoutConfirmation) {
-                        ConfirmActionSheet(
-                            title: "Log Out",
-                            confirmTitle: "Log Out",
-                            confirmSubtitle: "Signs out of this account. Wallet and message data stay on this device.",
-                            confirmSystemImage: "rectangle.portrait.and.arrow.right"
-                        ) {
-                            Task { await walletManager.logout() }
+                    settingsCategoryRow("Danger Zone", icon: "exclamationmark.triangle", tint: .red) {
+                        dangerZonePage
+                    }
+
+                    // Back in Settings (it spent a while on Profile): its own section at the very
+                    // bottom, apart from the category rows, so it is easy to find and hard to hit
+                    // by accident.
+                    Section {
+                        Button(role: .destructive) {
+                            showDeleteAccountConfirmation = true
+                        } label: {
+                            Label {
+                                Text("Delete Account")
+                                    .foregroundColor(.red)
+                            } icon: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        .sheet(isPresented: $showDeleteAccountConfirmation) {
+                            DeleteAccountSheet(
+                                confirmSubtitle: "Removes this account and its data from this device.",
+                                onViewSeedPhrase: { unlockSeedPhrase { showSeedPhraseOverDeleteWarning = true } },
+                                notBackedUp: backupStatus.isPending(walletManager.currentWallet?.publicAddress),
+                                onBackUp: { AccountBackupView.unlock { showBackupOverDeleteWarning = true } }
+                            ) {
+                                Task { await walletManager.deleteCurrentAccount() }
+                            }
+                            .sheet(isPresented: $showSeedPhraseOverDeleteWarning) {
+                                SeedPhraseView()
+                            }
+                            .sheet(isPresented: $showBackupOverDeleteWarning) {
+                                AccountBackupView()
+                            }
+                        }
+                        Button(role: .destructive) {
+                            showLogoutConfirmation = true
+                        } label: {
+                            Label {
+                                Text("Log Out")
+                                    .foregroundColor(.red)
+                            } icon: {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                        // Half sheet rather than a confirmation dialog, matching every other chooser
+                        // in the app - and it gives the consequence a row of its own beside the action.
+                        .sheet(isPresented: $showLogoutConfirmation) {
+                            ConfirmActionSheet(
+                                title: "Log Out",
+                                confirmTitle: "Log Out",
+                                confirmSubtitle: "Signs out of this account. Wallet and message data stay on this device.",
+                                confirmSystemImage: "rectangle.portrait.and.arrow.right"
+                            ) {
+                                Task { await walletManager.logout() }
+                            }
                         }
                     }
                 }
             }
+            // the form's own background, behind the header and the bar too
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
             .toast(message: toastMessage, style: toastStyle)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -184,25 +217,6 @@ struct SettingsView: View {
                 if case .success = phase {
                     refreshMessageStoreSize()
                 }
-            }
-            .confirmationDialog(
-                "Delete Account",
-                isPresented: $showDeleteConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button("Delete", role: .destructive) {
-                    deleteAccount(removeRemoteBackup: false)
-                }
-                if NextcloudService.shared.isConnected {
-                    Button("Delete and Remove Nextcloud Backup", role: .destructive) {
-                        deleteAccount(removeRemoteBackup: true)
-                    }
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text(NextcloudService.shared.isConnected
-                     ? "This deletes the account, its messages and its drafts from this iPhone, removes its push registration from KaChat's server, and revokes the login KaChat created on your Nextcloud. Your encrypted Nextcloud backup stays unless you choose to remove it. Messages and posts on the Kaspa blockchain cannot be deleted. Make sure you have your recovery phrase."
-                     : "This deletes the account, its messages and its drafts from this iPhone and removes its push registration from KaChat's server. Messages and posts on the Kaspa blockchain cannot be deleted. Make sure you have your recovery phrase.")
             }
         }
         .onAppear {
@@ -489,15 +503,12 @@ struct SettingsView: View {
         }
     }
 
-    private func deleteAccount(removeRemoteBackup: Bool) {
-        Task {
-            do {
-                try await walletManager.deleteWallet(removeRemoteBackup: removeRemoteBackup)
-            } catch {
-                toastStyle = .error
-                toastToken = UUID()
-                toastMessage = "Couldn't delete the account: \(UserFacingError.message(for: error))"
-            }
+    /// The seed phrase, behind the biometric gate when enabled.
+    private func unlockSeedPhrase(_ show: @escaping () -> Void) {
+        if settingsViewModel.settings.biometricSeedPhraseEnabled {
+            DeviceAuth.authenticate(reason: "Unlock to view your seed phrase", onSuccess: show)
+        } else {
+            show()
         }
     }
 
@@ -1616,6 +1627,10 @@ struct SeedPhraseView: View {
                     Text("Anyone with your seed phrase can access your account. Never share it with anyone.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+
+                    Text("Best practice is to write your seed phrase down to back it up, and never store it online.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
                 .padding()
                 .background(Color.orange.opacity(0.1))
@@ -1704,7 +1719,7 @@ struct SeedPhraseView: View {
                             isRevealed = true
                             let token = UUID()
                             revealToken = token
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
                                 if revealToken == token {
                                     isRevealed = false
                                 }

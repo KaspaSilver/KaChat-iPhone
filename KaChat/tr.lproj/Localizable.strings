@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "Herhangi bir cihazda içe aktarmak için Nextcloud'undaki KaChat klasörüne kaydet.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Oraya da kaydedip başka bir cihazda içe aktarmak için Ayarlar > Depolama'da Nextcloud'u bağla.";
 "Couldn't read that file." = "Bu dosya okunamadı.";
+"Nothing to export yet. Add a contact first." = "Henüz dışa aktarılacak bir şey yok. Önce bir kişi ekle.";
 "Nothing to export yet. Add an address first." = "Henüz dışa aktaracak bir şey yok. Önce bir adres ekle.";
 "Export failed. Couldn't write the file." = "Dışa aktarma başarısız. Dosya yazılamadı.";
 "Already up to date. Every address in the file is saved." = "Zaten güncel. Dosyadaki tüm adresler kayıtlı.";

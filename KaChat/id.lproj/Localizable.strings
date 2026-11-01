@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "Simpan ke folder KaChat di Nextcloud Anda, untuk diimpor di perangkat mana pun.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Hubungkan Nextcloud di Pengaturan > Penyimpanan agar bisa disimpan di sana dan diimpor di perangkat lain.";
 "Couldn't read that file." = "File itu tidak bisa dibaca.";
+"Nothing to export yet. Add a contact first." = "Belum ada yang bisa diekspor. Tambahkan kontak dulu.";
 "Nothing to export yet. Add an address first." = "Belum ada yang bisa diekspor. Tambahkan alamat dulu.";
 "Export failed. Couldn't write the file." = "Ekspor gagal. File tidak bisa ditulis.";
 "Already up to date. Every address in the file is saved." = "Sudah terbaru. Semua alamat di file sudah tersimpan.";

@@ -1201,6 +1201,7 @@
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "保存到 Nextcloud 的 KaChat 文件夹，可在任何设备上导入。";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "在 设置 > 存储 中连接 Nextcloud，即可同时保存到那里并在其他设备上导入。";
 "Couldn't read that file." = "无法读取该文件。";
+"Nothing to export yet. Add a contact first." = "还没有可导出的内容。请先添加一个联系人。";
 "Nothing to export yet. Add an address first." = "还没有可导出的内容。请先添加一个地址。";
 "Export failed. Couldn't write the file." = "导出失败。无法写入文件。";
 "Already up to date. Every address in the file is saved." = "已是最新。文件中的地址都已保存。";

@@ -1559,7 +1559,10 @@ struct SpendingAddressWithdrawView: View {
     private func resolveKNSDomain(_ domain: String) {
         isResolvingKNS = true
 
-        Task {
+        // On the main actor: the check below must read the field as it is now. Read from a
+        // background task while typing fast, it could see an older value, take this lookup for a
+        // stale one and stop - leaving "Looking up domain..." up for good.
+        Task { @MainActor in
             try? await Task.sleep(nanoseconds: 300_000_000)
 
             guard addressInput.trimmingCharacters(in: .whitespacesAndNewlines) == domain ||

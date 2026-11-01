@@ -30,7 +30,13 @@ struct AddressBookView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
+                PinnedListHeader(
+                    title: "Contacts",
+                    search: $search,
+                    prompt: "Search names and addresses",
+                    showsSearch: !book.entries.isEmpty
+                )
                 if book.entries.isEmpty {
                     emptyState
                 } else {
@@ -47,15 +53,13 @@ struct AddressBookView: View {
                         }
                     }
                     .listStyle(.insetGrouped)
-                    // Always showing: hidden until you pull the list down, it read as pull-to-refresh.
-                    .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always),
-                                prompt: Text("Search names and addresses"))
+                    .scrollDismissesKeyboard(.immediately)
                 }
             }
+            // the list's own background, behind the header and the bar too
+            .background((book.entries.isEmpty ? Color(.systemBackground) : Color(.systemGroupedBackground)).ignoresSafeArea())
             .navigationTitle("Contacts")
-            // Large, so "Addresses" shows under the bar (the balance holds the bar's middle),
-            // as the other tabs show their titles.
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     ConnectionStatusIndicator()
@@ -185,7 +189,7 @@ struct AddressBookView: View {
     /// write or the write fails.
     private func writeExport() -> URL? {
         guard !book.entries.isEmpty else {
-            showToast(AppLocalization.string("Nothing to export yet. Add an address first."), style: .error)
+            showToast(AppLocalization.string("Nothing to export yet. Add a contact first."), style: .error)
             return nil
         }
         do {
@@ -624,12 +628,12 @@ struct AddressBookEntryEditor: View {
                             onDone(.removed)
                             dismiss()
                         } label: {
-                            Label("Remove from Contacts", systemImage: "trash")
+                            Label("Delete Contact", systemImage: "trash")
                         }
                     }
                 }
             }
-            .navigationTitle(existing == nil ? "Add to Contacts" : "Edit Contact")
+            .navigationTitle(existing == nil ? "Add Contact" : "Edit Contact")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -98,6 +98,16 @@ final class AddressBookManager: ObservableObject {
         }
     }
 
+    /// Delete Account: one wallet's book, tombstones and assigned photos, from this device.
+    func removeAllData(forWalletAddress walletAddress: String) {
+        let wallet = Self.normalize(walletAddress)
+        defaults.removeObject(forKey: Self.entriesKeyPrefix + wallet)
+        defaults.removeObject(forKey: Self.deletedKeyPrefix + wallet)
+        if let directory = Self.photosDirectory(wallet: wallet) {
+            try? FileManager.default.removeItem(at: directory)
+        }
+    }
+
     // MARK: - Reading
 
     func entry(for address: String?) -> AddressBookEntry? {

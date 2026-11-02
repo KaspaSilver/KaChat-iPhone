@@ -322,6 +322,9 @@ final class AddressBookManager: ObservableObject {
         var walletAddress: String?
         /// Every entry with its assigned photo (base64 JPEG) attached.
         var entries: [AddressBookEntry]
+        /// The contacts file shared with KaPay only: what was deleted, so a merge doesn't bring it
+        /// back. Other readers of the file ignore it.
+        var deleted: [AddressBookTombstone]?
     }
 
     enum ImportError: LocalizedError {
@@ -340,9 +343,11 @@ final class AddressBookManager: ObservableObject {
         }
     }
 
-    /// This wallet's Address Book as an export file.
-    func exportData() throws -> Data {
-        let file = ExportFile(exportedAt: Date(), walletAddress: walletAddress, entries: archiveEntries)
+    /// This wallet's Address Book as an export file. `includingDeleted` is for the contacts file
+    /// shared with KaPay.
+    func exportData(includingDeleted: Bool = false) throws -> Data {
+        let file = ExportFile(exportedAt: Date(), walletAddress: walletAddress, entries: archiveEntries,
+                              deleted: includingDeleted ? archiveTombstones : nil)
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -406,6 +411,54 @@ final class AddressBookManager: ObservableObject {
     }
 
     // MARK: - Backup
+
+    /// This book is `address`'s, not still the last account's during a switch.
+    func holdsWallet(_ address: String) -> Bool {
+        walletAddress == Self.normalize(address)
+    }
+
+    /// Anything worth putting in a shared contacts file.
+    var hasBackupData: Bool { !entries.isEmpty || !deleted.isEmpty }
+
+    /// Each address's last edit and what's deleted, to the second (the file's dates are), to tell
+    /// whether two copies of the book say the same.
+    private struct BookSummary: Equatable {
+        var edits: [String: Int]
+        var deleted: Set<String>
+
+        init(entries: [AddressBookEntry], deleted: [String]) {
+            edits = Dictionary(
+                entries.map { (AddressBookManager.normalize($0.address), Int($0.updatedAt.timeIntervalSince1970)) },
+                uniquingKeysWith: max
+            )
+            self.deleted = Set(deleted.map(AddressBookManager.normalize))
+        }
+    }
+
+    /// Merges the contacts file shared with KaPay into this book, the newest edit or deletion
+    /// winning per address. Unlike importing a file, a deletion stays deleted. A file another
+    /// account uploaded (accounts can share a Nextcloud login) is left out, so one account's
+    /// contacts never land in another. `serverIsBehind`: this book has something the file doesn't,
+    /// so it's worth uploading. Matches KaPay's `mergeBackup`.
+    @discardableResult
+    func mergeBackup(_ data: Data) throws -> (changedHere: Bool, serverIsBehind: Bool) {
+        guard let wallet = walletAddress else { throw SaveError.noWallet }
+        let iso = JSONDecoder()
+        iso.dateDecodingStrategy = .iso8601
+        guard let file = (try? iso.decode(ExportFile.self, from: data)) ?? (try? JSONDecoder().decode(ExportFile.self, from: data)),
+              file.type == ExportFile.kind else { throw ImportError.notAnAddressBook }
+        if let owner = file.walletAddress, Self.normalize(owner) != wallet {
+            return (false, hasBackupData)
+        }
+        let incoming = file.entries.filter { KaspaAddress.isValidOnActiveNetwork(Self.normalize($0.address)) }
+        let tombstones = file.deleted ?? []
+        let before = BookSummary(entries: entries, deleted: Array(deleted.keys))
+        importFromArchive(entries: incoming, tombstones: tombstones)
+        let after = BookSummary(entries: entries, deleted: Array(deleted.keys))
+        let server = Self.merge(entries: [incoming], tombstones: [tombstones])
+        let onServer = BookSummary(entries: server.entries, deleted: server.tombstones.map(\.address))
+        return (after != before, after != onServer)
+    }
 
     /// What the chat backup carries for this wallet: each entry with its assigned photo (base64
     /// JPEG) attached.

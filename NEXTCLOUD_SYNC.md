@@ -31,6 +31,7 @@ The iOS implementation (`KaChat/Services/NextcloudService.swift`, the archive me
 - **Legacy file:** `kachat-backup-desktop.json` is an old Desktop-only file. Clients may *read*
   it once to import old history, and MUST NOT write it.
 
+The one exception is the contacts file shared with KaPay (§9), which isn't part of the chat backup.
 The only other files a client puts in the backup folder come from deliberate user actions, never
 from sync:
 
@@ -216,3 +217,30 @@ stores it, and cutting it short leaves a short file, which the next sync then re
 | Writes get ≥ 120 s through relays (§7) | n/a (direct) | n/a | ✅ (`3b06ea0`) | check |
 
 "check" means the owner of that client confirms against this document and fills the cell in.
+
+## 9. Contacts shared with KaPay (iOS, 2026-11-01)
+
+KaPay, KaChat's wallet app, never reads or writes `kachat-backup.json`. It backs its contacts up to
+its own plain JSON file, so KaChat reads, merges and writes that file too, and a contact added,
+edited or deleted in either app reaches the other. This needs the same account on the same
+Nextcloud login in both apps, with Automatic Sync (KaChat) and Automatic Backup (KaPay) on.
+
+- **The file:** `KaChat/KaPay Contacts.json`, always that folder at the root of the user's files
+  (KaPay only looks there), even if the chat backup's folder was moved. If it isn't there, read
+  KaPay's earlier names, `KaPay Address Book.json` then `KaChat Wallet Address Book.json`; a write
+  uses the current name.
+- **Its contents:** the manual export's JSON (§1), plus `deleted`: `[{address, deletedAt}]`. It is
+  **not encrypted**, unlike the chat backup. Contact names, notes and photos are readable by
+  anyone with access to the Nextcloud files.
+- **Merging:** newest edit or deletion wins per address (§5's Address Book rule). A deletion stays
+  deleted. A file whose `walletAddress` is another account's is not merged.
+- **Writing:** only when the file is missing something this device has, and never when the file
+  there can't be read as contacts. No file is created for an account with no contacts or deletions.
+- **When:** before every chat backup, so the backup carries KaPay's changes to the other KaChat
+  clients; and with Automatic Sync on, when the app opens, an account activates and on change-watcher
+  ticks, at most once a minute.
+- **Known limit:** the file holds one account. Two accounts on one Nextcloud login take turns
+  replacing it (each keeps its own contacts on the device and never gets the other's), so they only
+  sync across apps reliably with separate logins.
+- **Other clients:** Android, Desktop and the extension don't do this yet. They still get these
+  contacts through `kachat-backup.json` once iOS has merged them.

@@ -84,6 +84,15 @@ enum WalletSourceFamily: String, Codable, CaseIterable {
 /// One scanned identity-chain slot from `WalletManager.scanChattingAddressCandidates` - the
 /// import wizard's "Change Chatting Address" picker lists the interesting ones (balance or
 /// domains), always including index 0.
+/// An address the import's passphrase step found on the identity chain.
+struct FoundChattingAddress: Identifiable, Equatable {
+    let index: Int
+    let address: String
+    let balanceSompi: UInt64
+
+    var id: Int { index }
+}
+
 struct ChattingAddressCandidate: Identifiable, Equatable {
     let index: Int
     let address: String
@@ -530,7 +539,7 @@ final class WalletManager: ObservableObject {
     /// - Parameter passphrase: optional BIP39 passphrase the account was created with. Must match
     ///   exactly to restore the same account; a different (or empty) passphrase silently derives a
     ///   different, empty account. Pass "" for none.
-    func importWallet(from phrase: String, alias: String = "My Account", passphrase: String = "", family: WalletSourceFamily = .kaspaStandard) async throws -> Wallet {
+    func importWallet(from phrase: String, alias: String = "My Account", passphrase: String = "", chattingAddressIndex: Int = 0, family: WalletSourceFamily = .kaspaStandard) async throws -> Wallet {
         // Debug: count words
         let words = phrase.lowercased()
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -540,9 +549,9 @@ final class WalletManager: ObservableObject {
         guard let seedPhrase = SeedPhrase(phrase: phrase, passphrase: passphrase.isEmpty ? nil : passphrase) else {
             throw KasiaError.seedPhraseParsingFailed(wordCount: words.count)
         }
-        let wallet = try await importWallet(from: seedPhrase, alias: alias, family: family)
+        let wallet = try await importWallet(from: seedPhrase, alias: alias, chattingAddressIndex: chattingAddressIndex, family: family)
         // whoever typed the words has them
-        AccountBackupStatus.shared.markDone(wallet.publicAddress)
+        AccountBackupStatus.shared.markConfirmed(wallet.publicAddress)
         // A restored seed finds its spending addresses by itself - legacy and quantum, the same
         // sweep as Manage Addresses' Discover Addresses - so balances and change rotation are
         // right without anyone knowing to tap it (owner's call, 2026-10-21). Only this path: a
@@ -1634,6 +1643,41 @@ final class WalletManager: ObservableObject {
         return KaspaAddress.fromPublicKey(publicKeyData, network: network).address
     }
 
+    /// Family-aware: single-address families (Chainge) only ever yield index 0; hardened-index
+    /// families (legacy 972) and the OneKey tweak are handled inside chattingAddress.
+    private func chattingAddresses(indices: Range<Int>, baseNode: (key: Data, chainCode: Data), family: WalletSourceFamily) -> [(index: Int, address: String)] {
+        var derived: [(index: Int, address: String)] = []
+        for index in indices {
+            guard family.supportsIndexScan || index == 0 else { break }
+            guard let address = chattingAddress(at: index, baseNode: baseNode, family: family) else { continue }
+            derived.append((index, address))
+        }
+        return derived
+    }
+
+    /// For an import's passphrase step, before there's an account: address #0 plus every other
+    /// address on the identity chain holding funds, in index order. Nil when the words are invalid
+    /// or the balances couldn't be checked.
+    func findChattingAddresses(words: [String], passphrase: String, family: WalletSourceFamily, indices: Range<Int>) async -> [FoundChattingAddress]? {
+        let seedPhrase = SeedPhrase(words: words, passphrase: passphrase.isEmpty ? nil : passphrase)
+        guard var seed = bip39.mnemonicToSeed(seedPhrase.phrase, passphrase: seedPhrase.passphrase ?? "") else { return nil }
+        let baseNode = identityBaseNode(seed: seed, family: family)
+        seed.zeroOut()
+
+        let derived = chattingAddresses(indices: indices, baseNode: baseNode, family: family)
+        guard !derived.isEmpty,
+              let utxos = try? await NodePoolService.shared.getUtxosByAddresses(derived.map(\.address)) else { return nil }
+        var balanceByAddress: [String: UInt64] = [:]
+        for utxo in utxos {
+            balanceByAddress[utxo.address, default: 0] += utxo.amount
+        }
+        return derived.compactMap { entry in
+            let balance = balanceByAddress[entry.address] ?? 0
+            guard entry.index == 0 || balance > 0 else { return nil }
+            return FoundChattingAddress(index: entry.index, address: entry.address, balanceSompi: balance)
+        }
+    }
+
     /// Derives the given identity-chain index range and checks every address in BATCH for KAS
     /// balance (one pooled `getUtxosByAddresses` call, gRPC with REST fallback) and KNS domains
     /// (`KNSService.refreshIfNeeded`, the same capped/debounced batch lookup ContactsManager and
@@ -1642,14 +1686,7 @@ final class WalletManager: ObservableObject {
     func scanChattingAddressCandidates(indices: Range<Int>) async -> [ChattingAddressCandidate]? {
         guard !indices.isEmpty, let (baseNode, family) = chattingScanBase() else { return nil }
 
-        // Family-aware: single-address families (Chainge) only ever yield index 0; hardened-index
-        // families (legacy 972) and the OneKey tweak are handled inside chattingAddress.
-        var derived: [(index: Int, address: String)] = []
-        for index in indices {
-            guard family.supportsIndexScan || index == 0 else { break }
-            guard let address = chattingAddress(at: index, baseNode: baseNode, family: family) else { continue }
-            derived.append((index, address))
-        }
+        let derived = chattingAddresses(indices: indices, baseNode: baseNode, family: family)
         guard !derived.isEmpty else { return nil }
         let addresses = derived.map(\.address)
 
@@ -1719,7 +1756,8 @@ final class WalletManager: ObservableObject {
         // The old identity's saved-account entry and snapshot are stale the moment the switch
         // lands - the account IS the same seed, now living at the new address. Without this the
         // saved-accounts list keeps a dead index-0 row forever.
-        if let previousAddress, previousAddress != currentWallet?.publicAddress {
+        if let previousAddress, let newAddress = currentWallet?.publicAddress, previousAddress != newAddress {
+            AccountBackupStatus.shared.moveStatus(from: previousAddress, to: newAddress)
             savedAccounts.removeAll { $0.publicAddress == previousAddress }
             hasStoredWallet = !savedAccounts.isEmpty
             persistSavedAccountsToStorage()

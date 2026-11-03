@@ -143,8 +143,8 @@ struct NFCCardRestoreView: View {
                 chattingAddressIndex: payload.chattingAddressIndex,
                 family: family
             )
-            // Unlike someone typing the words, this person may not have them written down.
-            AccountBackupStatus.shared.markPending(wallet.publicAddress)
+            // Same as typing the words: whoever restored it has the seed.
+            AccountBackupStatus.shared.markConfirmed(wallet.publicAddress)
             Task { await walletManager.discoverSpendingAddresses() }
         } catch {
             walletManager.justCreatedNewWallet = false

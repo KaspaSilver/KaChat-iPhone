@@ -70,6 +70,8 @@ struct ImportWalletView: View {
     // Fixed-capacity backing store; only the first `seedWordCount` entries are used.
     @State private var words: [String] = Array(repeating: "", count: 24)
     @State private var showPassphraseStep = false
+    /// The address the passphrase step found or the user picked there.
+    @State private var chattingAddressIndex = 0
     @State private var error: String?
 
     init(sourceFamily: WalletSourceFamily = .kaspaStandard, alias: String = "Imported Account", wordCount: Int = 24) {
@@ -169,7 +171,8 @@ struct ImportWalletView: View {
                 // shows is the address this import would actually produce.
                 seedWords: slots.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
                     .filter { !$0.isEmpty },
-                family: sourceFamily
+                family: sourceFamily,
+                chattingAddressIndex: $chattingAddressIndex
             ) { passphrase in
                 try await commitImport(passphrase: passphrase)
             }
@@ -210,7 +213,13 @@ struct ImportWalletView: View {
         // derivation index. Cleared by the guide on Finish, or here on failure.
         walletManager.justImportedWallet = true
         do {
-            _ = try await walletManager.importWallet(from: seedPhraseText, alias: alias, passphrase: passphrase, family: sourceFamily)
+            _ = try await walletManager.importWallet(
+                from: seedPhraseText,
+                alias: alias,
+                passphrase: passphrase,
+                chattingAddressIndex: passphrase.isEmpty ? 0 : chattingAddressIndex,
+                family: sourceFamily
+            )
         } catch {
             walletManager.justCreatedNewWallet = false
             walletManager.justImportedWallet = false

@@ -375,8 +375,8 @@ six at a time, a check of four random words, the passphrase and its check if the
 to keep them) are finished, Profile shows `AccountBackupCard` above Manage Addresses (red once the
 account holds funds), Receive shows a reminder and the Delete Account warning leads with Back Up
 Account; deleting is never blocked. The steps never offer a copy; Settings > View Seed Phrase does
-(a reveal lasts 20 seconds). Imported and older accounts are never owed one. Finishing the steps
-starts a six-month timer; when it runs out Profile shows `BackupHygieneCard` in the same place, and
+(a reveal lasts 20 seconds). Imported and older accounts are never owed one. Importing, by typing
+the words or from a card, or finishing the steps starts a six-month timer; when it runs out Profile shows `BackupHygieneCard` in the same place, and
 `BackupHygieneView` asks for five random words in random order on `SeedPhraseKeyboardView`, then
 the passphrase if there is one. Passing, or Can't Complete This and the backup steps again, starts
 the timer over; closing leaves the card up.
@@ -390,10 +390,10 @@ them there first. Settings > Back Up to NFC Card (`NFCCardBackupView`, behind th
 biometric gate) only exists for an account with a BIP39 passphrase, because that passphrase is what
 protects the account: it's never written to the card. The screen scans the card, takes a 6-digit
 PIN, then saves and reads back. The PIN also derives the encryption key, so there's no separate
-password, and the same screen's Change PIN re-encrypts the backup under the new PIN. The Import chooser's Restore from NFC Card (`NFCCardRestoreView`) reads with the PIN, asks
+password. A forgotten PIN means reloading the card through Quick Start. The Import chooser's Restore from NFC Card (`NFCCardRestoreView`) reads with the PIN, asks
 for the passphrase and checks it against the saved chatting address. It imports with the saved
-name, family and chatting index, and owes that account a backup, since nobody typed its words. A card backup never clears that warning, so
-the written phrase stays the main copy. Before an App Store submission without this feature, remove
+name, family and chatting index, and like any import owes no backup. Saving to a card never clears
+the backup warning, so the written phrase stays the main copy. Before an App Store submission without this feature, remove
 the NFC entitlement in `KaChat.entitlements` and `KaChatRelease.entitlements` and the NFC keys in
 `Info.plist`. The App ID needs Near Field Communication Tag Reading on.
 

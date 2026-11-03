@@ -38,6 +38,8 @@ struct PassphraseOptionView: View {
     /// Identity derivation family, so the previewed address matches what the import will actually
     /// produce for a seed coming from another wallet.
     var family: WalletSourceFamily = .kaspaStandard
+    /// Set on import: the preview looks for the address holding funds and writes the choice here.
+    var chattingAddressIndex: Binding<Int>?
     /// Performs the create/import commit with the chosen passphrase ("" = none). Throwing surfaces
     /// an inline error here and re-enables the buttons; on success the app router swaps onboarding
     /// for the main app, so this view is torn down automatically.
@@ -176,7 +178,8 @@ struct PassphraseOptionView: View {
                     words: seedWords,
                     passphrase: passphrase,
                     family: family,
-                    showsFundsHint: mode == .importExisting
+                    showsFundsHint: mode == .importExisting,
+                    selectedIndex: chattingAddressIndex
                 )
 
                 Button {
@@ -366,7 +369,14 @@ struct PassphraseAddressPreview: View {
     var chattingIndex: UInt32 = 0
     let family: WalletSourceFamily
     let showsFundsHint: Bool
+    /// Set when the chatting address isn't known yet: the preview checks the first addresses on
+    /// the identity chain, picks the first with funds, and lets the user pick another.
+    var selectedIndex: Binding<Int>?
 
+    /// The same depth as one page of the chatting address picker.
+    private static let searchDepth = 0..<50
+
+    @State private var foundAddresses: [FoundChattingAddress] = []
     @State private var previewAddress: String?
     @State private var previewTask: Task<Void, Never>?
     /// What `previewAddress` holds: nil while looking it up, or when the lookup failed.
@@ -389,6 +399,9 @@ struct PassphraseAddressPreview: View {
                 .textSelection(.enabled)
                 .animation(.none, value: previewAddress)
             previewBalanceRow
+            if foundAddresses.count > 1 {
+                foundAddressRows
+            }
             Text(passphrase.isEmpty
                  ? "This is the account your seed phrase opens on its own."
                  : "A different passphrase gives a different address, and a different account.")
@@ -439,12 +452,53 @@ struct PassphraseAddressPreview: View {
         }
     }
 
+    private var foundAddressRows: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("We picked the first address with funds. Tap another if that's not the one you chat from.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            ForEach(foundAddresses) { found in
+                Button {
+                    select(found)
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: selectedIndex?.wrappedValue == found.index ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Address #\(found.index)")
+                                .font(.caption.weight(.semibold))
+                            Text(verbatim: "\(found.address.prefix(14))...\(found.address.suffix(6))")
+                                .font(.system(.caption2, design: .monospaced))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text(verbatim: KaspaUnit.amount(found.balanceSompi))
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(found.balanceSompi > 0 ? .green : .secondary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.top, 8)
+    }
+
+    private func select(_ found: FoundChattingAddress) {
+        selectedIndex?.wrappedValue = found.index
+        previewAddress = found.address
+        previewBalanceSompi = found.balanceSompi
+    }
+
     private func schedulePreview() {
         previewTask?.cancel()
         guard !words.isEmpty else { return }
         let typed = passphrase
         previewBalanceSompi = nil
         previewBalanceFailed = false
+        foundAddresses = []
+        selectedIndex?.wrappedValue = 0
         previewTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 250_000_000)
             guard !Task.isCancelled else { return }
@@ -462,6 +516,22 @@ struct PassphraseAddressPreview: View {
             // a further pause, so only the passphrase someone stopped typing is looked up
             try? await Task.sleep(nanoseconds: 450_000_000)
             guard !Task.isCancelled else { return }
+            if selectedIndex != nil {
+                let found = await walletManager.findChattingAddresses(
+                    words: words,
+                    passphrase: typed,
+                    family: family,
+                    indices: Self.searchDepth
+                )
+                guard !Task.isCancelled else { return }
+                guard let found, let first = found.first(where: { $0.balanceSompi > 0 }) ?? found.first else {
+                    previewBalanceFailed = true
+                    return
+                }
+                foundAddresses = found
+                select(first)
+                return
+            }
             let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address])
             guard !Task.isCancelled else { return }
             if let utxos {

@@ -554,6 +554,18 @@ final class GroupChatService: ObservableObject {
         }
     }
 
+    /// The same marker for one group, at the moment it's rediscovered, so it never shows as unread
+    /// while the catch-up runs and one found by a later catch-up is covered too. An invite mined
+    /// after the import is genuinely new and keeps its unread state.
+    private func seedImportReadMarker(forRediscovered groupId: String, inviteBlockTime: UInt64) {
+        guard inviteBlockTime > 0, store.group(id: groupId) != nil, groupLastReadAt[groupId] == nil else { return }
+        let baselineMs = ChatService.shared.walletImportBaselineMs(for: WalletManager.shared.currentWallet?.publicAddress)
+        guard baselineMs > 0, inviteBlockTime < UInt64(baselineMs) else { return }
+        groupLastReadAt[groupId] = Date(timeIntervalSince1970: TimeInterval(baselineMs) / 1000)
+        saveGroupLastReadAt()
+        ChatService.shared.scheduleBadgeUpdate()
+    }
+
     /// Marks a group as opened, clearing its unread badge contribution.
     func markGroupAsRead(_ groupId: String) {
         ChatService.clearDeliveredNotifications(threadIdentifier: "group:\(groupId)")
@@ -992,7 +1004,10 @@ final class GroupChatService: ObservableObject {
         groupHiddenMembers = [:]
         groupMutedMembers = [:]
         groupMentionsOnlyNotifications = []
-        for baseKey in [groupCatchUpCursorsKey, groupLastReadAtKey, groupHiddenMembersKey, groupMutedMembersKey, groupMentionsOnlyNotificationsKey, groupSilentNotificationsKey] {
+        groupDeepBackfilled = []
+        // The two one-shots go too: left behind, restoring this account would skip marking its
+        // groups read and stop their history walk at the first page.
+        for baseKey in [groupCatchUpCursorsKey, groupLastReadAtKey, groupHiddenMembersKey, groupMutedMembersKey, groupMentionsOnlyNotificationsKey, groupSilentNotificationsKey, groupImportReadSeededKey, groupDeepBackfilledKey] {
             if let key = scopedDefaultsKey(baseKey) {
                 UserDefaults.standard.removeObject(forKey: key)
             }
@@ -2565,7 +2580,9 @@ final class GroupChatService: ObservableObject {
         if let rootPayload = try? JSONDecoder().decode(GroupCipher.GroupRootPayload.self, from: jsonData), rootPayload.type == "gctl_root" {
             if isSelfSent && rootPayload.groupSeed == nil { return } // our own member-copy echo — ignore
             guard GroupCipher.verifyRootPayload(rootPayload) else { return }
+            let isNewGroup = store.group(id: rootPayload.groupId) == nil
             completeJoin(from: rootPayload)
+            if isNewGroup { seedImportReadMarker(forRediscovered: rootPayload.groupId, inviteBlockTime: blockTime) }
         }
         // gctl_epoch is an advance-notice heads-up only (spec: state updates on gctl_root
         // arrival, not on gctl_epoch) - no local state change needed here in the data layer;

@@ -23,6 +23,7 @@ struct SettingsView: View {
     @ObservedObject private var resyncCoordinator = IncomingResyncCoordinator.shared
 
     @State private var showSeedPhrase = false
+    @State private var showNFCCardBackup = false
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     /// The seed phrase over the Delete Account warning, which it closes back to.
@@ -93,6 +94,15 @@ struct SettingsView: View {
                                 .foregroundColor(.red)
                         }
                     }
+                    #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
+                    if NFCCard.isAvailable {
+                        Button {
+                            unlockSeedPhrase { showNFCCardBackup = true }
+                        } label: {
+                            Label("Back Up to NFC Card", systemImage: "wave.3.right")
+                        }
+                    }
+                    #endif
                     settingsCategoryRow("Danger Zone", icon: "exclamationmark.triangle", tint: .red) {
                         dangerZonePage
                     }
@@ -169,6 +179,11 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showSeedPhrase) {
                 SeedPhraseView()
+            }
+            .sheet(isPresented: $showNFCCardBackup) {
+                #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
+                NFCCardBackupView()
+                #endif
             }
             .sheet(isPresented: $showChatHistoryShareSheet, onDismiss: {
                 // The export is a temp file holding the whole chat history; once the share sheet
@@ -858,17 +873,6 @@ struct DiagnosticsSettingsPage: View {
                 }
                 .disabled(isPreparingDiagnostics)
             }
-            #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
-            if !AppVersion.isRelease {
-                Section {
-                    NavigationLink("Test NFC Card") {
-                        NFCCardTestView()
-                    }
-                } footer: {
-                    Text("Beta only. Checks whether this iPhone can detect a smart card over NFC. Nothing is written to the card.")
-                }
-            }
-            #endif
             Section {
                 Toggle("Verbose API Logging", isOn: $verboseAPILogging)
                     .onChange(of: verboseAPILogging) { newValue in

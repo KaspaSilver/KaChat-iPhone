@@ -379,6 +379,20 @@ starts a six-month timer; when it runs out Profile shows `BackupHygieneCard` in 
 the passphrase if there is one. Passing, or Can't Complete This and the backup steps again, starts
 the timer over; closing leaves the card up.
 
+**NFC card backup** (`Services/NFCCard.swift`, beta only: `NFCCard.isAvailable`, hidden once
+`KACHAT_IS_RELEASE` is YES and on iPad): an extra, encrypted copy of a seed phrase the user already
+has, on a Java Card loaded with [KaChat-NFC](https://github.com/KaspaSilver/KaChat-NFC) through
+Kaspa Quick Start's NFC Card page. Not cold storage: the card never generates or uses a key. The
+card commands and backup format are that repo's `docs/PROTOCOL.md`, shared across apps; change
+them there first. Settings > Back Up to NFC Card (`NFCCardBackupView`, behind the seed phrase's
+biometric gate) scans the card, takes a PIN and a separate password, then saves and reads back.
+The password encrypts on the phone and never reaches the card. The Import chooser's Restore from
+NFC Card (`NFCCardRestoreView`) imports with the saved name, family and chatting index, and owes
+that account a backup, since nobody typed its words. A card backup never clears that warning, so
+the written phrase stays the main copy. Before an App Store submission without this feature, remove
+the NFC entitlement in `KaChat.entitlements` and `KaChatRelease.entitlements` and the NFC keys in
+`Info.plist`. The App ID needs Near Field Communication Tag Reading on.
+
 Settings' last rows are Delete Account (`DeleteAccountSheet`, the warning the sign-in screen's
 Delete also shows; `WalletManager.deleteCurrentAccount`) and Log Out. Deleting removes the account,
 its messages, contacts and the bell's notifications from this device and revokes the app password

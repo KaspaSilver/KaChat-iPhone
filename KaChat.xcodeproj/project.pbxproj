@@ -89,7 +89,7 @@
 		E81000192D4C00010000000D /* ChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000182D4C00010000000D /* ChatDetailView.swift */; };
 		E810001B2D4C00010000000E /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E810001A2D4C00010000000E /* ContactsView.swift */; };
 		E810001D2D4C00010000000F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E810001C2D4C00010000000F /* SettingsView.swift */; };
-		NFCT0000000000000001 /* NFCCardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NFCT0000000000000002 /* NFCCardTestView.swift */; };
+		NFCT0000000000000001 /* NFCCardBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NFCT0000000000000002 /* NFCCardBackupView.swift */; };
 		E81000212D4C000100000011 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000202D4C000100000011 /* Models.swift */; };
 		E81000232D4C000100000012 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000222D4C000100000012 /* MainTabView.swift */; };
 		E81000292D4C000100000015 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000282D4C000100000015 /* SettingsViewModel.swift */; };
@@ -121,6 +121,7 @@
 		KCNMRES00000000000000004 /* kachat-names-mainnet.json in Resources */ = {isa = PBXBuildFile; fileRef = KCNMRES00000000000000003 /* kachat-names-mainnet.json */; };
 		GN0001B0000000000000001 /* GlobalNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = GN0001A0000000000000001 /* GlobalNotificationCenter.swift */; };
 		ABST0000000000000001 /* AccountBackupStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABST0000000000000002 /* AccountBackupStatus.swift */; };
+		NFCT0000000000000003 /* NFCCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = NFCT0000000000000004 /* NFCCard.swift */; };
 		GRCP00010001000100000001 /* GroupCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRCP00010001000000000001 /* GroupCipher.swift */; };
 		GRCS00010001000100000001 /* GroupChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRCS00010001000000000001 /* GroupChatService.swift */; };
 		GRDV00010001000100000001 /* GroupChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRDV00010001000000000001 /* GroupChatDetailView.swift */; };
@@ -175,6 +176,7 @@
 		SPMWEBRTC00010001001 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = SPMWEBRTC00010001003 /* WebRTC */; };
 		WLCM0000000000000001 /* WelcomeGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WLCM0000000000000002 /* WelcomeGuideView.swift */; };
 		ABVW0000000000000001 /* AccountBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABVW0000000000000002 /* AccountBackupView.swift */; };
+		NFCT0000000000000005 /* NFCCardRestoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NFCT0000000000000006 /* NFCCardRestoreView.swift */; };
 		WMSA00010001000100000001 /* WalletManager+SpendingAddresses.swift in Sources */ = {isa = PBXBuildFile; fileRef = WMSA00010001000000000001 /* WalletManager+SpendingAddresses.swift */; };
 /* End PBXBuildFile section */
 
@@ -304,7 +306,7 @@
 		E81000182D4C00010000000D /* ChatDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDetailView.swift; sourceTree = "<group>"; };
 		E810001A2D4C00010000000E /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		E810001C2D4C00010000000F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		NFCT0000000000000002 /* NFCCardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCardTestView.swift; sourceTree = "<group>"; };
+		NFCT0000000000000002 /* NFCCardBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCardBackupView.swift; sourceTree = "<group>"; };
 		E81000202D4C000100000011 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		E81000222D4C000100000012 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		E81000282D4C000100000015 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -338,6 +340,7 @@
 		KCNMRES00000000000000003 /* kachat-names-mainnet.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "kachat-names-mainnet.json"; sourceTree = "<group>"; };
 		GN0001A0000000000000001 /* GlobalNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalNotificationCenter.swift; sourceTree = "<group>"; };
 		ABST0000000000000002 /* AccountBackupStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBackupStatus.swift; sourceTree = "<group>"; };
+		NFCT0000000000000004 /* NFCCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCard.swift; sourceTree = "<group>"; };
 		GRCP00010001000000000001 /* GroupCipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupCipher.swift; sourceTree = "<group>"; };
 		GRCS00010001000000000001 /* GroupChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChatService.swift; sourceTree = "<group>"; };
 		GRDV00010001000000000001 /* GroupChatDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupChatDetailView.swift; sourceTree = "<group>"; };
@@ -422,6 +425,7 @@
 		SHSH00010001000000000001 /* SharedOutboundShare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedOutboundShare.swift; sourceTree = "<group>"; };
 		WLCM0000000000000002 /* WelcomeGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeGuideView.swift; sourceTree = "<group>"; };
 		ABVW0000000000000002 /* AccountBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountBackupView.swift; sourceTree = "<group>"; };
+		NFCT0000000000000006 /* NFCCardRestoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCardRestoreView.swift; sourceTree = "<group>"; };
 		WMSA00010001000000000001 /* WalletManager+SpendingAddresses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WalletManager+SpendingAddresses.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -628,6 +632,7 @@
 				CALL0001A000000000000001 /* NextcloudTalkClient.swift */,
 				GN0001A0000000000000001 /* GlobalNotificationCenter.swift */,
 				ABST0000000000000002 /* AccountBackupStatus.swift */,
+				NFCT0000000000000004 /* NFCCard.swift */,
 				AB0001A0000000000000001 /* AppTabBadge.swift */,
 				CH0002A0000000000000001 /* ChessGameService.swift */,
 				LPRVA0000000000000001 /* LinkPreviewService.swift */,
@@ -708,6 +713,7 @@
 				E810FB112D4C00010000000B /* SeedPhraseKeyboardView.swift */,
 				WLCM0000000000000002 /* WelcomeGuideView.swift */,
 				ABVW0000000000000002 /* AccountBackupView.swift */,
+				NFCT0000000000000006 /* NFCCardRestoreView.swift */,
 				CHAD00010001000000000001 /* ChattingAddressPickerView.swift */,
 				IMSW00010001000000000001 /* ImportSourceWalletView.swift */,
 			);
@@ -759,7 +765,7 @@
 			isa = PBXGroup;
 			children = (
 				E810001C2D4C00010000000F /* SettingsView.swift */,
-				NFCT0000000000000002 /* NFCCardTestView.swift */,
+				NFCT0000000000000002 /* NFCCardBackupView.swift */,
 				OSL0001A000000000000001 /* OpenSourceLicensesView.swift */,
 			);
 			path = Settings;
@@ -1179,6 +1185,7 @@
 				E810FB122D4C00010000000B /* SeedPhraseKeyboardView.swift in Sources */,
 				WLCM0000000000000001 /* WelcomeGuideView.swift in Sources */,
 				ABVW0000000000000001 /* AccountBackupView.swift in Sources */,
+				NFCT0000000000000005 /* NFCCardRestoreView.swift in Sources */,
 				CHAD00010001000100000001 /* ChattingAddressPickerView.swift in Sources */,
 				IMSW00010001000100000001 /* ImportSourceWalletView.swift in Sources */,
 				E81000172D4C00010000000C /* ChatListView.swift in Sources */,
@@ -1204,6 +1211,7 @@
 				CALL0001B000000000000001 /* NextcloudTalkClient.swift in Sources */,
 				GN0001B0000000000000001 /* GlobalNotificationCenter.swift in Sources */,
 				ABST0000000000000001 /* AccountBackupStatus.swift in Sources */,
+				NFCT0000000000000003 /* NFCCard.swift in Sources */,
 				AB0001B0000000000000001 /* AppTabBadge.swift in Sources */,
 				CH0002B0000000000000001 /* ChessGameService.swift in Sources */,
 				OSL0001B000000000000001 /* OpenSourceLicensesView.swift in Sources */,
@@ -1217,7 +1225,7 @@
 				NC0002B0000000000000001 /* NextcloudPickerView.swift in Sources */,
 				CAMV0000000000000001 /* CameraCaptureView.swift in Sources */,
 				E810001D2D4C00010000000F /* SettingsView.swift in Sources */,
-				NFCT0000000000000001 /* NFCCardTestView.swift in Sources */,
+				NFCT0000000000000001 /* NFCCardBackupView.swift in Sources */,
 				E8F100122D4C0001000000FF /* Toast.swift in Sources */,
 				E8F1AC710001000000000001 /* ActionSheet.swift in Sources */,
 				SKCM00010001000100000001 /* SendKaspaComponents.swift in Sources */,

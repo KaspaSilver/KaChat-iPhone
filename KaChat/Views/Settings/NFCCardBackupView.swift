@@ -7,7 +7,7 @@ import SwiftUI
 /// It never clears the "not backed up" card on Profile: the written seed phrase stays the main copy.
 struct NFCCardBackupView: View {
     private enum Step {
-        case intro, details, erase, saved, erased
+        case intro, details, erase, changePIN, saved, erased, pinChanged
     }
 
     @EnvironmentObject private var walletManager: WalletManager
@@ -16,6 +16,8 @@ struct NFCCardBackupView: View {
     @State private var step: Step = .intro
     @State private var card: NFCCardStatus?
     @State private var pin = ""
+    @State private var newPIN = ""
+    @State private var pinCleared = false
     @State private var busy = false
     @State private var errorMessage: String?
     @State private var showEraseConfirmation = false
@@ -23,6 +25,10 @@ struct NFCCardBackupView: View {
 
     private var pinValid: Bool {
         NFCCard.isValidPIN(pin)
+    }
+
+    private var canChangePIN: Bool {
+        pinValid && NFCCard.isValidPIN(newPIN) && newPIN != pin
     }
 
     var body: some View {
@@ -33,10 +39,15 @@ struct NFCCardBackupView: View {
                     case .intro: intro
                     case .details: details
                     case .erase: erase
+                    case .changePIN: changePINForm
                     case .saved: finished(title: "Backup saved",
                                           detail: "It was read back from the card and checked. To restore it, choose Import Existing Account, then Restore from NFC Card, and enter your PIN and passphrase. Your passphrase isn't on the card, so keep it and your written seed phrase safe.")
                     case .erased: finished(title: "Backup erased",
-                                           detail: "The backup is gone from this card. Its PIN stays the same.")
+                                           detail: pinCleared
+                                               ? "The backup and PIN are gone from this card. The next backup on it will ask you to set a new PIN."
+                                               : "The backup is gone from this card. Its PIN stays the same.")
+                    case .pinChanged: finished(title: "PIN changed",
+                                               detail: "Use your new PIN for this card from now on. Anything backed up on it is still there.")
                     }
                 }
                 .padding()
@@ -45,7 +56,7 @@ struct NFCCardBackupView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    if step != .saved && step != .erased {
+                    if step != .saved && step != .erased && step != .pinChanged {
                         Button("Cancel") { dismiss() }
                             .disabled(busy)
                     }
@@ -93,6 +104,11 @@ struct NFCCardBackupView: View {
             CreateWalletNextButton(title: "Scan Card", enabled: !busy, busy: busy) {
                 Task { @MainActor in await scanCard() }
             }
+            Button("Change a Card's PIN") {
+                step = .changePIN
+            }
+            .frame(maxWidth: .infinity)
+            .disabled(busy)
             Button("Erase a Backup on a Card") {
                 step = .erase
             }
@@ -151,6 +167,31 @@ struct NFCCardBackupView: View {
         }
     }
 
+    private var changePINForm: some View {
+        Group {
+            Text("Change a card's PIN")
+                .font(.title2.weight(.bold))
+            Text("Enter both PINs, then tap the card. If it holds a backup, you'll tap it twice.")
+                .foregroundColor(.secondary)
+            NFCCardSecretField(title: "Current PIN", text: $pin, isNumeric: true)
+            NFCCardSecretField(title: "New 6-digit PIN", text: $newPIN, isNumeric: true)
+            if NFCCard.isValidPIN(newPIN) && newPIN == pin {
+                Text("The new PIN has to be different from the current one.")
+                    .font(.footnote)
+                    .foregroundColor(.orange)
+            }
+            CreateWalletNextButton(title: "Change PIN", enabled: canChangePIN && !busy, busy: busy) {
+                Task { @MainActor in await changePIN() }
+            }
+            Button("Back") {
+                clearSecrets()
+                step = .intro
+            }
+            .frame(maxWidth: .infinity)
+            .disabled(busy)
+        }
+    }
+
     private func finished(title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
         Group {
             Image(systemName: "checkmark.circle.fill")
@@ -168,6 +209,7 @@ struct NFCCardBackupView: View {
 
     private func clearSecrets() {
         pin = ""
+        newPIN = ""
     }
 
     private func show(_ error: Error) {
@@ -270,6 +312,69 @@ struct NFCCardBackupView: View {
         }
     }
 
+    /// The PIN also encrypts the backup, so changing it means re-encrypting the backup too. The
+    /// first tap reads it, the encryption happens with the card away, and the second tap writes it
+    /// and sets the PIN. A card with no backup finishes on the first tap.
+    @MainActor
+    private func changePIN() async {
+        guard canChangePIN, !busy else { return }
+        busy = true
+        defer { busy = false }
+        let currentPIN = pin
+        let replacementPIN = newPIN
+        do {
+            let original: Data? = try await NFCCard.run(success: "Card read.") { connection in
+                let current = try await connection.select()
+                if current.pinBlocked { throw NFCCardError.pinBlocked }
+                if !current.pinSet { throw NFCCardError.noPIN }
+                try await connection.verifyPIN(currentPIN)
+                if current.hasBackup {
+                    return try await connection.readBackup()
+                }
+                try await connection.setPIN(replacementPIN)
+                try await connection.verifyPIN(replacementPIN)
+                return nil
+            }
+            if let original {
+                let resealed = try await Task.detached(priority: .userInitiated) {
+                    // A change cut off after the write leaves the backup already under the new
+                    // PIN, so running it again with the same two PINs finishes the job.
+                    let payload: NFCCardBackupPayload
+                    if let opened = try? NFCCardBackupFormat.open(original, pin: currentPIN) {
+                        payload = opened
+                    } else {
+                        payload = try NFCCardBackupFormat.open(original, pin: replacementPIN)
+                    }
+                    return try NFCCardBackupFormat.seal(payload, pin: replacementPIN)
+                }.value
+
+                try await NFCCard.run(success: "PIN changed.") { connection in
+                    connection.setMessage("Changing the PIN. Keep the card still.")
+                    let current = try await connection.select()
+                    if current.pinBlocked { throw NFCCardError.pinBlocked }
+                    try await connection.verifyPIN(currentPIN)
+                    guard try await connection.readBackup() == original else {
+                        throw NFCCardError.cardChanged
+                    }
+                    try await connection.writeBackup(resealed)
+                    try await connection.setPIN(replacementPIN)
+                    try await connection.verifyPIN(replacementPIN)
+                    guard try await connection.readBackup() == resealed else {
+                        throw NFCCardError.saveNotConfirmed
+                    }
+                }
+            }
+            clearSecrets()
+            step = .pinChanged
+        } catch NFCCardError.wrongPIN(let triesRemaining) {
+            pin = ""
+            show(NFCCardError.wrongPIN(triesRemaining: triesRemaining))
+        } catch {
+            if case NFCCardError.pinBlocked = error { backToStart() }
+            show(error)
+        }
+    }
+
     private func backToStart() {
         clearSecrets()
         card = nil
@@ -283,13 +388,16 @@ struct NFCCardBackupView: View {
         defer { busy = false }
         let enteredPIN = pin
         do {
-            try await NFCCard.run(success: "Backup erased.") { connection in
+            pinCleared = try await NFCCard.run(success: "Backup erased.") { connection in
                 let current = try await connection.select()
                 if current.pinBlocked { throw NFCCardError.pinBlocked }
                 if !current.pinSet { throw NFCCardError.noPIN }
                 if !current.hasBackup { throw NFCCardError.noBackup }
                 try await connection.verifyPIN(enteredPIN)
                 try await connection.wipe()
+                // Cards loaded with older software keep their PIN. The erase has already worked,
+                // so a card pulled away here only costs the wording.
+                return (try? await connection.select())?.pinSet == false
             }
             clearSecrets()
             step = .erased

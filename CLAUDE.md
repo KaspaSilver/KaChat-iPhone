@@ -390,7 +390,7 @@ them there first. Settings > Back Up to NFC Card (`NFCCardBackupView`, behind th
 biometric gate) only exists for an account with a BIP39 passphrase, because that passphrase is what
 protects the account: it's never written to the card. The screen scans the card, takes a 6-digit
 PIN, then saves and reads back. The PIN also derives the encryption key, so there's no separate
-password. The Import chooser's Restore from NFC Card (`NFCCardRestoreView`) reads with the PIN, asks
+password, and the same screen's Change PIN re-encrypts the backup under the new PIN. The Import chooser's Restore from NFC Card (`NFCCardRestoreView`) reads with the PIN, asks
 for the passphrase and checks it against the saved chatting address. It imports with the saved
 name, family and chatting index, and owes that account a backup, since nobody typed its words. A card backup never clears that warning, so
 the written phrase stays the main copy. Before an App Store submission without this feature, remove

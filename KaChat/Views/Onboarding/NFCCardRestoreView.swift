@@ -37,6 +37,17 @@ struct NFCCardRestoreView: View {
                     Text("The backup was read from your card. Your passphrase was never on the card, so enter it exactly as you set it, including capitals and spaces.")
                         .foregroundColor(.secondary)
                     NFCCardSecretField(title: "Passphrase", text: $passphrase, isNumeric: false)
+                    if let payload, !passphrase.isEmpty,
+                       let family = WalletSourceFamily(rawValue: payload.family),
+                       let chattingIndex = UInt32(exactly: payload.chattingAddressIndex) {
+                        PassphraseAddressPreview(
+                            words: payload.words,
+                            passphrase: passphrase,
+                            chattingIndex: chattingIndex,
+                            family: family,
+                            showsFundsHint: true
+                        )
+                    }
                     CreateWalletNextButton(title: "Restore Account", enabled: !passphrase.isEmpty && !busy, busy: busy) {
                         Task { @MainActor in await restore() }
                     }

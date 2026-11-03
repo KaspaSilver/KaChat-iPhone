@@ -89,6 +89,7 @@
 		E81000192D4C00010000000D /* ChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000182D4C00010000000D /* ChatDetailView.swift */; };
 		E810001B2D4C00010000000E /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E810001A2D4C00010000000E /* ContactsView.swift */; };
 		E810001D2D4C00010000000F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E810001C2D4C00010000000F /* SettingsView.swift */; };
+		NFCT0000000000000001 /* NFCCardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NFCT0000000000000002 /* NFCCardTestView.swift */; };
 		E81000212D4C000100000011 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000202D4C000100000011 /* Models.swift */; };
 		E81000232D4C000100000012 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000222D4C000100000012 /* MainTabView.swift */; };
 		E81000292D4C000100000015 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E81000282D4C000100000015 /* SettingsViewModel.swift */; };
@@ -303,6 +304,7 @@
 		E81000182D4C00010000000D /* ChatDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDetailView.swift; sourceTree = "<group>"; };
 		E810001A2D4C00010000000E /* ContactsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		E810001C2D4C00010000000F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		NFCT0000000000000002 /* NFCCardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NFCCardTestView.swift; sourceTree = "<group>"; };
 		E81000202D4C000100000011 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		E81000222D4C000100000012 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		E81000282D4C000100000015 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
@@ -757,6 +759,7 @@
 			isa = PBXGroup;
 			children = (
 				E810001C2D4C00010000000F /* SettingsView.swift */,
+				NFCT0000000000000002 /* NFCCardTestView.swift */,
 				OSL0001A000000000000001 /* OpenSourceLicensesView.swift */,
 			);
 			path = Settings;
@@ -1214,6 +1217,7 @@
 				NC0002B0000000000000001 /* NextcloudPickerView.swift in Sources */,
 				CAMV0000000000000001 /* CameraCaptureView.swift in Sources */,
 				E810001D2D4C00010000000F /* SettingsView.swift in Sources */,
+				NFCT0000000000000001 /* NFCCardTestView.swift in Sources */,
 				E8F100122D4C0001000000FF /* Toast.swift in Sources */,
 				E8F1AC710001000000000001 /* ActionSheet.swift in Sources */,
 				SKCM00010001000100000001 /* SendKaspaComponents.swift in Sources */,

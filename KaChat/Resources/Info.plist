@@ -30,6 +30,16 @@
 	<string>KaChat uses the microphone for voice and video calls and to record audio messages.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>KaChat connects to a Kaspa node or a Nextcloud server on your local network only if you configure one, and to other phones on it during calls.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>KaChat uses NFC to check whether a smart card can be read.</string>
+	<!-- The card managers the beta NFC card test looks for. iOS only reports a card as an
+	     ISO 7816 tag when it answers one of the IDs listed here. -->
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>A000000151000000</string>
+		<string>A0000000030000</string>
+		<string>A000000003000000</string>
+	</array>
 	<key>NSSiriUsageDescription</key>
 	<string>Lets you start a KaChat call by asking Siri.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

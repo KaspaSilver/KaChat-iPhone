@@ -858,6 +858,17 @@ struct DiagnosticsSettingsPage: View {
                 }
                 .disabled(isPreparingDiagnostics)
             }
+            #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
+            if !AppVersion.isRelease {
+                Section {
+                    NavigationLink("Test NFC Card") {
+                        NFCCardTestView()
+                    }
+                } footer: {
+                    Text("Beta only. Checks whether this iPhone can detect a smart card over NFC. Nothing is written to the card.")
+                }
+            }
+            #endif
             Section {
                 Toggle("Verbose API Logging", isOn: $verboseAPILogging)
                     .onChange(of: verboseAPILogging) { newValue in

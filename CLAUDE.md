@@ -382,15 +382,17 @@ the passphrase if there is one. Passing, or Can't Complete This and the backup s
 the timer over; closing leaves the card up.
 
 **NFC card backup** (`Services/NFCCard.swift`, beta only: `NFCCard.isAvailable`, hidden once
-`KACHAT_IS_RELEASE` is YES and on iPad): an extra, encrypted copy of a seed phrase the user already
-has, on a Java Card loaded with [KaChat-NFC](https://github.com/KaspaSilver/KaChat-NFC) through
+`KACHAT_IS_RELEASE` is YES and on iPad): an extra copy of the words of a seed phrase the user
+already has, on a Java Card loaded with [KaChat-NFC](https://github.com/KaspaSilver/KaChat-NFC) through
 Kaspa Quick Start's NFC Card page. Not cold storage: the card never generates or uses a key. The
 card commands and backup format are that repo's `docs/PROTOCOL.md`, shared across apps; change
 them there first. Settings > Back Up to NFC Card (`NFCCardBackupView`, behind the seed phrase's
-biometric gate) scans the card, takes a PIN and a separate password, then saves and reads back.
-The password encrypts on the phone and never reaches the card. The Import chooser's Restore from
-NFC Card (`NFCCardRestoreView`) imports with the saved name, family and chatting index, and owes
-that account a backup, since nobody typed its words. A card backup never clears that warning, so
+biometric gate) only exists for an account with a BIP39 passphrase, because that passphrase is what
+protects the account: it's never written to the card. The screen scans the card, takes a 6-digit
+PIN, then saves and reads back. The PIN also derives the encryption key, so there's no separate
+password. The Import chooser's Restore from NFC Card (`NFCCardRestoreView`) reads with the PIN, asks
+for the passphrase and checks it against the saved chatting address. It imports with the saved
+name, family and chatting index, and owes that account a backup, since nobody typed its words. A card backup never clears that warning, so
 the written phrase stays the main copy. Before an App Store submission without this feature, remove
 the NFC entitlement in `KaChat.entitlements` and `KaChatRelease.entitlements` and the NFC keys in
 `Info.plist`. The App ID needs Near Field Communication Tag Reading on.

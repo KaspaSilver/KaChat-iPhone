@@ -24,6 +24,7 @@ struct SettingsView: View {
 
     @State private var showSeedPhrase = false
     @State private var showNFCCardBackup = false
+    @State private var accountHasPassphrase = false
     @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     /// The seed phrase over the Delete Account warning, which it closes back to.
@@ -93,7 +94,8 @@ struct SettingsView: View {
                         }
                     }
                     #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
-                    if NFCCard.isAvailable {
+                    // Without a passphrase, nothing would protect the seed if someone got past the PIN.
+                    if NFCCard.isAvailable && accountHasPassphrase {
                         Button {
                             unlockSeedPhrase { showNFCCardBackup = true }
                         } label: {
@@ -181,6 +183,10 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showSeedPhrase) {
                 SeedPhraseView()
+            }
+            .task(id: walletManager.currentWallet?.publicAddress) {
+                let passphrase = (try? walletManager.getSeedPhrase())?.passphrase ?? ""
+                accountHasPassphrase = !passphrase.isEmpty
             }
             .sheet(isPresented: $showNFCCardBackup) {
                 #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)

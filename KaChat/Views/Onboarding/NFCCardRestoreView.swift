@@ -1,25 +1,26 @@
 #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
 import SwiftUI
 
-/// Import Account > Restore from NFC Card: the PIN and a tap read the backup, then the password
-/// decrypts it on this iPhone. A wrong password needs no second tap, since the backup is in memory.
+/// Import Account > Restore from NFC Card: the PIN and a tap read the backup, then the passphrase,
+/// which was never on the card, opens the account. A wrong passphrase needs no second tap, since the
+/// backup is in memory.
 struct NFCCardRestoreView: View {
     @EnvironmentObject private var walletManager: WalletManager
 
     @State private var pin = ""
-    @State private var password = ""
-    @State private var backup: Data?
+    @State private var passphrase = ""
+    @State private var payload: NFCCardBackupPayload?
     @State private var busy = false
     @State private var errorMessage: String?
 
     private var pinValid: Bool {
-        NFCCard.pinLengths.contains(pin.count) && pin.allSatisfy(\.isNumber)
+        NFCCard.isValidPIN(pin)
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if backup == nil {
+                if payload == nil {
                     Text("Restore from an NFC card")
                         .font(.title2.weight(.bold))
                     Text("Enter the card's PIN, then tap the card to read your backup.")
@@ -31,12 +32,12 @@ struct NFCCardRestoreView: View {
                         Task { @MainActor in await readCard() }
                     }
                 } else {
-                    Text("Enter your backup password")
+                    Text("Enter your passphrase")
                         .font(.title2.weight(.bold))
-                    Text("The backup was read from your card. This password decrypts it on this iPhone.")
+                    Text("The backup was read from your card. Your passphrase was never on the card, so enter it exactly as you set it, including capitals and spaces.")
                         .foregroundColor(.secondary)
-                    NFCCardSecretField(title: "Backup password", text: $password, isNumeric: false)
-                    CreateWalletNextButton(title: "Restore Account", enabled: !password.isEmpty && !busy, busy: busy) {
+                    NFCCardSecretField(title: "Passphrase", text: $passphrase, isNumeric: false)
+                    CreateWalletNextButton(title: "Restore Account", enabled: !passphrase.isEmpty && !busy, busy: busy) {
                         Task { @MainActor in await restore() }
                     }
                 }
@@ -56,8 +57,8 @@ struct NFCCardRestoreView: View {
         }
         .onDisappear {
             pin = ""
-            password = ""
-            backup = nil
+            passphrase = ""
+            payload = nil
         }
     }
 
@@ -73,7 +74,7 @@ struct NFCCardRestoreView: View {
         defer { busy = false }
         let enteredPIN = pin
         do {
-            backup = try await NFCCard.run(success: "Backup read.") { connection in
+            let backup = try await NFCCard.run(success: "Backup read.") { connection in
                 connection.setMessage("Reading. Keep the card still.")
                 let current = try await connection.select()
                 if current.pinBlocked { throw NFCCardError.pinBlocked }
@@ -82,6 +83,9 @@ struct NFCCardRestoreView: View {
                 try await connection.verifyPIN(enteredPIN)
                 return try await connection.readBackup()
             }
+            payload = try await Task.detached(priority: .userInitiated) {
+                try NFCCardBackupFormat.open(backup, pin: enteredPIN)
+            }.value
             pin = ""
         } catch {
             pin = ""
@@ -91,18 +95,24 @@ struct NFCCardRestoreView: View {
 
     @MainActor
     private func restore() async {
-        guard let backup else { return }
+        guard let payload else { return }
         busy = true
         defer { busy = false }
-        let enteredPassword = password
+        let enteredPassphrase = passphrase
         do {
-            let payload = try await Task.detached(priority: .userInitiated) {
-                try NFCCardBackupFormat.open(backup, password: enteredPassword)
-            }.value
-            guard let family = WalletSourceFamily(rawValue: payload.family) else {
+            guard let family = WalletSourceFamily(rawValue: payload.family),
+                  let chattingIndex = UInt32(exactly: payload.chattingAddressIndex),
+                  let address = walletManager.previewChattingAddress(
+                      words: payload.words,
+                      passphrase: enteredPassphrase,
+                      chattingIndex: chattingIndex,
+                      family: family
+                  ) else {
                 throw NFCCardError.unreadableBackup
             }
-            try await commitImport(payload, family: family)
+            // A wrong passphrase still derives a valid account, just not this one.
+            guard address == payload.chattingAddress else { throw NFCCardError.wrongPassphrase }
+            try await commitImport(payload, passphrase: enteredPassphrase, family: family)
         } catch {
             show(error)
         }
@@ -111,13 +121,13 @@ struct NFCCardRestoreView: View {
     /// The same arming as `ImportWalletView.commitImport`, so the Welcome Guide and the held sync
     /// behave exactly like a typed import.
     @MainActor
-    private func commitImport(_ payload: NFCCardBackupPayload, family: WalletSourceFamily) async throws {
+    private func commitImport(_ payload: NFCCardBackupPayload, passphrase: String, family: WalletSourceFamily) async throws {
         walletManager.justCreatedNewWallet = true
         ChatService.shared.holdSyncForOnboarding()
         walletManager.justImportedWallet = true
         do {
             let wallet = try await walletManager.importWallet(
-                from: SeedPhrase(words: payload.words, passphrase: payload.passphrase),
+                from: SeedPhrase(words: payload.words, passphrase: passphrase),
                 alias: payload.alias,
                 chattingAddressIndex: payload.chattingAddressIndex,
                 family: family

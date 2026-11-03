@@ -1,8 +1,9 @@
 #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
 import SwiftUI
 
-/// Settings > Back Up to NFC Card, behind the seed phrase's biometric gate. Two taps: the first
-/// reads the card to learn whether it needs a new PIN or already holds a backup, the second saves.
+/// Settings > Back Up to NFC Card, behind the seed phrase's biometric gate and only offered for an
+/// account with a passphrase. Two taps: the first reads the card to learn whether it needs a new PIN
+/// or already holds a backup, the second saves. The passphrase is never written to the card.
 /// It never clears the "not backed up" card on Profile: the written seed phrase stays the main copy.
 struct NFCCardBackupView: View {
     private enum Step {
@@ -15,27 +16,13 @@ struct NFCCardBackupView: View {
     @State private var step: Step = .intro
     @State private var card: NFCCardStatus?
     @State private var pin = ""
-    @State private var confirmPIN = ""
-    @State private var password = ""
-    @State private var confirmPassword = ""
-    @State private var replaceConfirmed = false
-    @State private var understoodPassword = false
     @State private var busy = false
     @State private var errorMessage: String?
     @State private var showEraseConfirmation = false
+    @State private var showReplaceConfirmation = false
 
     private var pinValid: Bool {
-        NFCCard.pinLengths.contains(pin.count) && pin.allSatisfy(\.isNumber)
-    }
-
-    private var canSave: Bool {
-        guard let card, pinValid, !busy else { return false }
-        if !card.pinSet && pin != confirmPIN { return false }
-        if card.hasBackup && !replaceConfirmed { return false }
-        return password.count >= NFCCard.minimumPasswordLength
-            && password == confirmPassword
-            && password != pin
-            && understoodPassword
+        NFCCard.isValidPIN(pin)
     }
 
     var body: some View {
@@ -47,7 +34,7 @@ struct NFCCardBackupView: View {
                     case .details: details
                     case .erase: erase
                     case .saved: finished(title: "Backup saved",
-                                          detail: "It was read back from the card and checked. To restore it, choose Import Existing Account, then Restore from NFC Card. This card doesn't replace your written seed phrase, so keep that too.")
+                                          detail: "It was read back from the card and checked. To restore it, choose Import Existing Account, then Restore from NFC Card, and enter your PIN and passphrase. Your passphrase isn't on the card, so keep it and your written seed phrase safe.")
                     case .erased: finished(title: "Backup erased",
                                            detail: "The backup is gone from this card. Its PIN stays the same.")
                     }
@@ -79,6 +66,13 @@ struct NFCCardBackupView: View {
             } message: {
                 Text("This can't be undone.")
             }
+            .confirmationDialog("Replace the backup on this card?", isPresented: $showReplaceConfirmation, titleVisibility: .visible) {
+                Button("Replace Backup", role: .destructive) {
+                    Task { @MainActor in await save() }
+                }
+            } message: {
+                Text("The old backup is removed once the new one is confirmed.")
+            }
         }
         .interactiveDismissDisabled(busy)
         .onDisappear(perform: clearSecrets)
@@ -88,14 +82,14 @@ struct NFCCardBackupView: View {
         Group {
             Text("Back up to an NFC card")
                 .font(.title2.weight(.bold))
-            Text("Saves an encrypted copy of this account's seed phrase on your card, protected by a PIN and a password.")
+            Text("Saves this account's seed phrase on your card, behind a 6-digit PIN.")
                 .foregroundColor(.secondary)
+            NFCCardNote(icon: "key.fill", tint: .accentColor,
+                        text: "Your passphrase is never saved to the card. You'll enter it when you restore, and it's what keeps this account safe if someone gets past the PIN.")
             NFCCardNote(icon: "exclamationmark.triangle.fill", tint: .orange,
-                        text: "This isn't cold storage. The card only holds an encrypted copy and never creates keys, so keep your seed phrase written down too.")
+                        text: "This isn't cold storage. The card only holds a copy and never creates keys, so keep your seed phrase and passphrase written down too.")
             NFCCardNote(icon: "sdcard.fill", tint: .accentColor,
                         text: "Your card needs the KaChat-NFC software first. Load it from the NFC Card page in Kaspa Quick Start.")
-            NFCCardNote(icon: "key.fill", tint: .accentColor,
-                        text: "If you forget the PIN or the password, this backup can't be recovered.")
             CreateWalletNextButton(title: "Scan Card", enabled: !busy, busy: busy) {
                 Task { @MainActor in await scanCard() }
             }
@@ -113,7 +107,6 @@ struct NFCCardBackupView: View {
                 if card.hasBackup {
                     NFCCardNote(icon: "exclamationmark.triangle.fill", tint: .orange,
                                 text: "This card already holds a backup. Saving replaces it once the new one is confirmed.")
-                    Toggle("Replace the backup on this card", isOn: $replaceConfirmed)
                 }
                 if card.pinSet {
                     NFCCardSecretField(title: "Card PIN", text: $pin, isNumeric: true)
@@ -123,20 +116,17 @@ struct NFCCardBackupView: View {
                             .foregroundColor(.orange)
                     }
                 } else {
-                    NFCCardSecretField(title: "New card PIN, 6 to 12 digits", text: $pin, isNumeric: true)
-                    NFCCardSecretField(title: "Confirm card PIN", text: $confirmPIN, isNumeric: true)
-                    Text("After 5 wrong tries the PIN is blocked for good, and there's no reset.")
+                    NFCCardSecretField(title: "New 6-digit PIN", text: $pin, isNumeric: true)
+                    Text("Pick one you'll remember. After 5 wrong tries the PIN is blocked for good, and there's no reset.")
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
-                NFCCardSecretField(title: "New backup password", text: $password, isNumeric: false)
-                NFCCardSecretField(title: "Confirm backup password", text: $confirmPassword, isNumeric: false)
-                Text("At least 12 characters, and different from the PIN. It encrypts your seed phrase on this iPhone and never reaches the card. It's what protects you if someone reads the chip, so make it strong.")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                Toggle("I understand this password can't be reset or recovered", isOn: $understoodPassword)
-                CreateWalletNextButton(title: "Save to Card", enabled: canSave, busy: busy) {
-                    Task { @MainActor in await save() }
+                CreateWalletNextButton(title: card.hasBackup ? "Replace Backup" : "Save to Card", enabled: pinValid && !busy, busy: busy) {
+                    if card.hasBackup {
+                        showReplaceConfirmation = true
+                    } else {
+                        Task { @MainActor in await save() }
+                    }
                 }
             }
         }
@@ -178,9 +168,6 @@ struct NFCCardBackupView: View {
 
     private func clearSecrets() {
         pin = ""
-        confirmPIN = ""
-        password = ""
-        confirmPassword = ""
     }
 
     private func show(_ error: Error) {
@@ -198,7 +185,6 @@ struct NFCCardBackupView: View {
             }
             guard !status.pinBlocked else { throw NFCCardError.pinBlocked }
             card = status
-            replaceConfirmed = false
             step = .details
         } catch {
             show(error)
@@ -207,26 +193,38 @@ struct NFCCardBackupView: View {
 
     @MainActor
     private func save() async {
-        guard let card, canSave else { return }
+        guard let card, pinValid, !busy else { return }
         busy = true
         defer { busy = false }
         let enteredPIN = pin
-        let enteredPassword = password
         do {
             guard let wallet = walletManager.currentWallet,
                   let seedPhrase = try walletManager.getSeedPhrase() else {
                 throw NFCCardError.seedUnavailable
             }
-            let phrasePassphrase = seedPhrase.passphrase ?? ""
+            let passphrase = seedPhrase.passphrase ?? ""
+            guard !passphrase.isEmpty else { throw NFCCardError.noPassphrase }
+            let family = walletManager.walletSourceFamily(for: wallet.publicAddress)
+            let index = walletManager.chattingAddressIndex(for: wallet.publicAddress)
+            // The same derivation a restore checks against, so the two can't disagree.
+            guard let chattingIndex = UInt32(exactly: index),
+                  let chattingAddress = walletManager.previewChattingAddress(
+                      words: seedPhrase.words,
+                      passphrase: passphrase,
+                      chattingIndex: chattingIndex,
+                      family: family
+                  ) else {
+                throw NFCCardError.seedUnavailable
+            }
             let payload = NFCCardBackupPayload(
                 words: seedPhrase.words,
-                passphrase: phrasePassphrase.isEmpty ? nil : phrasePassphrase,
-                family: walletManager.walletSourceFamily(for: wallet.publicAddress).rawValue,
-                chattingAddressIndex: walletManager.chattingAddressIndex(for: wallet.publicAddress),
+                chattingAddress: chattingAddress,
+                family: family.rawValue,
+                chattingAddressIndex: index,
                 alias: wallet.alias
             )
             let backup = try await Task.detached(priority: .userInitiated) {
-                try NFCCardBackupFormat.seal(payload, password: enteredPassword)
+                try NFCCardBackupFormat.seal(payload, pin: enteredPIN)
             }.value
             guard backup.count <= card.maxBackup else { throw NFCCardError.backupTooLarge }
 
@@ -249,9 +247,9 @@ struct NFCCardBackupView: View {
                 }
             }
 
-            // What's on the card has to open with this password, not just match what was sent.
+            // What's on the card has to open with this PIN, not just match what was sent.
             _ = try await Task.detached(priority: .userInitiated) {
-                try NFCCardBackupFormat.open(backup, password: enteredPassword)
+                try NFCCardBackupFormat.open(backup, pin: enteredPIN)
             }.value
             clearSecrets()
             step = .saved
@@ -275,8 +273,6 @@ struct NFCCardBackupView: View {
     private func backToStart() {
         clearSecrets()
         card = nil
-        understoodPassword = false
-        replaceConfirmed = false
         step = .intro
     }
 
@@ -304,18 +300,24 @@ struct NFCCardBackupView: View {
     }
 }
 
-/// A PIN or password entry. It never offers to save the value or autofill it.
+/// A PIN or passphrase entry, shown as typed so a mistake is caught before it costs a PIN try. It
+/// never offers to save the value or autofill it. A PIN field only takes digits, up to the PIN's length.
 struct NFCCardSecretField: View {
     let title: LocalizedStringKey
     @Binding var text: String
     let isNumeric: Bool
 
     var body: some View {
-        SecureField(title, text: $text)
+        TextField(title, text: $text)
             .keyboardType(isNumeric ? .numberPad : .default)
             .textContentType(nil)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled()
+            .onChange(of: text) { value in
+                guard isNumeric else { return }
+                let digits = String(value.filter { $0.isASCII && $0.isNumber }.prefix(NFCCard.pinLength))
+                if digits != value { text = digits }
+            }
             .padding()
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 12))

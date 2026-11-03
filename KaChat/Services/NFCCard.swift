@@ -19,12 +19,15 @@ enum NFCCard {
         !AppVersion.isRelease && NFCTagReaderSession.readingAvailable
     }
 
-    static let pinLengths = 6...12
-    static let minimumPasswordLength = 12
+    static let pinLength = 6
     static let tapPrompt = "Hold your card flat against the top back of your iPhone."
 
+    static func isValidPIN(_ pin: String) -> Bool {
+        pin.count == pinLength && pin.allSatisfy { $0.isASCII && $0.isNumber }
+    }
+
     /// Runs `work` against one card inside one NFC session. A tap lasts as long as `work` does, so
-    /// slow work such as the password's key derivation belongs outside it.
+    /// slow work such as key derivation belongs outside it.
     @MainActor
     static func run<T>(success: String, work: (NFCCardConnection) async throws -> T) async throws -> T {
         let host = NFCCardSessionHost()
@@ -51,7 +54,8 @@ enum NFCCardError: LocalizedError {
     case noPIN
     case cardChanged
     case backupTooLarge
-    case wrongPassword
+    case wrongPassphrase
+    case noPassphrase
     case unreadableBackup
     case saveNotConfirmed
     case seedUnavailable
@@ -81,8 +85,10 @@ enum NFCCardError: LocalizedError {
             return "This isn't the card you scanned first. Start again with the card you want to use."
         case .backupTooLarge:
             return "This account's backup is too large for the card."
-        case .wrongPassword:
-            return "That's not the password for this backup."
+        case .wrongPassphrase:
+            return "That passphrase doesn't match this backup. It has to be exact, including capitals and spaces."
+        case .noPassphrase:
+            return "This account has no passphrase, so it can't be backed up to a card."
         case .unreadableBackup:
             return "This backup can't be read. It may have been made by a newer version of KaChat."
         case .saveNotConfirmed:
@@ -315,19 +321,22 @@ private extension Data {
 }
 
 /// What's encrypted on the card: everything an account needs beyond the words, because some
-/// accounts can't be restored correctly from the words alone.
+/// accounts can't be restored correctly from the words alone. The BIP39 passphrase is deliberately
+/// not here: it's what protects the account if someone gets past the PIN. `chattingAddress` lets a
+/// restore catch a mistyped passphrase, which would otherwise open a different, empty account.
 struct NFCCardBackupPayload: Codable {
-    var version = 1
+    var version = 2
     let words: [String]
-    let passphrase: String?
+    let chattingAddress: String
     let family: String
     let chattingAddressIndex: Int
     let alias: String
 }
 
 /// The backup format in docs/PROTOCOL.md: magic, PBKDF2 iterations, salt, nonce, then AES-256-GCM.
-/// The password is never sent to the card, so a captured PIN or read chip still doesn't reveal the
-/// seed. Key derivation takes a moment, so call these away from the main thread.
+/// The key comes from the card's PIN, so nothing extra to remember. A six-digit PIN can be guessed
+/// offline by anyone who extracts the chip, which is why the passphrase stays off the card. Key
+/// derivation takes a moment, so call these away from the main thread.
 enum NFCCardBackupFormat {
     private static let magic = Data("KNB1".utf8)
     private static let iterations: UInt32 = 600_000
@@ -337,7 +346,7 @@ enum NFCCardBackupFormat {
     private static let tagLength = 16
     private static let headerLength = 4 + 4 + saltLength + nonceLength
 
-    static func seal(_ payload: NFCCardBackupPayload, password: String) throws -> Data {
+    static func seal(_ payload: NFCCardBackupPayload, pin: String) throws -> Data {
         var salt = Data(count: saltLength)
         let randomStatus = salt.withUnsafeMutableBytes {
             SecRandomCopyBytes(kSecRandomDefault, saltLength, $0.baseAddress!)
@@ -350,13 +359,13 @@ enum NFCCardBackupFormat {
         header.append(salt)
         header.append(contentsOf: nonce)
 
-        let key = try deriveKey(password: password, salt: salt, iterations: iterations)
+        let key = try deriveKey(password: pin, salt: salt, iterations: iterations)
         let plaintext = try JSONEncoder().encode(payload)
         let sealed = try AES.GCM.seal(plaintext, using: key, nonce: nonce, authenticating: header)
         return header + sealed.ciphertext + sealed.tag
     }
 
-    static func open(_ backup: Data, password: String) throws -> NFCCardBackupPayload {
+    static func open(_ backup: Data, pin: String) throws -> NFCCardBackupPayload {
         let bytes = Data(backup)
         guard bytes.count > headerLength + tagLength, bytes.prefix(4) == magic else {
             throw NFCCardError.unreadableBackup
@@ -373,11 +382,11 @@ enum NFCCardBackupFormat {
               ) else {
             throw NFCCardError.unreadableBackup
         }
-        let key = try deriveKey(password: password, salt: salt, iterations: count)
+        let key = try deriveKey(password: pin, salt: salt, iterations: count)
         guard let plaintext = try? AES.GCM.open(box, using: key, authenticating: header) else {
-            throw NFCCardError.wrongPassword
+            throw NFCCardError.unreadableBackup
         }
-        guard let payload = try? JSONDecoder().decode(NFCCardBackupPayload.self, from: plaintext), payload.version == 1 else {
+        guard let payload = try? JSONDecoder().decode(NFCCardBackupPayload.self, from: plaintext), payload.version == 2 else {
             throw NFCCardError.unreadableBackup
         }
         return payload

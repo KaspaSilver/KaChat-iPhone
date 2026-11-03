@@ -147,6 +147,8 @@ The app uses a subscription-based approach to minimize polling:
    - If last fetched block is older than 10 minutes: use `lastFetchedBlockTime + 1` to avoid repeatedly downloading the same old window
    - Keep `lastPollTime` as a global fallback for first-time objects and migration safety
 
+5. **A failed read never counts as read.** When a read keeps failing, even with its page size stepped down to 1, its phase is skipped: the cursors stay put and `lastPollTime` doesn't advance, so a later sync re-reads the window. A full sync that fails retries itself while the app is open (`noteFullSyncFinished`: 30s doubling to 10 minutes). `MessageStore.markSyncTrouble` only adds a note to the wipe-and-resync sheet, and the next complete sync clears it. Nobody should need to wipe to repair sync
+
 Payment detection logic:
 - **Incoming**: Our address appears in outputs but NOT in inputs
 - **Outgoing**: Our address appears in inputs (we're the sender)

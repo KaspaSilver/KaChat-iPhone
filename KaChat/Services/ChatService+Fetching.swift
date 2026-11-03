@@ -23,9 +23,6 @@ extension ChatService {
                     return match
                 }
             } catch {
-                if ChatService.handleDpiPaginationFailure(error, context: "handshake lookup") {
-                    return nil
-                }
                 AppLog.log("[ChatService] Indexer handshake check attempt %d failed: %@", attempt, error.localizedDescription)
             }
 
@@ -44,14 +41,7 @@ extension ChatService {
             return try await existing.value
         }
         let task = Task { [apiClient] in
-            do {
-                return try await apiClient.getHandshakesByReceiver(address: address, limit: 50, blockTime: blockTime)
-            } catch {
-                if ChatService.handleDpiPaginationFailure(error, context: "incoming handshakes") {
-                    return []
-                }
-                throw error
-            }
+            try await apiClient.getHandshakesByReceiver(address: address, limit: 50, blockTime: blockTime)
         }
         handshakeFetchTasks[key] = task
         defer { handshakeFetchTasks[key] = nil }
@@ -65,14 +55,7 @@ extension ChatService {
             return try await existing.value
         }
         let task = Task { [apiClient] in
-            do {
-                return try await apiClient.getHandshakesBySender(address: address, limit: 50, blockTime: blockTime)
-            } catch {
-                if ChatService.handleDpiPaginationFailure(error, context: "outgoing handshakes") {
-                    return []
-                }
-                throw error
-            }
+            try await apiClient.getHandshakesBySender(address: address, limit: 50, blockTime: blockTime)
         }
         handshakeFetchTasks[key] = task
         defer { handshakeFetchTasks[key] = nil }
@@ -1904,13 +1887,9 @@ extension ChatService {
             savedHandshakes = read.items
             readReachedEnd = read.reachedEnd
         } catch {
-            // Any failure - including the DPI path that returns quietly below - drops the mark:
-            // the next attempt is a from-zero scan, so a partial read can never leave a gap
-            // behind a cursor.
+            // Any failure drops the mark: the next attempt is a from-zero scan, so a partial read
+            // can never leave a gap behind a cursor.
             defaults.removeObject(forKey: highWaterKey)
-            if ChatService.handleDpiPaginationFailure(error, context: "saved handshakes") {
-                return
-            }
             throw error
         }
         AppLog.log("[ChatService] Fetched %d saved handshakes from self-stash (from block_time %llu%@)",
@@ -2008,6 +1987,15 @@ extension ChatService {
             } catch KasiaAPIClientError.noIndexer {
                 // No indexer on this network: retrying can't help, and it isn't a failure.
                 return nil
+            } catch KasiaAPIClientError.dpiPaginationExhausted(let endpoint) {
+                // The read already stepped its page size down to 1 and still failed, which takes a
+                // while, so going again now would hold up the sync for minutes. Nil skips the phase:
+                // its cursor stays put, the cycle counts as failed and a later sync re-reads the
+                // window. This used to return an empty page, which counted as success and moved the
+                // lastPollTime fallback past messages nobody had fetched.
+                AppLog.log("[ChatService] %@ gave up on %@ until the next sync", label, endpoint)
+                MessageStore.shared.markSyncTrouble()
+                return nil
             } catch {
                 attempt += 1
                 if attempt >= maxAttempts {
@@ -2039,15 +2027,6 @@ extension ChatService {
         }
         let capped = min(seconds, capSeconds)
         return max(fallback, UInt64(capped * 1_000_000_000))
-    }
-
-    static func handleDpiPaginationFailure(_ error: Error, context: String) -> Bool {
-        if case KasiaAPIClientError.dpiPaginationExhausted(let endpoint) = error {
-            AppLog.log("[ChatService] DPI pagination exhausted for %@ (%@)", endpoint, context)
-            MessageStore.shared.markDpiCorruptionWarning(endpoint: endpoint)
-            return true
-        }
-        return false
     }
 
     func beginChatFetch(_ address: String) {
@@ -2214,19 +2193,12 @@ extension ChatService {
                 label: "fetch incoming contextual messages from \(contactAddress.suffix(10))",
                 maxAttempts: Self.syncPhaseMaxRetryAttempts,
                 operation: { [apiClient] in
-                    do {
-                        return try await apiClient.getContextualMessagesBySender(
-                            address: contactAddress,
-                            alias: alias,
-                            limit: 50,
-                            blockTime: effectiveSince
-                        )
-                    } catch {
-                        if ChatService.handleDpiPaginationFailure(error, context: "incoming contextual messages") {
-                            return []
-                        }
-                        throw error
-                    }
+                    try await apiClient.getContextualMessagesBySender(
+                        address: contactAddress,
+                        alias: alias,
+                        limit: 50,
+                        blockTime: effectiveSince
+                    )
                 }
             ) else {
                 contactSuccess = false
@@ -2337,19 +2309,12 @@ extension ChatService {
                 label: "fetch outgoing contextual messages to \(contactAddress.suffix(10))",
                 maxAttempts: Self.syncPhaseMaxRetryAttempts,
                 operation: { [apiClient] in
-                    do {
-                        return try await apiClient.getContextualMessagesBySender(
-                            address: myAddress,
-                            alias: ourAlias,
-                            limit: 50,
-                            blockTime: effectiveSince
-                        )
-                    } catch {
-                        if ChatService.handleDpiPaginationFailure(error, context: "outgoing contextual messages") {
-                            return []
-                        }
-                        throw error
-                    }
+                    try await apiClient.getContextualMessagesBySender(
+                        address: myAddress,
+                        alias: ourAlias,
+                        limit: 50,
+                        blockTime: effectiveSince
+                    )
                 }
             ) else {
                 contactSuccess = false
@@ -2478,19 +2443,12 @@ extension ChatService {
                     label: "fetch incoming contextual messages (active) from \(contactAddress.suffix(10))",
                     maxAttempts: Self.syncPhaseMaxRetryAttempts,
                     operation: { [apiClient] in
-                        do {
-                            return try await apiClient.getContextualMessagesBySender(
-                                address: contactAddress,
-                                alias: alias,
-                                limit: 50,
-                                blockTime: effectiveSince
-                            )
-                        } catch {
-                            if ChatService.handleDpiPaginationFailure(error, context: "active incoming contextual messages") {
-                                return []
-                            }
-                            throw error
-                        }
+                        try await apiClient.getContextualMessagesBySender(
+                            address: contactAddress,
+                            alias: alias,
+                            limit: 50,
+                            blockTime: effectiveSince
+                        )
                     }
             ) else {
                 contactSuccess = false
@@ -2579,19 +2537,12 @@ extension ChatService {
                     label: "fetch outgoing contextual messages (active) to \(contactAddress.suffix(10))",
                     maxAttempts: Self.syncPhaseMaxRetryAttempts,
                     operation: { [apiClient] in
-                        do {
-                            return try await apiClient.getContextualMessagesBySender(
-                                address: myAddress,
-                                alias: ourAlias,
-                                limit: 50,
-                                blockTime: effectiveSince
-                            )
-                        } catch {
-                            if ChatService.handleDpiPaginationFailure(error, context: "active outgoing contextual messages") {
-                                return []
-                            }
-                            throw error
-                        }
+                        try await apiClient.getContextualMessagesBySender(
+                            address: myAddress,
+                            alias: ourAlias,
+                            limit: 50,
+                            blockTime: effectiveSince
+                        )
                     }
             ) else {
                 contactSuccess = false
@@ -2755,9 +2706,6 @@ extension ChatService {
             return .success(added: newMessagesAdded)
 
         } catch {
-            if ChatService.handleDpiPaginationFailure(error, context: "contact contextual messages") {
-                return .failure
-            }
             AppLog.log("[ChatService] Failed to fetch contextual messages from contact %@: %@",
                   String(contactAddress.suffix(10)), error.localizedDescription)
             return .failure
@@ -3976,7 +3924,7 @@ extension ChatService {
 
 }
 
-// MARK: - Danger Zone: wipe & re-sync incoming messages
+// MARK: - Wipe & re-sync incoming messages
 
 extension ChatService {
     /// Progress events reported by `wipeAndResyncIncomingMessages`, in order. The coordinator
@@ -4089,7 +4037,6 @@ extension ChatService {
         }
         conversations = updated
         await MessageStore.shared.clearIncomingMessagesAndWait(forContacts: scopeIsAll ? nil : targets)
-        MessageStore.shared.clearDpiCorruptionWarning()
         removeIncomingSyncCursors(for: targets, includeIncomingHandshakes: true)
         saveMessages()
 

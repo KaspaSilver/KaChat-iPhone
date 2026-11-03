@@ -18,7 +18,7 @@ struct SettingsView: View {
     // Restore-from-backup state lives on this singleton (NOT view @State) so the restore Task
     // survives any view teardown; this view only presents the blocking modal and observes.
     @ObservedObject private var restoreCoordinator = BackupRestoreCoordinator.shared
-    // Same ownership rule for the Danger Zone wipe-and-resync: the task lives on this singleton,
+    // Same ownership rule for the wipe-and-resync: the task lives on this singleton,
     // this view only presents the blocking modal and observes.
     @ObservedObject private var resyncCoordinator = IncomingResyncCoordinator.shared
 
@@ -48,9 +48,7 @@ struct SettingsView: View {
     @State private var showChatHistoryImporter = false
     @State private var isPreparingChatHistoryExport = false
 
-    @AppStorage(MessageStore.dpiCorruptionWarningKey) private var dpiWarningActive = false
-    @AppStorage(MessageStore.dpiCorruptionWarningEndpointKey) private var dpiWarningEndpoint = ""
-    @AppStorage(MessageStore.dpiCorruptionWarningDateKey) private var dpiWarningDate: Double = 0
+    @AppStorage(MessageStore.syncTroubleKey) private var syncTroubleActive = false
 
     var body: some View {
         NavigationStack {
@@ -88,10 +86,10 @@ struct SettingsView: View {
                     } label: {
                         Label {
                             Text("View Seed Phrase")
-                                .foregroundColor(.red)
+                                .foregroundColor(.primary)
                         } icon: {
                             Image(systemName: "key")
-                                .foregroundColor(.red)
+                                .foregroundColor(.accentColor)
                         }
                     }
                     #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
@@ -99,13 +97,17 @@ struct SettingsView: View {
                         Button {
                             unlockSeedPhrase { showNFCCardBackup = true }
                         } label: {
-                            Label("Back Up to NFC Card", systemImage: "wave.3.right")
+                            Label {
+                                Text("Back Up to NFC Card")
+                                    .foregroundColor(.primary)
+                            } icon: {
+                                Image(systemName: "wave.3.right")
+                                    .foregroundColor(.accentColor)
+                            }
                         }
                     }
                     #endif
-                    settingsCategoryRow("Danger Zone", icon: "exclamationmark.triangle", tint: .red) {
-                        dangerZonePage
-                    }
+                    wipeAndResyncRow
 
                     // Back in Settings (it spent a while on Profile): its own section at the very
                     // bottom, apart from the category rows, so it is easy to find and hard to hit
@@ -220,7 +222,7 @@ struct SettingsView: View {
                     refreshMessageStoreSize()
                 }
             }
-            // Blocking wipe-and-resync modal (Danger Zone): same inescapable pattern as the
+            // Blocking wipe-and-resync modal: same inescapable pattern as the
             // restore modal above - no-op binding setter, exits only via the modal's own buttons.
             .fullScreenCover(isPresented: Binding(
                 get: { resyncCoordinator.isPresentingModal },
@@ -441,58 +443,37 @@ struct SettingsView: View {
         DiagnosticsSettingsPage()
     }
 
-    private var dangerZonePage: some View {
-        Form {
-            Section("Danger Zone") {
-                    if dpiWarningActive {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Sync warning detected", systemImage: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text("Message sync appears incomplete under restricted network conditions. Consider wiping and re-syncing incoming messages on a normal connection.")
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                            if !dpiWarningEndpoint.isEmpty {
-                                Text("Last failed endpoint: \(dpiWarningEndpoint)")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    Button(role: .destructive) {
-                        showWipeIncomingConfirmation = true
-                    } label: {
-                        Label("Wipe and re-sync incoming messages", systemImage: "arrow.triangle.2.circlepath")
-                            .foregroundColor(.red)
-                    }
-                    .disabled(resyncCoordinator.isRunning)
-                    // Half sheet, like every other chooser in the app - and a destructive action
-                    // is exactly where the consequence deserves a line of its own next to it,
-                    // which a dialog of bare verbs under a grey message cannot give it.
-                    .sheet(isPresented: $showWipeIncomingConfirmation) {
-                        resyncOptionsSheet
-                    }
-                    .sheet(isPresented: $showResyncChatPicker, onDismiss: {
-                        if let selection = pendingResyncSelection {
-                            pendingResyncSelection = nil
-                            IncomingResyncCoordinator.shared.start(scope: .contacts(selection))
-                        }
-                    }) {
-                        ResyncChatPickerView { addresses in
-                            pendingResyncSelection = addresses
-                        }
-                    }
-
-                    // "Wipe account & messages" used to live here. Removing an account is the
-                    // accounts screen's job now - it is where accounts are listed, so it is
-                    // where you can see which one you are removing. Two doors to the same
-                    // destructive act, one of them on a screen that never names the account,
-                    // is one door too many. "Wipe iCloud Data" lived here too, until the app
-                    // stopped putting anything in iCloud.
-                }
+    /// Settings' wipe-and-resync row. Tapping only opens the half sheet that asks; nothing is wiped
+    /// until a choice there.
+    private var wipeAndResyncRow: some View {
+        Button {
+            showWipeIncomingConfirmation = true
+        } label: {
+            Label {
+                Text("Wipe and re-sync incoming messages")
+                    .foregroundColor(.primary)
+            } icon: {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.accentColor)
+            }
         }
-        .navigationTitle("Danger Zone")
-        .navigationBarTitleDisplayMode(.inline)
+        .disabled(resyncCoordinator.isRunning)
+        // Half sheet, like every other chooser in the app - and a destructive action
+        // is exactly where the consequence deserves a line of its own next to it,
+        // which a dialog of bare verbs under a grey message cannot give it.
+        .sheet(isPresented: $showWipeIncomingConfirmation) {
+            resyncOptionsSheet
+        }
+        .sheet(isPresented: $showResyncChatPicker, onDismiss: {
+            if let selection = pendingResyncSelection {
+                pendingResyncSelection = nil
+                IncomingResyncCoordinator.shared.start(scope: .contacts(selection))
+            }
+        }) {
+            ResyncChatPickerView { addresses in
+                pendingResyncSelection = addresses
+            }
+        }
     }
 
 
@@ -538,17 +519,24 @@ struct SettingsView: View {
     /// instead of reusing ConfirmActionSheet - each one saying what it actually does.
     private var resyncOptionsSheet: some View {
         VStack(spacing: 12) {
-            Text("Wipe and re-sync incoming messages")
+            Text("Wipe and re-sync incoming messages?")
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .padding(.top, 20)
                 .padding(.bottom, 4)
 
+            // Only while a sync is failing. It clears on its own after the next complete sync.
+            if syncTroubleActive {
+                Label("KaChat is having trouble syncing right now. It keeps retrying, and your messages catch up on their own once the connection is back, so you shouldn't need to wipe.", systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundColor(.orange)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             ActionSheetRow(
-                title: "All Chats",
+                title: "Yes, All Chats",
                 subtitle: "Removes every incoming message locally, then re-syncs them from the blockchain. Sent messages and account info are kept.",
-                systemImage: "arrow.triangle.2.circlepath",
-                tint: .red
+                systemImage: "arrow.triangle.2.circlepath"
             ) {
                 showWipeIncomingConfirmation = false
                 IncomingResyncCoordinator.shared.start(scope: .all)
@@ -575,7 +563,7 @@ struct SettingsView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
-        .presentationDetents([.height(380)])
+        .presentationDetents([.height(syncTroubleActive ? 460 : 380)])
         .presentationDragIndicator(.visible)
     }
 
@@ -3801,7 +3789,7 @@ struct ChatRestoreProgressModal: View {
 
 // MARK: - Wipe-and-resync coordinator (blocking progress modal)
 
-/// Owns a Danger Zone incoming-message wipe-and-resync from tap to terminal state, independent
+/// Owns an incoming-message wipe-and-resync from tap to terminal state, independent
 /// of any view's lifetime - the exact ownership pattern of `BackupRestoreCoordinator`.
 /// Interrupting the flow between the wipe and the re-fetch would leave chats emptied without
 /// their history restored, so the Settings hierarchy only OBSERVES this singleton: the resync
@@ -3914,7 +3902,7 @@ final class IncomingResyncCoordinator: ObservableObject {
 
 // MARK: - Blocking wipe-and-resync progress modal
 
-/// Full-screen modal shown while a Danger Zone wipe-and-resync runs. Deliberately inescapable
+/// Full-screen modal shown while a wipe-and-resync runs. Deliberately inescapable
 /// while running, exactly like `ChatRestoreProgressModal`: presented via a fullScreenCover whose
 /// binding setter is a no-op, interactive dismissal disabled, and no dismissing control rendered
 /// until a terminal state. Leaving mid-flow would strand chats wiped but not yet re-synced.

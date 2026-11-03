@@ -24,9 +24,7 @@ struct ConversationMeta {
 
 final class MessageStore {
     static let shared = MessageStore()
-    static let dpiCorruptionWarningKey = "messageStoreDpiCorruptionWarning"
-    static let dpiCorruptionWarningEndpointKey = "messageStoreDpiCorruptionEndpoint"
-    static let dpiCorruptionWarningDateKey = "messageStoreDpiCorruptionDate"
+    static let syncTroubleKey = "messageStoreDpiCorruptionWarning"
 
     /// Device-local Core Data. Messages never leave this store on their own: cross-device
     /// history is Nextcloud's job (an encrypted archive the user's own server carries - see
@@ -60,18 +58,19 @@ final class MessageStore {
         logger.info("\(message, privacy: .public)")
     }
 
-    func markDpiCorruptionWarning(endpoint: String) {
-        let defaults = UserDefaults.standard
-        defaults.set(true, forKey: MessageStore.dpiCorruptionWarningKey)
-        defaults.set(endpoint, forKey: MessageStore.dpiCorruptionWarningEndpointKey)
-        defaults.set(Date().timeIntervalSince1970, forKey: MessageStore.dpiCorruptionWarningDateKey)
+    /// A sync read failed even at its smallest page size, usually a network or indexer outage.
+    /// Nothing is lost: the cursors stay put and the next sync re-reads the window.
+    func markSyncTrouble() {
+        UserDefaults.standard.set(true, forKey: MessageStore.syncTroubleKey)
     }
 
-    func clearDpiCorruptionWarning() {
+    /// The next complete sync clears it, including a flag left by an older version, which could
+    /// only be cleared by wiping.
+    func clearSyncTrouble() {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: MessageStore.dpiCorruptionWarningKey)
-        defaults.removeObject(forKey: MessageStore.dpiCorruptionWarningEndpointKey)
-        defaults.removeObject(forKey: MessageStore.dpiCorruptionWarningDateKey)
+        defaults.removeObject(forKey: MessageStore.syncTroubleKey)
+        defaults.removeObject(forKey: "messageStoreDpiCorruptionEndpoint")
+        defaults.removeObject(forKey: "messageStoreDpiCorruptionDate")
     }
 
     func destroyLocalStoreFiles() async {
@@ -1656,7 +1655,7 @@ final class MessageStore {
     }
 
     /// Awaitable incoming-message wipe for the CURRENT wallet, optionally limited to the given
-    /// conversations (matched by `CDMessage.contactAddress`). Used by the Danger Zone
+    /// conversations (matched by `CDMessage.contactAddress`). Used by the Settings
     /// wipe-and-resync flow, which must not start re-fetching until the delete has actually
     /// landed in the store (the fire-and-forget `clearIncomingMessages()` above could otherwise
     /// race the re-sync's own writes).

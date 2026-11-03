@@ -883,7 +883,11 @@ extension ChatService {
             lastSuccessfulSyncDate = Date()
             if isFullFetch {
                 await apiClient.recordIndexerSyncSuccess()
+                MessageStore.shared.clearSyncTrouble()
             }
+        }
+        if isFullFetch {
+            noteFullSyncFinished(succeeded: allPhasesSucceeded)
         }
 
         syncSucceeded = allPhasesSucceeded

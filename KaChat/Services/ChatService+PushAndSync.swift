@@ -435,8 +435,41 @@ extension ChatService {
         AppLog.log("[ChatService] Running catch-up sync (%@), pushState=%@ force=%@",
               trigger.rawValue, pushReliabilityState.rawValue, force ? "true" : "false")
         await fetchNewMessages()
-        lastCatchUpSyncAt = Date()
+        // A failed sync doesn't count, or a reliable push channel would debounce the next one away.
+        if failedSyncRetryCount == 0 {
+            lastCatchUpSyncAt = Date()
+        }
         persistPushReliabilityState()
+    }
+
+    /// With a healthy subscription and push, nothing else reruns a full sync that failed until the
+    /// app next comes to the front, so a brief outage could leave a window unfetched for a long
+    /// time. Retries back off up to 10 minutes and only run while the app is open: coming back to
+    /// the front runs a catch-up anyway.
+    func noteFullSyncFinished(succeeded: Bool) {
+        guard !succeeded else {
+            failedSyncRetryTask?.cancel()
+            failedSyncRetryTask = nil
+            failedSyncRetryCount = 0
+            return
+        }
+        failedSyncRetryCount += 1
+        guard failedSyncRetryTask == nil else { return }
+        let delay = min(30.0 * pow(2.0, Double(failedSyncRetryCount - 1)), 600.0)
+        AppLog.log("[ChatService] Full sync incomplete, retrying in %.0fs", delay)
+        failedSyncRetryTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled, let self else { return }
+            self.failedSyncRetryTask = nil
+            guard UIApplication.shared.applicationState == .active else { return }
+            await self.maybeRunCatchUpSync(trigger: .failedSyncRetry, force: true)
+        }
+    }
+
+    func cancelFailedSyncRetry() {
+        failedSyncRetryTask?.cancel()
+        failedSyncRetryTask = nil
+        failedSyncRetryCount = 0
     }
 
     func startPolling(interval: TimeInterval = 10.0) {

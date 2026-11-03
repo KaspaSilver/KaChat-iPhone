@@ -32,6 +32,7 @@ enum CatchUpSyncTrigger: String {
     case subscriptionRestart = "subscription-restart"
     case rpcSubscriptionsRestored = "rpc-subscriptions-restored"
     case pushMarkedUnreliable = "push-marked-unreliable"
+    case failedSyncRetry = "failed-sync-retry"
 }
 
 @MainActor
@@ -521,6 +522,9 @@ final class ChatService: ObservableObject {
     var subscriptionBalanceRefreshTask: Task<Void, Never>?
     var needsResubscriptionAfterSync = false
     var catchUpSyncInFlight = false
+    /// The pending retry after a full sync that didn't finish (`noteFullSyncFinished`).
+    var failedSyncRetryTask: Task<Void, Never>?
+    var failedSyncRetryCount = 0
 
     // Push-channel reliability tracking (UTXO txId -> matching APNs delivery).
     var pushReliabilityState: PushReliabilityState = .disabled
@@ -811,7 +815,7 @@ final class ChatService: ObservableObject {
         }
     }
 
-    // NOTE: the Danger Zone wipe-and-resync now lives in
+    // NOTE: the wipe-and-resync now lives in
     // `wipeAndResyncIncomingMessages(contacts:progress:)` (ChatService+Fetching.swift), driven
     // by `IncomingResyncCoordinator` so it reports progress and survives view teardown.
 

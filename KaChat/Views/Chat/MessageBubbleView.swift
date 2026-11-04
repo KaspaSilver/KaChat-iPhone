@@ -71,8 +71,8 @@ struct MessageBubbleView: View {
     /// Tapping a payment card opens its details (View in Explorer, Copy Transaction ID). nil where
     /// the host has no such sheet - the card then only takes the double-tap to react.
     let onOpenPayment: (() -> Void)?
-    /// When true, an incoming photo from this contact stays hidden behind a "Show Photo" tap
-    /// instead of auto-decoding - driven by `ContactsManager.shouldAutoDisplayPhotos(for:settings:)`.
+    /// When true, an incoming photo from this contact stays hidden - see
+    /// `ContactsManager.photosUnlockDate`.
     var photosBlocked: Bool = false
     /// When false, incoming link previews from this contact render as a "Tap to load preview"
     /// placeholder instead of auto-fetching - driven by `ContactsManager.isAcceptedContact(_:)`
@@ -1638,44 +1638,11 @@ private struct ShimmerOverlay: View {
     }
 }
 
-/// Persists which photo messages the user has explicitly chosen to reveal, keyed by txId, so a
-/// once-revealed photo (from a contact whose photos are otherwise hidden by default) doesn't
-/// re-hide itself on the next launch. TxIds are unique chain-wide, so no per-wallet namespacing
-/// is needed.
-private enum PhotoRevealStore {
-    private static let key = "kachat.revealedPhotoTxIds"
-
-    static func isRevealed(_ txId: String) -> Bool {
-        revealedSet.contains(txId)
-    }
-
-    static func markRevealed(_ txId: String) {
-        var set = revealedSet
-        guard !set.contains(txId) else { return }
-        set.insert(txId)
-        UserDefaults.standard.set(Array(set), forKey: key)
-        cachedSet = set
-    }
-
-    /// Decoded once and kept: `isRevealed` runs in `LazyImageBubble.init`, i.e. for every photo
-    /// bubble on every render, and rebuilding a Set from UserDefaults there was a hidden
-    /// per-row allocation that scaled with the number of photos ever revealed. This store is
-    /// the only writer of the key, so the copy can't go stale.
-    private static var cachedSet: Set<String>?
-
-    private static var revealedSet: Set<String> {
-        if let cachedSet { return cachedSet }
-        let loaded = Set(UserDefaults.standard.stringArray(forKey: key) ?? [])
-        cachedSet = loaded
-        return loaded
-    }
-}
-
 /// Not `private` - reused by `GroupChatDetailView` so group photo messages render identically
 /// to 1:1 ones instead of duplicating this (thumbnail caching, reveal-gating, share sheet) logic.
 struct LazyImageBubble: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
-    // Fixed size for the placeholder / "Show Photo" states (no image loaded yet). Once the image
+    // Fixed size for the placeholder / hidden states (no image loaded yet). Once the image
     // is loaded, the bubble takes the image's natural aspect ratio within these max bounds — so a
     // tall screenshot shows tall and a wide photo shows wide, instead of a fixed letterboxed box.
     private static let thumbnailDisplaySize = CGSize(width: 220, height: 160)
@@ -1720,7 +1687,6 @@ struct LazyImageBubble: View {
     @State private var sharePayload: MessageImageSharePayload?
     @State private var isLoadingPreview = false
     @State private var showImagePreview = false
-    @State private var isRevealed: Bool
 
     init(
         media: MediaFile,
@@ -1744,22 +1710,10 @@ struct LazyImageBubble: View {
         self.onReply = onReply
         self.onDoubleTap = onDoubleTap
         self.onSelect = onSelect
-        _isRevealed = State(initialValue: PhotoRevealStore.isRevealed(txId))
-    }
-
-    /// Still hidden behind a manual reveal - photos blocked for this contact that the user
-    /// hasn't tapped "Show Photo" on yet.
-    private var isHidden: Bool {
-        photosBlocked && !isRevealed
-    }
-
-    private func reveal() {
-        PhotoRevealStore.markRevealed(txId)
-        isRevealed = true
     }
 
     var body: some View {
-        if isHidden {
+        if photosBlocked {
             hiddenBubble
         } else {
             unlockedBubble
@@ -1775,14 +1729,10 @@ struct LazyImageBubble: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-            Button {
-                reveal()
-            } label: {
-                Text("Show Photo")
-                    .font(.caption.weight(.semibold))
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
+            Text("It shows 10 minutes after you have both sent a message.")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
         }
         .padding(12)
         .frame(width: Self.thumbnailDisplaySize.width, height: Self.thumbnailDisplaySize.height)

@@ -597,6 +597,7 @@
 "Version" = "Versione";
 "Vibration" = "Vibrazione";
 "View Profile" = "Vedi profilo";
+"Back Up Account" = "Esegui backup dell'account";
 "View Seed Phrase" = "Visualizza seed phrase";
 "View in Explorer" = "Vedi nell'explorer";
 "Voice message" = "Messaggio vocale";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "Eliminare %@ dai tuoi contatti?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Salva gli indirizzi Kaspa che usi con un nome che riconosci. Restano in KaChat, solo per questo wallet, e non finiscono mai nell'app Contatti del telefono.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Salvato in KaChat solo per questo wallet. Mai aggiunto all'app Contatti del telefono.";
+"This is a fresh address, never used before." = "Questo è un indirizzo nuovo, mai usato prima.";
+"Use for chatting and acquiring .kachat domains." = "Usalo per chattare e ottenere domini .kachat.";
+"Think of it like your phone number on KaChat." = "Pensalo come il tuo numero di telefono su KaChat.";
+"How People Reach You" = "Come ti contattano";
+"Share this address and people can message you. Only you can read what they send." = "Condividi questo indirizzo e potranno scriverti. Solo tu puoi leggere ciò che ti inviano.";
+"Paying for Messages" = "Pagare i messaggi";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Ogni messaggio inviato usa una piccolissima quantità di Kaspa da questo indirizzo. 1 Kaspa copre circa 500 messaggi.";
+"What Others Can See" = "Cosa vedono gli altri";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Chiunque può vedere questo indirizzo e il suo saldo sulla rete Kaspa, ma non può leggere i tuoi messaggi. Usalo solo per chattare e per i domini .kachat.";
+"Say anything to the bot to get started." = "Scrivi qualsiasi cosa al bot per iniziare.";

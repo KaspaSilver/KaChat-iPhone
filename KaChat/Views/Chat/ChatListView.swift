@@ -4,29 +4,43 @@ import UIKit
 
 struct ChatListView: View {
     @EnvironmentObject var chatService: ChatService
+    @EnvironmentObject var groupChatService: GroupChatService
     @EnvironmentObject var contactsManager: ContactsManager
     @EnvironmentObject var walletManager: WalletManager
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
+    /// One row of the list: chats and groups share it, by latest activity.
+    private enum ChatListEntry: Identifiable {
+        case chat(Conversation)
+        case group(GroupChat)
+
+        var id: String {
+            switch self {
+            case .chat(let conversation): return ChatListView.entryID(conversation)
+            case .group(let group): return ChatListView.entryID(group)
+            }
+        }
+    }
+
+    /// What the + sheet is showing: the choice, or the screen it led to.
+    private enum CreateStep { case menu, chat, group }
+
     @State private var searchText = ""
     @State private var selectedContact: Contact?
+    @State private var selectedGroup: GroupChat?
+    /// Group ids pinned up into the circles row, newest pin first, saved per wallet.
+    @State private var groupPins: [String] = []
+    /// The pinned group whose long-press half sheet is up (list rows swipe instead).
+    @State private var groupActionTarget: GroupChat?
+    /// A group waiting on its delete confirmation.
+    @State private var groupDeleteTarget: GroupChat?
     @State private var showMessageRequests = false
     @State private var selectedContactStartInPaymentMode = false
-    /// The bottom-right + : one sheet for everything new (new chat, Kaspa, the two QR screens). Everything happens inside that one sheet - choosing an option changes what it
-    /// shows rather than closing it and opening another, so there's no dismiss-then-present wait.
+    /// The bottom-right +: New Chat or New Group Chat, then that screen, all in one sheet.
     @State private var showCreateSheet = false
-    /// True while the sheet shows the New Chat screen. New groups start on Group Chats.
-    @State private var showsCreateChat = false
-    @State private var createDetent: PresentationDetent = Self.createSheetHeight
-    /// The QR options leave the New sheet: it goes down and the full white QR page comes up in
-    /// its own sheet, like Profile's.
-    @State private var afterCreateSheet: (() -> Void)?
-    @State private var qrScreen: ChatsQRScreen?
-    private enum ChatsQRScreen: String, Identifiable {
-        case fundChatting
-        var id: String { rawValue }
-    }
+    @State private var createStep: CreateStep = .menu
+    @State private var createDetent: PresentationDetent = Self.createMenuHeight
     /// From a profile link: the person whose User Info is up.
     @State private var linkedProfileContact: Contact?
     /// What is pinned in the circles row, in order, saved per wallet: bots ("b:<address>") pinned
@@ -62,7 +76,8 @@ struct ChatListView: View {
     @State private var addressBookTarget: Contact?
     @ObservedObject private var addressBook = AddressBookManager.shared
     @State private var editMode: EditMode = .inactive
-    @State private var selectedContactIDs: Set<UUID> = []
+    /// Select mode's chats and groups, as `entryID`s.
+    @State private var selectedEntryIDs: Set<String> = []
 
     private let conversationPageSize = 80
     private let conversationPrefetchThreshold = 12
@@ -94,6 +109,7 @@ struct ChatListView: View {
                             selectedContact: $selectedContact,
                             startInPaymentMode: selectedContactStartInPaymentMode
                         ))
+                        .modifier(GroupChatDetailNavigationDestination(selectedGroup: $selectedGroup))
                 }
             }
         }
@@ -122,11 +138,7 @@ struct ChatListView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if editMode == .active {
                         Button(isEverythingSelected ? "Deselect All" : "Select All") {
-                            if isEverythingSelected {
-                                selectedContactIDs = []
-                            } else {
-                                selectedContactIDs = Set(filteredConversationsCache.map { $0.contact.id })
-                            }
+                            selectedEntryIDs = isEverythingSelected ? [] : Set(allEntries.map(\.id))
                         }
                     }
                 }
@@ -142,8 +154,8 @@ struct ChatListView: View {
         let withPresentation = withToolbar
             .refreshable {
                 isPullRefreshing = true
-                // Group chats refresh on their own tab.
                 await chatService.fetchNewMessages()
+                await groupChatService.performCatchUpSync()
                 isPullRefreshing = false
                 // Apply everything that changed during the pull in a single rebuild, now that the
                 // refresh control is no longer animating — so the wheel spins smoothly throughout.
@@ -170,10 +182,11 @@ struct ChatListView: View {
                 isPresented: $showBulkDeleteConfirmation
             ) {
                 Button("Delete", role: .destructive) {
-                    let contacts = filteredConversationsCache
-                        .filter { selectedContactIDs.contains($0.contact.id) }
-                        .map { $0.contact }
+                    let contacts = selectedChats.map { $0.contact }
+                    let groups = selectedGroups
                     if !contacts.isEmpty { deleteConversations(contacts) }
+                    if !groups.isEmpty { deleteGroups(groups) }
+                    selectedEntryIDs = []
                     editMode = .inactive
                 }
                 Button("Cancel", role: .cancel) {}
@@ -201,13 +214,59 @@ struct ChatListView: View {
                 Text("This permanently deletes every message in this chat from this device. This cannot be undone.")
             }
 
-        return withRowDeleteAlert
+        let withGroupAlerts = withRowDeleteAlert
+            .sheet(item: $groupActionTarget) { group in
+                groupActionSheet(for: group)
+            }
+            .alert(
+                "Delete Group?",
+                isPresented: Binding(get: { groupDeleteTarget != nil }, set: { if !$0 { groupDeleteTarget = nil } }),
+                presenting: groupDeleteTarget
+            ) { group in
+                Button("Delete", role: .destructive) { deleteGroups([group]) }
+                Button("Cancel", role: .cancel) {}
+            } message: { _ in
+                Text("This removes this group and its messages from this device. This cannot be undone, and other members keep their copies.")
+            }
+
+        // Opening one closes the other, on a phone and in the iPad's detail pane.
+        let withGroupRouting = withGroupAlerts
+            .onChange(of: selectedContact?.address) { address in
+                if address != nil { selectedGroup = nil }
+            }
+            .onChange(of: selectedGroup?.id) { id in
+                if id != nil { selectedContact = nil }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openGroup)) { notification in
+                handleOpenGroupNotification(notification)
+            }
+            .onChange(of: groupChatService.pendingGroupNavigation) { newValue in
+                if newValue != nil { checkPendingGroupNavigation() }
+            }
+            .onChange(of: groupChatService.pendingGroupListNavigation) { newValue in
+                if newValue { groupChatService.pendingGroupListNavigation = false }
+            }
+            // A pending group tap that arrived before its group was created (catch-up in flight)
+            // resolves the instant the group is inserted into the list.
+            .onChange(of: groupChatService.groups) { _ in
+                checkPendingGroupNavigation()
+            }
+            .onAppear {
+                loadGroupPins()
+                checkPendingGroupNavigation()
+                groupChatService.pendingGroupListNavigation = false
+            }
+
+        return withGroupRouting
             .environment(\EnvironmentValues.editMode, $editMode)
     }
 
     @ViewBuilder
     private var splitDetailPane: some View {
-        if let contact = selectedContact {
+        if let group = selectedGroup {
+            GroupChatDetailView(group: group, onDeleted: { selectedGroup = nil })
+                .id(group.id)
+        } else if let contact = selectedContact {
             ChatDetailView(contact: contact, startInPaymentMode: selectedContactStartInPaymentMode)
                 .id(contact.id)
         } else {
@@ -217,8 +276,7 @@ struct ChatListView: View {
 
     @ViewBuilder
     private var chatListContent: some View {
-        // One list: the chats, with the bots as circles above them (`ChatCirclesStrip`). Group
-        // chats have their own tab (`GroupChatListView`).
+        // One list: the chats and groups, with the bots as circles above them (`ChatCirclesStrip`).
         chatsTabContent
         .onAppear {
             // Cold start from a profile link.
@@ -226,12 +284,14 @@ struct ChatListView: View {
         }
         .onChange(of: walletManager.currentWallet?.publicAddress) { _ in
             loadCirclePins()
+            loadGroupPins()
             // An account switch keeps this view alive, so a chat open in the old account would
             // otherwise reopen in the new one. Every account starts on its own list.
             selectedContact = nil
+            selectedGroup = nil
             selectedContactStartInPaymentMode = false
             linkedProfileContact = nil
-            selectedContactIDs = []
+            selectedEntryIDs = []
         }
         .onAppear { loadCirclePins() }
         .safeAreaInset(edge: .bottom) {
@@ -240,43 +300,18 @@ struct ChatListView: View {
             }
         }
         .overlay(alignment: .bottomTrailing) {
-            // One + on every page.
+            // One on every page.
             if editMode != .active {
                 newButton
             }
         }
-        .sheet(isPresented: $showCreateSheet, onDismiss: {
-            resetCreateSheet()
-            let next = afterCreateSheet
-            afterCreateSheet = nil
-            next?()
-        }) {
+        .sheet(isPresented: $showCreateSheet, onDismiss: resetCreateSheet) {
             createSheet
                 .environmentObject(walletManager)
         }
-        .sheet(item: $qrScreen) { screen in
-            NavigationStack {
-                Group {
-                    switch screen {
-                    case .fundChatting:
-                        if let wallet = walletManager.currentWallet {
-                            ChattingAddressQRView(address: wallet.publicAddress, balanceSompi: wallet.balanceSompi)
-                        }
-                    }
-                }
-                .navigationTitle("Chatting Address")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { qrScreen = nil }
-                    }
-                }
-            }
-            .environmentObject(walletManager)
-        }
         .onChange(of: editMode) { newValue in
             if newValue == .inactive {
-                selectedContactIDs = []
+                selectedEntryIDs = []
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openChat)) { notification in
@@ -381,7 +416,7 @@ struct ChatListView: View {
 
     private func checkPendingNavigation() {
         guard let contactAddress = chatService.pendingChatNavigation else { return }
-        // Same rule as GroupChatListView's checkPendingGroupNavigation: don't consume the tap
+        // Same rule as checkPendingGroupNavigation: don't consume the tap
         // until its contact actually exists locally. A notification from someone not in the address book yet (a
         // handshake, or a first message/payment whose contact the catch-up sync creates moments
         // later) is tapped on a cold start BEFORE that sync lands - consuming it here would
@@ -431,7 +466,7 @@ struct ChatListView: View {
         }
     }
 
-    /// The floating glass "+" in the bottom-right corner on every page, opening the New sheet.
+    /// The floating glass "+" in the bottom-right corner, opening the New sheet.
     private var newButton: some View {
         Button {
             Haptics.impact(.light)
@@ -453,13 +488,15 @@ struct ChatListView: View {
         .accessibilityLabel(Text("New"))
     }
 
-    /// What the + offers, wherever you are in Chats - all inside this one sheet. New Chat swaps
-    /// the sheet to the create screen (Cancel comes back here). It grows to full height
-    /// for anything bigger than the menu.
+    static let createTileSize: CGFloat = 104
+    /// New Chat or New Group Chat, and then that screen at full height.
     @ViewBuilder
     private var createSheet: some View {
         Group {
-            if showsCreateChat {
+            switch createStep {
+            case .menu:
+                createMenu
+            case .chat:
                 AddContactView(
                     startInGroupMode: false,
                     onAdd: { contact in
@@ -468,62 +505,61 @@ struct ChatListView: View {
                         selectedContact = contact
                         showCreateSheet = false
                     },
-                    onCancel: {
-                        showsCreateChat = false
-                        createDetent = Self.createSheetHeight
-                    }
+                    onCancel: resetCreateSheet
                 )
-            } else {
-                createMenu
+            case .group:
+                AddContactView(
+                    startInGroupMode: true,
+                    onCreateGroup: { group in
+                        showCreateSheet = false
+                        selectedGroup = group
+                    },
+                    onCancel: resetCreateSheet
+                )
             }
         }
-        .presentationDetents([Self.createSheetHeight, .large], selection: $createDetent)
+        .presentationDetents([Self.createMenuHeight, .large], selection: $createDetent)
         .presentationDragIndicator(.visible)
     }
 
-    /// The New options as square tiles: New Chat and Fund Chatting Address. Send, Receive and
-    /// Request Payment live on Profile's floating send / receive button.
     private var createMenu: some View {
-        let columns = Array(repeating: GridItem(.fixed(Self.createTileSize), spacing: 14), count: 3)
-        return VStack(spacing: 16) {
+        VStack(spacing: 12) {
             Text("New")
                 .font(.headline)
                 .padding(.top, 20)
-
-            LazyVGrid(columns: columns, spacing: 14) {
-                CreateTile(title: "New Chat", hint: "Message someone by their address or name.", systemImage: "bubble.left") {
-                    createDetent = .large
-                    showsCreateChat = true
-                }
-                CreateTile(title: "Fund Chatting Address", hint: "Show the QR code to add Kaspa for sending messages.", systemImage: "qrcode") {
-                    closeCreateSheet { qrScreen = .fundChatting }
-                }
+                .padding(.bottom, 4)
+            ActionSheetRow(
+                title: "New Chat",
+                subtitle: "Message someone by their address or name.",
+                systemImage: "bubble.left"
+            ) {
+                createDetent = .large
+                createStep = .chat
             }
-
+            ActionSheetRow(
+                title: "New Group Chat",
+                subtitle: "Start a group with the people you choose.",
+                systemImage: "person.3"
+            ) {
+                createDetent = .large
+                createStep = .group
+            }
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 24)
+        .padding(.bottom, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
-    static let createTileSize: CGFloat = 104
-
-    /// One row of tiles. New Chat opens at full height; Fund Chatting Address leaves for its own
-    /// white sheet.
-    static let createSheetHeight: PresentationDetent = .height(262)
-
-    /// Closes the New sheet and runs `action` once it's gone (a sheet can't present while
-    /// another is still going down).
-    private func closeCreateSheet(then action: @escaping () -> Void) {
-        afterCreateSheet = action
-        showCreateSheet = false
-    }
-
     private func resetCreateSheet() {
-        showsCreateChat = false
-        createDetent = Self.createSheetHeight
+        createStep = .menu
+        createDetent = Self.createMenuHeight
     }
+
+    private static let createMenuHeight: PresentationDetent = .height(250)
+
+    /// One row of tiles (Profile's send / receive sheet).
+    static let createSheetHeight: PresentationDetent = .height(262)
 
     private var emptyStateView: some View {
         VStack(spacing: 20) {
@@ -565,12 +601,42 @@ struct ChatListView: View {
     }
 
     private var isEverythingSelected: Bool {
-        let total = filteredConversationsCache.count
-        return total > 0 && selectedContactIDs.count >= total
+        let total = allEntries.count
+        return total > 0 && selectedEntryIDs.count >= total
     }
 
     private var selectionCount: Int {
-        selectedContactIDs.count
+        selectedEntryIDs.count
+    }
+
+    private var selectedChats: [Conversation] {
+        filteredConversationsCache.filter { selectedEntryIDs.contains(Self.entryID($0)) }
+    }
+
+    private var selectedGroups: [GroupChat] {
+        groupChatService.groups.filter { selectedEntryIDs.contains(Self.entryID($0)) }
+    }
+
+    fileprivate static func entryID(_ conversation: Conversation) -> String {
+        "c:\(conversation.contact.id.uuidString)"
+    }
+
+    fileprivate static func entryID(_ group: GroupChat) -> String {
+        "g:\(group.id)"
+    }
+
+    /// The chats and groups matching the search, most recent message first. Pinned ones are in the
+    /// circles row, not the list, except while searching.
+    private var allEntries: [ChatListEntry] {
+        let pinnedChats = searchText.isEmpty ? pinnedChatConversations : [:]
+        let chats = pinnedChats.isEmpty
+            ? filteredConversationsCache
+            : filteredConversationsCache.filter { pinnedChats[Self.chatPinId($0.contact.address)] == nil }
+        let groupMessages = groupChatService.groupMessages
+        var dated: [(at: Date, entry: ChatListEntry)] = chats
+            .map { ($0.lastMessage?.timestamp ?? Date.distantPast, ChatListEntry.chat($0)) }
+        dated += displayedGroups.map { (groupMessages[$0.id]?.last?.timestamp ?? $0.createdAt, ChatListEntry.group($0)) }
+        return dated.sorted { $0.at > $1.at }.map(\.entry)
     }
 
     // MARK: - Circles (bot chats)
@@ -641,24 +707,23 @@ struct ChatListView: View {
     }
 
     private var chatsTabContent: some View {
-        // Pinned chats live in the circles row, not the list - except while searching, when the
-        // results are the whole match, pinned or not.
+        // Pinned chats and groups live in the circles row, not the list - except while searching,
+        // when the results are the whole match, pinned or not.
         let pinnedChats = searchText.isEmpty ? pinnedChatConversations : [:]
-        let filtered = pinnedChats.isEmpty
-            ? filteredConversationsCache
-            : filteredConversationsCache.filter { pinnedChats[Self.chatPinId($0.contact.address)] == nil }
-        let totalCount = filtered.count
-        let displayed: [Conversation]
+        let pinnedGroups = pinnedGroupChats
+        let entries = allEntries
+        let totalCount = entries.count
+        let displayed: [ChatListEntry]
         if searchText.isEmpty {
             let count = min(totalCount, max(loadedConversationCount, conversationPageSize))
-            displayed = Array(filtered.prefix(count))
+            displayed = Array(entries.prefix(count))
         } else {
-            displayed = filtered
+            displayed = entries
         }
 
         let showsRequestsRow = searchText.isEmpty && editMode != .active
         let requestCount = showsRequestsRow ? chatService.messageRequestCount : 0
-        return List(selection: $selectedContactIDs) {
+        return List(selection: $selectedEntryIDs) {
             // The bot chats and the chats you pinned, as circles under the search bar - swipe
             // sideways for all of them. Tap opens, hold opens their half sheet.
             ChatCirclesStrip(
@@ -666,6 +731,13 @@ struct ChatListView: View {
                 pins: circlePins,
                 bots: botCircles,
                 pinnedChats: pinnedChats,
+                pinnedGroups: pinnedGroups,
+                groupUnreadCount: { groupChatService.unreadCount(for: $0) },
+                onOpenGroup: { group in
+                    guard groupActionTarget == nil else { return }
+                    selectedGroup = group
+                },
+                onLongPressGroup: { groupActionTarget = $0 },
                 chatName: circleName(for:),
                 // The open is guarded on the hold's half sheet: the hold's touch-up still fires
                 // the circle's Button (simultaneousGesture), and opened the chat behind it.
@@ -683,7 +755,7 @@ struct ChatListView: View {
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
             // People who wrote first and haven't been accepted - one row, always there, right
-            // above your own chat (NO_HANDSHAKE_MESSAGING.md).
+            // above the chats (NO_HANDSHAKE_MESSAGING.md).
             if showsRequestsRow {
                 Button {
                     Haptics.impact(.light)
@@ -695,37 +767,13 @@ struct ChatListView: View {
                 .listRowBackground(Color.clear)
             }
             if !displayed.isEmpty {
-                ForEach(Array(displayed.enumerated()), id: \.element.id) { index, conversation in
-                    Button {
-                        // List(selection:)'s native edit-mode row-selection UI never gets a
-                        // chance to see this tap - our own Button label already consumes it - so
-                        // toggle selection here explicitly instead of relying on that.
-                        if editMode == .active {
-                            if selectedContactIDs.contains(conversation.contact.id) {
-                                selectedContactIDs.remove(conversation.contact.id)
-                            } else {
-                                selectedContactIDs.insert(conversation.contact.id)
-                            }
-                        } else {
-                            selectedContactStartInPaymentMode = false
-                            selectedContact = conversation.contact
+                ForEach(Array(displayed.enumerated()), id: \.element.id) { index, entry in
+                    Group {
+                        switch entry {
+                        case .chat(let conversation): chatRow(conversation)
+                        case .group(let group): groupRow(group)
                         }
-                    } label: {
-                        ConversationRow(conversation: conversation)
                     }
-                    .buttonStyle(ChatRowPressStyle())
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        chatSwipeLeftActions(conversation)
-                    }
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        chatSwipeRightActions(conversation)
-                    }
-                    .tag(conversation.contact.id)
-                    .listRowBackground(
-                        shouldUseSplitLayout && selectedContact?.address == conversation.contact.address
-                            ? Color.accentColor.opacity(0.14)
-                            : Color.clear
-                    )
                     .onAppear {
                         maybeLoadMoreConversations(
                             currentIndex: index,
@@ -746,12 +794,293 @@ struct ChatListView: View {
         .listStyle(.plain)
         .overlay(alignment: .center) {
             // Below the circles row rather than over it: only when there are no chats at all.
-            if displayed.isEmpty && searchText.isEmpty && pinnedChats.isEmpty {
+            if displayed.isEmpty && searchText.isEmpty && pinnedChats.isEmpty && pinnedGroups.isEmpty {
                 emptyStateView
                     .padding(.top, 120)
                     .allowsHitTesting(false)
             }
         }
+    }
+
+    /// List(selection:)'s native edit-mode row-selection UI never gets a chance to see a row's tap
+    /// - our own Button label already consumes it - so selection toggles here explicitly.
+    private func toggleSelection(_ id: String) {
+        if selectedEntryIDs.contains(id) {
+            selectedEntryIDs.remove(id)
+        } else {
+            selectedEntryIDs.insert(id)
+        }
+    }
+
+    private func chatRow(_ conversation: Conversation) -> some View {
+        Button {
+            if editMode == .active {
+                toggleSelection(Self.entryID(conversation))
+            } else {
+                selectedContactStartInPaymentMode = false
+                selectedContact = conversation.contact
+            }
+        } label: {
+            ConversationRow(conversation: conversation)
+        }
+        .buttonStyle(ChatRowPressStyle())
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            chatSwipeLeftActions(conversation)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            chatSwipeRightActions(conversation)
+        }
+        .tag(Self.entryID(conversation))
+        .listRowBackground(
+            shouldUseSplitLayout && selectedContact?.address == conversation.contact.address
+                ? Color.accentColor.opacity(0.14)
+                : Color.clear
+        )
+    }
+
+    private func groupRow(_ group: GroupChat) -> some View {
+        Button {
+            if editMode == .active {
+                toggleSelection(Self.entryID(group))
+            } else {
+                selectedGroup = group
+            }
+        } label: {
+            GroupChatRow(group: group)
+        }
+        .buttonStyle(ChatRowPressStyle())
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            groupSwipeLeftActions(group)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            groupSwipeRightActions(group)
+        }
+        .tag(Self.entryID(group))
+        .listRowBackground(
+            shouldUseSplitLayout && selectedGroup?.id == group.id
+                ? Color.accentColor.opacity(0.14)
+                : Color.clear
+        )
+    }
+
+    // MARK: - Groups in the list
+
+    /// The pinned groups, in pin order (newest pin first). Empty while searching: the results
+    /// list them with the rest.
+    private var pinnedGroupChats: [GroupChat] {
+        guard searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
+        let byId = Dictionary(groupChatService.groups.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        return groupPins.compactMap { byId[$0] }
+    }
+
+    /// The unpinned groups. While searching, every group matching the group name, a member's
+    /// alias or address, or message content, pinned or not.
+    private var displayedGroups: [GroupChat] {
+        let groupMessages = groupChatService.groupMessages
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else {
+            let pinnedIds = Set(groupPins)
+            return groupChatService.groups.filter { !pinnedIds.contains($0.id) }
+        }
+        return groupChatService.groups.filter { group in
+            if group.name.range(of: query, options: .caseInsensitive) != nil {
+                return true
+            }
+            if group.members.contains(where: { member in
+                if let alias = contactsManager.getContact(byAddress: member.address)?.alias,
+                   alias.range(of: query, options: .caseInsensitive) != nil {
+                    return true
+                }
+                return member.address.range(of: query, options: .caseInsensitive) != nil
+            }) {
+                return true
+            }
+            return (groupMessages[group.id] ?? []).contains { message in
+                // Skip media envelopes: a photo/voice message's content is a multi-KB base64
+                // blob, and substring-scanning those froze the search field on media-heavy
+                // histories (nobody is searching for base64 fragments).
+                message.content.utf8.count <= 4096 &&
+                    message.content.range(of: query, options: .caseInsensitive) != nil
+            }
+        }
+    }
+
+    private var groupPinsKey: String? {
+        guard let address = walletManager.currentWallet?.publicAddress.lowercased() else { return nil }
+        return "kachat_group_pins_\(address)"
+    }
+
+    /// The first time, the groups pinned in the old circles row (their "g:" ids in
+    /// `kachat_chat_circle_pins_`) carry over, in the same order.
+    private func loadGroupPins() {
+        guard let key = groupPinsKey, let address = walletManager.currentWallet?.publicAddress.lowercased() else {
+            groupPins = []
+            return
+        }
+        if let saved = UserDefaults.standard.stringArray(forKey: key) {
+            groupPins = saved
+            return
+        }
+        let circlePins = UserDefaults.standard.stringArray(forKey: "kachat_chat_circle_pins_\(address)") ?? []
+        groupPins = circlePins.filter { $0.hasPrefix("g:") }.map { String($0.dropFirst(2)) }
+        UserDefaults.standard.set(groupPins, forKey: key)
+    }
+
+    private func toggleGroupPin(_ groupId: String) {
+        if let index = groupPins.firstIndex(of: groupId) {
+            groupPins.remove(at: index)
+            showToast(AppLocalization.string("Unpinned"))
+        } else {
+            groupPins.insert(groupId, at: 0)
+            showToast(AppLocalization.string("Pinned to the top row"))
+        }
+        if let key = groupPinsKey { UserDefaults.standard.set(groupPins, forKey: key) }
+    }
+
+    /// A pinned group's long-press half sheet: read state, pin, notifications and delete.
+    private func groupActionSheet(for group: GroupChat) -> some View {
+        let isSilent = groupChatService.silentNotifications(for: group.id)
+        let isPinned = groupPins.contains(group.id)
+        return VStack(spacing: 12) {
+            Text(group.name)
+                .font(.headline)
+                .lineLimit(1)
+                .padding(.top, 20)
+                .padding(.bottom, 4)
+
+            ActionSheetTiles {
+                if groupChatService.unreadCount(for: group) > 0 {
+                    ActionSheetRow(title: "Mark as Read", subtitle: "Clears the unread badge on this group.", systemImage: "envelope.open") {
+                        groupActionTarget = nil
+                        groupChatService.markGroupAsRead(group.id)
+                    }
+                } else {
+                    ActionSheetRow(title: "Mark as Unread", subtitle: "Puts the unread badge back so you come across it again.", systemImage: "envelope.badge") {
+                        groupActionTarget = nil
+                        groupChatService.markGroupAsUnread(group.id)
+                    }
+                }
+                ActionSheetRow(
+                    title: isPinned ? "Unpin" : "Pin to Top Row",
+                    subtitle: isPinned ? "Moves it back into your chats." : "Moves it into the row above your chats.",
+                    systemImage: isPinned ? "pin.slash" : "pin"
+                ) {
+                    groupActionTarget = nil
+                    toggleGroupPin(group.id)
+                }
+                ActionSheetRow(
+                    title: isSilent ? "Unsilence" : "Silence",
+                    subtitle: isSilent
+                        ? "Notifications from this group resume, including mentions."
+                        : "No notification from this group, mentions included.",
+                    systemImage: isSilent ? "bell" : "bell.slash"
+                ) {
+                    groupActionTarget = nil
+                    groupChatService.setSilentNotifications(!isSilent, for: group.id)
+                }
+                ActionSheetRow(title: "Delete", subtitle: "Removes this group and its messages from this device.", systemImage: "trash", tint: .red) {
+                    groupActionTarget = nil
+                    // One turn later: the alert can't present while the sheet is going down.
+                    DispatchQueue.main.async { groupDeleteTarget = group }
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .presentationDetents([.height(ActionSheetTileMetrics.sheetHeight(tiles: 4))])
+        .presentationDragIndicator(.visible)
+    }
+
+    /// A group row swiped left: Delete, Silence and Pin. No full swipe, so a long swipe can't start
+    /// a delete; Delete still asks first.
+    @ViewBuilder
+    private func groupSwipeLeftActions(_ group: GroupChat) -> some View {
+        let isSilent = groupChatService.silentNotifications(for: group.id)
+        let isPinned = groupPins.contains(group.id)
+        Button {
+            groupDeleteTarget = group
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+        .tint(.red)
+        Button {
+            groupChatService.setSilentNotifications(!isSilent, for: group.id)
+        } label: {
+            Label(LocalizedStringKey(isSilent ? "Unsilence" : "Silence"), systemImage: isSilent ? "bell" : "bell.slash")
+        }
+        .tint(.orange)
+        Button {
+            toggleGroupPin(group.id)
+        } label: {
+            Label(LocalizedStringKey(isPinned ? "Unpin" : "Pin"), systemImage: isPinned ? "pin.slash" : "pin")
+        }
+        .tint(.accentColor)
+    }
+
+    /// A group row swiped right: Mark as Read or Mark as Unread, by its unread state.
+    @ViewBuilder
+    private func groupSwipeRightActions(_ group: GroupChat) -> some View {
+        if groupChatService.unreadCount(for: group) > 0 {
+            Button {
+                groupChatService.markGroupAsRead(group.id)
+            } label: {
+                Label("Mark as Read", systemImage: "envelope.open")
+            }
+            .tint(.accentColor)
+        } else {
+            Button {
+                groupChatService.markGroupAsUnread(group.id)
+            } label: {
+                Label("Mark as Unread", systemImage: "envelope.badge")
+            }
+            .tint(.accentColor)
+        }
+    }
+
+    private func deleteGroups(_ groups: [GroupChat]) {
+        guard !groups.isEmpty else { return }
+        for group in groups {
+            if selectedGroup?.id == group.id { selectedGroup = nil }
+            groupChatService.deleteGroup(group.id)
+        }
+        let deleted = Set(groups.map(\.id))
+        groupPins.removeAll { deleted.contains($0) }
+        if let key = groupPinsKey { UserDefaults.standard.set(groupPins, forKey: key) }
+        selectedEntryIDs.subtract(groups.map { Self.entryID($0) })
+        showToast(groups.count == 1 ? "Group deleted." : "\(groups.count) groups deleted.")
+    }
+
+    private func handleOpenGroupNotification(_ notification: Notification) {
+        // No group id is the undecryptable-push fallback (thread id "group"): this list is as
+        // specific as that tap can get.
+        guard let groupId = notification.userInfo?["groupId"] as? String, !groupId.isEmpty else {
+            groupChatService.pendingGroupListNavigation = false
+            return
+        }
+        navigateToGroup(groupId: groupId)
+    }
+
+    private func checkPendingGroupNavigation() {
+        guard let groupId = groupChatService.pendingGroupNavigation else { return }
+        // Don't consume the pending navigation until the group actually exists locally: a tap that
+        // arrives before catch-up has created the group (e.g. "you were added to a group") would
+        // otherwise be dropped silently. The .onChange(of: groupChatService.groups) re-runs this
+        // the moment the group is inserted, so the tap resolves as soon as it lands.
+        guard groupChatService.groups.contains(where: { $0.id == groupId }) else { return }
+        groupChatService.pendingGroupNavigation = nil
+        navigateToGroup(groupId: groupId)
+    }
+
+    private func navigateToGroup(groupId: String) {
+        guard let target = groupChatService.groups.first(where: { $0.id == groupId }) else { return }
+        if groupChatService.pendingGroupNavigation == groupId {
+            groupChatService.pendingGroupNavigation = nil
+        }
+        editMode = .inactive
+        selectedGroup = target
     }
 
     /// A chat row swiped left: Delete, Silence and Pin; your own chat has only Silence. No full
@@ -776,7 +1105,7 @@ struct ChatListView: View {
             Label(LocalizedStringKey(isSilent ? "Unsilence" : "Silence"), systemImage: isSilent ? "bell" : "bell.slash")
         }
         .tint(.orange)
-        // your own chat already stays first in the list
+        // your own chat is never pinned
         if !isOwnChat(contact) {
             Button {
                 toggleCirclePin(pinId)
@@ -813,8 +1142,9 @@ struct ChatListView: View {
             Divider()
             HStack(spacing: 12) {
                 Button {
-                    let chats = filteredConversationsCache.filter { selectedContactIDs.contains($0.contact.id) }
+                    let chats = selectedChats
                     if !chats.isEmpty { Task { await chatService.markConversationsAsRead(chats) } }
+                    groupChatService.markGroupsAsRead(selectedGroups)
                     editMode = .inactive
                 } label: {
                     Image(systemName: "envelope.open")
@@ -823,8 +1153,9 @@ struct ChatListView: View {
                 .disabled(selectionCount == 0)
 
                 Button {
-                    let chats = filteredConversationsCache.filter { selectedContactIDs.contains($0.contact.id) }
+                    let chats = selectedChats
                     if !chats.isEmpty { chatService.markConversationsAsUnread(chats) }
+                    groupChatService.markGroupsAsUnread(selectedGroups)
                     editMode = .inactive
                 } label: {
                     Image(systemName: "envelope.badge")
@@ -960,8 +1291,7 @@ struct ChatListView: View {
                 .map { (key: $0.lastMessage?.timestamp ?? Date.distantPast, value: $0) }
                 .sorted { $0.key > $1.key }
                 .map(\.value)
-            filteredConversationsCache = pinningSelfChat(filteredConversationsCache)
-            return
+                        return
         }
 
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -973,11 +1303,10 @@ struct ChatListView: View {
                 .map { (key: $0.lastMessage?.timestamp ?? Date.distantPast, value: $0) }
                 .sorted { $0.key > $1.key }
                 .map(\.value)
-            filteredConversationsCache = pinningSelfChat(filteredConversationsCache)
-            return
+                        return
         }
 
-        filteredConversationsCache = pinningSelfChat(sourceConversations.filter { conv in
+        filteredConversationsCache = sourceConversations.filter { conv in
             guard chatService.isConversationVisibleInChatList(conv, settings: settings) else { return false }
             if contactsManager.displayName(for: conv.contact).range(of: query, options: .caseInsensitive) != nil {
                 return true
@@ -993,31 +1322,19 @@ struct ChatListView: View {
                     message.content.utf8.count <= 4096 &&
                     message.content.range(of: query, options: .caseInsensitive) != nil
             }
-        })
+        }
     }
 
-    /// Your chat with yourself always sits first, whatever else was active more recently - it is
-    /// the notes-to-self and landing spot for unknown senders, and should never have to be
-    /// scrolled for. Everything else keeps its order.
     private func isOwnChat(_ contact: Contact) -> Bool {
         guard let mine = walletManager.currentWallet?.publicAddress.lowercased() else { return false }
         return contact.address.lowercased() == mine
-    }
-
-    private func pinningSelfChat(_ conversations: [Conversation]) -> [Conversation] {
-        guard let mine = walletManager.currentWallet?.publicAddress.lowercased(),
-              let index = conversations.firstIndex(where: { $0.contact.address.lowercased() == mine }),
-              index > 0 else { return conversations }
-        var pinned = conversations
-        pinned.insert(pinned.remove(at: index), at: 0)
-        return pinned
     }
 
     /// Pulled out of the `.alert(...)` call site as a plain computed property - an inline ternary
     /// nested inside string interpolation there was making the compiler unable to type-check the
     /// `.alert` expression in reasonable time.
     private var bulkDeleteAlertTitle: String {
-        let chats = selectedContactIDs.count
+        let chats = selectedEntryIDs.count
         return "Delete \(chats) Chat\(chats == 1 ? "" : "s")?"
     }
 
@@ -1101,7 +1418,7 @@ struct ChatListView: View {
                     }
                 }
 
-                // Your chat with yourself cannot be deleted - it is always there, first in the list.
+                // Your chat with yourself cannot be deleted - it is always there.
                 if !isOwnChat(conversation.contact) {
                     ActionSheetRow(
                         title: "Delete",
@@ -1212,7 +1529,6 @@ struct ChatListView: View {
         // Your own chat is never deleted, even when it was part of a Select All.
         let contacts = contacts.filter { !isOwnChat($0) }
         guard !contacts.isEmpty else {
-            selectedContactIDs = []
             return
         }
         for contact in contacts {
@@ -1226,7 +1542,6 @@ struct ChatListView: View {
             if let key = circlePinsKey { UserDefaults.standard.set(circlePins, forKey: key) }
         }
         chatService.checkAndResubscribeIfNeeded()
-        selectedContactIDs = []
         showToast(contacts.count == 1 ? "Chat deleted." : "\(contacts.count) chats deleted.")
     }
 
@@ -1695,7 +2010,7 @@ private enum ChatCircleItem {
 /// Pinned ones come first, in pin order, then the other bots by latest activity. A red count
 /// shows unread messages. Tap opens; hold opens the half sheet (a bot's: read state, pin,
 /// notifications, delete; a pinned chat's: its chat row's, with Unpin). Group chats have their
-/// own tab (`GroupChatListView`).
+/// own rows in this list.
 private struct ChatCirclesStrip: View {
     @Environment(\.editMode) private var editMode
     @ObservedObject private var knsService = KNSService.shared
@@ -1706,6 +2021,12 @@ private struct ChatCirclesStrip: View {
     /// The chats pinned into the row, by pin id ("c:<address>"). Empty while searching: the
     /// search results list them instead.
     let pinnedChats: [String: Conversation]
+    /// The groups pinned into the row. Empty while searching, like the chats.
+    let pinnedGroups: [GroupChat]
+    let groupUnreadCount: (GroupChat) -> Int
+    let onOpenGroup: (GroupChat) -> Void
+    /// Hold a pinned group: its half sheet.
+    let onLongPressGroup: (GroupChat) -> Void
     let chatName: (Conversation) -> String
     let onOpenBot: (KaChatBot) -> Void
     let onOpenChat: (Conversation) -> Void
@@ -1741,12 +2062,24 @@ private struct ChatCirclesStrip: View {
 
     var body: some View {
         let items = items
-        if items.isEmpty {
+        if items.isEmpty && pinnedGroups.isEmpty {
             Color.clear.frame(height: 1)
         } else {
             ScrollView(.horizontal, showsIndicators: false) {
                 // A plain HStack: it measures every circle, so the row is as tall as its tallest.
                 HStack(alignment: .top, spacing: 14) {
+                    ForEach(pinnedGroups) { group in
+                        PinnedCircleButton(
+                            name: group.name,
+                            unreadCount: groupUnreadCount(group),
+                            showsPin: true,
+                            isSelecting: isSelecting,
+                            onTap: { onOpenGroup(group) },
+                            onLongPress: { onLongPressGroup(group) }
+                        ) {
+                            GroupAvatar(group: group, size: 60)
+                        }
+                    }
                     ForEach(items, id: \.id) { item in
                         circle(item)
                     }
@@ -1800,7 +2133,7 @@ private struct ChatCirclesStrip: View {
     }
 }
 
-/// One circle in a row above a list (the Chats row, the Groups row): the avatar, the whole name
+/// One circle in the row above the chat list: the avatar, the whole name
 /// under it, a red unread count and, when pinned, a pin. Tap opens; hold opens its half sheet.
 /// Dimmed and inert while the list is in Select mode.
 struct PinnedCircleButton<Avatar: View>: View {
@@ -1922,10 +2255,6 @@ struct MessageRequestsView: View {
                         } label: {
                             ConversationRow(conversation: conversation)
                         }
-                    }
-                } footer: {
-                    if !requests.isEmpty {
-                        Text("Open a request to read it. Accept to reply and move it to your chats; Reject deletes it and stops that address reaching you until you write to them.")
                     }
                 }
             }

@@ -597,6 +597,7 @@
 "Version" = "Версия";
 "Vibration" = "Вибрация";
 "View Profile" = "Посмотреть профиль";
+"Back Up Account" = "Резервная копия аккаунта";
 "View Seed Phrase" = "Показать seed phrase";
 "View in Explorer" = "Открыть в обозревателе";
 "Voice message" = "Голосовое сообщение";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "Удалить %@ из контактов?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Сохраняйте адреса Kaspa, которыми пользуетесь, под понятными именами. Они остаются в KaChat, только для этого кошелька, и никогда не попадают в приложение «Контакты» на телефоне.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Сохранено в KaChat только для этого кошелька. Никогда не добавляется в приложение «Контакты» на телефоне.";
+"This is a fresh address, never used before." = "Это новый адрес, который ещё не использовался.";
+"Use for chatting and acquiring .kachat domains." = "Для чатов и получения доменов .kachat.";
+"Think of it like your phone number on KaChat." = "Считайте его своим номером телефона в KaChat.";
+"How People Reach You" = "Как с вами связаться";
+"Share this address and people can message you. Only you can read what they send." = "Поделитесь этим адресом, и вам смогут писать. Прочитать присланное можете только вы.";
+"Paying for Messages" = "Оплата сообщений";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Каждое сообщение списывает с этого адреса крошечную сумму Kaspa. 1 Kaspa хватает примерно на 500 сообщений.";
+"What Others Can See" = "Что видят другие";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Любой может увидеть этот адрес и его баланс в сети Kaspa, но не сможет прочитать ваши сообщения. Используйте его только для чатов и доменов .kachat.";
+"Say anything to the bot to get started." = "Напишите боту что угодно, чтобы начать.";

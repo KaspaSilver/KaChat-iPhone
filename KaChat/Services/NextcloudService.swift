@@ -2101,7 +2101,7 @@ final class BackupRestoreCoordinator: ObservableObject {
     enum Source {
         /// kachat-backup.json downloaded from the connected Nextcloud server.
         case nextcloud
-        /// An archive the user picked with the file importer (Settings > Chat History > Import).
+        /// An archive the user picked with the file importer (Settings > Storage > Import Chat History).
         case localArchive(Data)
     }
 

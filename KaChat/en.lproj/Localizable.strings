@@ -598,6 +598,7 @@
 "Version" = "Version";
 "Vibration" = "Vibration";
 "View Profile" = "View Profile";
+"Back Up Account" = "Back Up Account";
 "View Seed Phrase" = "View Seed Phrase";
 "View in Explorer" = "View in Explorer";
 "Voice message" = "Voice message";
@@ -1555,3 +1556,13 @@
 "Delete %@ from your contacts?" = "Delete %@ from your contacts?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Saved in KaChat for this wallet only. Never added to your phone's Contacts app.";
+"This is a fresh address, never used before." = "This is a fresh address, never used before.";
+"Use for chatting and acquiring .kachat domains." = "Use for chatting and acquiring .kachat domains.";
+"Think of it like your phone number on KaChat." = "Think of it like your phone number on KaChat.";
+"How People Reach You" = "How People Reach You";
+"Share this address and people can message you. Only you can read what they send." = "Share this address and people can message you. Only you can read what they send.";
+"Paying for Messages" = "Paying for Messages";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages.";
+"What Others Can See" = "What Others Can See";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains.";
+"Say anything to the bot to get started." = "Say anything to the bot to get started.";

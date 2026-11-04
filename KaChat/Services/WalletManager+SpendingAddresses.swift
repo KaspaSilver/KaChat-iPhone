@@ -817,7 +817,13 @@ extension WalletManager {
         guard let index = Self.ownAddressIndexCache?.map[target] else { return nil }
         let named = spendingLabels[index]?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !named.isEmpty { return named }
-        return "Address #\(Self.isQuantumIndex(index) ? index - Self.quantumIndexBase : index)"
+        return "Address #\(Self.addressNumber(forIndex: index))"
+    }
+
+    /// The number people see for a spending address. The Chatting Address is #0, so the legacy
+    /// chain's first slot shows as #1; the quantum chain has no chatting address and starts at #0.
+    nonisolated static func addressNumber(forIndex index: Int) -> Int {
+        isQuantumIndex(index) ? index - quantumIndexBase : index + 1
     }
 
     private static var ownAddressIndexCache: (key: String, map: [String: Int])?

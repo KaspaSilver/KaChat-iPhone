@@ -392,6 +392,15 @@ enum KaPayHandoff {
     /// it is.
     static let appStoreURL = URL(string: "https://apps.apple.com/search?term=KaPay")!
 
+    /// The .kachat marketplace in KaPay, or the App Store to get KaPay.
+    @MainActor
+    static func openNamesMarket() {
+        guard let url = URL(string: "\(scheme)://market") else { return }
+        UIApplication.shared.open(url) { opened in
+            if !opened { UIApplication.shared.open(appStoreURL) }
+        }
+    }
+
     @MainActor
     static func pay(_ request: PaymentRequest, inApp: @escaping () -> Void) {
         guard !request.isOwn, !request.toChattingAddress,

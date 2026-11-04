@@ -591,20 +591,96 @@ final class ContactsManager: ObservableObject {
         !contact.isAutoAdded || contact.hasSentOutgoingMessage
     }
 
-    /// Whether photo bubbles from this contact should auto-decode and render, vs. staying
-    /// hidden behind a "Show Photo" tap. Defaults to trusting contacts you added yourself or
-    /// have ever messaged; untrusted (auto-added, never-replied-to) contacts are hidden by
-    /// default until the user overrides it in Chat Info or disables the setting globally.
-    func shouldAutoDisplayPhotos(for contact: Contact, settings: AppSettings) -> Bool {
-        switch contact.photoAutoDisplayOverride {
-        case .alwaysShow:
-            return true
-        case .alwaysHide:
-            return false
-        case .automatic, nil:
-            guard settings.requirePhotoApprovalForNewContacts else { return true }
-            return isAcceptedContact(contact)
+    private static let photoUnlockDelay: TimeInterval = 600
+
+    /// The one rule for photos from someone, with no setting to change it: hidden until you have
+    /// both sent a message and 10 minutes have passed. nil until both of you have.
+    func photosUnlockDate(for address: String, messages: [ChatMessage]) -> Date? {
+        if let stored = getContact(byAddress: address)?.photosUnlockDate { return stored }
+        let sent = messages.filter {
+            $0.messageType != .handshake && $0.deliveryStatus != .failed && $0.deliveryStatus != .pending
         }
+        guard let firstOutgoing = sent.filter({ $0.isOutgoing }).map(\.timestamp).min(),
+              let firstIncoming = sent.filter({ !$0.isOutgoing }).map(\.timestamp).min() else { return nil }
+        return max(firstOutgoing, firstIncoming).addingTimeInterval(Self.photoUnlockDelay)
+    }
+
+    func storePhotosUnlockDate(_ date: Date, for address: String) {
+        guard let index = contacts.firstIndex(where: { $0.address == address }),
+              contacts[index].photosUnlockDate == nil else { return }
+        contacts[index].photosUnlockDate = date
+        saveContacts()
+    }
+
+    // MARK: - Hourly profile rescan
+
+    private static let profileRescanInterval: TimeInterval = 3600
+    private var profileRescanTask: Task<Void, Never>?
+
+    /// While the app is open: everyone's profile looked up again once an hour, so a new name,
+    /// avatar, banner or bio shows without anyone asking for it.
+    func startProfileRescans() {
+        guard profileRescanTask == nil else { return }
+        profileRescanTask = Task { @MainActor [weak self] in
+            // Launch and foregrounding have enough to do first.
+            try? await Task.sleep(nanoseconds: 30_000_000_000)
+            while !Task.isCancelled {
+                guard let self else { return }
+                let wait = self.secondsUntilProfileRescan()
+                if wait > 0 {
+                    try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+                    continue
+                }
+                await self.rescanProfiles()
+            }
+        }
+    }
+
+    func stopProfileRescans() {
+        profileRescanTask?.cancel()
+        profileRescanTask = nil
+    }
+
+    private var profileRescanKey: String {
+        "kachat_contact_profile_rescan_\(WalletManager.shared.currentWallet?.publicAddress ?? "")"
+    }
+
+    private func secondsUntilProfileRescan() -> TimeInterval {
+        guard WalletManager.shared.currentWallet != nil else { return 60 }
+        let last = UserDefaults.standard.double(forKey: profileRescanKey)
+        return last + Self.profileRescanInterval - Date().timeIntervalSince1970
+    }
+
+    private func rescanProfiles() async {
+        let key = profileRescanKey
+        // Stamped first, so one that's cut off waits for its turn rather than restarting at once.
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: key)
+        var addresses = Set(activeContacts.map(\.address))
+        addresses.formUnion(AddressBookManager.shared.entries.map(\.address))
+        for address in addresses {
+            guard !Task.isCancelled else { return }
+            await rescanProfile(address: address)
+            // One at a time, with room between them: this runs alongside everything else.
+            try? await Task.sleep(nanoseconds: 300_000_000)
+        }
+    }
+
+    /// The on-chain profile (which links it uses) asked for again, each link's avatar, banner and
+    /// bio looked up again, and both pictures downloaded again whatever the caches hold - so a
+    /// change shows everywhere this person appears.
+    private func rescanProfile(address: String) async {
+        var pictures: [String] = []
+        if KachatNamesService.isEnabled {
+            if let links = await KachatNamesRegistry.shared.refreshIdentity(address: address)?.profile {
+                let answers = await KachatSocialImageResolver.shared.rescan([links.avatar, links.banner, links.bio])
+                if let link = links.avatar, let url = answers[link]?.avatar { pictures.append(url) }
+                if let link = links.banner, let url = answers[link]?.banner { pictures.append(url) }
+            }
+        } else if let info = await KNSService.shared.fetchProfile(for: address, force: true) {
+            if let url = info.avatarURL { pictures.append(url) }
+            if let url = info.profile?.bannerUrl { pictures.append(url) }
+        }
+        _ = await KNSProfileImageCacheControl.refetch(pictures)
     }
 
     /// Marks that the user has sent at least one outgoing message to this contact, which

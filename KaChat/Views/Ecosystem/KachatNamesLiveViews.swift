@@ -602,6 +602,19 @@ struct KachatSourceInput: Equatable {
     }
 }
 
+/// The title above the name field, with the way to get one right beside it.
+struct KachatNameSectionHeader: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(".kachat Name")
+            Button("Get a domain") { KaPayHandoff.openNamesMarket() }
+                .font(.caption.weight(.semibold))
+                .textCase(nil)
+                .buttonStyle(.borderless)
+        }
+    }
+}
+
 /// The address profile (KACHAT_NAMES.md section 7): where the avatar, banner and bio come from
 /// (a social profile link each - they can be different accounts), a Linktree link, and which of
 /// your names labels you - written as a `kchat:1:profile:` self-transfer. No free text and no
@@ -711,16 +724,6 @@ struct KachatLiveProfileEditor: View {
         NavigationStack {
             Form {
                 Section {
-                    Label {
-                        Text("Your profile belongs to your address, not to a name: it stays the same when you buy, sell or let a name go.")
-                            .font(.subheadline)
-                    } icon: {
-                        Image(systemName: "person.text.rectangle").foregroundColor(.accentColor)
-                    }
-                } footer: {
-                    Text("Each piece comes from a social profile you link, exactly as that platform shows it, so its moderation applies here too. You can use one account for all three, or mix them.")
-                }
-                Section {
                     sourceField($avatarIn, .avatar, $avatarLookup)
                 } header: { Text("Avatar") } footer: {
                     if avatarIn.isBad(.avatar) { invalidHandleNote }
@@ -753,8 +756,6 @@ struct KachatLiveProfileEditor: View {
                 } header: { Text("Links") } footer: {
                     if badLinktree {
                         Text("Enter your Linktree username: letters, numbers, dots, dashes or underscores.").foregroundColor(.red)
-                    } else {
-                        Text("Add your Linktree to point people to your other accounts and websites.")
                     }
                 }
                 Section {
@@ -773,13 +774,7 @@ struct KachatLiveProfileEditor: View {
                         }
                     }
                 } header: {
-                    Text(".kachat Name")
-                } footer: {
-                    if KachatNamesService.isLaunched {
-                        Text("KaChat shows you by your primary name while you own it and it's active; otherwise by your oldest active name, or your address.")
-                    } else {
-                        Text(".kachat names aren't on mainnet yet. Your avatar, banner, bio and links save now; you can pick a primary name once names launch.")
-                    }
+                    KachatNameSectionHeader()
                 }
                 Section {
                     Button {
@@ -790,11 +785,8 @@ struct KachatLiveProfileEditor: View {
                     // Saves on every network: a profile is a self-send, with no registry behind it.
                     .disabled(!loaded || blocked || !KachatNamesService.profilesEnabled)
                 } footer: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        if hasUncheckedLinks {
-                            Text("Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can.")
-                        }
-                        Text("Saving writes your profile to the chain from your address to itself, for a network fee. Profiles are public.")
+                    if hasUncheckedLinks {
+                        Text("Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can.")
                     }
                 }
                 Section {
@@ -805,8 +797,6 @@ struct KachatLiveProfileEditor: View {
                     }
                     // Same gate as saving: a clear IS a save, of the empty record.
                     .disabled(!loaded || !KachatNamesService.profilesEnabled)
-                } footer: {
-                    Text("Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again.")
                 }
             }
             .sheet(isPresented: $showSave) {

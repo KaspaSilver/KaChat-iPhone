@@ -597,6 +597,7 @@
 "Version" = "版本";
 "Vibration" = "振动";
 "View Profile" = "查看资料";
+"Back Up Account" = "备份账户";
 "View Seed Phrase" = "查看 Seed Phrase";
 "View in Explorer" = "在浏览器中查看";
 "Voice message" = "语音消息";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "要从联系人中删除 %@ 吗？";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "用你认得出的名字保存你常用的 Kaspa 地址。它们只保存在 KaChat 中、仅限此钱包，绝不会进入手机的通讯录应用。";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "仅为此钱包保存在 KaChat 中。绝不会添加到手机的通讯录应用。";
+"This is a fresh address, never used before." = "这是一个从未使用过的新地址。";
+"Use for chatting and acquiring .kachat domains." = "用于聊天和获取 .kachat 域名。";
+"Think of it like your phone number on KaChat." = "可以把它看作你在 KaChat 上的电话号码。";
+"How People Reach You" = "别人如何联系你";
+"Share this address and people can message you. Only you can read what they send." = "分享这个地址，别人就能给你发消息。只有你能读取他们发送的内容。";
+"Paying for Messages" = "消息费用";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "每发送一条消息，都会从这个地址扣除极少量 Kaspa。1 Kaspa 大约可发送 500 条消息。";
+"What Others Can See" = "别人能看到什么";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "任何人都能在 Kaspa 网络上看到这个地址及其余额，但无法读取你的消息。请仅将它用于聊天和 .kachat 域名。";
+"Say anything to the bot to get started." = "对机器人说点什么即可开始。";

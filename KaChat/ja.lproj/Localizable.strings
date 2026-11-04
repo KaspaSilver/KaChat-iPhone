@@ -597,6 +597,7 @@
 "Version" = "バージョン";
 "Vibration" = "バイブレーション";
 "View Profile" = "プロフィールを表示";
+"Back Up Account" = "アカウントをバックアップ";
 "View Seed Phrase" = "Seed Phraseを表示";
 "View in Explorer" = "エクスプローラーで表示";
 "Voice message" = "音声メッセージ";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "%@ を連絡先から削除しますか？";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "使う Kaspa アドレスを、わかりやすい名前で保存できます。KaChat 内のこのウォレット専用で、スマートフォンの連絡先アプリには入りません。";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "このウォレット専用で KaChat に保存されます。スマートフォンの連絡先アプリには追加されません。";
+"This is a fresh address, never used before." = "これは未使用の新しいアドレスです。";
+"Use for chatting and acquiring .kachat domains." = "チャットと.kachatドメインの取得に使用します。";
+"Think of it like your phone number on KaChat." = "KaChatでの電話番号のようなものです。";
+"How People Reach You" = "連絡を受ける方法";
+"Share this address and people can message you. Only you can read what they send." = "このアドレスを共有すると、メッセージを受け取れます。届いた内容を読めるのはあなただけです。";
+"Paying for Messages" = "メッセージの支払い";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "メッセージを送るたびに、このアドレスからごく少額のKaspaが使われます。1 Kaspaで約500件送れます。";
+"What Others Can See" = "他の人に見えるもの";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "このアドレスと残高はKaspaネットワーク上で誰でも見られますが、メッセージは読めません。チャットと.kachatドメインにのみ使用してください。";
+"Say anything to the bot to get started." = "ボットに何か話しかけて始めましょう。";

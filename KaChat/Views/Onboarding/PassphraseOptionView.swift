@@ -9,8 +9,8 @@ import SwiftUI
 /// passphrase. So it opens with the question, on its own, with a way to go and read about it
 /// first:
 ///
-///   1. `question` - "Did you create this seed with a passphrase?" (import) or "Do you want to add
-///      a passphrase to your account?" (create). Yes / No / What is a passphrase?
+///   1. `question` - "Did you create this seed with a passphrase?" (import only: creating opens on
+///      the entry screen). Yes / No / What is a passphrase?
 ///   2. `entry` - the field, with the chatting address it produces and that address's balance
 ///      updating underneath as you type. That live address is the point: it is the only direct
 ///      evidence that a passphrase opens a DIFFERENT account rather than protecting the same one,
@@ -45,12 +45,31 @@ struct PassphraseOptionView: View {
     /// for the main app, so this view is torn down automatically.
     let onProceed: (String) async throws -> Void
 
-    @State private var step: Step = .question
+    @Environment(\.dismiss) private var dismiss
+    @State private var step: Step
     @State private var passphrase = ""
     @State private var confirmPassphrase = ""
     @State private var reveal = false
     @State private var isBusy = false
     @State private var error: String?
+
+    init(
+        mode: Mode,
+        seedWords: [String] = [],
+        family: WalletSourceFamily = .kaspaStandard,
+        chattingAddressIndex: Binding<Int>? = nil,
+        onProceed: @escaping (String) async throws -> Void
+    ) {
+        self.mode = mode
+        self.seedWords = seedWords
+        self.family = family
+        self.chattingAddressIndex = chattingAddressIndex
+        self.onProceed = onProceed
+        // Creating only reaches here through "Advanced: Create with a Passphrase", which has
+        // already answered the question.
+        _step = State(initialValue: mode == .create ? .entry : .question)
+    }
+
     /// Address #0 for the passphrase as currently typed. Recomputed on a short debounce rather
     /// than per keystroke: the derivation is PBKDF2 over 2048 rounds, which is quick but not free.
 
@@ -73,9 +92,7 @@ struct PassphraseOptionView: View {
     // MARK: - 1. The question
 
     private var questionTitle: String {
-        mode == .create
-            ? "Do you want to add a passphrase to your account?"
-            : "Did you create this seed with a passphrase?"
+        "Did you create this seed with a passphrase?"
     }
 
     private var questionScreen: some View {
@@ -212,7 +229,11 @@ struct PassphraseOptionView: View {
                 Button("Back") {
                     passphrase = ""
                     confirmPassphrase = ""
-                    step = .question
+                    if mode == .create {
+                        dismiss()
+                    } else {
+                        step = .question
+                    }
                 }
                 .disabled(isBusy)
             }
@@ -414,8 +435,10 @@ struct PassphraseAddressPreview: View {
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .opacity(words.isEmpty ? 0 : 1)
-        .onChange(of: passphrase) { _ in schedulePreview() }
-        .onAppear { schedulePreview() }
+        // The new value, not `passphrase`: this view holds a plain copy, and the closure still
+        // sees the copy from before the change.
+        .onChange(of: passphrase) { schedulePreview(for: $0) }
+        .onAppear { schedulePreview(for: passphrase) }
         .onDisappear { previewTask?.cancel() }
     }
 
@@ -491,10 +514,9 @@ struct PassphraseAddressPreview: View {
         previewBalanceSompi = found.balanceSompi
     }
 
-    private func schedulePreview() {
+    private func schedulePreview(for typed: String) {
         previewTask?.cancel()
         guard !words.isEmpty else { return }
-        let typed = passphrase
         previewBalanceSompi = nil
         previewBalanceFailed = false
         foundAddresses = []

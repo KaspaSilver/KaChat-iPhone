@@ -51,7 +51,7 @@ struct MainTabView: View {
     @ObservedObject private var nextcloudService = NextcloudService.shared
 
     /// The dock's TabView on its own, so `body` stays small enough for the type checker. The
-    /// dock is the fixed `AppTab.dock`: Addresses, Groups, Chats, Profile, Settings.
+    /// dock is the fixed `AppTab.dock`: Contacts, Chats, Profile, Settings.
     private var dockTabView: some View {
         TabView(selection: tabSelection) {
             ForEach(AppTab.dock) { tab in
@@ -60,7 +60,7 @@ struct MainTabView: View {
                         Label(tab.label, systemImage: tab.icon)
                     }
                     // Profile hosts the notification bell and shows a dot while it holds
-                    // anything unread; Chats and Groups show their unread message counts.
+                    // anything unread; Chats shows its unread message count.
                     .badge(dockBadge(for: tab))
                     .tag(tab.tag)
             }
@@ -70,7 +70,7 @@ struct MainTabView: View {
 
     var body: some View {
         dockTabView
-        // The dock badges (Profile's dot, the Chats and Groups counts), from whichever tab is showing. Its
+        // The dock badges (Profile's dot, the Chats count), from whichever tab is showing. Its
         // own modifier: inline, these pushed the body past what the type checker can solve.
         .modifier(DockBadgeSync(selectedTab: selectedTab, dockTabs: AppTab.dock))
         .toast(message: nextcloudService.syncStatusToast)
@@ -164,7 +164,7 @@ struct MainTabView: View {
         .modifier(PaymentRequestSheetPresenter())
         .onReceive(NotificationCenter.default.publisher(for: .openGroup)) { _ in
             PendingTabRoute.pending = nil
-            handleTabSelectionChange(AppTab.groupChats.tag)
+            handleTabSelectionChange(AppTab.chats.tag)
         }
         .onReceive(NotificationCenter.default.publisher(for: .localStoreLoadFailed)) { note in
             storeLoadFailure = Self.storeFailureMessage(from: note)
@@ -193,8 +193,6 @@ struct MainTabView: View {
             // Bare ChatListView, no ZStack, no wrappers - a permanent compositing wrapper on the
             // app's main screen was the 4.0 "lag everywhere" regression.
             ChatListView()
-        case .groupChats:
-            GroupChatListView()
         case .addressBook:
             AddressBookView()
         case .profile:
@@ -225,8 +223,8 @@ struct MainTabView: View {
         tabWorkTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 500_000_000)
             if Task.isCancelled { return }
-            // Chats and Group Chats both want live traffic.
-            if newValue == AppTab.chats.tag || newValue == AppTab.groupChats.tag {
+            // Chats wants live traffic.
+            if newValue == AppTab.chats.tag {
                 await NodePoolService.shared.resumeDiscovery()
                 chatService.startPolling()
             } else {
@@ -261,7 +259,7 @@ struct MainTabView: View {
         }
         if GroupChatService.shared.pendingGroupNavigation != nil ||
             GroupChatService.shared.pendingGroupListNavigation {
-            selectedTab = AppTab.groupChats.tag
+            selectedTab = AppTab.chats.tag
         } else if chatService.pendingChatNavigation != nil ||
             chatService.pendingProfileAddress != nil {
             selectedTab = AppTab.chats.tag

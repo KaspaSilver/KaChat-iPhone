@@ -1016,10 +1016,10 @@ struct MessageTimeLine<Status: View>: View {
 
     var body: some View {
         HStack(spacing: 6) {
+            status()
             Text(text)
                 .font(.caption2)
                 .foregroundColor(.secondary)
-            status()
         }
     }
 
@@ -1181,6 +1181,13 @@ struct PinnedListHeader: View {
     @FocusState private var searchFocused: Bool
 
     var body: some View {
+        VStack(spacing: 0) {
+            AccountBackupBanner()
+            titleAndSearch
+        }
+    }
+
+    private var titleAndSearch: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.largeTitle.weight(.bold))

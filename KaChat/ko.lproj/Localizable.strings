@@ -597,6 +597,7 @@
 "Version" = "버전";
 "Vibration" = "진동";
 "View Profile" = "프로필 보기";
+"Back Up Account" = "계정 백업";
 "View Seed Phrase" = "Seed Phrase 보기";
 "View in Explorer" = "탐색기에서 보기";
 "Voice message" = "음성 메시지";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "%@님을 연락처에서 삭제할까요?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "사용하는 Kaspa 주소를 알아보기 쉬운 이름으로 저장하세요. 이 지갑 전용으로 KaChat에만 저장되고 휴대폰의 연락처 앱에는 들어가지 않습니다.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "이 지갑 전용으로 KaChat에 저장됩니다. 휴대폰의 연락처 앱에는 추가되지 않습니다.";
+"This is a fresh address, never used before." = "한 번도 사용되지 않은 새 주소입니다.";
+"Use for chatting and acquiring .kachat domains." = "채팅과 .kachat 도메인 획득에 사용하세요.";
+"Think of it like your phone number on KaChat." = "KaChat에서의 전화번호라고 생각하세요.";
+"How People Reach You" = "연락받는 방법";
+"Share this address and people can message you. Only you can read what they send." = "이 주소를 공유하면 메시지를 받을 수 있습니다. 받은 내용은 나만 읽을 수 있습니다.";
+"Paying for Messages" = "메시지 비용";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "메시지를 보낼 때마다 이 주소에서 아주 적은 양의 Kaspa가 사용됩니다. 1 Kaspa로 약 500개를 보낼 수 있습니다.";
+"What Others Can See" = "다른 사람이 볼 수 있는 것";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "이 주소와 잔액은 Kaspa 네트워크에서 누구나 볼 수 있지만 메시지는 읽을 수 없습니다. 채팅과 .kachat 도메인에만 사용하세요.";
+"Say anything to the bot to get started." = "봇에게 아무 말이나 보내 시작하세요.";

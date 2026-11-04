@@ -52,12 +52,12 @@ final class GroupChatService: ObservableObject {
     @Published var editsByGroupId: [String: [String: MessageEditSnapshot]] = [:]
 
     /// Set when a group-chat push notification is tapped before `GroupChatListView` exists yet
-    /// (cold start) - consumed and cleared by `GroupChatListView.checkPendingGroupNavigation()`.
+    /// (cold start) - consumed and cleared by `ChatListView.checkPendingGroupNavigation()`.
     @Published var pendingGroupNavigation: String?
 
     /// Set when a group notification that names no group is tapped - the undecryptable-push
     /// fallback (thread id "group", see `NotificationService.deliverGroupFallback`). There's no
-    /// room to open, so the Group Chats list is the destination; consumed by `GroupChatListView`.
+    /// room to open, so the chat list is the destination; consumed by `GroupChatListView`.
     @Published var pendingGroupListNavigation = false
 
     /// The group currently on-screen, if any - mirrors `ChatService.activeConversationAddress`.
@@ -215,7 +215,7 @@ final class GroupChatService: ObservableObject {
     private let groupDeepBackfilledKey = "kachat_group_deep_backfilled"
     private let groupImportReadSeededKey = "kachat_group_import_read_seeded"
 
-    /// Per-group "last opened" timestamp, for the Group Chats tab unread badge - one timestamp
+    /// Per-group "last opened" timestamp, for the Chats tab unread badge - one timestamp
     /// per group rather than a per-message read flag (would need a Core Data migration; see
     /// plan doc), persisted the same way as `groupCatchUpCursors`.
     @Published private(set) var groupLastReadAt: [String: Date] = [:]
@@ -619,13 +619,13 @@ final class GroupChatService: ObservableObject {
         let lastReadAt: Date?
     }
 
-    /// Memoises `unreadCount(for:)`, which SwiftUI calls from view bodies - the Group Chats tab
+    /// Memoises `unreadCount(for:)`, which SwiftUI calls from view bodies - the Chats tab
     /// badge alone sums it across every group on every render of the chat list. Filtering each
     /// group's whole message array there made the list O(groups x messages) per frame, which is
     /// exactly the work that made scrolling with real group history stutter.
     private var unreadCache: [String: (fingerprint: UnreadFingerprint, value: Int)] = [:]
 
-    /// Total unread across all groups, for the Group Chats tab badge.
+    /// Total unread across all groups, for the Chats tab badge.
     var totalGroupUnreadCount: Int {
         groups.reduce(0) { $0 + unreadCount(for: $1) }
     }

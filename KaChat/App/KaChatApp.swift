@@ -195,6 +195,7 @@ struct KaChatApp: App {
             ChatService.shared.stopForegroundContactSweep()
             ChatService.shared.stopActiveChatPollForBackground()
             GroupChatService.shared.stopLivePolling()
+            ContactsManager.shared.stopProfileRescans()
             // Schedule background fetch when app goes to background
             if settingsViewModel.settings.backgroundFetchEnabled {
                 BackgroundTaskManager.shared.scheduleBackgroundFetch()
@@ -234,6 +235,7 @@ struct KaChatApp: App {
             Task { @MainActor in await KachatNamesRegistry.shared.refreshIfStale() }
             // Group traffic from the indexer while the app is open (block stream as fallback).
             GroupChatService.shared.startLivePolling()
+            ContactsManager.shared.startProfileRescans()
 
             // Keep the Share Extension's data sources fresh on activation too - previously
             // contacts synced only on .background, so a fresh install that had never
@@ -883,7 +885,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         } else if threadIdentifier == "group" {
             // Undecryptable group push: NotificationService's `deliverGroupFallback` can only
             // tag it with the bare "group" thread id (it never learned WHICH group), so there's
-            // no room to open. Land on the Groups list - the branch below would otherwise treat
+            // no room to open. Land on the chat list - the branch below would otherwise treat
             // "group" as a contact address and go nowhere at all.
             Task { @MainActor in
                 GroupChatService.shared.pendingGroupListNavigation = true

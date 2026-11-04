@@ -98,7 +98,7 @@ struct KNSAvatarView: View {
         .task(id: descriptor?.cacheIdentity) {
             await loadAvatarIfNeeded()
         }
-        // Rescan Profile downloaded this picture again: show the new one
+        // The hourly profile rescan downloaded this picture again: show the new one
         .onReceive(NotificationCenter.default.publisher(for: .knsProfileImageRefetched)) { note in
             guard let identity = note.object as? String, identity == descriptor?.cacheIdentity else { return }
             lastLoadedIdentity = nil

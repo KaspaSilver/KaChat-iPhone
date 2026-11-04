@@ -3799,7 +3799,12 @@ extension ChatService {
         // message count is already proof of a change, which is the ingest path's normal case;
         // only when the count is unchanged is the full comparison worth paying for.
         if conversation.messages.count == previousMessageCount {
-            guard conversation != conversations[index] else { return }
+            // The messages too: `Conversation`'s own == only reads what the chat list shows, so a
+            // change to any message but the newest looked like no change and was thrown away.
+            // That's what left rapid sends on "Sending": each one was marked sent after the next
+            // had already become the newest.
+            guard conversation != conversations[index]
+                    || conversation.messages != conversations[index].messages else { return }
         }
         conversations[index] = conversation
         guard persist else { return }

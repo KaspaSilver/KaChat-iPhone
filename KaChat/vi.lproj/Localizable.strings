@@ -597,6 +597,7 @@
 "Version" = "Phiên bản";
 "Vibration" = "Rung";
 "View Profile" = "Xem hồ sơ";
+"Back Up Account" = "Sao lưu tài khoản";
 "View Seed Phrase" = "Xem seed phrase";
 "View in Explorer" = "Xem trong trình khám phá";
 "Voice message" = "Tin nhắn thoại";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "Xóa %@ khỏi danh bạ?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Lưu các địa chỉ Kaspa bạn dùng với tên dễ nhận ra. Chúng ở lại trong KaChat, chỉ cho ví này, và không bao giờ vào ứng dụng Danh bạ của điện thoại.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Lưu trong KaChat chỉ cho ví này. Không bao giờ thêm vào ứng dụng Danh bạ của điện thoại.";
+"This is a fresh address, never used before." = "Đây là địa chỉ mới, chưa từng được sử dụng.";
+"Use for chatting and acquiring .kachat domains." = "Dùng để trò chuyện và nhận tên miền .kachat.";
+"Think of it like your phone number on KaChat." = "Hãy xem nó như số điện thoại của bạn trên KaChat.";
+"How People Reach You" = "Cách mọi người liên hệ với bạn";
+"Share this address and people can message you. Only you can read what they send." = "Chia sẻ địa chỉ này để mọi người có thể nhắn tin cho bạn. Chỉ bạn mới đọc được nội dung họ gửi.";
+"Paying for Messages" = "Trả phí tin nhắn";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Mỗi tin nhắn bạn gửi dùng một lượng Kaspa rất nhỏ từ địa chỉ này. 1 Kaspa đủ cho khoảng 500 tin nhắn.";
+"What Others Can See" = "Người khác có thể thấy gì";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Ai cũng có thể thấy địa chỉ này và số dư của nó trên mạng Kaspa, nhưng không thể đọc tin nhắn của bạn. Chỉ dùng nó để trò chuyện và cho tên miền .kachat.";
+"Say anything to the bot to get started." = "Hãy nói bất cứ điều gì với bot để bắt đầu.";

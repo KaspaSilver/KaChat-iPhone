@@ -597,6 +597,7 @@
 "Version" = "সংস্করণ";
 "Vibration" = "কম্পন";
 "View Profile" = "প্রোফাইল দেখুন";
+"Back Up Account" = "অ্যাকাউন্ট ব্যাকআপ করুন";
 "View Seed Phrase" = "Seed Phrase দেখুন";
 "View in Explorer" = "এক্সপ্লোরারে দেখুন";
 "Voice message" = "ভয়েস মেসেজ";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "%@ কে আপনার পরিচিতি থেকে মুছবেন?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "যে Kaspa ঠিকানাগুলো ব্যবহার করেন সেগুলো চেনা নামে সংরক্ষণ করুন। এগুলো শুধু এই ওয়ালেটের জন্য KaChat-এ থাকে এবং কখনো আপনার ফোনের পরিচিতি অ্যাপে যায় না।";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "শুধু এই ওয়ালেটের জন্য KaChat-এ সংরক্ষিত। কখনো আপনার ফোনের পরিচিতি অ্যাপে যোগ হয় না।";
+"This is a fresh address, never used before." = "এটি একটি নতুন ঠিকানা, আগে কখনো ব্যবহৃত হয়নি।";
+"Use for chatting and acquiring .kachat domains." = "চ্যাট করতে এবং .kachat ডোমেইন পেতে ব্যবহার করুন।";
+"Think of it like your phone number on KaChat." = "এটিকে KaChat-এ আপনার ফোন নম্বরের মতো ভাবুন।";
+"How People Reach You" = "লোকেরা কীভাবে আপনার সাথে যোগাযোগ করে";
+"Share this address and people can message you. Only you can read what they send." = "এই ঠিকানা শেয়ার করলে লোকেরা আপনাকে মেসেজ করতে পারবে। তারা যা পাঠায় তা শুধু আপনিই পড়তে পারেন।";
+"Paying for Messages" = "মেসেজের খরচ";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "প্রতিটি মেসেজ পাঠাতে এই ঠিকানা থেকে খুব সামান্য Kaspa লাগে। 1 Kaspa-তে প্রায় 500টি মেসেজ পাঠানো যায়।";
+"What Others Can See" = "অন্যরা যা দেখতে পারে";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Kaspa নেটওয়ার্কে যে কেউ এই ঠিকানা ও এর ব্যালেন্স দেখতে পারে, কিন্তু আপনার মেসেজ পড়তে পারে না। এটি শুধু চ্যাট ও .kachat ডোমেইনের জন্য ব্যবহার করুন।";
+"Say anything to the bot to get started." = "শুরু করতে বটকে যেকোনো কিছু বলুন।";

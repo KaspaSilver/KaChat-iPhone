@@ -2,6 +2,189 @@ import SwiftUI
 import Combine
 import WebRTC
 
+/// The half sheets before a call starts, the same from a chat's call button and a Contacts entry:
+/// with no Nextcloud on this account, what calling needs; while calls are off for this person,
+/// whether to enable them; then voice or video. Set `isRequested` to begin.
+struct CallConfirmationSheets: ViewModifier {
+    @Binding var isRequested: Bool
+    @Binding var contact: Contact
+    let name: String
+
+    @ObservedObject private var callService = CallService.shared
+    @State private var showCallsNeedTalk = false
+    /// Continue on that sheet: the next one opens once it's down.
+    @State private var continueToCall = false
+    @State private var showEnableCalls = false
+    @State private var showCallOptions = false
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: isRequested) { requested in
+                guard requested else { return }
+                isRequested = false
+                if NextcloudService.shared.isConnected {
+                    openCallSheet()
+                } else {
+                    showCallsNeedTalk = true
+                }
+            }
+            .sheet(isPresented: $showCallsNeedTalk, onDismiss: {
+                if continueToCall {
+                    continueToCall = false
+                    openCallSheet()
+                }
+            }) {
+                callsNeedTalkSheet
+                    .presentationDetents([.height(360)])
+                    .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showCallOptions) {
+                callOptionsSheet
+                    .presentationDetents([.height(250)])
+                    .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showEnableCalls, onDismiss: {
+                // Enabled from the sheet: go straight on to voice-or-video, as if the button
+                // had been tapped on an already-enabled contact.
+                if callService.canCall(contact) { showCallOptions = true }
+            }) {
+                enableCallsSheet
+                    .presentationDetents([.height(300)])
+                    .presentationDragIndicator(.visible)
+            }
+    }
+
+    private func openCallSheet() {
+        if callService.canCall(contact) {
+            showCallOptions = true
+        } else {
+            showEnableCalls = true
+        }
+    }
+
+    private var callsNeedTalkSheet: some View {
+        VStack(spacing: 0) {
+            Text("Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 20)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 12)
+            Text("Continue?")
+                .font(.headline)
+                .padding(.bottom, 16)
+
+            VStack(spacing: 12) {
+                ActionSheetRow(
+                    title: "Continue",
+                    subtitle: "Go on to calling this person.",
+                    systemImage: "phone.fill"
+                ) {
+                    continueToCall = true
+                    showCallsNeedTalk = false
+                }
+                ActionSheetRow(
+                    title: "Back",
+                    subtitle: "Close this and stay in the chat.",
+                    systemImage: "chevron.left",
+                    tint: .secondary
+                ) {
+                    showCallsNeedTalk = false
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.bottom, 20)
+    }
+
+    /// The first tap on the call button for a contact: calls are off by default, and enabling
+    /// them is a decision about this person (they can ring you from then on, and use your
+    /// Nextcloud to host a call), so it is asked plainly before anything rings.
+    private var enableCallsSheet: some View {
+        VStack(spacing: 0) {
+            Text("Enable calls and video calls with \(name)?")
+                .font(.headline)
+                .multilineTextAlignment(.center)
+                .padding(.top, 20)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 8)
+            Text("They will be able to call you too.")
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+
+            VStack(spacing: 12) {
+                ActionSheetRow(
+                    title: "Enable calls",
+                    subtitle: "Saves this for \(name) and lets you call now.",
+                    systemImage: "phone.badge.checkmark"
+                ) {
+                    var updated = contact
+                    updated.callsEnabled = true
+                    ContactsManager.shared.updateContact(updated)
+                    contact = updated
+                    SharedDataManager.syncCallContactsForIntents()
+                    showEnableCalls = false
+                    CallService.requestMediaPermissions()
+                }
+                ActionSheetRow(
+                    title: "Not now",
+                    subtitle: "Calls stay off for this contact.",
+                    systemImage: "xmark.circle",
+                    tint: .secondary
+                ) {
+                    showEnableCalls = false
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.bottom, 20)
+    }
+
+    private var callOptionsSheet: some View {
+        VStack(spacing: 0) {
+            Text("Call \(name)")
+                .font(.headline)
+                .lineLimit(1)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+
+            VStack(spacing: 12) {
+                ActionSheetRow(
+                    title: "Voice call",
+                    subtitle: "Rings them in KaChat; your Nextcloud carries the call.",
+                    systemImage: "phone.fill"
+                ) {
+                    showCallOptions = false
+                    callService.startCall(with: contact, video: false)
+                }
+                ActionSheetRow(
+                    title: "Video call",
+                    subtitle: "Same, with your camera on from the start.",
+                    systemImage: "video.fill"
+                ) {
+                    showCallOptions = false
+                    callService.startCall(with: contact, video: true)
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.bottom, 20)
+    }
+}
+
 /// The in-app call screen, shown by `CallWindowPresenter` whenever `CallService.session` exists:
 /// ringing in, ringing out, connecting, connected and the brief "Call ended" beat.
 ///

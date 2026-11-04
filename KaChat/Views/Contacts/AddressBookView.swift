@@ -337,9 +337,11 @@ struct AddressBookEntryDetail: View {
 
     @ObservedObject private var book = AddressBookManager.shared
     @ObservedObject private var walletManager = WalletManager.shared
+    @ObservedObject private var callService = CallService.shared
     @Environment(\.dismiss) private var dismiss
     @State private var showEdit = false
     @State private var showSend = false
+    @State private var callRequested = false
     @State private var confirmDelete = false
     @State private var copied = false
 
@@ -400,6 +402,14 @@ struct AddressBookEntryDetail: View {
                                 Label("Message", systemImage: "bubble.left")
                             }
                             .disabled(otherNetwork != nil)
+                            if !KaChatBot.isBot(entry.address) {
+                                Button {
+                                    callRequested = true
+                                } label: {
+                                    Label("Call", systemImage: "phone")
+                                }
+                                .disabled(otherNetwork != nil || callService.session != nil)
+                            }
                         }
                     } footer: {
                         if let otherNetwork { Text(verbatim: otherNetwork) }
@@ -419,6 +429,15 @@ struct AddressBookEntryDetail: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .modifier(CallConfirmationSheets(
+                    isRequested: $callRequested,
+                    // Read only once Call is tapped, so viewing an entry never adds a chat contact.
+                    contact: Binding(
+                        get: { ContactsManager.shared.getOrCreateContact(address: entry.address, alias: entry.customName ?? "") },
+                        set: { _ in }
+                    ),
+                    name: entry.customName ?? ContactsManager.shared.displayName(for: entry.address)
+                ))
                 .sheet(isPresented: $showEdit) {
                     AddressBookEntryEditor(address: entry.address) { result in
                         if result == .removed { dismiss() }

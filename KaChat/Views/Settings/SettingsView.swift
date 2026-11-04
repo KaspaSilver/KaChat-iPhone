@@ -24,8 +24,9 @@ struct SettingsView: View {
 
     @State private var showSeedPhrase = false
     @State private var showNFCCardBackup = false
+    /// The backup steps from Back Up Account. Finishing them clears the backup banner.
+    @State private var showAccountBackup = false
     @State private var accountHasPassphrase = false
-    @State private var showLogoutConfirmation = false
     @State private var showDeleteAccountConfirmation = false
     /// The seed phrase over the Delete Account warning, which it closes back to.
     @State private var showSeedPhraseOverDeleteWarning = false
@@ -56,59 +57,37 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 PinnedListHeader(title: "Settings")
                 Form {
-                    settingsCategoryRow("Customization", icon: "paintbrush.pointed", tint: .accentColor) {
-                        customizationPage
+                    // Alphabetical, down to the wipe row. Delete Account stays apart below.
+                    settingsCategoryRow("About", icon: "info.circle", tint: .accentColor) {
+                        AccountAboutPage()
                     }
-                    settingsCategoryRow("Security", icon: "lock.shield", tint: .accentColor) {
-                        securityPage
+                    settingsCategoryRow("Account Name", icon: "pencil", tint: .accentColor) {
+                        AccountNamePage()
                     }
-                    settingsCategoryRow("Connection", icon: "antenna.radiowaves.left.and.right", tint: .accentColor) {
-                        connectionPage
-                    }
-                    settingsCategoryRow("Notifications", icon: "bell.badge", tint: .accentColor) {
-                        NotificationsHubPage()
+                    settingsCategoryRow("Back Up Account", icon: "key", tint: .accentColor) {
+                        backUpAccountPage
                     }
                     settingsCategoryRow("Chats", icon: "bubble.left.and.bubble.right", tint: .accentColor) {
                         chatsPage
                     }
-                    settingsCategoryRow("Storage", icon: "internaldrive", tint: .accentColor) {
-                        storagePage
+                    settingsCategoryRow("Connection", icon: "antenna.radiowaves.left.and.right", tint: .accentColor) {
+                        connectionPage
                     }
-                    settingsCategoryRow("Chat History", icon: "clock.arrow.circlepath", tint: .accentColor) {
-                        chatHistoryPage
+                    settingsCategoryRow("Customization", icon: "paintbrush.pointed", tint: .accentColor) {
+                        customizationPage
                     }
                     settingsCategoryRow("Diagnostics", icon: "stethoscope", tint: .accentColor) {
                         diagnosticsPage
                     }
-                    // Direct action, not a sub-page: straight into the seed phrase (behind the
-                    // biometric gate when enabled).
-                    Button {
-                        unlockSeedPhrase { showSeedPhrase = true }
-                    } label: {
-                        Label {
-                            Text("View Seed Phrase")
-                                .foregroundColor(.primary)
-                        } icon: {
-                            Image(systemName: "key")
-                                .foregroundColor(.accentColor)
-                        }
+                    settingsCategoryRow("Notifications", icon: "bell.badge", tint: .accentColor) {
+                        NotificationsHubPage()
                     }
-                    #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
-                    // Without a passphrase, nothing would protect the seed if someone got past the PIN.
-                    if NFCCard.isAvailable && accountHasPassphrase {
-                        Button {
-                            unlockSeedPhrase { showNFCCardBackup = true }
-                        } label: {
-                            Label {
-                                Text("Back Up to NFC Card")
-                                    .foregroundColor(.primary)
-                            } icon: {
-                                Image(systemName: "wave.3.right")
-                                    .foregroundColor(.accentColor)
-                            }
-                        }
+                    settingsCategoryRow("Security", icon: "lock.shield", tint: .accentColor) {
+                        securityPage
                     }
-                    #endif
+                    settingsCategoryRow("Storage", icon: "internaldrive", tint: .accentColor) {
+                        storagePage
+                    }
                     wipeAndResyncRow
 
                     // Back in Settings (it spent a while on Profile): its own section at the very
@@ -142,29 +121,6 @@ struct SettingsView: View {
                                 AccountBackupView()
                             }
                         }
-                        Button(role: .destructive) {
-                            showLogoutConfirmation = true
-                        } label: {
-                            Label {
-                                Text("Log Out")
-                                    .foregroundColor(.red)
-                            } icon: {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .foregroundColor(.red)
-                            }
-                        }
-                        // Half sheet rather than a confirmation dialog, matching every other chooser
-                        // in the app - and it gives the consequence a row of its own beside the action.
-                        .sheet(isPresented: $showLogoutConfirmation) {
-                            ConfirmActionSheet(
-                                title: "Log Out",
-                                confirmTitle: "Log Out",
-                                confirmSubtitle: "Signs out of this account. Wallet and message data stay on this device.",
-                                confirmSystemImage: "rectangle.portrait.and.arrow.right"
-                            ) {
-                                Task { await walletManager.logout() }
-                            }
-                        }
                     }
                 }
             }
@@ -187,6 +143,9 @@ struct SettingsView: View {
             .task(id: walletManager.currentWallet?.publicAddress) {
                 let passphrase = (try? walletManager.getSeedPhrase())?.passphrase ?? ""
                 accountHasPassphrase = !passphrase.isEmpty
+            }
+            .sheet(isPresented: $showAccountBackup) {
+                AccountBackupView()
             }
             .sheet(isPresented: $showNFCCardBackup) {
                 #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
@@ -280,11 +239,6 @@ struct SettingsView: View {
     private var chatsPage: some View {
         Form {
             Section("Chats") {
-                    Toggle("Require approval for photos from new contacts", isOn: $settingsViewModel.settings.requirePhotoApprovalForNewContacts)
-                        .onChange(of: settingsViewModel.settings.requirePhotoApprovalForNewContacts) { _ in
-                            settingsViewModel.saveSettings()
-                        }
-
                     Toggle("Higher quality photos", isOn: $settingsViewModel.settings.higherQualityPhotos)
                         .onChange(of: settingsViewModel.settings.higherQualityPhotos) { _ in
                             settingsViewModel.saveSettings()
@@ -328,8 +282,6 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
             } header: {
                 Text("On This Device")
-            } footer: {
-                Text("How long messages are kept on this device, and how much space they use. Applies before any cloud storage.")
             }
 
             // Your own data, not cache: photos you assigned in the Address Book. Kept apart from
@@ -354,8 +306,6 @@ struct SettingsView: View {
                             .foregroundColor(.red)
                     }
                 }
-            } footer: {
-                Text("Photos you assigned to saved addresses, for every wallet on this device. They're kept until you remove them, and they're included in your chat backup.")
             }
             .task { await refreshAddressBookPhotoBytes() }
             .sheet(isPresented: $confirmRemoveAddressBookPhotos) {
@@ -377,9 +327,9 @@ struct SettingsView: View {
                 settingsCategoryRow("Cache", icon: "trash", tint: .accentColor) {
                     CacheSettingsPage()
                 }
-            } footer: {
-                Text("Images and files the app can always download again. Clearing them frees space and loses nothing.")
             }
+
+            chatHistorySection
 
             // Nextcloud is the only cloud the app talks to: messages live on this device and in
             // the encrypted archive on the user's own server, nowhere else.
@@ -389,8 +339,6 @@ struct SettingsView: View {
                 }
             } header: {
                 Text("Cloud Storage")
-            } footer: {
-                Text("Your own Nextcloud server is the only place messages sync to. Nothing is stored in iCloud.")
             }
         }
         .navigationTitle("Storage")
@@ -409,39 +357,87 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
     }
 
-    private var chatHistoryPage: some View {
-        Form {
-            Section("Chat History") {
-                    Button {
-                        Task {
-                            await exportChatHistoryArchive()
-                        }
-                    } label: {
-                        HStack {
-                            Label("Export Chat History", systemImage: "square.and.arrow.up")
-                            Spacer()
-                            if isPreparingChatHistoryExport {
-                                ProgressView()
-                            }
-                        }
-                    }
-                    .disabled(isPreparingChatHistoryExport || restoreCoordinator.isRunning)
-
-                    Button {
-                        showChatHistoryImporter = true
-                    } label: {
-                        HStack {
-                            Label("Import Chat History", systemImage: "square.and.arrow.down")
-                            Spacer()
-                            if restoreCoordinator.isRunning {
-                                ProgressView()
-                            }
-                        }
-                    }
-                    .disabled(isPreparingChatHistoryExport || restoreCoordinator.isRunning)
+    private var chatHistorySection: some View {
+        Section("Chat History") {
+            Button {
+                Task {
+                    await exportChatHistoryArchive()
                 }
+            } label: {
+                HStack {
+                    Label("Export Chat History", systemImage: "square.and.arrow.up")
+                    Spacer()
+                    if isPreparingChatHistoryExport {
+                        ProgressView()
+                    }
+                }
+            }
+            .disabled(isPreparingChatHistoryExport || restoreCoordinator.isRunning)
+
+            Button {
+                showChatHistoryImporter = true
+            } label: {
+                HStack {
+                    Label("Import Chat History", systemImage: "square.and.arrow.down")
+                    Spacer()
+                    if restoreCoordinator.isRunning {
+                        ProgressView()
+                    }
+                }
+            }
+            .disabled(isPreparingChatHistoryExport || restoreCoordinator.isRunning)
         }
-        .navigationTitle("Chat History")
+    }
+
+    /// The seed phrase, straight in behind the biometric gate when enabled, and the card backup.
+    private var backUpAccountPage: some View {
+        Form {
+            if backupStatus.isPending(walletManager.currentWallet?.publicAddress) {
+                Section {
+                    Button {
+                        AccountBackupView.unlock { showAccountBackup = true }
+                    } label: {
+                        Label {
+                            Text("Complete Your Backup")
+                                .foregroundColor(.primary)
+                        } icon: {
+                            Image(systemName: "exclamationmark.shield.fill")
+                                .foregroundColor(.orange)
+                        }
+                    }
+                }
+            }
+            Section {
+                Button {
+                    unlockSeedPhrase { showSeedPhrase = true }
+                } label: {
+                    Label {
+                        Text("View Seed Phrase")
+                            .foregroundColor(.primary)
+                    } icon: {
+                        Image(systemName: "key")
+                            .foregroundColor(.accentColor)
+                    }
+                }
+                #if canImport(CoreNFC) && !targetEnvironment(macCatalyst)
+                // Without a passphrase, nothing would protect the seed if someone got past the PIN.
+                if NFCCard.isAvailable && accountHasPassphrase {
+                    Button {
+                        unlockSeedPhrase { showNFCCardBackup = true }
+                    } label: {
+                        Label {
+                            Text("Back Up to NFC Card")
+                                .foregroundColor(.primary)
+                        } icon: {
+                            Image(systemName: "wave.3.right")
+                                .foregroundColor(.accentColor)
+                        }
+                    }
+                }
+                #endif
+            }
+        }
+        .navigationTitle("Back Up Account")
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -638,12 +634,139 @@ struct SettingsView: View {
 
 }
 
+// MARK: - Account name
+
+/// Your own label for this account, on this device. Saved when you leave the screen.
+private struct AccountNamePage: View {
+    @EnvironmentObject private var walletManager: WalletManager
+    @State private var name = ""
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Account name", text: $name)
+                    .submitLabel(.done)
+            }
+        }
+        .navigationTitle("Account Name")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { name = walletManager.currentWallet?.alias ?? "" }
+        .onDisappear(perform: save)
+    }
+
+    private func save() {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let wallet = walletManager.currentWallet, !trimmed.isEmpty, trimmed != wallet.alias,
+              let account = walletManager.savedAccounts.first(where: { $0.publicAddress == wallet.publicAddress })
+        else { return }
+        walletManager.renameSavedAccount(account, to: trimmed)
+    }
+}
+
+// MARK: - About
+
+/// Settings > About: this account's created date, then the app's version, links and licenses.
+private struct AccountAboutPage: View {
+    @EnvironmentObject private var walletManager: WalletManager
+
+    /// Donate: the Send screen, addressed to KaChat's donation address
+    @State private var showDonateSheet = false
+    @State private var showOpenSourceLicenses = false
+
+    private static let donateName = "kachat.kachat"
+    /// The address Donate pays, pinned (IOS-067): a name is first-come, so resolving
+    /// `kachat.kachat` would pay whoever registered it. This is the address `kachat.kas` has
+    /// always paid; on testnet the same key's `kaspatest:` form. The Send screen shows the
+    /// address's own .kachat name once the project registers `kachat` to it.
+    private static let donationAddressMainnet = "kaspa:qzy7da4589avjwmmnqfvkhp5p8p268gc7rvr9lg2xxpuhj75sy8kgdqmpd2fu"
+    private static var donationAddress: String {
+        KaspaAddress.onActiveNetwork(donationAddressMainnet) ?? donationAddressMainnet
+    }
+    private static let websiteURL = URL(string: "https://home.kachat.app")!
+    private static let supportEmailURL = URL(string: "mailto:kaspasilver@gmail.com")!
+
+    var body: some View {
+        Form {
+            Section {
+                if let wallet = walletManager.currentWallet {
+                    HStack {
+                        Text("Created")
+                        Spacer()
+                        Text(SharedFormatting.mediumDateShortTime.string(from: wallet.createdAt))
+                            .foregroundColor(.secondary)
+                    }
+                }
+                HStack {
+                    Text("Version")
+                    Spacer()
+                    Text(AppVersion.display)
+                        .foregroundColor(.secondary)
+                }
+                Link(destination: Self.websiteURL) {
+                    HStack {
+                        Text("Website")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text(verbatim: "home.kachat.app")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Link(destination: Self.supportEmailURL) {
+                    HStack {
+                        Text("Support Email")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text(verbatim: "kaspasilver@gmail.com")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Button {
+                    showDonateSheet = true
+                } label: {
+                    HStack {
+                        Text("Donate")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text(verbatim: Self.donateName)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                Button {
+                    showOpenSourceLicenses = true
+                } label: {
+                    HStack {
+                        Text("Open Source Licenses")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .navigationTitle("About")
+        .navigationBarTitleDisplayMode(.inline)
+        // Donate goes straight to Send with KaChat's pinned donation address filled in - an
+        // address, not a name anyone could register (IOS-067) - no chat opened
+        .sheet(isPresented: $showDonateSheet) {
+            if let wallet = walletManager.currentWallet {
+                WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi,
+                                  prefillAddress: Self.donationAddress)
+            }
+        }
+        .sheet(isPresented: $showOpenSourceLicenses) {
+            OpenSourceLicensesView()
+        }
+    }
+}
+
 // MARK: - Shared category row (SettingsView + AppSettingsView)
 
 /// The standard Settings category row: icon + title behind a NavigationLink. File-scope so the
 /// in-account SettingsView and the accounts-screen AppSettingsView render identical rows.
 fileprivate func settingsCategoryRow<Destination: View>(
-    _ title: String,
+    _ title: LocalizedStringKey,
     icon: String,
     tint: Color,
     @ViewBuilder destination: @escaping () -> Destination
@@ -859,9 +982,6 @@ struct DiagnosticsSettingsPage: View {
                                 ProgressView()
                             }
                         }
-                        Text("Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included.")
-                            .font(.footnote)
-                            .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 4)
                 }
@@ -882,8 +1002,6 @@ struct DiagnosticsSettingsPage: View {
                         // flag with a stale in-memory copy.
                         NotificationCenter.default.post(name: .settingsDidChange, object: nil)
                     }
-            } footer: {
-                Text("Logs every indexer request with full connection and timing detail. Leave off for normal use: failed and slow requests are always logged, and heavy logging can cause iOS to drop the app's log messages.")
             }
         }
         .navigationTitle("Diagnostics")
@@ -1140,8 +1258,6 @@ struct QuickReactionEmojisSettingsView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-            } footer: {
-                Text("Tap an emoji to replace it with a different one.")
             }
 
             Section {
@@ -1227,10 +1343,6 @@ struct NotificationsHubPage: View {
                     }
                 }
                 .disabled(isEnablingPush)
-            } footer: {
-                Text(pushEnabled
-                     ? "Everything you have switched on below can reach you, even when the app is closed. Turning this off silences all of it."
-                     : "Turn this on to receive anything you have switched on below, even when the app is closed.")
             }
 
             Section("Notifications") {
@@ -1333,8 +1445,6 @@ struct WalletNotificationSettingsView: View {
                     .onChange(of: settingsViewModel.settings.addressActivityNotificationsEnabled) { _ in
                         settingsViewModel.saveSettings()
                     }
-            } footer: {
-                Text("Notify when any of your spending addresses receives Kaspa from an external source. Transfers between your own addresses are ignored.")
             }
         }
         .navigationTitle("Wallet")
@@ -1363,14 +1473,6 @@ struct NotificationsSettingsView: View {
                     }
             } header: {
                 Text("Sound & Vibration")
-            } footer: {
-                Text("Used when a contact has no custom notification mode set.")
-            }
-
-            Section("Per Contact") {
-                Text("Set per-contact notification mode in each chat's info screen: Off, No Sound, or Sound.")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
             }
         }
         .toast(message: toastMessage, style: toastStyle)
@@ -1839,8 +1941,6 @@ struct KaspaExplorerSettingsView: View {
                 }
             } header: {
                 Text("Explorer")
-            } footer: {
-                Text("Used to build \"view transaction\" links throughout the app.")
             }
         }
         .navigationTitle("Kaspa Explorer")
@@ -1913,8 +2013,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text("Message Indexer")
-        } footer: {
-            Text("Message indexer service for chat functionality")
         }
 
         Section {
@@ -1931,8 +2029,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text("Push Registration")
-        } footer: {
-            Text("Used only for push registration and updates")
         }
 
     }
@@ -1971,8 +2067,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text("Kaspa Node")
-        } footer: {
-            Text("Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here.")
         }
 
         Section {
@@ -2047,8 +2141,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text("IP Address Book")
-        } footer: {
-            Text("Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above.")
         }
     }
 
@@ -2072,8 +2164,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text(".kachat Names")
-        } footer: {
-            Text("Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address.")
         }
         // The other name services this app reads (see `NameServicesClient`). Shown, not
         // editable. The .kas URL had no empty-string fallback, so saving it blank wrote "" and
@@ -2102,8 +2192,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text("Other Domains")
-        } footer: {
-            Text("Looked up after .kachat, and listed under Other domains when a typed name also exists there.")
         }
     }
 
@@ -2123,8 +2211,6 @@ struct ConnectionSettingsView: View {
             }
         } header: {
             Text("Kaspa Explorer API")
-        } footer: {
-            Text("REST API for transaction history and balance lookups")
         }
 
     }
@@ -2401,8 +2487,6 @@ struct KaspaNodeQuickAccessSections: View {
             }
         } header: {
             Text("Kaspa Node")
-        } footer: {
-            Text("Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Manage saved addresses in Settings > Connection Settings > IP Address Book.")
         }
     }
 
@@ -2841,8 +2925,6 @@ struct ConnectionStatusDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-        } footer: {
-            Text("Tap a node to copy host:port.")
         }
 
         // All Nodes Section
@@ -2877,8 +2959,6 @@ struct ConnectionStatusDetailView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-        } footer: {
-            Text("All discovered nodes sorted by state and latency. Nodes are deduplicated by host:port.")
         }
         }
     }
@@ -3358,8 +3438,6 @@ struct NextcloudSettingsView: View {
             Form {
                 Section {
                     Label("Nextcloud is off while Testnet is on.", systemImage: "icloud.slash")
-                } footer: {
-                    Text("Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was.")
                 }
             }
         } else {
@@ -3404,14 +3482,6 @@ struct NextcloudSettingsView: View {
                                 .truncationMode(.head)
                         }
                     }
-                } footer: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("\"File\" in a chat's + menu opens this folder first.")
-                        // The old "Send Media via Nextcloud" switch is gone: Camera, Photo and Voice
-                        // Message in a chat's + menu ask on chain or via Nextcloud every time. What
-                        // that choice means for privacy still belongs here.
-                        Text("In a chat's + menu, Camera, Photo and Voice Message ask whether to send on chain or via Nextcloud. Via Nextcloud, the file uploads in full quality to this server's \(NextcloudService.mediaFolderPath) folder and the chat carries a share link (voice messages up to 5 minutes). The message with the link stays end-to-end encrypted, but the file itself is stored unencrypted on your server and is reachable by anyone who has the unguessable link.")
-                    }
                 }
                 Section {
                     // Custom binding: the setter must go through setAutoSyncEnabled so the
@@ -3420,10 +3490,6 @@ struct NextcloudSettingsView: View {
                         get: { service.autoBackupEnabled },
                         set: { service.setAutoSyncEnabled($0) }
                     ))
-
-                    Text("Automatic sync works with one cloud service at a time.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
 
                     if let lastSynced = service.lastAutoSyncAt {
                         HStack {
@@ -3497,19 +3563,12 @@ struct NextcloudSettingsView: View {
                     }
                 } header: {
                     Text("Message Backup")
-                } footer: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Keeps your chat history in \(NextcloudService.backupFileName) in the folder above (choosing All Files resets to the default \(NextcloudService.backupFolderName) folder). Automatic Sync keeps your devices in near-live sync: new messages upload moments after they arrive, and while the app is open it also watches the server and quietly pulls in what your other devices upload, fastest while you are in a chat. A wallet that connects to an existing backup restores it once automatically. Every upload merges with what is already on the server, so no device can erase another's history. Restoring merges the archive into this device's history. Your contacts also sync with KaPay on the same account, through KaPay's contacts file in the KaChat folder. That file isn't encrypted, unlike your chat history.")
-                        Text("Your contacts are in the same backup and sync between your devices the same way.")
-                    }
                 }
 
                 Section {
                     Button("Disconnect", role: .destructive) {
                         showDisconnectConfirm = true
                     }
-                } footer: {
-                    Text("Disconnecting removes the stored app password from this device. Nothing changes on your Nextcloud server.")
                 }
             } else {
                 Section {
@@ -3531,8 +3590,6 @@ struct NextcloudSettingsView: View {
                     RevealableSecureField("App password", text: $appPasswordInput)
                 } header: {
                     Text("Server")
-                } footer: {
-                    Text("Create an app password in Nextcloud under Settings → Security → Devices & sessions — don't use your account password. KaChat stores it in the device Keychain.")
                 }
 
                 if let errorMessage {
@@ -4070,8 +4127,6 @@ struct ResyncChatPickerView: View {
                             ForEach(conversations) { conversation in
                                 row(for: conversation)
                             }
-                        } footer: {
-                            Text("Only the selected chats have their incoming messages wiped and re-synced. Sent messages and all other chats are untouched.")
                         }
                     }
                 }
@@ -4194,8 +4249,6 @@ struct CacheSettingsPage: View {
                             .monospacedDigit()
                     }
                 }
-            } footer: {
-                Text("Everything here is downloaded or generated again when it is needed, so clearing it costs a little data and nothing else.")
             }
 
             Section("What's Cached") {

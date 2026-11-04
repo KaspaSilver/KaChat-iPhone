@@ -597,6 +597,7 @@
 "Version" = "Versi";
 "Vibration" = "Getaran";
 "View Profile" = "Lihat Profil";
+"Back Up Account" = "Cadangkan Akun";
 "View Seed Phrase" = "Lihat Frasa Pemulihan";
 "View in Explorer" = "Lihat di Penjelajah";
 "Voice message" = "Pesan suara";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "Hapus %@ dari kontakmu?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Simpan alamat Kaspa yang kamu pakai dengan nama yang mudah dikenali. Alamat tetap di KaChat, hanya untuk dompet ini, dan tidak pernah masuk ke app Kontak di ponselmu.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Disimpan di KaChat hanya untuk dompet ini. Tidak pernah ditambahkan ke app Kontak di ponselmu.";
+"This is a fresh address, never used before." = "Ini alamat baru yang belum pernah digunakan.";
+"Use for chatting and acquiring .kachat domains." = "Gunakan untuk mengobrol dan mendapatkan domain .kachat.";
+"Think of it like your phone number on KaChat." = "Anggap saja ini nomor telepon Anda di KaChat.";
+"How People Reach You" = "Cara orang menghubungi Anda";
+"Share this address and people can message you. Only you can read what they send." = "Bagikan alamat ini agar orang bisa mengirim pesan kepada Anda. Hanya Anda yang bisa membaca isinya.";
+"Paying for Messages" = "Membayar pesan";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Setiap pesan yang Anda kirim memakai sedikit sekali Kaspa dari alamat ini. 1 Kaspa cukup untuk sekitar 500 pesan.";
+"What Others Can See" = "Yang bisa dilihat orang lain";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Siapa pun bisa melihat alamat ini dan saldonya di jaringan Kaspa, tetapi tidak bisa membaca pesan Anda. Gunakan hanya untuk mengobrol dan domain .kachat.";
+"Say anything to the bot to get started." = "Katakan apa saja ke bot untuk memulai.";

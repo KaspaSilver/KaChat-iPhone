@@ -597,6 +597,7 @@
 "Version" = "Sürüm";
 "Vibration" = "Titreşim";
 "View Profile" = "Profili Goruntule";
+"Back Up Account" = "Hesabı Yedekle";
 "View Seed Phrase" = "Seed Phrase Görüntüle";
 "View in Explorer" = "Kesif Motorunda Goruntule";
 "Voice message" = "Sesli mesaj";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "%@ kişilerinden silinsin mi?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Kullandığın Kaspa adreslerini tanıyacağın bir adla kaydet. KaChat'te, yalnızca bu cüzdan için kalırlar ve telefonunun Kişiler uygulamasına asla girmezler.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Yalnızca bu cüzdan için KaChat'te kaydedilir. Telefonunun Kişiler uygulamasına asla eklenmez.";
+"This is a fresh address, never used before." = "Bu, daha önce hiç kullanılmamış yeni bir adres.";
+"Use for chatting and acquiring .kachat domains." = "Sohbet etmek ve .kachat alan adları edinmek için kullanın.";
+"Think of it like your phone number on KaChat." = "Bunu KaChat'teki telefon numaran gibi düşün.";
+"How People Reach You" = "Sana nasıl ulaşılır";
+"Share this address and people can message you. Only you can read what they send." = "Bu adresi paylaş, sana mesaj gönderebilsinler. Gönderilenleri yalnızca sen okuyabilirsin.";
+"Paying for Messages" = "Mesajların ödemesi";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Gönderdiğin her mesaj bu adresten çok küçük bir miktar Kaspa alır. 1 Kaspa yaklaşık 500 mesaja yeter.";
+"What Others Can See" = "Başkaları neyi görebilir";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Bu adresi ve bakiyesini Kaspa ağında herkes görebilir ama mesajlarını okuyamaz. Yalnızca sohbet ve .kachat alan adları için kullan.";
+"Say anything to the bot to get started." = "Başlamak için bota herhangi bir şey yaz.";

@@ -598,6 +598,7 @@
 "Version" = "Version";
 "Vibration" = "Vibration";
 "View Profile" = "Voir le profil";
+"Back Up Account" = "Sauvegarder le compte";
 "View Seed Phrase" = "Voir la seed phrase";
 "View in Explorer" = "Voir dans l'explorateur";
 "Voice message" = "Message vocal";
@@ -1555,3 +1556,13 @@
 "Delete %@ from your contacts?" = "Supprimer %@ de vos contacts ?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "Enregistrez les adresses Kaspa que vous utilisez avec un nom que vous reconnaîtrez. Elles restent dans KaChat, pour ce portefeuille uniquement, et ne vont jamais dans l'app Contacts de votre téléphone.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "Enregistré dans KaChat pour ce portefeuille uniquement. Jamais ajouté à l'app Contacts de votre téléphone.";
+"This is a fresh address, never used before." = "Cette adresse est nouvelle et n'a jamais été utilisée.";
+"Use for chatting and acquiring .kachat domains." = "À utiliser pour discuter et acquérir des domaines .kachat.";
+"Think of it like your phone number on KaChat." = "Voyez-la comme votre numéro de téléphone sur KaChat.";
+"How People Reach You" = "Comment vous joindre";
+"Share this address and people can message you. Only you can read what they send." = "Partagez cette adresse pour qu'on puisse vous écrire. Vous seul pouvez lire ce qu'on vous envoie.";
+"Paying for Messages" = "Payer les messages";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "Chaque message envoyé prélève une infime quantité de Kaspa sur cette adresse. 1 Kaspa couvre environ 500 messages.";
+"What Others Can See" = "Ce que les autres voient";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Tout le monde peut voir cette adresse et son solde sur le réseau Kaspa, mais personne ne peut lire vos messages. Utilisez-la uniquement pour discuter et pour les domaines .kachat.";
+"Say anything to the bot to get started." = "Dites n'importe quoi au bot pour commencer.";

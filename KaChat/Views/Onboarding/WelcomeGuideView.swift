@@ -45,9 +45,8 @@ struct WelcomeGuideView: View {
         case fees
         case funding
         case nodeConnection
-        case addressExplainer
         /// The guide's final step.
-        case chatting
+        case addressExplainer
     }
 
     private enum NodeChoice: Equatable {
@@ -144,15 +143,6 @@ struct WelcomeGuideView: View {
 
         case .addressExplainer:
             addressExplainerStep
-
-        case .chatting:
-            scaffold(
-                icon: "bubble.left.and.bubble.right.fill",
-                title: "Starting a Conversation",
-                body: "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too.",
-                buttonTitle: "Finish",
-                extra: { EmptyView() }
-            ) { finishGuide() }
         }
     }
 
@@ -587,33 +577,37 @@ struct WelcomeGuideView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
 
-                    // Profile: Receive Kaspa, the Chatting Address QR and Manage Addresses.
-                    Image("AddressTypesExplainer")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: 340)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .accessibilityHidden(true)
+                    Text("Think of it like your phone number on KaChat.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
 
                     VStack(spacing: 12) {
                         addressMockRow(
                             icon: "bubble.left.and.bubble.right.fill",
-                            title: "Chatting Address",
+                            title: "How People Reach You",
                             address: chattingAddress,
-                            caption: "Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you."
+                            caption: "Share this address and people can message you. Only you can read what they send."
                         )
                         addressMockRow(
-                            icon: "lock.shield.fill",
-                            title: "Everything Else",
+                            icon: "paperplane.fill",
+                            title: "Paying for Messages",
                             address: "",
-                            caption: "To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all."
+                            caption: "Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages."
+                        )
+                        addressMockRow(
+                            icon: "eye.fill",
+                            title: "What Others Can See",
+                            address: "",
+                            caption: "Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains."
                         )
                     }
                     .padding(.horizontal, 24)
                 }
                 .padding(.vertical, 24)
             }
-            guideBottomBar { step = .chatting }
+            guideBottomBar(title: "Finish") { finishGuide() }
         }
     }
 

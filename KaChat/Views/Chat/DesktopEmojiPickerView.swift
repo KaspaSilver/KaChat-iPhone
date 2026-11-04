@@ -1,5 +1,32 @@
 import SwiftUI
 
+/// The emoji button inside a chat's message field. The sheet stays up so several can be picked in
+/// a row; each lands in the message as it's tapped.
+struct ComposerEmojiButton: View {
+    let onSelect: (String) -> Void
+
+    @State private var showPicker = false
+
+    var body: some View {
+        Button {
+            showPicker = true
+        } label: {
+            Image(systemName: "face.smiling")
+                .font(.scaled(size: 20))
+                .foregroundColor(.secondary)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Emoji picker"))
+        .sheet(isPresented: $showPicker) {
+            DesktopEmojiPickerView(onSelect: onSelect)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
 struct DesktopEmojiPickerView: View {
     let onSelect: (String) -> Void
 

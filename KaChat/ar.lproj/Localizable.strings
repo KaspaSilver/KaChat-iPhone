@@ -597,6 +597,7 @@
 "Version" = "الإصدار";
 "Vibration" = "الاهتزاز";
 "View Profile" = "عرض الملف الشخصي";
+"Back Up Account" = "نسخ الحساب احتياطيًا";
 "View Seed Phrase" = "عرض Seed Phrase";
 "View in Explorer" = "عرض في المستكشف";
 "Voice message" = "رسالة صوتية";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "حذف %@ من جهات اتصالك؟";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "احفظ عناوين كاسبا التي تستخدمها باسم تعرفه. تبقى في KaChat لهذه المحفظة فقط، ولا تدخل أبدًا تطبيق جهات الاتصال في هاتفك.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "محفوظ في KaChat لهذه المحفظة فقط. لا يُضاف أبدًا إلى تطبيق جهات الاتصال في هاتفك.";
+"This is a fresh address, never used before." = "هذا عنوان جديد لم يُستخدم من قبل.";
+"Use for chatting and acquiring .kachat domains." = "استخدمه للدردشة والحصول على نطاقات ‎.kachat.";
+"Think of it like your phone number on KaChat." = "اعتبره رقم هاتفك على KaChat.";
+"How People Reach You" = "كيف يصل إليك الآخرون";
+"Share this address and people can message you. Only you can read what they send." = "شارك هذا العنوان ليتمكن الآخرون من مراسلتك. أنت وحدك من يستطيع قراءة ما يرسلونه.";
+"Paying for Messages" = "دفع تكلفة الرسائل";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "كل رسالة ترسلها تأخذ مبلغًا ضئيلًا من Kaspa من هذا العنوان. يكفي 1 Kaspa لنحو 500 رسالة.";
+"What Others Can See" = "ما يمكن للآخرين رؤيته";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "يمكن لأي شخص رؤية هذا العنوان ورصيده على شبكة Kaspa، لكن لا يمكنه قراءة رسائلك. استخدمه للدردشة ونطاقات ‎.kachat فقط.";
+"Say anything to the bot to get started." = "قل أي شيء للبوت لتبدأ.";

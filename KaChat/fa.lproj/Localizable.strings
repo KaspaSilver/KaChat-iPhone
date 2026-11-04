@@ -597,6 +597,7 @@
 "Version" = "نسخه";
 "Vibration" = "لرزش";
 "View Profile" = "مشاهده نمایه";
+"Back Up Account" = "پشتیبان‌گیری از حساب";
 "View Seed Phrase" = "مشاهده عبارت بازیابی";
 "View in Explorer" = "مشاهده در کاوشگر";
 "Voice message" = "پیام صوتی";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "%@ از مخاطبان شما حذف شود؟";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "نشانی‌های کاسپا که استفاده می‌کنید را با نامی آشنا ذخیره کنید. فقط برای این کیف پول در KaChat می‌مانند و هرگز وارد برنامهٔ مخاطبان گوشی نمی‌شوند.";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "فقط برای این کیف پول در KaChat ذخیره می‌شود. هرگز به برنامهٔ مخاطبان گوشی اضافه نمی‌شود.";
+"This is a fresh address, never used before." = "این یک آدرس تازه است که قبلاً استفاده نشده.";
+"Use for chatting and acquiring .kachat domains." = "برای گفتگو و دریافت دامنه‌های ‎.kachat استفاده کنید.";
+"Think of it like your phone number on KaChat." = "آن را مثل شماره تلفن خود در KaChat در نظر بگیرید.";
+"How People Reach You" = "چطور به شما پیام می‌دهند";
+"Share this address and people can message you. Only you can read what they send." = "این آدرس را به اشتراک بگذارید تا بتوانند به شما پیام بدهند. فقط شما می‌توانید پیام‌ها را بخوانید.";
+"Paying for Messages" = "هزینه پیام‌ها";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "هر پیامی که می‌فرستید مقدار بسیار کمی Kaspa از این آدرس برمی‌دارد. ۱ Kaspa برای حدود ۵۰۰ پیام کافی است.";
+"What Others Can See" = "دیگران چه می‌بینند";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "همه می‌توانند این آدرس و موجودی آن را در شبکه Kaspa ببینند، اما نمی‌توانند پیام‌های شما را بخوانند. فقط برای گفتگو و دامنه‌های ‎.kachat از آن استفاده کنید.";
+"Say anything to the bot to get started." = "برای شروع هر چیزی به ربات بگویید.";

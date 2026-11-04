@@ -597,6 +597,7 @@
 "Version" = "संस्करण";
 "Vibration" = "कंपन";
 "View Profile" = "प्रोफ़ाइल देखें";
+"Back Up Account" = "खाते का बैकअप लें";
 "View Seed Phrase" = "Seed Phrase देखें";
 "View in Explorer" = "एक्सप्लोरर में देखें";
 "Voice message" = "वॉइस संदेश";
@@ -1554,3 +1555,13 @@
 "Delete %@ from your contacts?" = "%@ को अपने संपर्कों से हटाएँ?";
 "Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts app." = "जिन Kaspa पतों का आप इस्तेमाल करते हैं, उन्हें पहचानने लायक नाम से सहेजें। ये KaChat में सिर्फ़ इस वॉलेट के लिए रहते हैं और कभी आपके फ़ोन के संपर्क ऐप में नहीं जाते।";
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts app." = "सिर्फ़ इस वॉलेट के लिए KaChat में सहेजा गया। कभी आपके फ़ोन के संपर्क ऐप में नहीं जोड़ा जाता।";
+"This is a fresh address, never used before." = "यह एक नया पता है, जिसका पहले कभी उपयोग नहीं हुआ।";
+"Use for chatting and acquiring .kachat domains." = "चैट करने और .kachat डोमेन पाने के लिए उपयोग करें।";
+"Think of it like your phone number on KaChat." = "इसे KaChat पर अपने फ़ोन नंबर की तरह समझें।";
+"How People Reach You" = "लोग आप तक कैसे पहुँचते हैं";
+"Share this address and people can message you. Only you can read what they send." = "यह पता साझा करें और लोग आपको संदेश भेज सकेंगे। उनका भेजा हुआ केवल आप पढ़ सकते हैं।";
+"Paying for Messages" = "संदेशों का भुगतान";
+"Each message you send takes a tiny amount of Kaspa from this address. 1 Kaspa covers about 500 messages." = "आपके हर संदेश पर इस पते से बहुत थोड़ा Kaspa लगता है। 1 Kaspa से लगभग 500 संदेश भेजे जा सकते हैं।";
+"What Others Can See" = "दूसरे क्या देख सकते हैं";
+"Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Kaspa नेटवर्क पर कोई भी यह पता और इसका बैलेंस देख सकता है, लेकिन आपके संदेश नहीं पढ़ सकता। इसका उपयोग केवल चैट और .kachat डोमेन के लिए करें।";
+"Say anything to the bot to get started." = "शुरू करने के लिए बॉट से कुछ भी कहें।";

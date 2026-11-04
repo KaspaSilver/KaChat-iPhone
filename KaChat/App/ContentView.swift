@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var walletManager: WalletManager
     /// Bumped on every sign-out, so the next account gets new tabs. Without it SwiftUI brought the
-    /// old tabs back as they were: on Settings (where Log Out is), without an onAppear to start
+    /// old tabs back as they were: on Profile (where Log Out is), without an onAppear to start
     /// polling for the new account.
     @State private var signInSession = 0
 

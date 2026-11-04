@@ -94,10 +94,10 @@ struct SpendingAddressEntry: Identifiable, Equatable, Codable {
     /// A quantum-safe (KIP-22) slot: public index `WalletManager.quantumIndexBase + n`. Computed,
     /// so cached entry lists from before the upgrade decode unchanged.
     var isQuantum: Bool { index >= WalletManager.quantumIndexBase }
-    /// The row's number on its own chain, both named "Address #n" (quantum numbering starts at
-    /// 0 again; the shield is what tells the chains apart).
+    /// The row's number on its own chain, both named "Address #n" (see
+    /// `WalletManager.addressNumber`; the shield is what tells the chains apart).
     var displayTitle: String {
-        "Address #\(isQuantum ? index - WalletManager.quantumIndexBase : index)"
+        "Address #\(WalletManager.addressNumber(forIndex: index))"
     }
     /// Whether this address is hidden from the main Manage Addresses list. Enforced
     /// server-side (WalletManager.setSpendingAddressHidden refuses to hide the primary
@@ -169,20 +169,6 @@ enum ContactNotificationMode: String, Codable, CaseIterable {
     }
 }
 
-enum PhotoAutoDisplayMode: String, Codable, CaseIterable {
-    case automatic
-    case alwaysShow
-    case alwaysHide
-
-    var displayName: String {
-        switch self {
-        case .automatic: return String(localized: "Automatic")
-        case .alwaysShow: return String(localized: "Always Show")
-        case .alwaysHide: return String(localized: "Always Hide")
-        }
-    }
-}
-
 struct Contact: Codable, Identifiable, Equatable, Hashable {
     let id: UUID
     var address: String
@@ -192,13 +178,15 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
     var isAutoAdded: Bool
     var notificationModeOverride: ContactNotificationMode?
     var hasSentOutgoingMessage: Bool
-    var photoAutoDisplayOverride: PhotoAutoDisplayMode?
+    /// When photos from this person start to show (`ContactsManager.photosUnlockDate`). Kept once
+    /// known, so trimming old messages can't hide their photos again.
+    var photosUnlockDate: Date?
     /// The name of the phone contact this contact was linked to before KaChat stopped using the
     /// phone's Contacts (2026-10-08). Read from old data only, never written back: the Address
     /// Book migration (`AddressBookManager.migrateLinkedNames`) moves it into the Address Book.
     var legacyLinkedName: String?
     /// True once you have allowed calls with this contact - the prompt behind the call button
-    /// ("Enable calls and video calls with X?") or Chat Info's switch. Off by default: nobody
+    /// ("Enable calls and video calls with X?"). Off by default: nobody
     /// can ring you, or ask your Nextcloud to host a call, until you say so for them.
     var callsEnabled: Bool?
     /// A base64 JPEG photo carried in the cross-platform backup, shown as an avatar
@@ -216,7 +204,7 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
         isAutoAdded: Bool = false,
         notificationModeOverride: ContactNotificationMode? = nil,
         hasSentOutgoingMessage: Bool = false,
-        photoAutoDisplayOverride: PhotoAutoDisplayMode? = nil,
+        photosUnlockDate: Date? = nil,
         backupPhoto: String? = nil
     ) {
         self.id = id
@@ -227,7 +215,7 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
         self.isAutoAdded = isAutoAdded
         self.notificationModeOverride = notificationModeOverride
         self.hasSentOutgoingMessage = hasSentOutgoingMessage
-        self.photoAutoDisplayOverride = photoAutoDisplayOverride
+        self.photosUnlockDate = photosUnlockDate
         self.backupPhoto = backupPhoto
     }
 
@@ -241,7 +229,7 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
         case notificationModeOverride
         case notificationsMuted // Legacy key migrated into notificationModeOverride
         case hasSentOutgoingMessage
-        case photoAutoDisplayOverride
+        case photosUnlockDate
         // Legacy phone-contact link, decoded once for the Address Book migration, never encoded.
         case systemContactId
         case systemDisplayNameSnapshot
@@ -265,7 +253,7 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
             notificationModeOverride = legacyMuted ? .off : nil
         }
         hasSentOutgoingMessage = try container.decodeIfPresent(Bool.self, forKey: .hasSentOutgoingMessage) ?? false
-        photoAutoDisplayOverride = try container.decodeIfPresent(PhotoAutoDisplayMode.self, forKey: .photoAutoDisplayOverride)
+        photosUnlockDate = try container.decodeIfPresent(Date.self, forKey: .photosUnlockDate)
         if (try? container.decodeIfPresent(String.self, forKey: .systemContactId)) != nil,
            let linked = (try? container.decodeIfPresent(String.self, forKey: .systemDisplayNameSnapshot)) ?? nil,
            !linked.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -285,7 +273,7 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
         try container.encode(isAutoAdded, forKey: .isAutoAdded)
         try container.encodeIfPresent(notificationModeOverride, forKey: .notificationModeOverride)
         try container.encode(hasSentOutgoingMessage, forKey: .hasSentOutgoingMessage)
-        try container.encodeIfPresent(photoAutoDisplayOverride, forKey: .photoAutoDisplayOverride)
+        try container.encodeIfPresent(photosUnlockDate, forKey: .photosUnlockDate)
         try container.encodeIfPresent(backupPhoto, forKey: .backupPhoto)
         try container.encodeIfPresent(callsEnabled, forKey: .callsEnabled)
     }
@@ -2021,8 +2009,6 @@ enum AppCurrency: String, Codable, CaseIterable {
 /// Chats on a notification tap) never depends on position.
 enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     case chats
-    /// Group Chats, their own screen again since 2026-10-26 (they were circles above the chats).
-    case groupChats
     /// Address Book (2026-10-08): saved Kaspa addresses with names, per wallet, kept in KaChat.
     case addressBook
     case profile
@@ -2034,7 +2020,6 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var label: String {
         switch self {
         case .chats: return "Chats"
-        case .groupChats: return "Groups"
         // "Contacts" (owner's call, 2026-10-28; "Addresses" before, as in the KaChat wallet app).
         case .addressBook: return "Contacts"
         case .profile: return "Profile"
@@ -2045,7 +2030,6 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var icon: String {
         switch self {
         case .chats: return "bubble.left.and.bubble.right"
-        case .groupChats: return "person.3"
         case .addressBook: return "person.text.rectangle"
         case .profile: return "person.crop.circle"
         case .settings: return "gearshape"
@@ -2058,12 +2042,11 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
         case .profile: return 2
         case .addressBook: return 14
         case .settings: return 16
-        case .groupChats: return 17
         }
     }
 
     /// What the dock renders, in order.
-    static let dock: [AppTab] = [.addressBook, .groupChats, .chats, .profile, .settings]
+    static let dock: [AppTab] = [.addressBook, .chats, .profile, .settings]
 }
 
 /// Block explorer used for "view transaction" links, matching Android's KaspaExplorer enum.
@@ -2186,7 +2169,6 @@ struct AppSettings: Codable {
     var addressActivityNotificationsEnabled: Bool
     var messagePollInterval: TimeInterval
     var liveUpdatesEnabled: Bool
-    var requirePhotoApprovalForNewContacts: Bool
     /// Chats > Higher quality photos: on-chain photos use the largest size one transaction
     /// carries (`ImagePrep.highQualityChatTargetBytes`) instead of the default, for a higher fee.
     var higherQualityPhotos: Bool
@@ -2381,7 +2363,6 @@ struct AppSettings: Codable {
             addressActivityNotificationsEnabled: true,
             messagePollInterval: 10.0,
             liveUpdatesEnabled: false,
-            requirePhotoApprovalForNewContacts: true,
             showFeeEstimate: true,
             quickReactionEmojis: defaultQuickReactionEmojis,
             appearance: .system,
@@ -2416,7 +2397,6 @@ struct AppSettings: Codable {
         case addressActivityNotificationsEnabled
         case messagePollInterval
         case liveUpdatesEnabled
-        case requirePhotoApprovalForNewContacts
         case higherQualityPhotos
         case showFeeEstimate
         case quickReactionEmojis
@@ -2461,7 +2441,6 @@ struct AppSettings: Codable {
         addressActivityNotificationsEnabled: Bool = true,
         messagePollInterval: TimeInterval,
         liveUpdatesEnabled: Bool,
-        requirePhotoApprovalForNewContacts: Bool = true,
         higherQualityPhotos: Bool = false,
         showFeeEstimate: Bool = true,
         quickReactionEmojis: [String]? = nil,
@@ -2495,7 +2474,6 @@ struct AppSettings: Codable {
         self.addressActivityNotificationsEnabled = addressActivityNotificationsEnabled
         self.messagePollInterval = messagePollInterval
         self.liveUpdatesEnabled = liveUpdatesEnabled
-        self.requirePhotoApprovalForNewContacts = requirePhotoApprovalForNewContacts
         self.higherQualityPhotos = higherQualityPhotos
         self.showFeeEstimate = showFeeEstimate
         self.quickReactionEmojis = quickReactionEmojis
@@ -2557,7 +2535,6 @@ struct AppSettings: Codable {
         // appearing for the first time must not silently mute anything.
         messagePollInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .messagePollInterval) ?? 10.0
         liveUpdatesEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveUpdatesEnabled) ?? false
-        requirePhotoApprovalForNewContacts = try container.decodeIfPresent(Bool.self, forKey: .requirePhotoApprovalForNewContacts) ?? true
         higherQualityPhotos = try container.decodeIfPresent(Bool.self, forKey: .higherQualityPhotos) ?? false
         showFeeEstimate = try container.decodeIfPresent(Bool.self, forKey: .showFeeEstimate) ?? true
         quickReactionEmojis = try container.decodeIfPresent([String].self, forKey: .quickReactionEmojis)
@@ -2646,7 +2623,6 @@ struct AppSettings: Codable {
         try container.encode(addressActivityNotificationsEnabled, forKey: .addressActivityNotificationsEnabled)
         try container.encode(messagePollInterval, forKey: .messagePollInterval)
         try container.encode(liveUpdatesEnabled, forKey: .liveUpdatesEnabled)
-        try container.encode(requirePhotoApprovalForNewContacts, forKey: .requirePhotoApprovalForNewContacts)
         try container.encode(higherQualityPhotos, forKey: .higherQualityPhotos)
         try container.encode(showFeeEstimate, forKey: .showFeeEstimate)
         try container.encodeIfPresent(quickReactionEmojis, forKey: .quickReactionEmojis)

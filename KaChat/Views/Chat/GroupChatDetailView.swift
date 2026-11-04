@@ -1116,11 +1116,13 @@ struct GroupChatDetailView: View {
 
     // MARK: - Fee estimation
 
+    /// Show Fee Estimate covers text. A photo or voice message on chain costs enough more that
+    /// its fee always shows.
     private var shouldShowFeeBubble: Bool {
-        guard settingsViewModel.settings.showFeeEstimate else { return false }
-        if recorder.state == .recording || recorder.state == .encoding { return true }
-        if pendingPhotoImage != nil { return true }
-        return composerHasText
+        let setting = settingsViewModel.settings.showFeeEstimate
+        if recorder.state == .recording || recorder.state == .encoding { return setting || !voiceViaNextcloud }
+        if pendingPhotoImage != nil { return setting || !photoViaNextcloud }
+        return setting && composerHasText
     }
 
     private var feeBubble: some View {
@@ -1384,7 +1386,7 @@ struct GroupChatDetailView: View {
 
     private var textRow: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            HStack(spacing: 4) {
+            HStack(alignment: .bottom, spacing: 4) {
                 let _ = composerRevision
                 let _ = composerHeight
                 // ComposerTextView (not a plain TextField) so Cmd+V image paste works on macOS,
@@ -1410,6 +1412,9 @@ struct GroupChatDetailView: View {
                     onMentionQuery: { mentionQuery = $0 }
                 )
 
+                ComposerEmojiButton {
+                    mentionInsertionRequest = ComposerTextView.TextInsertionRequest(id: UUID(), text: $0)
+                }
             }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)

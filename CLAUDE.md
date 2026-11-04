@@ -7,16 +7,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 KaChat is a native iOS messaging and payment application built on the Kaspa blockchain. It enables encrypted peer-to-peer messaging with on-chain payments using SwiftUI.
 
 **Scope (since 2026-10-24):** KaChat is 1:1 chats and group chats, kept small enough for an App
-Store 4+ rating. The dock is a fixed five: Contacts, Groups, Chats, Profile, Settings (Chats
-in the center; no Kaspa Hub, no Customize Dock). Chats and Groups show their unread counts on
-the dock, Profile a dot for the bell (`AppTabBadge`, synced from `ChatService.updateAppBadge`). Group Chats is its own screen again since 2026-10-26
-(`GroupChatListView`: Select, its + opens New Group Chat, and group notification taps land
-there). The KaChat bots are always circles in the row above the chats. **Pin** (a chat's or
-group's swipe, or Pin to Top Row in a circle's half sheet) moves it out of its list into the circle row above it (Chats: pins
-"c:<address>" beside the bots' "b:" in `kachat_chat_circle_pins_<wallet>`; Groups: their own row,
-`kachat_group_pins_<wallet>`); while searching, pinned ones show in the results instead. Chats' +
-offers only New Chat and Fund Chatting Address; Send Kaspa, Receive Kaspa and Request Payment
-are on Profile's floating up/down-arrow button (a half sheet of tiles).
+Store 4+ rating. The dock is a fixed four: Contacts, Chats, Profile, Settings (no Kaspa Hub, no
+Customize Dock). Chats shows the unread count of its chats and groups on the dock, Profile a dot
+for the notification center (`AppTabBadge`, synced from `ChatService.updateAppBadge`). Group chats
+share the chat list with 1:1 chats, by latest activity (`ChatListView`, since 2026-11-04; group
+notification taps land there). The KaChat bots are always circles in the row above the chats. **Pin** (a chat's or
+group's swipe, or Pin to Top Row in a circle's half sheet) moves it out of the list into that circle row (pins
+"c:<address>" beside the bots' "b:" in `kachat_chat_circle_pins_<wallet>`; groups in
+`kachat_group_pins_<wallet>`); while searching, pinned ones show in the results instead. Chats'
+floating + opens a half sheet: New Chat or New Group Chat. Send Kaspa, Receive Kaspa and Request Payment
+are on Profile's floating up/down-arrow button (a half sheet of tiles). Profile's top right is
+Help; Notifications and Share Profile are cards on the page.
 Removed from the app: KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments), KaChat
 Stats, Portfolio, Cold Storage (KasSigner), Kaspa Websites, Swap, the `.kachat` market (claim, buy,
 sell, offers, name notifications), the home-screen widget and Simple Mode (with the onboarding's
@@ -351,7 +352,7 @@ chat composers' **+** sheets (1:1 and group) use the same tiles.
 
 ### List titles and search
 
-Contacts, Groups and Chats draw their title and search field themselves (`PinnedListHeader`,
+Contacts and Chats draw their title and search field themselves (`PinnedListHeader`,
 `Views/Shared/ActionSheet.swift`) above the list, so neither scrolls away; Settings uses it for its
 title alone. Not `.searchable` or a
 large title: the large title collapsed into the bar on a scroll, where the balance took its place,
@@ -372,9 +373,8 @@ Import still takes 12 or 24 words.
 Creating never shows the seed phrase: an account made here is owed a backup
 (`AccountBackupStatus`), and until the backup steps (`AccountBackupView`: why, get ready, the words
 six at a time, a check of four random words, the passphrase and its check if there is one, where
-to keep them) are finished, Profile shows `AccountBackupCard` above Manage Addresses (red once the
-account holds funds), Receive shows a reminder and the Delete Account warning leads with Back Up
-Account; deleting is never blocked. The steps never offer a copy; Settings > View Seed Phrase does
+to keep them) are finished, every main screen shows `AccountBackupBanner` under the balance (red
+once the chatting address holds funds) and the Delete Account warning leads with Back Up Account; deleting is never blocked. The steps never offer a copy; Settings > Back Up Account > View Seed Phrase does
 (a reveal lasts 20 seconds). Imported and older accounts are never owed one. Importing, by typing
 the words or from a card, or finishing the steps starts a six-month timer; when it runs out Profile shows `BackupHygieneCard` in the same place, and
 `BackupHygieneView` asks for five random words in random order on `SeedPhraseKeyboardView`, then
@@ -386,7 +386,7 @@ the timer over; closing leaves the card up.
 already has, on a Java Card loaded with [KaChat-NFC](https://github.com/KaspaSilver/KaChat-NFC) through
 Kaspa Quick Start's NFC Card page. Not cold storage: the card never generates or uses a key. The
 card commands and backup format are that repo's `docs/PROTOCOL.md`, shared across apps; change
-them there first. Settings > Back Up to NFC Card (`NFCCardBackupView`, behind the seed phrase's
+them there first. Settings > Back Up Account > Back Up to NFC Card (`NFCCardBackupView`, behind the seed phrase's
 biometric gate) only exists for an account with a BIP39 passphrase, because that passphrase is what
 protects the account: it's never written to the card. The screen scans the card, takes a 6-digit
 PIN, then saves and reads back. The PIN also derives the encryption key, so there's no separate
@@ -397,10 +397,16 @@ the backup warning, so the written phrase stays the main copy. Before an App Sto
 the NFC entitlement in `KaChat.entitlements` and `KaChatRelease.entitlements` and the NFC keys in
 `Info.plist`. The App ID needs Near Field Communication Tag Reading on.
 
-Settings' last rows are Delete Account (`DeleteAccountSheet`, the warning the sign-in screen's
-Delete also shows; `WalletManager.deleteCurrentAccount`) and Log Out. Deleting removes the account,
+Settings' last row is Delete Account (`DeleteAccountSheet`, the warning the sign-in screen's
+Delete also shows; `WalletManager.deleteCurrentAccount`), and Log Out is the last row on Profile.
+Deleting removes the account,
 its messages, contacts and the bell's notifications from this device and revokes the app password
 KaChat made on Nextcloud; the encrypted backup stays on the server.
+
+Incoming photos in a 1:1 chat have one rule and no setting (`ContactsManager.photosUnlockDate`):
+hidden until both sides have sent a message and 10 minutes have passed, with no way to reveal one
+early. While the app is open, every contact's profile is looked up again once an hour
+(`ContactsManager.startProfileRescans`).
 
 Every sign-in gets new tabs (`ContentView`'s `signInSession`, the `MainTabView` id, bumped on
 sign-out), opening on Chats; without it SwiftUI brought the last account's tabs back, on Settings

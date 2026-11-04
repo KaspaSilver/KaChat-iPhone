@@ -55,11 +55,9 @@ struct ChatDetailView: View {
     @State private var showChatInfo = false
     /// The call button in the bar, and the "can't call" toast when a start fails.
     @ObservedObject private var callService = CallService.shared
-    /// The voice-or-video half sheet behind the call button.
-    @State private var showCallOptions = false
-    /// The "Enable calls with this person?" half sheet - what the call button opens while
-    /// calls are still off for this contact (the default).
-    @State private var showEnableCalls = false
+    @State private var photosUnlockTick = 0
+    /// The call button was tapped: `CallConfirmationSheets` takes it from there.
+    @State private var callRequested = false
     /// Local-only multi-select for deleting individual messages (never the whole conversation -
     /// see `deleteConversation` for that) - toggled from the toolbar's "Select" button.
     @State private var isSelectingMessages = false
@@ -195,6 +193,7 @@ struct ChatDetailView: View {
         var messages: [ChatMessage] = []
         var displayedMessages: [ChatMessage] = []
         var timelineItems: [ChatTimelineItem] = []
+        var photosUnlockDate: Date?
     }
     @State private var derivedCache = DerivedMessagesCache()
     @State private var hasOutgoingHandshakeMessage = false
@@ -458,6 +457,7 @@ struct ChatDetailView: View {
             cache.messages = computeMessages()
             cache.displayedMessages = computeDisplayedMessages(from: cache.messages)
             cache.timelineItems = ChatTimelineLayout.items(for: cache.displayedMessages)
+            cache.photosUnlockDate = contactsManager.photosUnlockDate(for: contact.address, messages: cache.messages)
             cache.key = key
         }
         return cache
@@ -469,6 +469,33 @@ struct ChatDetailView: View {
     /// it's read on every toolbar re-render.
     private var activeChessGame: ChessGameSummary? {
         chessSummaryCache.values.first { !$0.status.isGameOver }
+    }
+
+    /// An empty bot chat, on an account with Kaspa to send a message with.
+    private var shouldShowBotPrompt: Bool {
+        KaChatBot.isBot(contact.address)
+            && hasPerformedInitialSetup
+            && (conversation?.messages.isEmpty ?? true)
+            && (walletManager.currentWallet?.balanceSompi ?? 0) > 0
+    }
+
+    private var botPrompt: some View {
+        Text("Say anything to the bot to get started.")
+            .font(.footnote.weight(.medium))
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(.regularMaterial))
+            .allowsHitTesting(false)
+    }
+
+    /// Hides incoming photos until `ContactsManager.photosUnlockDate`. The tick redraws the chat
+    /// the moment that passes with the chat open.
+    private var incomingPhotosBlocked: Bool {
+        _ = photosUnlockTick
+        guard let date = derived().photosUnlockDate else { return true }
+        return Date() < date
     }
 
     private var shouldShowTopPaginationSpinner: Bool {
@@ -739,6 +766,11 @@ struct ChatDetailView: View {
                     // Mirrors GroupChatDetailView's identical conditional anchor.
                     .defaultScrollAnchorCompat(!initialViewportPositioned || isGrowingHistoryWindow ? .bottom : .top)
                     .opacity(initialViewportPositioned ? 1 : 0)
+                    .overlay {
+                        if shouldShowBotPrompt {
+                            botPrompt
+                        }
+                    }
                     // The header rides above the list as a pinned inset, not as a toolbar item:
                     // a 64pt avatar over a name capsule is far taller than a principal item is
                     // given, which is what was drawing it clipped in the first place.
@@ -1000,18 +1032,15 @@ struct ChatDetailView: View {
             // status rather than navigation. Hidden while selecting, where the bar is Cancel/Delete.
             // The connection dot is gone from inside a chat (the chat list still has it) - the
             // one thing in the trailing slot is the call button, always there (hidden only while
-            // a call is already up). Calls are off per contact by default, so the first tap asks
+            // a call is already up, on a Message Request until it's accepted, and in a bot's chat). Calls are off per contact by default, so the first tap asks
             // "Enable calls with this person?"; once enabled it asks voice or video. A phone
             // with no Nextcloud of its own asks the contact to host the call, so either side
-            // can start one as long as one of them has Talk.
-            if !isSelectingMessages, callService.session == nil {
+            // can start one as long as one of them has Talk, which the first sheet says when
+            // this account has no Nextcloud.
+            if !isSelectingMessages, callService.session == nil, !isRequest, !KaChatBot.isBot(contact.address) {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        if callService.canCall(contact) {
-                            showCallOptions = true
-                        } else {
-                            showEnableCalls = true
-                        }
+                        callRequested = true
                     } label: {
                         Image(systemName: "phone.fill")
                             .font(.subheadline.weight(.semibold))
@@ -1086,20 +1115,11 @@ struct ChatDetailView: View {
                 avatarURL: { knsService.profileCache[$0]?.avatarURL }
             )
         }
-        .sheet(isPresented: $showCallOptions) {
-            callOptionsSheet
-                .presentationDetents([.height(250)])
-                .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $showEnableCalls, onDismiss: {
-            // Enabled from the sheet: go straight on to voice-or-video, as if the button
-            // had been tapped on an already-enabled contact.
-            if callService.canCall(contact) { showCallOptions = true }
-        }) {
-            enableCallsSheet
-                .presentationDetents([.height(300)])
-                .presentationDragIndicator(.visible)
-        }
+        .modifier(CallConfirmationSheets(
+            isRequested: $callRequested,
+            contact: $contact,
+            name: replyDisplayName(for: contact.address)
+        ))
         .sheet(isPresented: $showChatInfo) {
             ChatInfoView(contact: $contact)
                 .environmentObject(contactsManager)
@@ -1252,6 +1272,15 @@ struct ChatDetailView: View {
             // messaged, since it's always needed for our own outgoing bubbles.
             guard let myAddress, knsService.profileCache[myAddress] == nil else { return }
             _ = await knsService.fetchProfile(for: myAddress)
+        }
+        .task(id: derived().photosUnlockDate) {
+            guard let date = derived().photosUnlockDate else { return }
+            contactsManager.storePhotosUnlockDate(date, for: contact.address)
+            let wait = date.timeIntervalSinceNow
+            guard wait > 0 else { return }
+            try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            photosUnlockTick &+= 1
         }
         .task(id: contact.address) {
             guard knsService.profileCache[contact.address] == nil else { return }
@@ -1777,11 +1806,6 @@ struct ChatDetailView: View {
     /// Accept / Reject, in place of the composer while the chat is a Message Request.
     private var messageRequestBar: some View {
         VStack(spacing: 10) {
-            Text("\(contactsManager.displayName(for: contact)) wants to chat. Accept to reply - nothing is sent until you write back.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 12) {
                 Button(role: .destructive) {
                     showRejectRequestConfirm = true
@@ -2137,14 +2161,6 @@ struct ChatDetailView: View {
                 EmptyView()
             } else if inputMode == .message && pendingPhotoImage == nil && !composerHasText {
                 composerPlusMenu
-            } else if shouldShowAudioModeSwitchActions {
-                HStack(spacing: 8) {
-                    audioModeSwitchActions
-                    sendButton(
-                        tapAction: { handleSend() },
-                        isDisabled: !canSend
-                    )
-                }
             } else {
                 sendButton(
                     tapAction: { handleSend() },
@@ -2395,67 +2411,70 @@ struct ChatDetailView: View {
                     openPaymentAfterPlusSheet = true
                     showComposerPlusSheet = false
                 }
-                // Camera, Photo and Voice Message each ask on chain or via Nextcloud when a server is
-                // connected (that choice replaced the "Send Media via Nextcloud" setting), and go
-                // straight on chain when none is.
-                ActionSheetRow(
-                    title: "Camera",
-                    subtitle: "Take a photo and send it.",
-                    systemImage: "camera"
-                ) {
-                    chooseMedia(.camera)
-                }
-                ActionSheetRow(
-                    title: "Photo",
-                    subtitle: "Pick an image from your library and send it.",
-                    systemImage: "photo"
-                ) {
-                    chooseMedia(.photo)
-                }
-                ActionSheetRow(
-                    title: "Voice Message",
-                    subtitle: "Record a voice message and send it.",
-                    systemImage: "mic"
-                ) {
-                    chooseMedia(.voice)
-                }
-                if nextcloudService.isConnected {
+                // A bot only takes text and Kaspa.
+                if !KaChatBot.isBot(contact.address) {
+                    // Camera, Photo and Voice Message each ask on chain or via Nextcloud when a server is
+                    // connected (that choice replaced the "Send Media via Nextcloud" setting), and go
+                    // straight on chain when none is.
                     ActionSheetRow(
-                        title: "File",
-                        subtitle: "Send any file from your Nextcloud. It shows as a preview.",
-                        systemImage: "doc"
+                        title: "Camera",
+                        subtitle: "Take a photo and send it.",
+                        systemImage: "camera"
                     ) {
-                        showComposerPlusSheet = false
-                        DispatchQueue.main.async { showNextcloudPicker = true }
+                        chooseMedia(.camera)
                     }
-                }
-                ActionSheetRow(
-                    title: "Request Payment",
-                    subtitle: "Ask this contact for an exact amount, with what it's for.",
-                    systemImage: "doc.text"
-                ) {
-                    showComposerPlusSheet = false
-                    DispatchQueue.main.async { showPaymentRequestSheet = true }
-                }
-                ActionSheetRow(
-                    title: "Play Chess",
-                    subtitle: "Invite this contact to a game on chain.",
-                    systemImage: "checkerboard.rectangle"
-                ) {
-                    composerSheetStep = .chess
-                }
-                // Only where first contact still needs one: an indexer without inbox lookups.
-                if canSendRequestToCommunicate && !inboxSupported {
-                    // Says what already happened once a request is out, matching the dedicated
-                    // button above the composer - so a second tap reads as a deliberate re-send
-                    // rather than as the first one having done nothing.
                     ActionSheetRow(
-                        title: hasUnansweredOutgoingHandshake ? "Handshake sent - send again" : "Send Handshake",
-                        subtitle: "Asks to open an encrypted conversation.",
-                        systemImage: "hand.wave"
+                        title: "Photo",
+                        subtitle: "Pick an image from your library and send it.",
+                        systemImage: "photo"
+                    ) {
+                        chooseMedia(.photo)
+                    }
+                    ActionSheetRow(
+                        title: "Voice Message",
+                        subtitle: "Record a voice message and send it.",
+                        systemImage: "mic"
+                    ) {
+                        chooseMedia(.voice)
+                    }
+                    if nextcloudService.isConnected {
+                        ActionSheetRow(
+                            title: "File",
+                            subtitle: "Send any file from your Nextcloud. It shows as a preview.",
+                            systemImage: "doc"
+                        ) {
+                            showComposerPlusSheet = false
+                            DispatchQueue.main.async { showNextcloudPicker = true }
+                        }
+                    }
+                    ActionSheetRow(
+                        title: "Request Payment",
+                        subtitle: "Ask this contact for an exact amount, with what it's for.",
+                        systemImage: "doc.text"
                     ) {
                         showComposerPlusSheet = false
-                        sendHandshake()
+                        DispatchQueue.main.async { showPaymentRequestSheet = true }
+                    }
+                    ActionSheetRow(
+                        title: "Play Chess",
+                        subtitle: "Invite this contact to a game on chain.",
+                        systemImage: "checkerboard.rectangle"
+                    ) {
+                        composerSheetStep = .chess
+                    }
+                    // Only where first contact still needs one: an indexer without inbox lookups.
+                    if canSendRequestToCommunicate && !inboxSupported {
+                        // Says what already happened once a request is out, matching the dedicated
+                        // button above the composer - so a second tap reads as a deliberate re-send
+                        // rather than as the first one having done nothing.
+                        ActionSheetRow(
+                            title: hasUnansweredOutgoingHandshake ? "Handshake sent - send again" : "Send Handshake",
+                            subtitle: "Asks to open an encrypted conversation.",
+                            systemImage: "hand.wave"
+                        ) {
+                            showComposerPlusSheet = false
+                            sendHandshake()
+                        }
                     }
                 }
             }
@@ -2474,6 +2493,7 @@ struct ChatDetailView: View {
 
     /// Fits the tiles: pay, camera, photo, voice, request, chess, plus file and a handshake when they apply.
     private var composerPlusSheetHeight: CGFloat {
+        if KaChatBot.isBot(contact.address) { return ActionSheetTileMetrics.sheetHeight(tiles: 1) }
         var tiles = 6
         if nextcloudService.isConnected { tiles += 1 }
         if canSendRequestToCommunicate && !inboxSupported { tiles += 1 }
@@ -2508,14 +2528,6 @@ struct ChatDetailView: View {
         }
     }
 
-    private var shouldShowAudioModeSwitchActions: Bool {
-        inputMode == .audio && !hasAudioDraft
-    }
-
-    private var hasAudioDraft: Bool {
-        isRecording || isEncodingAudio || recordedAudioPreviewURL != nil || recordedAudioURL != nil
-    }
-
     /// A handshake we sent that they have not answered - no handshake back, no genuine message
     /// back. Their answer (either kind) makes the option available again.
     private var hasUnansweredOutgoingHandshake: Bool {
@@ -2546,52 +2558,6 @@ struct ChatDetailView: View {
         // address to accept it. Reachable after importing the same wallet on a second device,
         // where your own address is among the contacts.
         !isRespondingHandshake && contact.address != walletManager.currentWallet?.publicAddress
-    }
-
-    private var audioModeSwitchActions: some View {
-        HStack(spacing: 8) {
-            composerQuickActionButton(
-                title: "Send message",
-                icon: "text.bubble.fill"
-            ) {
-                switchMode(.message)
-            }
-
-            composerQuickActionButton(
-                title: LocalizedStringKey(KaspaUnit.label(AppLocalization.string("Send KAS"))),
-                icon: "KaspaLogo",
-                isAssetImage: true
-            ) {
-                switchMode(.message)
-                openPaymentSheet()
-            }
-        }
-    }
-
-    private func composerQuickActionButton(
-        title: LocalizedStringKey,
-        icon: String,
-        isAssetImage: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            Group {
-                if isAssetImage {
-                    Image(icon)
-                        .resizable()
-                        .scaledToFit()
-                        .padding(8)
-                } else {
-                    Image(systemName: icon)
-                        .font(.title3)
-                        .foregroundColor(.accentColor)
-                }
-            }
-            .frame(width: 44, height: 44)
-            .background(glassBackground(cornerRadius: 14))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(title))
     }
 
     private func sendButton(tapAction: @escaping () -> Void, isDisabled: Bool) -> some View {
@@ -2779,7 +2745,7 @@ struct ChatDetailView: View {
                     // the text view picks the new text up.
                     let _ = composerRevision
                     let _ = composerHeight
-                    HStack(spacing: 4) {
+                    HStack(alignment: .bottom, spacing: 4) {
                         ComposerTextView(
                             text: composerTextBinding,
                             isFocused: $isMessageFocused,
@@ -2803,6 +2769,12 @@ struct ChatDetailView: View {
                             onPasteImageData: handlePastedImageData
                         )
 
+                        // The Mac has its own picker button beside the field.
+                        if !EmojiInputSupport.shouldShowDesktopEmojiButton {
+                            ComposerEmojiButton {
+                                emojiInsertionRequest = ComposerTextView.TextInsertionRequest(id: UUID(), text: $0)
+                            }
+                        }
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -2815,7 +2787,8 @@ struct ChatDetailView: View {
                         Text("\(String(localized: "Recording...")) \(Int(recordingDuration))s")
                         Spacer()
                         Button {
-                            cancelRecording()
+                            // Back to texting: switching modes throws the recording away.
+                            switchMode(.message)
                         } label: {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
@@ -2825,7 +2798,8 @@ struct ChatDetailView: View {
                         Text("Encoding…")
                         Spacer()
                         Button {
-                            cancelRecording()
+                            // Back to texting: switching modes throws the recording away.
+                            switchMode(.message)
                         } label: {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
@@ -2840,7 +2814,8 @@ struct ChatDetailView: View {
                         Text("\(String(localized: "Audio ready")) • \(previewLabel)")
                         Spacer()
                         Button {
-                            cancelRecording()
+                            // Back to texting: switching modes throws the recording away.
+                            switchMode(.message)
                         } label: {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
@@ -2849,6 +2824,12 @@ struct ChatDetailView: View {
                         Text("Tap send to record")
                             .foregroundColor(.secondary)
                         Spacer()
+                        Button {
+                            switchMode(.message)
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
                     }
                 }
                 .padding(.horizontal, 12)
@@ -3933,7 +3914,7 @@ struct ChatDetailView: View {
             onJumpToReply: replyQuote != nil ? { pendingJumpToTxId = replyQuote?.replyToId } : nil,
             avatarURLString: senderAddress.flatMap { knsService.profileCache[$0]?.avatarURL },
             avatarDisplayName: replyDisplayName(for: senderAddress ?? contact.address),
-            photosBlocked: !contactsManager.shouldAutoDisplayPhotos(for: contact, settings: settingsViewModel.settings),
+            photosBlocked: incomingPhotosBlocked,
             linkPreviewsAutoLoad: contactsManager.isAcceptedContact(contact),
             chessEnvelope: chessEnvelope,
             chessSummary: chessSummary,
@@ -3990,88 +3971,6 @@ struct ChatDetailView: View {
                 }
             }
         }
-    }
-
-    /// Voice or video - the same half-sheet shape as Address Actions and the other menus.
-    /// The first tap on the call button for a contact: calls are off by default, and enabling
-    /// them is a decision about this person (they can ring you from then on, and use your
-    /// Nextcloud to host a call), so it is asked plainly before anything rings.
-    private var enableCallsSheet: some View {
-        VStack(spacing: 0) {
-            Text("Enable calls and video calls with \(replyDisplayName(for: contact.address))?")
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .padding(.top, 20)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 8)
-            Text("They will be able to call you too. You can turn this off any time in User Info.")
-                .font(.footnote)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-
-            VStack(spacing: 12) {
-                ActionSheetRow(
-                    title: "Enable calls",
-                    subtitle: "Saves this for \(replyDisplayName(for: contact.address)) and lets you call now.",
-                    systemImage: "phone.badge.checkmark"
-                ) {
-                    contact.callsEnabled = true
-                    contactsManager.updateContact(contact)
-                    SharedDataManager.syncCallContactsForIntents()
-                    showEnableCalls = false
-                    CallService.requestMediaPermissions()
-                }
-                ActionSheetRow(
-                    title: "Not now",
-                    subtitle: "Calls stay off for this contact.",
-                    systemImage: "xmark.circle",
-                    tint: .secondary
-                ) {
-                    showEnableCalls = false
-                }
-            }
-            .padding(.horizontal, 20)
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.bottom, 20)
-    }
-
-    private var callOptionsSheet: some View {
-        VStack(spacing: 0) {
-            Text("Call \(replyDisplayName(for: contact.address))")
-                .font(.headline)
-                .lineLimit(1)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
-
-            VStack(spacing: 12) {
-                ActionSheetRow(
-                    title: "Voice call",
-                    subtitle: "Rings them in KaChat; your Nextcloud carries the call.",
-                    systemImage: "phone.fill"
-                ) {
-                    showCallOptions = false
-                    callService.startCall(with: contact, video: false)
-                }
-                ActionSheetRow(
-                    title: "Video call",
-                    subtitle: "Same, with your camera on from the start.",
-                    systemImage: "video.fill"
-                ) {
-                    showCallOptions = false
-                    callService.startCall(with: contact, video: true)
-                }
-            }
-            .padding(.horizontal, 20)
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.bottom, 20)
     }
 
     private func respondToChessInvite(gameId: String, accepted: Bool) {
@@ -4228,13 +4127,17 @@ struct ChatDetailView: View {
         }
     }
 
+    /// Show Fee Estimate covers text. A photo or voice message on chain costs enough more that
+    /// its fee always shows.
     private var shouldShowFeeBubble: Bool {
-        guard settingsViewModel.settings.showFeeEstimate else { return false }
+        let setting = settingsViewModel.settings.showFeeEstimate
         switch inputMode {
         case .message:
-            return pendingPhotoImage != nil || composerHasText
+            if pendingPhotoImage != nil { return setting || !photoViaNextcloud }
+            return setting && composerHasText
         case .audio:
-            return isRecording || isEncodingAudio || recordedAudioPreviewURL != nil
+            guard isRecording || isEncodingAudio || recordedAudioPreviewURL != nil else { return false }
+            return setting || !voiceViaNextcloud
         }
     }
 

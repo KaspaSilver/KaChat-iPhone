@@ -23,8 +23,6 @@ struct ChatInfoView: View {
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
     @State private var kachatLabel: String?
     @State private var kachatProfile: KachatNames.Profile?
-    /// Rescan Profile is looking everything up again.
-    @State private var rescanning = false
 
     @State private var editedAlias: String = ""
     @State private var notificationModeOverride: ContactNotificationMode? = nil
@@ -32,10 +30,11 @@ struct ChatInfoView: View {
     @State private var activeSheet: InfoSheet?
 
     private enum InfoSheet: String, Identifiable {
-        case address, domains, kachatNames, aliases, addressBook, notifications, photos, calls, info
+        case address, domains, kachatNames, aliases, notifications
         var id: String { rawValue }
     }
-    @State private var photoAutoDisplayOverride: PhotoAutoDisplayMode? = nil
+    /// Add to Contacts, or the Contacts entry, full screen.
+    @State private var showAddressBookEditor = false
     @State private var showAvatarPreview = false
     @State private var moreInfoExpanded = false
     @State private var isBioExpanded = false
@@ -52,14 +51,8 @@ struct ChatInfoView: View {
     @FocusState private var isEditing: Bool
     private let qrContext = CIContext()
 
-    /// Describes what "Automatic" currently resolves to for this contact, so the picker
-    /// label reflects the smart default (trusted contacts show, untrusted ones hide).
-    private var automaticPhotoDisplayDescription: String {
-        guard settingsViewModel.settings.requirePhotoApprovalForNewContacts else {
-            return "Show"
-        }
-        return (!contact.isAutoAdded || contact.hasSentOutgoingMessage) ? "Show" : "Hidden"
-    }
+    /// A KaChat bot's User Info is only its name and its address: nobody to share, call or manage.
+    private var isBot: Bool { KaChatBot.isBot(contact.address) }
 
     /// Your own User Info - reached from your own profile link. Shows who you are (name, avatar,
     /// KNS profile, address, domains, share) and none of the per-contact settings, which have
@@ -174,6 +167,14 @@ struct ChatInfoView: View {
     var body: some View {
         NavigationStack {
             Form {
+                if !isBot {
+                    Section {
+                        shareButton
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
+                }
+
                 Section {
                     if let kachatBanner {
                         KNSBannerImageView(bannerURLString: kachatBanner, height: 110, cornerRadius: 10, fitsWidth: true)
@@ -278,7 +279,7 @@ struct ChatInfoView: View {
                     }
                     .padding(.vertical, 8)
 
-                    if usesKNSProfile, !knsDomains.isEmpty {
+                    if usesKNSProfile, !knsDomains.isEmpty, !isBot {
                         // Same DisclosureGroup used by the user's own Profile view's KNS card
                         // (ContactsView.knsProfileCard) - native chevron/expand behavior, teal
                         // label, LabeledContent rows with no dividers between them.
@@ -334,84 +335,73 @@ struct ChatInfoView: View {
                     }
                 }
 
-                Section {
-                    // Each section is a card that opens a half sheet. The form had grown to
-                    // seven stacked sections - a QR, a domain list, alias reveals, system
-                    // contact linking, two pickers and a stats block - which is a lot of screen
-                    // to scroll past to reach any one of them.
-                    // Straight into the 1:1 thread. This screen is also reached from a group
-                    // roster or a public chat room, where the person may be someone you have
-                    // never messaged - and the only route to them was backing out and finding
-                    // them on the chat list.
+                if isBot {
+                    addressSection
+                } else {
+                    Section {
+                        // Each section is a card that opens a half sheet. The form had grown to
+                        // seven stacked sections - a QR, a domain list, alias reveals, system
+                        // contact linking, two pickers and a stats block - which is a lot of screen
+                        // to scroll past to reach any one of them.
+                        // Straight into the 1:1 thread. This screen is also reached from a group
+                        // roster or a public chat room, where the person may be someone you have
+                        // never messaged - and the only route to them was backing out and finding
+                        // them on the chat list.
+                        if !isSelf {
+                            infoCard(
+                                "Open Chat",
+                                systemImage: "bubble.left.and.bubble.right"
+                            ) { openChatWithContact() }
+                        }
+
+                        infoCard(
+                            "Address",
+                            systemImage: "qrcode"
+                        ) { activeSheet = .address }
+
+                        // Someone's .kas names aren't shown since 5.2 (KNSService
+                        // .showsDomainNamesAsIdentity) - the card would only ever be disabled.
+                        if KNSService.showsDomainNamesAsIdentity {
+                            infoCard(
+                                "KNS Domains",
+                                systemImage: "at"
+                            ) { activeSheet = .domains }
+                            .disabled(knsDomains.isEmpty)
+                        }
+
+                        // On testnet: the address's .kachat names (its identity there, not KNS).
+                        if KachatNamesService.isEnabled {
+                            infoCard(
+                                ".kachat Names",
+                                systemImage: "at"
+                            ) { activeSheet = .kachatNames }
+                            .disabled(kachatNames.isEmpty)
+                        }
+
+                        // Per-contact settings: the chat's aliases, the Address Book entry and the
+                        // notification choice. None of them has anything to act on in your own User
+                        // Info.
+                        if !isSelf {
+                            infoCard(
+                                "Aliases",
+                                systemImage: "number"
+                            ) { activeSheet = .aliases }
+
+                            infoCard(
+                                addressBook.entry(for: contact.address) == nil ? localized("Add to Contacts") : localized("Contacts"),
+                                systemImage: addressBook.entry(for: contact.address) == nil ? "person.text.rectangle" : "person.text.rectangle.fill"
+                            ) { showAddressBookEditor = true }
+
+                            infoCard(
+                                "Notifications",
+                                systemImage: notificationModeOverride == .off ? "bell.slash" : "bell"
+                            ) { activeSheet = .notifications }
+                        }
+                    }
+
                     if !isSelf {
-                        infoCard(
-                            "Open Chat",
-                            systemImage: "bubble.left.and.bubble.right"
-                        ) { openChatWithContact() }
+                        infoSection
                     }
-
-                    infoCard(
-                        "Address",
-                        systemImage: "qrcode"
-                    ) { activeSheet = .address }
-
-                    // Someone's .kas names aren't shown since 5.2 (KNSService
-                    // .showsDomainNamesAsIdentity) - the card would only ever be disabled.
-                    if KNSService.showsDomainNamesAsIdentity {
-                        infoCard(
-                            "KNS Domains",
-                            systemImage: "at"
-                        ) { activeSheet = .domains }
-                        .disabled(knsDomains.isEmpty)
-                    }
-
-                    // On testnet: the address's .kachat names (its identity there, not KNS).
-                    if KachatNamesService.isEnabled {
-                        infoCard(
-                            ".kachat Names",
-                            systemImage: "at"
-                        ) { activeSheet = .kachatNames }
-                        .disabled(kachatNames.isEmpty)
-                    }
-
-                    // Per-contact settings: the chat's aliases, the Address Book entry,
-                    // notification/photo/call choices and message stats. None of them has
-                    // anything to act on in your own User Info.
-                    if !isSelf {
-                        infoCard(
-                            "Aliases",
-                            systemImage: "number"
-                        ) { activeSheet = .aliases }
-
-                        infoCard(
-                            addressBook.entry(for: contact.address) == nil ? localized("Add to Contacts") : localized("Contacts"),
-                            systemImage: addressBook.entry(for: contact.address) == nil ? "person.text.rectangle" : "person.text.rectangle.fill"
-                        ) { activeSheet = .addressBook }
-
-                        infoCard(
-                            "Notifications",
-                            systemImage: notificationModeOverride == .off ? "bell.slash" : "bell"
-                        ) { activeSheet = .notifications }
-
-                        infoCard(
-                            "Photos",
-                            systemImage: "photo"
-                        ) { activeSheet = .photos }
-
-                        infoCard(
-                            "Calls",
-                            systemImage: contact.callsEnabled == true ? "phone" : "phone.down"
-                        ) { activeSheet = .calls }
-
-                        infoCard(
-                            "Info",
-                            systemImage: "info.circle"
-                        ) { activeSheet = .info }
-                    }
-
-                    rescanCard
-
-                    shareCard
                 }
             }
             .toast(message: toastMessage, style: toastStyle)
@@ -421,22 +411,18 @@ struct ChatInfoView: View {
                 case .domains: domainsSheet
                 case .kachatNames: kachatNamesSheet
                 case .aliases: aliasesSheet
-                case .addressBook:
-                    AddressBookEntryEditor(
-                        address: contact.address,
-                        suggestedName: contact.assignedName ?? contactsManager.displayName(for: contact)
-                    ) { result in
-                        switch result {
-                        case .saved: showToast(localized("Saved to Contacts."))
-                        case .removed: showToast(localized("Removed from Contacts."))
-                        }
-                    }
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
                 case .notifications: notificationsSheet
-                case .photos: photosSheet
-                case .calls: callsSheet
-                case .info: infoSheet
+                }
+            }
+            .fullScreenCover(isPresented: $showAddressBookEditor) {
+                AddressBookEntryEditor(
+                    address: contact.address,
+                    suggestedName: contact.assignedName ?? contactsManager.displayName(for: contact)
+                ) { result in
+                    switch result {
+                    case .saved: showToast(localized("Saved to Contacts."))
+                    case .removed: showToast(localized("Removed from Contacts."))
+                    }
                 }
             }
             .navigationTitle("User Info")
@@ -473,7 +459,6 @@ struct ChatInfoView: View {
                 // the name you gave them, wherever you gave it (the chat or the Address Book)
                 editedAlias = contact.assignedName ?? addressBook.entry(for: contact.address)?.customName ?? ""
                 notificationModeOverride = contact.notificationModeOverride
-                photoAutoDisplayOverride = contact.photoAutoDisplayOverride
                 // Already cached? Show the domains immediately rather than a spinner.
                 if knsInfo != nil { knsDomainsLoaded = true }
             }
@@ -547,53 +532,58 @@ struct ChatInfoView: View {
     private var addressSheet: some View {
         NavigationStack {
             Form {
-                Section {
-                    Button {
-                        UIPasteboard.general.string = contact.address
-                        Haptics.success()
-                        showToast(contact.address.addressCopiedToastText)
-                    } label: {
-                        VStack(spacing: 12) {
-                            if let qrImage = makeQRCodeImage(from: contact.address) {
-                                Image(uiImage: qrImage)
-                                    .interpolation(.none)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 180, height: 180)
-                                    .padding(12)
-                                    .background(Color.white)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .stroke(Color.accentColor, lineWidth: 2)
-                                    )
-                            }
-                            Text(contact.address)
-                                .font(.system(.caption, design: .monospaced))
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.plain)
-                } header: {
-                    HStack {
-                        Text("Address")
-                        Spacer()
-                        if let url = settingsViewModel.settings.kaspaExplorer.addressURL(for: contact.address) {
-                            Link("View in Explorer", destination: url)
-                                .font(.caption)
-                                .foregroundColor(.accentColor)
-                        }
-                    }
-                }
+                addressSection
             }
             .navigationTitle("Address")
             .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    /// The QR code and full address, tap to copy, with View in Explorer.
+    private var addressSection: some View {
+        Section {
+            Button {
+                UIPasteboard.general.string = contact.address
+                Haptics.success()
+                showToast(contact.address.addressCopiedToastText)
+            } label: {
+                VStack(spacing: 12) {
+                    if let qrImage = makeQRCodeImage(from: contact.address) {
+                        Image(uiImage: qrImage)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 180, height: 180)
+                            .padding(12)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.accentColor, lineWidth: 2)
+                            )
+                    }
+                    Text(contact.address)
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
+            .buttonStyle(.plain)
+        } header: {
+            HStack {
+                Text("Address")
+                Spacer()
+                if let url = settingsViewModel.settings.kaspaExplorer.addressURL(for: contact.address) {
+                    Link("View in Explorer", destination: url)
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                }
+            }
+        }
     }
 
     /// The address's `.kachat` names (testnet), its primary one marked.
@@ -687,91 +677,37 @@ struct ChatInfoView: View {
         .presentationDragIndicator(.visible)
     }
 
-    private var photosSheet: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Picker("Photos", selection: $photoAutoDisplayOverride) {
-                        Text("Automatic (\(automaticPhotoDisplayDescription))")
-                            .tag(PhotoAutoDisplayMode?.none)
-                        Text("Always Show").tag(PhotoAutoDisplayMode?.some(.alwaysShow))
-                        Text("Always Hide").tag(PhotoAutoDisplayMode?.some(.alwaysHide))
+    private var infoSection: some View {
+        Section("Info") {
+            LabeledContent("Added") {
+                Text(contact.addedAt, style: .date)
+            }
+            if let lastMessage = contact.lastMessageAt {
+                LabeledContent("Last Message") {
+                    if Date().timeIntervalSince(lastMessage) < 86_400 {
+                        Text(lastMessage, style: .relative)
+                    } else {
+                        let days = max(1, Int(Date().timeIntervalSince(lastMessage) / 86_400))
+                        Text("\(days) day\(days == 1 ? "" : "s") ago")
                     }
-                    .pickerStyle(.menu)
                 }
             }
-            .navigationTitle("Photos")
-            .navigationBarTitleDisplayMode(.inline)
+            if let chessRecord {
+                LabeledContent("Chess Stats") {
+                    Text("\(chessRecord.wins)W - \(chessRecord.losses)L")
+                }
+            }
+            HStack {
+                StatItem(label: String(localized: "Sent"), value: messageSent)
+                Divider().frame(height: 32)
+                StatItem(label: String(localized: "Received"), value: messageReceived)
+                Divider().frame(height: 32)
+                StatItem(label: String(localized: "Total"), value: messageSent + messageReceived)
+            }
+            .padding(.vertical, 4)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
     }
 
-    /// Whether this person can ring you. Off means their call invites are ignored on this
-    /// device (they get no answer, not a decline) and the call button disappears on your side
-    /// too. Per contact, this device only.
-    private var callsSheet: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Toggle("Allow calls and video calls", isOn: Binding(
-                        get: { contact.callsEnabled == true },
-                        set: { allowed in
-                            contact.callsEnabled = allowed ? true : nil
-                            contactsManager.updateContact(contact)
-                            SharedDataManager.syncCallContactsForIntents()
-                            if allowed { CallService.requestMediaPermissions() }
-                        }
-                    ))
-                } footer: {
-                    Text("Off for everyone until you turn it on. While off, this contact cannot ring you or ask your Nextcloud to host a call. Calls run through Nextcloud Talk and stay inside KaChat - only one of you needs a Nextcloud.")
-                }
-            }
-            .navigationTitle("Calls")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-    }
-
-    private var infoSheet: some View {
-        NavigationStack {
-            Form {
-                Section("Info") {
-                    LabeledContent("Added") {
-                        Text(contact.addedAt, style: .date)
-                    }
-                    if let lastMessage = contact.lastMessageAt {
-                        LabeledContent("Last Message") {
-                            if Date().timeIntervalSince(lastMessage) < 86_400 {
-                                Text(lastMessage, style: .relative)
-                            } else {
-                                let days = max(1, Int(Date().timeIntervalSince(lastMessage) / 86_400))
-                                Text("\(days) day\(days == 1 ? "" : "s") ago")
-                            }
-                        }
-                    }
-                    if let chessRecord {
-                        LabeledContent("Chess Stats") {
-                            Text("\(chessRecord.wins)W - \(chessRecord.losses)L")
-                        }
-                    }
-                    HStack {
-                        StatItem(label: String(localized: "Sent"), value: messageSent)
-                        Divider().frame(height: 32)
-                        StatItem(label: String(localized: "Received"), value: messageReceived)
-                        Divider().frame(height: 32)
-                        StatItem(label: String(localized: "Total"), value: messageSent + messageReceived)
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-            .navigationTitle("Info")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-    }
     /// One section, as a row that opens its half sheet. Title only - the contents belong in the
     /// sheet, and a trailing value on every row turned the list back into the dense screen the
     /// cards were meant to replace.
@@ -798,83 +734,29 @@ struct ChatInfoView: View {
         .buttonStyle(.plain)
     }
 
-    /// Rescan Profile: the avatar, banner and bio looked up again now. They refresh by themselves
-    /// once every 5 days; this is for someone who just changed theirs.
-    private var rescanCard: some View {
-        Button {
-            rescanProfile()
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.clockwise")
-                    .font(.scaled(size: 16, weight: .semibold))
-                    .foregroundColor(.accentColor)
-                    .frame(width: 26)
-                Text("Rescan Profile")
-                    .foregroundColor(.primary)
-                Spacer(minLength: 8)
-                if rescanning { ProgressView().controlSize(.small) }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(rescanning)
-    }
-
-    /// The on-chain profile (which links it uses) asked for again, each link's avatar, banner and
-    /// bio looked up again, and both pictures downloaded again whatever the caches hold - so a
-    /// change shows now, here and everywhere this person appears.
-    private func rescanProfile() {
-        guard !rescanning else { return }
-        rescanning = true
-        Task { @MainActor in
-            defer { rescanning = false }
-            var pictures: [String] = []
-            if KachatNamesService.isEnabled {
-                if let identity = await kachatRegistry.refreshIdentity(address: contact.address) {
-                    kachatLabel = identity.label
-                    kachatProfile = (isSelf ? kachatRegistry.ownProfile(for: contact.address)?.profile : nil) ?? identity.profile
-                }
-                let links = kachatProfile
-                let answers = await socialImages.rescan([links?.avatar, links?.banner, links?.bio])
-                if let link = links?.avatar, let url = answers[link]?.avatar { pictures.append(url) }
-                if let link = links?.banner, let url = answers[link]?.banner { pictures.append(url) }
-            }
-            if usesKNSProfile, let info = await KNSService.shared.fetchProfile(for: contact.address, force: true) {
-                if let url = info.avatarURL { pictures.append(url) }
-                if let url = info.profile?.bannerUrl { pictures.append(url) }
-            }
-            await KNSProfileImageCacheControl.refetch(pictures)
-            Haptics.success()
-            showToast(localized("Profile rescanned."))
-        }
-    }
-
     /// Shares this person's kachat.app profile link, the same link your own Profile shares:
     /// it previews with their name and avatar, opens a chat with them in KaChat, and offers the
     /// download to anyone without the app. The link alone, no text around it.
     @ViewBuilder
-    private var shareCard: some View {
+    private var shareButton: some View {
         if let url = KaChatInternalLink.profileShareURL(for: contact.address) {
             ShareLink(
                 item: url,
                 preview: SharePreview(contactsManager.displayName(for: contact), image: Image("KaspaLogo"))
             ) {
-                HStack(spacing: 12) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.scaled(size: 16, weight: .semibold))
-                        .foregroundColor(.accentColor)
-                        .frame(width: 26)
-                    Text("Share")
-                        .foregroundColor(.primary)
-                    Spacer(minLength: 8)
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(.secondary)
-                }
-                .contentShape(Rectangle())
+                Image(systemName: "square.and.arrow.up")
+                    .font(.scaled(size: 22, weight: .semibold))
+                    .foregroundColor(.accentColor)
+                    .frame(width: 58, height: 58)
+                    .background(
+                        Circle()
+                            .fill(.regularMaterial)
+                            .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
+                    )
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("Share this profile"))
+            .frame(maxWidth: .infinity)
         }
     }
 
@@ -967,7 +849,6 @@ struct ChatInfoView: View {
             ? Contact.generateDefaultAlias(from: contact.address)
             : trimmedAlias
         updatedContact.notificationModeOverride = notificationModeOverride
-        updatedContact.photoAutoDisplayOverride = photoAutoDisplayOverride
         contactsManager.updateContact(updatedContact)
         contact = updatedContact
         // One name per person: the Address Book entry, if there is one, takes the same name - so

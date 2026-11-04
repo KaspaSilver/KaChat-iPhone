@@ -1,53 +1,60 @@
 import SwiftUI
 import UIKit
 
-/// Profile's card above Manage Addresses while an account isn't backed up. It stays until
-/// the backup steps are finished, and turns red once the account holds funds.
-struct AccountBackupCard: View {
-    let hasFunds: Bool
-    let action: () -> Void
+/// The strip under the balance on every main screen while an account isn't backed up. It stays
+/// until the backup steps are finished, and turns red once the chatting address holds funds.
+struct AccountBackupBanner: View {
+    @ObservedObject private var walletManager = WalletManager.shared
+    @ObservedObject private var backupStatus = AccountBackupStatus.shared
+    @State private var showBackup = false
 
+    private var hasFunds: Bool { (walletManager.currentWallet?.balanceSompi ?? 0) > 0 }
     private var tint: Color { hasFunds ? .red : .orange }
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 14) {
-                Image(systemName: "exclamationmark.shield.fill")
-                    .font(.scaled(size: 22, weight: .medium))
-                    .foregroundColor(tint)
-                    .frame(width: 48, height: 48)
-                    .background(Circle().fill(tint.opacity(0.15)))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Backup Your Account To Prevent Loss Of Funds")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.leading)
-                    Text(hasFunds
-                         ? "You now have funds that aren't backed up."
-                         : "If you lose this phone, your seed phrase is the only way back.")
-                        .font(.caption)
-                        .foregroundColor(hasFunds ? .red : .secondary)
-                        .multilineTextAlignment(.leading)
+        if backupStatus.isPending(walletManager.currentWallet?.publicAddress) {
+            Button {
+                AccountBackupView.unlock { showBackup = true }
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "exclamationmark.shield.fill")
+                        .font(.scaled(size: 18, weight: .medium))
+                        .foregroundColor(tint)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Backup Your Account To Prevent Loss Of Funds")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.leading)
+                        Text(hasFunds
+                             ? "You now have funds that aren't backed up."
+                             : "If you lose this phone, your seed phrase is the only way back.")
+                            .font(.caption2)
+                            .foregroundColor(hasFunds ? .red : .secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.secondary)
                 }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundColor(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .background(tint.opacity(0.12))
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(tint.opacity(0.1))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(tint.opacity(0.5), lineWidth: 1))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .contentShape(RoundedRectangle(cornerRadius: 18))
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showBackup) {
+                AccountBackupView()
+                    .environmentObject(walletManager)
+            }
         }
-        .buttonStyle(.plain)
     }
 }
 
 /// Backing up an account's seed phrase and passphrase, in plain steps: why, getting ready, the
 /// words a few at a time, proving they were written down, then where to keep them. Words are
-/// written by hand: this flow never offers a copy (Settings > View Seed Phrase does).
+/// written by hand: this flow never offers a copy (Settings > Back Up Account > View Seed Phrase does).
 struct AccountBackupView: View {
     private enum Step: Int, CaseIterable {
         case why, prepare, words, wordCheck, passphrase, passphraseCheck, tips
@@ -454,7 +461,7 @@ struct AccountBackupView: View {
                       "Store it away from your seed phrase. You need both, and losing either one loses the account.")
             }
             point("gearshape.fill", "You can see it again",
-                  "Your seed phrase stays available in Settings > View Seed Phrase.")
+                  "Your seed phrase stays available in Settings > Back Up Account.")
         }
     }
 

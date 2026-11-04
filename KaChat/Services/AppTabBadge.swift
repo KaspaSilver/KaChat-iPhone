@@ -12,8 +12,7 @@ enum AppTabBadge {
         // The whole notification feed: Profile hosts the bell that lists it.
         case .profile: return GlobalNotificationCenter.shared.unreadCount
         // Unread messages across the chats the list shows (not Message Requests or blocked).
-        case .chats: return ChatService.shared.chatListUnreadCount
-        case .groupChats: return GroupChatService.shared.totalGroupUnreadCount
+        case .chats: return ChatService.shared.chatListUnreadCount + GroupChatService.shared.totalGroupUnreadCount
         default: return 0
         }
     }
@@ -26,7 +25,7 @@ enum AppTabBadge {
     }
 
     /// What the dock shows on `tab`: Profile a red dot while the bell holds anything unread (the
-    /// bell itself is a dot, so the dock says the same thing), Chats and Groups their unread
+    /// bell itself is a dot, so the dock says the same thing), Chats their unread
     /// message count.
     static func dockLabel(for tab: AppTab) -> String? {
         let count = unreadCount(for: tab)
@@ -40,7 +39,7 @@ enum AppTabBadge {
     /// Puts every dock badge straight on the tab bar items too. SwiftUI applies a tab's `.badge`
     /// when it renders the TabView, and MainTabView deliberately doesn't re-render for new
     /// messages or bell entries, so a badge could lag until the next render; setting the UIKit
-    /// items directly makes Profile's dot and the Chats and Groups counts change the moment the
+    /// items directly makes Profile's dot and the Chats counts change the moment the
     /// counts do, from any tab.
     static func syncDockBadges(dockTabs: [AppTab]) {
         let values = dockTabs.map { dockLabel(for: $0) }

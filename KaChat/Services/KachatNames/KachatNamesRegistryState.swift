@@ -23,8 +23,6 @@ extension KachatNames {
             if nowMs < expiresAt + graceMs { return .grace }
             return .lapsed
         }
-
-        var resolves: Bool { self == .active }
     }
 
     static func nowMs() -> Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
@@ -62,20 +60,6 @@ extension KachatNames {
         func status(graceMs: Int64, nowMs: Int64 = KachatNames.nowMs()) -> Status {
             .of(expiresAt: expiresAt, graceMs: graceMs, nowMs: nowMs)
         }
-
-        // MARK: The paid period (registry v2, KACHAT_NAMES.md 4.1)
-
-        /// Whole periods `extend` can add now (0 when the period start is unknown).
-        func extendableYears(_ p: Params) -> Int64 {
-            periodStart.map { p.extendableYears(periodStart: $0, expiresAt: expiresAt) } ?? 0
-        }
-
-        /// When the renewal window opens: `expiresAt - renewWindowMs` (unix ms).
-        func renewOpens(_ p: Params) -> Int64 { p.renewOpens(expiresAt: expiresAt) }
-
-        /// The renewal window by the wall clock (what the screens show; the transaction itself
-        /// waits for the network's median time, a couple of minutes behind).
-        func renewOpen(_ p: Params, nowMs: Int64 = KachatNames.nowMs()) -> Bool { nowMs >= renewOpens(p) }
     }
 
     /// An unregistered interval `(lo, hi)` of the key space.
@@ -110,10 +94,6 @@ extension KachatNames {
 
         var id: String { "\(hex(outpoint.txid)):\(outpoint.index)" }
         var fields: OfferFields { OfferFields(key: key, buyer: buyer, seller: seller, refundAfter: refundAfter) }
-        func refundable(atDaa daa: UInt64) -> Bool { daa > UInt64(max(refundAfter, 0)) }
-        /// Made to an earlier owner of the name (registry v3): it can never be accepted and goes
-        /// back to the buyer (withdraw, or a refund once it expires).
-        func isDeclined(currentOwner: Data) -> Bool { seller != currentOwner }
     }
 
     /// One registry event (history, activity). Parties are x-only keys or addresses depending on
@@ -699,13 +679,6 @@ extension KachatNames {
             return names.first { $0.key == k }
         }
 
-        /// The gaps on either side of a registered key: `(lo, key)` and `(key, hi)`.
-        func neighbours(of key: Data) -> (below: Gap, above: Gap)? {
-            let k = hex(key)
-            guard let below = gaps.first(where: { $0.hi == k }), let above = gaps.first(where: { $0.lo == k }) else { return nil }
-            return (below, above)
-        }
-
         /// The gaps and names tile the key space exactly.
         func checkInvariants() throws {
             let sorted = gaps.sorted { $0.lo < $1.lo }
@@ -768,15 +741,6 @@ extension KachatNames {
                 out.append(("\(o.txid):\(o.index)", m.offer.script(RegistryState.info(o).fields.encoded), false))
             }
             return out
-        }
-
-        // MARK: Offers this device made
-
-        mutating func trackOffer(_ o: OfferInfo, at: Int64?) {
-            let txid = hex(o.outpoint.txid)
-            offers.removeAll { $0.txid == txid && $0.index == o.outpoint.index }
-            offers.append(Offer(txid: txid, index: o.outpoint.index, key: hex(o.key), buyer: hex(o.buyer), seller: hex(o.seller),
-                                refundAfter: o.refundAfter, value: o.amount, name: o.name, createdAt: at))
         }
 
         // MARK: Applying a transaction (registry.rs `Registry::apply`)
@@ -1101,32 +1065,6 @@ extension KachatNames {
         }
 
         struct NamesJSON: Decodable { let names: [NameJSON] }
-        struct ListingsJSON: Decodable { let listings: [NameJSON]; let next: String? }
-
-        struct EventJSON: Decodable {
-            let txId: String
-            let op: String
-            let name: String?
-            let at: Int64?
-            let from: String?
-            let to: String?
-            let price: String?
-            let years: Int64?
-
-            var event: Event { Event(txId: txId, op: op, name: name, at: at, from: from, to: to, price: price.flatMap(UInt64.init), years: years) }
-        }
-
-        struct EventsJSON: Decodable { let events: [EventJSON]; let next: String? }
-
-        /// `GET /stats/names`, the parts the app reads: transaction counts and fees (sompi as
-        /// strings), each over 24 hours, 7 days and all time.
-        struct StatsJSON: Decodable {
-            struct Counts: Decodable { let total: UInt64; let last24h: UInt64; let last7d: UInt64 }
-            struct Fees: Decodable { let total: String; let last24h: String; let last7d: String }
-            let transactions: Counts?
-            let activity: [String: Counts]?
-            let fees: Fees?
-        }
 
         struct OfferJSON: Decodable {
             let outpoint: OutpointJSON
@@ -1175,27 +1113,6 @@ extension KachatNames {
             let indexedDaa: UInt64?
             let synced: Bool?
         }
-    }
-}
-
-// MARK: - Key arithmetic for the indexer's gap lookups
-
-extension KachatNames {
-    /// `key ± 1` as a 32-byte big-endian number (nil past either end). The gap containing
-    /// `key - 1` is `(lo, key)` and the one containing `key + 1` is `(key, hi)`: the neighbours an
-    /// exit (release, reclaim) spends.
-    static func step(_ key: Data, by delta: Int) -> Data? {
-        var b = [UInt8](key)
-        guard b.count == 32, delta == 1 || delta == -1 else { return nil }
-        var i = 31
-        while i >= 0 {
-            if delta == 1 {
-                if b[i] == 0xff { b[i] = 0; i -= 1 } else { b[i] += 1; return Data(b) }
-            } else {
-                if b[i] == 0 { b[i] = 0xff; i -= 1 } else { b[i] -= 1; return Data(b) }
-            }
-        }
-        return nil
     }
 }
 

@@ -2,9 +2,7 @@ import UIKit
 
 /// How many unseen things a tab is holding, wherever that tab is drawn.
 ///
-/// One source for the dock and the Kaspa Hub grid. A tab's placement is the user's arrangement,
-/// so the same tab has to say the same thing in either place - and when a badge was computed
-/// separately at each site, moving a tab between them silently changed whether it had one.
+/// One source for the dock.
 @MainActor
 enum AppTabBadge {
     static func unreadCount(for tab: AppTab) -> Int {

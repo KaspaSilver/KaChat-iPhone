@@ -34,8 +34,7 @@
 "Always Hide" = "Всегда скрывать";
 "Always Show" = "Всегда показывать";
 "Always shown" = "Всегда показан";
-"Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "Любой, кто присоединится к каналу с этим именем, может видеть и публиковать сообщения - владельца или приглашения нет.";
-"Anyone with your seed phrase can access your account. Never share it with anyone." = "Любой, у кого есть ваша seed phrase, может получить доступ к вашему аккаунту. Никогда никому её не сообщайте.";
+"Anyone with your 12 or 24 words can access your account. Never share them with anyone." = "Любой, у кого есть ваши 12 или 24 слова, получит доступ к аккаунту. Никому их не сообщайте.";
 "Archive" = "Архивировать";
 "Archived Chats" = "Архивные чаты";
 "Asset ID" = "Идентификатор актива";
@@ -51,18 +50,12 @@
 "Balance copied to clipboard." = "Баланс скопирован в буфер обмена.";
 "Balanced" = "Сбалансированное";
 "Banner" = "Баннер";
-"Before You Swap" = "Перед обменом";
 "Best" = "Лучшее";
 "Bio" = "О себе";
-"Broadcast Settings" = "Настройки трансляции";
-"Broadcasts" = "Трансляции";
-"Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "Трансляции - это публичные незашифрованные каналы: любой, кто присоединится к каналу с тем же именем, видит те же сообщения.";
 "Camera" = "Камера";
 "Camera Access Required" = "Требуется доступ к камере";
 "Cancel" = "Отмена";
 "Change" = "Изменить";
-"ChangeNOW Exchange ID" = "ID обмена ChangeNOW";
-"Channels" = "Каналы";
 "Chat History" = "История чатов";
 "Chat Info" = "Информация о чате";
 "User Info" = "Информация о пользователе";
@@ -73,8 +66,6 @@
 "Chatting vs. Spending Address" = "Адрес для чата и адрес для трат";
 "Check Again" = "Проверить снова";
 "Checking availability..." = "Проверяем наличие...";
-"Checking eligibility..." = "Проверка доступности...";
-"Checking gift eligibility..." = "Проверка права на подарок...";
 "Checking your chatting address balance..." = "Проверка баланса вашего адреса для чата...";
 "Chess" = "Шахматы";
 "Choose Address" = "Выбрать адрес";
@@ -84,11 +75,6 @@
 "Choose Your Currency" = "Выберите валюту";
 "Choose Your Language" = "Выберите язык";
 "Choose a conversation on the left" = "Выберите разговор слева";
-"Choose which tabs appear in your bottom menu." = "Выберите, какие вкладки отображаются в нижнем меню.";
-"Claim Gift" = "Получить подарок";
-"Claim a Gift of 3 Kaspa to Get Started" = "Получите подарок 3 Kaspa, чтобы начать";
-"Claim some KAS to get started with your new account." = "Получите немного KAS, чтобы начать работу с новой учетной записью.";
-"Claiming gift..." = "Получение подарка...";
 "Clear" = "Очистить";
 "Clear Connection Pool" = "Очистить пул соединений";
 "Clear Link" = "Удалить связь";
@@ -116,14 +102,13 @@
 "Copy Link" = "Скопировать ссылку";
 "Copy Message" = "Скопировать сообщение";
 "Copy Private Key Hex" = "Скопировать приватный ключ (hex)";
-"Copy Seed Phrase" = "Скопировать seed phrase";
+"Copy 12 or 24 Words" = "Скопировать 12 или 24 слова";
 "Copy Transaction ID" = "Скопировать ID транзакции";
 "Copy to Clipboard" = "Скопировать в буфер обмена";
 "Could not encode selected image" = "Не удалось закодировать выбранное изображение";
 "Could not initialize image encoder" = "Не удалось инициализировать кодировщик изображений.";
 "Could not load selected image" = "Не удалось загрузить выбранное изображение";
 "Could not process selected image" = "Не удалось обработать выбранное изображение";
-"Couldn't Join Channel" = "Не удалось присоединиться к каналу";
 "Couldn't Rename Group" = "Не удалось переименовать группу";
 "Country" = "Страна";
 "Create Account" = "Создать аккаунт";
@@ -178,7 +163,6 @@
 "Export Chat History" = "Экспорт истории чатов";
 "Export Diagnostics Archive" = "Экспорт архива диагностики";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "Экспортирует информацию о приложении/устройстве, настройки подключения, количество локальных сообщений и последние журналы приложения в виде zip-файла - для устранения неполадок с поддержкой. Личные ключи, сид-фразы и расшифрованное содержимое сообщений не включаются.";
-"Extended Public Key" = "Расширенный публичный ключ";
 "Failed to Send" = "Не удалось отправить";
 "Failed to export diagnostics." = "Не удалось экспортировать диагностику.";
 "Failed to link system contact." = "Не удалось привязать системный контакт.";
@@ -194,18 +178,10 @@
 "Generate New Address" = "Создать новый адрес";
 "Generate New Spending Address" = "Создать новый адрес для трат";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "Создайте его ниже, чтобы отправлять платежи с адреса, отдельного от того, с которого вы общаетесь.";
-"Gift" = "Подарок";
-"Gift already claimed" = "Подарок уже получен";
-"Gift claim reset. You can request it again." = "Запрос на подарок сброшен. Вы можете запросить снова.";
-"Gift claimed" = "Подарок получен";
-"Gift claimed! Check your balance shortly." = "Подарок получен! Скоро проверьте баланс.";
-"Gift sent to your wallet!" = "Подарок отправлен на ваш кошелек!";
-"Gift unavailable" = "Подарок недоступен";
 "Give this address a label to help you recognize it." = "Дайте этому адресу метку, чтобы его было легче узнать.";
 "Group Info" = "Информация о группе";
 "Group Name" = "Название группы";
 "Hidden Addresses" = "Скрытые адреса";
-"Hidden Broadcast Room Users" = "Скрытые пользователи комнаты трансляции";
 "Hidden Users" = "Скрытые пользователи";
 "Hide" = "Скрыть";
 "Hide User" = "Скрыть пользователя";
@@ -217,14 +193,12 @@
 "I already have a domain somewhere else" = "У меня уже есть домен в другом месте";
 "I have written down my seed phrase and stored it securely" = "Я записал(а) свою seed phrase и сохранил(а) её в безопасном месте";
 "IP Address Book" = "Адресная книга IP";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "Если получение не удается, потому что в донат-кошельке временно нет средств, попробуйте позже.";
 "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee." = "Если сеть загружена, тариф Быстрый или Приоритетный платит более высокую комиссию, чтобы это подтвердилось быстрее. Нажмите на сумму комиссии, чтобы задать свою.";
 "If the network is busy, Fast or Priority pays a higher fee to help your withdrawal confirm sooner. Tap the fee amount to set a custom fee." = "Если сеть загружена, тариф Быстрый или Приоритетный платит более высокую комиссию, чтобы ваш вывод подтвердился быстрее. Нажмите на сумму комиссии, чтобы задать свою.";
 "If the network is busy, a higher fee can help your transaction confirm faster." = "Если сеть загружена, более высокая комиссия может ускорить подтверждение транзакции.";
 "Import" = "Импорт";
 "Import Account" = "Импортировать аккаунт";
 "Import Chat History" = "Импорт истории чатов";
-"Import Cold Storage Account" = "Импортировать аккаунт холодного хранилища";
 "Import Existing Account" = "Импортировать существующий аккаунт";
 "Import Your Account" = "Импортируйте ваш аккаунт";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "Ошибка импорта: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
@@ -276,7 +250,6 @@
 "Latency" = "Задержка";
 "Leave" = "Покинуть";
 "Leave & Delete" = "Покинуть и удалить";
-"Leaving this broadcast permanently deletes every message cached for it on this device. This cannot be undone - rejoining later starts with no history." = "Покидая эту трансляцию, вы навсегда удаляете все сообщения, кэшированные для нее на этом устройстве. Это нельзя отменить - повторное присоединение позже начнется без истории.";
 "Let's add more details about yourself" = "Добавим больше информации о вас";
 "Let's walk through the basics so you're ready to send your first message." = "Давайте пройдёмся по основам, чтобы вы были готовы отправить своё первое сообщение.";
 "Link System Contact" = "Ссылка на контакт системы";
@@ -330,7 +303,6 @@
 "No active account" = "Нет активного аккаунта";
 "No active nodes" = "Нет активных узлов";
 "No archived chats" = "Нет архивных чатов";
-"No broadcast channels yet" = "Пока нет каналов трансляции";
 "No contacts found." = "Контакты не найдены.";
 "No domains yet." = "Доменов пока нет.";
 "No emoji found" = "Эмодзи не найдены.";
@@ -344,7 +316,6 @@
 "No other nodes" = "Нет других узлов";
 "No saved addresses" = "Нет сохраненных адресов";
 "No spendable funds available yet. Wait for confirmations and try again." = "Пока нет доступных для траты средств. Дождитесь подтверждений и попробуйте снова.";
-"No swaps yet." = "Пока нет обменов.";
 "No system contacts found." = "Системные контакты не найдены.";
 "No transactions yet." = "Пока нет транзакций.";
 "No verified nodes" = "Нет проверенных узлов";
@@ -367,7 +338,6 @@
 "Other Nodes" = "Другие узлы";
 "Paste" = "Вставить";
 "Paste from Clipboard" = "Вставить из буфера обмена";
-"Paste the kpub exported from your KasSigner device. This contains no private key material." = "Вставьте kpub, экспортированный с вашего устройства KasSigner. Он не содержит материала приватного ключа.";
 "Pay in Kaspa" = "Оплатить в Kaspa";
 "Payment" = "Платёж";
 "Payment: %@ KAS — %@" = "Платёж: %@ KAS — %@";
@@ -380,15 +350,11 @@
 "Play sound" = "Воспроизвести звук";
 "Please check your network connection and try again." = "Пожалуйста, проверьте подключение к сети и попробуйте снова.";
 "Please enable camera access in Settings to scan QR codes." = "Разрешите доступ к камере в Настройках для сканирования QR-кодов.";
-"Please enable camera access in Settings to scan the signed transaction." = "Включите доступ к камере в Настройках, чтобы отсканировать подписанную транзакцию.";
 "Please enter exactly 12 or 24 words" = "Введите ровно 12 или 24 слова";
 "Point camera at a QR code" = "Наведите камеру на QR-код";
-"Point camera at the KasSigner screen" = "Наведите камеру на экран KasSigner";
 "Pool Health" = "Состояние пула";
 "Pool Status" = "Статус пула";
-"Popular Tab" = "Вкладка популярного";
 "Preparing profile update..." = "Готовим обновление профиля...";
-"Press and drag a tab in the preview below to reorder it." = "Нажмите и перетащите вкладку в превью ниже, чтобы изменить порядок.";
 "Primary" = "Основной";
 "Primary Latency" = "Задержка основного";
 "Primary domain set to %@." = "Основной домен установлен на %@.";
@@ -434,7 +400,6 @@
 "Refresh Pool" = "Обновить пул";
 "Refresh Pool Now" = "Обновить пул сейчас";
 "Refresh Status" = "Обновить статус";
-"Registered" = "Зарегистрирован";
 "Remote push" = "Дистанционное нажатие";
 "Remove" = "Удалить";
 "Remove Avatar" = "Удалить аватар";
@@ -444,7 +409,6 @@
 "Rename" = "Переименовать";
 "Rename Account" = "Переименовать аккаунт";
 "Rename Address" = "Переименовать адрес";
-"Rename Cold Storage Account" = "Переименовать аккаунт холодного хранилища";
 "Rename Group" = "Переименовать группу";
 "Reply" = "Ответить";
 "Request to communicate" = "Запрос на общение";
@@ -470,9 +434,9 @@
 "Search emoji" = "Поиск эмодзи";
 "Secure messaging on Kaspa BlockDAG" = "Безопасные сообщения в Kaspa BlockDAG";
 "Security Warning" = "Предупреждение безопасности";
-"Seed Phrase" = "Seed Phrase";
+"12 or 24 Words" = "12 или 24 слова";
 "Seed Phrase Length" = "Длина seed phrase";
-"Seed phrase copied. Clipboard will clear in 30s." = "Seed phrase скопирована. Буфер обмена очистится через 30 сек.";
+"Words copied. Clipboard will clear in 30s." = "Слова скопированы. Буфер обмена очистится через 30 с.";
 "Select a chat" = "Выберите чат";
 "Select mainnet for real transactions or testnet for testing" = "Выберите mainnet для реальных транзакций или testnet для тестирования";
 "Select the currency you'd like prices displayed in." = "Выберите валюту, в которой хотите видеть цены.";
@@ -510,8 +474,6 @@
 "Show QR Code" = "Показать QR-код";
 "Show Setup Guides" = "Показывать руководства по настройке";
 "Show contact balance" = "Показать баланс контакта";
-"Shows a tab of recommended broadcast rooms you can jump into." = "Показывает вкладку с рекомендуемыми комнатами трансляций, к которым можно присоединиться.";
-"Shows senders' KNS avatars in rooms and looks them up automatically as messages appear. Off shows plain initials for everyone and never fetches avatars." = "Показывает аватары KNS отправителей в комнатах и автоматически ищет их по мере появления сообщений. Выкл показывает всем простые инициалы и никогда не загружает аватары.";
 "Sign In Failed" = "Ошибка входа";
 "Skip" = "Пропустить";
 "Small Amount" = "Малая сумма";
@@ -534,8 +496,6 @@
 "Submitting transfer..." = "Отправка перевода...";
 "Support Email" = "Email поддержки";
 "Suspected" = "Подозрительные";
-"Swap Details" = "Детали обмена";
-"Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "Обмены обрабатываются сторонним сервисом ChangeNOW. Продолжая, вы подтверждаете, что прочитали и согласны с собственными Условиями обслуживания ChangeNOW. KaChat только отправляет ваш запрос на обмен и отображает его статус; KaChat не несет ответственности за неудачные, задержанные или потерянные обмены. Если обмен не проходит, обратитесь напрямую в поддержку ChangeNOW.";
 "Switch direction" = "Сменить направление";
 "Sync system contacts" = "Синхронизировать системные контакты";
 "Sync warning detected" = "Обнаружено предупреждение синхронизации";
@@ -546,12 +506,11 @@
 "Tap a node to copy host:port." = "Нажмите на узел, чтобы скопировать host:port.";
 "Tap send to record" = "Нажмите отправить для записи";
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "Нажмите, чтобы настроить. Если сеть загружена, более высокая комиссия может ускорить подтверждение транзакции.";
-"Tap to reveal seed phrase" = "Нажмите, чтобы показать seed phrase";
+"Tap to reveal your 12 or 24 words" = "Нажмите, чтобы показать ваши 12 или 24 слова";
 "This account will be removed from this device." = "Этот аккаунт будет удалён с этого устройства.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Этот контакт будет привязан после создания. Вам всё ещё нужно ввести адрес Kaspa или KNS домен.";
 "This could take a few minutes while it confirms on-chain." = "Это может занять несколько минут, пока подтвердится в блокчейне.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "Это удалит все локальные данные и записи сообщений в CloudKit. Это действие необратимо.";
-"This device has already received the welcome gift." = "Это устройство уже получило приветственный подарок.";
 "This domain is not available." = "Этот домен недоступен.";
 "This is a live check of your iCloud account, separate from local storage above." = "Это проверка вашего аккаунта iCloud в реальном времени, отдельно от локального хранилища выше.";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "Это навсегда удаляет все сообщения с ними, включая из iCloud, поэтому они также удаляются с ваших других устройств. Это нельзя отменить.";
@@ -562,8 +521,7 @@
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "Это удалит локальные данные аккаунта и сообщения. Синхронизация CloudKit отключается во время очистки и включается снова после.";
 "This removes the group and its messages from this device. This cannot be undone, and other members won't be notified." = "Это удаляет группу и ее сообщения с этого устройства. Это нельзя отменить, и другие участники не будут уведомлены.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "Это выйдет из вашего аккаунта, но сохранит данные кошелька и сообщений на этом устройстве.";
-"This welcome gift is a community-funded initiative." = "Этот приветственный подарок финансируется сообществом.";
-"This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "Это навсегда удалит ваш аккаунт с этого устройства. Убедитесь, что вы сохранили вашу seed phrase.";
+"This will permanently delete your account from this device. Make sure you have backed up your 12 or 24 words." = "Ваш аккаунт будет навсегда удалён с этого устройства. Убедитесь, что вы сохранили свои 12 или 24 слова.";
 "To (Primary Address)" = "На (основной адрес)";
 "To chat with someone, press Create Chat and enter their Kaspa address or KNS domain. If you send a message, they will not see it unless you send a handshake first, or you both decide to message each other around the same time - doing the latter increases your privacy." = "Чтобы начать чат с кем-то, нажмите Создать чат и введите его адрес Kaspa или домен KNS. Если вы отправите сообщение, собеседник не увидит его, пока вы не отправите handshake первым, либо вы оба решите написать друг другу примерно в одно и то же время - последнее повышает конфиденциальность.";
 "To receive notifications, please enable them in Settings." = "Для получения уведомлений включите их в Настройках.";
@@ -598,7 +556,7 @@
 "Vibration" = "Вибрация";
 "View Profile" = "Посмотреть профиль";
 "Back Up Account" = "Резервная копия аккаунта";
-"View Seed Phrase" = "Показать seed phrase";
+"View 12 or 24 Words" = "Показать 12 или 24 слова";
 "View in Explorer" = "Открыть в обозревателе";
 "Voice message" = "Голосовое сообщение";
 "Walk through setting up your domain, banner, avatar, and details step by step." = "Пошагово проведет вас через настройку домена, баннера, аватара и деталей.";
@@ -606,7 +564,6 @@
 "Wallet not available." = "Кошелек недоступен.";
 "Watching" = "Наблюдение";
 "Website" = "Веб-сайт";
-"Welcome Gift" = "Приветственный подарок";
 "Welcome Guide" = "Приветственное руководство";
 "Welcome to KaChat" = "Добро пожаловать в KaChat";
 "Welcome to KaChat!" = "Добро пожаловать в KaChat!";
@@ -691,14 +648,10 @@
 "Testnet is for testing only - testnet KAS has no value. On testnet your account uses its kaspatest: address, with its own balance and chats, and Connection Settings holds testnet values: the testnet explorer, automatic node discovery, and no KaChat indexers until testnet ones exist. Turning it off brings your mainnet settings back." = "Testnet только для тестов — KAS в testnet ничего не стоят. В testnet ваш аккаунт использует адрес kaspatest: со своим балансом и чатами, а настройки подключения содержат значения testnet: обозреватель testnet, автоматический поиск узлов и никаких индексаторов KaChat, пока их нет для testnet. При выключении возвращаются настройки mainnet.";
 "Close KaChat completely and open it again to finish switching to Testnet." = "Полностью закройте KaChat и откройте снова, чтобы завершить переход на Testnet.";
 "Close KaChat completely and open it again to finish switching back to Mainnet." = "Полностью закройте KaChat и откройте снова, чтобы завершить возврат на Mainnet.";
-"Switches this default room off. Turn it back on in Public Chats settings." = "Отключает эту стандартную комнату. Включить снова можно в настройках публичных чатов.";
-"#%@ is off - turn it back on in Public Chats settings" = "#%@ отключена — включите её снова в настройках публичных чатов";
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "Автопоиск находит лучшие доступные узлы и подключается к ним. Выбор конкретного узла подключает только к нему, без перехода на другие. Не влияет на индексаторы, домены и обозреватель на других вкладках. Добавьте свои адреса в адресную книгу IP ниже, чтобы выбрать их здесь.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"My Names" = "Мои имена";
 "Activity" = "Активность";
-"Claim a Name" = "Получить имя";
 
 /* 5.2: range and section labels */
 "All-time only" = "Только за всё время";
@@ -713,16 +666,13 @@
 "A short bio and your links. All of it is optional." = "Короткое описание и ваши ссылки. Всё это необязательно.";
 "That's the whole setup" = "Вот и вся настройка";
 ".kachat names are coming soon. When they launch, this guide claims your name and saves your profile in one go." = "Имена .kachat скоро появятся. После запуска этот помощник получит ваше имя и сохранит профиль за один раз.";
-"Walk through claiming your .kachat name and setting up your avatar, banner and details step by step." = "Пошагово получите имя .kachat и настройте аватар, баннер и данные профиля.";
 ".kachat Profile Setup Guide" = "Настройка профиля .kachat";
-"Claim your .kachat name and set up your avatar, banner and bio step by step." = "Получите имя .kachat и пошагово настройте аватар, баннер и описание.";
 "The full first-run tour: wallet, chats, payments and more." = "Полный вводный тур: кошелёк, чаты, платежи и другое.";
 "Previous" = "Назад";
 "Email" = "Эл. почта";
 "Help" = "Помощь";
 
 /* 5.2: .kachat listing, buy and offer */
-"No offers yet." = "Пока нет предложений.";
 "History" = "История";
 "Network fee" = "Комиссия сети";
 
@@ -736,7 +686,6 @@
 "This folder is empty." = "Эта папка пуста.";
 
 /* Kaspa Hub empty state (Swap off) */
-"KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "KaPosts, Публичные чаты и Kaspa Websites появляются здесь, когда их нет в доке. Управляйте ими в Настройки > Customization > Customize Dock.";
 
 /* 5.2: an address's .kachat Domains tab */
 
@@ -744,12 +693,6 @@
 "Moved to %@." = "Перемещено в %@.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-". Network fees counted: %lld" = ". Учтено сетевых комиссий: %lld";
-"Sells: %lld. Oldest buys first (FIFO)." = "Продаж: %lld. Сначала самые ранние покупки (FIFO).";
-"%@ sold with no buy on record, counted at zero cost." = "%@ продано без записанной покупки, учтено по нулевой стоимости.";
-"Realized P&L %@" = "Реализованная П/У %@";
-"Transactions: %lld. Some prices are still loading." = "Транзакций: %lld. Некоторые цены ещё загружаются.";
-"Transactions: %lld, at each day's price." = "Транзакций: %lld, по цене каждого дня.";
 
 /* Day labels (message times, date dividers) */
 "Today" = "Сегодня";
@@ -760,7 +703,7 @@
 /* Receive / chatting address QR text */
 
 /* 5.2: name discovery across services */
-"If this seed already holds your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Если эта сид-фраза уже хранит вашу личность на другом адресе — домен (.kas, .k или .kaspa) или баланс для чата, — выберите его здесь. Показаны только адреса с балансом или доменами.";
+"If these words already hold your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Если эти слова уже хранят вашу личность на другом адресе (домен .kas, .k или .kaspa либо баланс чата), выберите его здесь. Показаны только адреса с балансом или доменами.";
 ".k and .kaspa Names (%lld)" = "Имена .k и .kaspa (%lld)";
 
 /* 5.2: Message Requests, Private chats */
@@ -784,62 +727,25 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Чтобы написать кому-то, нажмите «Создать чат» и введите его адрес Kaspa или имя .kachat. Ваше первое сообщение придёт ему как запрос на переписку, который можно принять. Для максимальной приватности включите «Приватный чат»: в блокчейне вас ничто не связывает, а ваши сообщения станут видны, когда собеседник тоже начнёт приватный чат с вами.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Для начала рекомендуется 50 Kaspa — этого хватит, чтобы получить имя .kachat и какое-то время общаться. 5 Kaspa хватает примерно на 2500 сообщений.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Ваша публичная личность для переписки. Пополните её небольшой суммой на комиссии за сообщения и на имя .kachat — никогда не отправляйте сюда деньги, которые собираетесь тратить.";
-"There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "Для тестовой сети нет индексатора KaPost. Выключите тестовую сеть в Настройки > Подключение, чтобы читать и публиковать в основной сети.";
 "Nextcloud is off while Testnet is on." = "Nextcloud отключён, пока включена тестовая сеть.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Резервные копии, синхронизация, медиа и звонки через Nextcloud работают только в основной сети, поэтому тестовая сеть никогда не перезапишет вашу резервную копию. Выключите тестовую сеть в Настройки > Подключение, и подключение к Nextcloud вернётся как было.";
-"On Testnet, claim one in Kaspa Hub > .kachat." = "В тестнете получите имя в Kaspa Hub > .kachat.";
 "Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names come after an audit." = "Работает в тестнете: имена, цены и платежи здесь в TKAS в testnet-10. Имена в основной сети появятся после аудита.";
 "Live on Testnet (testnet-10 registry)" = "Работает в тестнете (реестр testnet-10)";
-"Transferred" = "Передано";
-"Delisted" = "Снято с продажи";
-"Sold" = "Продано";
-"Offer accepted" = "Предложение принято";
-"Renewed" = "Продлено";
-"Released" = "Освобождено";
-"Reclaimed" = "Возвращено";
-"Offer made" = "Сделано предложение";
-"Offer withdrawn" = "Предложение отозвано";
-"Offer refunded" = "Предложение возвращено";
-"A name is 1 to 32 characters." = "Имя — от 1 до 32 символов.";
-"Use a-z, 0-9 and hyphens only." = "Только a-z, 0-9 и дефисы.";
-"A name can't start or end with a hyphen." = "Имя не может начинаться или заканчиваться дефисом.";
-"Lapsed" = "Утрачено";
-"Lapsed - reclaim it, then claim it" = "Утрачено — верните его, затем зарегистрируйте";
 "Cancelled." = "Отменено.";
 "Confirm this .kachat transaction" = "Подтвердите эту транзакцию .kachat";
-"Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "Имена, выставленные владельцами на продажу. Покупка оплачивает владельца и передаёт имя вам одной транзакцией.";
-"Reclaimable" = "Можно вернуть";
-"Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "Имена, которые владельцы не продлили. Любой может их вернуть: залог уходит последнему владельцу, освободившийся депозит вы забираете как награду, и имя становится свободным.";
-"Nothing to reclaim." = "Возвращать нечего.";
-"Reclaim" = "Вернуть";
-"Renew, list, transfer or release them, and pick the one KaChat shows for you." = "Продлевайте, продавайте, передавайте или освобождайте их и выберите, какое KaChat показывает для вас.";
-"Search for a name above and claim it." = "Найдите имя выше и зарегистрируйте его.";
-"Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "Ваши предложения. Отзовите любое в любой момент; после срока возврата кто угодно может вернуть его вам.";
-"Refundable now" = "Можно вернуть сейчас";
 "Your balance" = "Ваш баланс";
 "It shows here once the network accepts it, usually within seconds." = "Появится здесь, когда сеть её примет, обычно за секунды.";
 "Cost" = "Стоимость";
-"The name is yours for the years you paid. Renew it any time before it expires." = "Имя ваше на оплаченные годы. Продлевайте в любое время до истечения.";
 "Make %@ your primary name?" = "Сделать %@ основным именем?";
 "Set as Primary" = "Сделать основным";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat показывает его как ваше имя. Оно сохраняется в записи профиля в сети за сетевую комиссию.";
-"Expired - renew to keep it. Until the grace period ends nobody else can take it." = "Истекло — продлите, чтобы сохранить. До конца льготного периода никто другой не может его забрать.";
-"Expired. It no longer resolves; the owner can still renew it." = "Истекло. Больше не разрешается в адрес; владелец ещё может продлить.";
-"Lapsed: anyone may reclaim it, and then claim it again." = "Утрачено: любой может вернуть его, а затем зарегистрировать снова.";
 "You" = "Вы";
-"Accept one to sell the name for it." = "Примите одно, чтобы продать имя за эту сумму.";
 "Saved. Transaction %@" = "Сохранено. Транзакция %@";
-"A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "Продление добавляется к текущему сроку, даже если он уже прошёл. Цена уходит майнерам.";
-"Price per year" = "Цена за год";
 "To" = "Кому";
 "kaspatest:... or name.kachat" = "kaspatest:... или name.kachat";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "Адрес в тестнете или имя .kachat — оно разрешается в показанный адрес.";
-"Not a testnet Schnorr address." = "Это не адрес Schnorr в тестнете.";
 "Enter an address or a .kachat name." = "Введите адрес или имя .kachat.";
 "No active .kachat name by that name." = "Нет активного имени .kachat с таким названием.";
-"The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "Залог имени уходит последнему владельцу, освободившийся депозит реестра (за вычетом комиссии) вы забираете как награду, и имя становится свободным. Чтобы владеть им, зарегистрируйте его после.";
-"Bond to the last owner" = "Залог последнему владельцу";
-"Claim one in Kaspa Hub > .kachat." = "Получите имя в Kaspa Hub > .kachat.";
 "Your profile belongs to your address, not to a name: it stays the same when you buy, sell or let a name go." = "Профиль принадлежит вашему адресу, а не имени: он не меняется, когда вы покупаете, продаёте или отпускаете имя.";
 "https://... or ipfs://..." = "https://... или ipfs://...";
 "Image links must start with https:// or ipfs://." = "Ссылки на изображения должны начинаться с https:// или ipfs://.";
@@ -859,15 +765,6 @@
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "Профили публичны и хранятся в сети: их может прочитать любой, а прежние версии остаются доступными после изменений. Запись стоит сетевую комиссию.";
 "No testnet wallet is open." = "Нет открытого кошелька тестнета.";
 "This wallet's key does not match its address." = "Ключ этого кошелька не соответствует его адресу.";
-"%@ is not a valid key (not on the secp256k1 curve)." = "%@ — недопустимый ключ (не на кривой secp256k1).";
-"The secret for this registration is missing on this device." = "Секрет этой регистрации отсутствует на этом устройстве.";
-"The new owner" = "Новый владелец";
-"An expired name can't be listed. Renew it first." = "Истёкшее имя нельзя выставить на продажу. Сначала продлите его.";
-"Your key" = "Ваш ключ";
-"The buyer" = "Покупатель";
-"%@ is already registered." = "%@ уже зарегистрировано.";
-"The commit never reached the chain." = "Коммит так и не попал в сеть.";
-"The commit is no longer on chain." = "Коммита больше нет в сети.";
 "Paste a profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite." = "Вставьте ссылку на профиль в X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram или LinkedIn либо приглашение на сервер Discord.";
 "Paste your profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite. KaChat shows the picture that platform shows, so its moderation applies here too." = "Вставьте ссылку на свой профиль в X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram или LinkedIn либо приглашение на сервер Discord. KaChat показывает то же изображение, что и эта платформа, поэтому её модерация действует и здесь.";
 "Banners come from an X or YouTube profile link, or a Discord server invite." = "Баннеры берутся из ссылки на профиль X или YouTube либо из приглашения на сервер Discord.";
@@ -900,15 +797,11 @@
 "Balance change" = "Изменение баланса";
 "Transaction sent" = "Транзакция отправлена";
 "Listed for sale" = "Выставлено на продажу";
-"Name reclaimed" = "Имя возвращено";
 "Profile saved" = "Профиль сохранён";
 "Your Profile" = "Ваш профиль";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "Сохраняется в блокчейне переводом с вашего адреса для чата на него же.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "Профили публичны и хранятся в блокчейне: их может прочитать кто угодно, а прежние версии остаются доступными после изменения.";
-"Extended" = "Дополнено";
-"Renewal opens on %@" = "Продление откроется %@";
-"The names indexer didn't send this name's paid period. Pull to refresh and try again." = "Индексатор имён не прислал оплаченный период этого имени. Потяните вниз, чтобы обновить, и попробуйте снова.";
 "Setting up" = "Настраивается";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "Реестр .kachat в Testnet обновляется. Имена снова откроются здесь, как только заработает новый реестр.";
 ".kachat Names" = "Имена .kachat";
@@ -951,11 +844,9 @@
 "New" = "Новое";
 "New Chat" = "Новый чат";
 "New Group Chat" = "Новый групповой чат";
-"New Public Chat" = "Новый публичный чат";
 "Fund Chatting Address" = "Пополнить адрес для чатов";
 "Message someone by their address or name." = "Напишите кому-нибудь по адресу или имени.";
 "Start an encrypted group with several people." = "Создайте зашифрованную группу из нескольких человек.";
-"Join a public room, or create one." = "Войдите в публичную комнату или создайте свою.";
 "Show the QR code to add Kaspa for sending messages." = "Показывает QR-код, чтобы добавить Kaspa для отправки сообщений.";
 "Show a fresh address to get paid." = "Показывает новый адрес для получения оплаты.";
 "A fresh address, never used before. Kaspa sent here lands in this account and shows in your spending total. This address should be used for everything not related to chatting or domains." = "Новый, ещё не использованный адрес. Kaspa, отправленные сюда, поступают на этот аккаунт и отображаются в балансе для трат. Используйте этот адрес для всего, что не связано с чатами или доменами.";
@@ -984,7 +875,6 @@
 "Goes back to its place by latest activity." = "Вернётся на своё место по последней активности.";
 "Keeps it first in the row above your chats." = "Останется первым в ряду над вашими чатами.";
 "Hold for options" = "Удерживайте для действий";
-"Delete Room?" = "Удалить комнату?";
 "This address is on a different network than the app." = "Этот адрес из другой сети, чем приложение.";
 ".kachat names aren't on mainnet yet. Your avatar, banner, bio and links save now; you can pick a primary name once names launch." = "Имён .kachat в основной сети пока нет. Аватар, баннер, описание и ссылки сохраняются уже сейчас; основное имя можно будет выбрать, когда имена запустятся.";
 "Claim Testnet Kaspa" = "Получить тестовые Kaspa";
@@ -993,28 +883,12 @@
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "Копирует адрес для чатов и открывает кран TN10: вставьте его, пройдите проверку и получите максимум.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "Ваш адрес для чатов в TN10 скопирован. Вставьте его в поле адреса на кране.";
 "Expires in %@" = "Истекает через %@";
-"Tap an offer to accept it. Expired offers go back to their buyers." = "Нажмите на предложение, чтобы принять его. Истёкшие предложения возвращаются покупателям.";
-"This offer has expired. It's going back to the buyer." = "Срок предложения истёк. Средства возвращаются покупателю.";
-"This offer was made before the name changed hands, so it's declined and going back to the buyer." = "Это предложение сделано до смены владельца имени, поэтому оно отклонено и возвращается покупателю.";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
-"This name is already paid up to its longest period. Renewal opens on %@." = "Это имя уже оплачено на максимальный срок. Продление откроется %@.";
-"The price record is busy right now. Try again in a moment." = "Запись цен сейчас занята. Попробуйте ещё раз через мгновение.";
-"You can't make an offer on your own name." = "Нельзя сделать предложение на собственное имя.";
-"An offer can run for up to 7 days." = "Предложение может действовать до 7 дней.";
-"Price per %@" = "Цена за %@";
-"Pays for more time now, up to the %@ limit." = "Оплачивает больше времени сейчас, до предела в %@.";
-"Offer declined" = "Предложение отклонено";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
-"The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "Цена изменилась на %@ после вашего подтверждения. Ничего не отправлено. Проверьте новую цену и подтвердите снова.";
-"The price changed to %@ since you confirmed, so nothing was sent. Confirm the new price to continue, or cancel the commit." = "Цена изменилась на %@ после вашего подтверждения, поэтому ничего не отправлено. Подтвердите новую цену, чтобы продолжить, или отмените коммит.";
-"Confirm New Price" = "Подтвердить новую цену";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"This name has been expired too long to renew. It can only be reclaimed and registered again." = "Это имя истекло слишком давно, чтобы его продлить. Его можно только вернуть и зарегистрировать заново.";
-"Offers can only be made on active names." = "Предложения можно делать только на активные имена.";
-"This name has expired. Offers can only be accepted while the name is active. Renew it first." = "Срок этого имени истёк. Предложения можно принимать, только пока имя активно. Сначала продлите его.";
 
 /* Wallet: import / sign-in stop if the current account can't be backed up (IOS-016) */
 "The current account's keys couldn't be backed up on this device, so nothing was changed. Try again." = "Не удалось сохранить резервную копию ключей текущего аккаунта на этом устройстве, поэтому ничего не изменено. Попробуйте ещё раз.";
@@ -1040,80 +914,45 @@
 "Goes to their public chatting address" = "Уйдут на его публичный адрес для чатов";
 
 /* Profile bell: .kachat news and public chats */
-"Renew %@" = "Продлите %@";
-"Renewal is open: renew it before %@ to keep it." = "Продление открыто: продлите до %@, чтобы сохранить имя.";
 "%@ has expired" = "Срок %@ истёк";
-"Renew it before %@ or anyone can claim it." = "Продлите до %@, иначе его сможет забрать кто угодно.";
-"%@ has lapsed" = "%@ освободилось";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "Теперь его может забрать кто угодно. Верните его сами, чтобы получить залог.";
-"%@ sold" = "%@ продано";
 "%@ KAS was paid to you." = "Вам выплачено %@ KAS.";
-"Your listing was bought." = "Ваш лот купили.";
-"You accepted an offer for it." = "Вы приняли предложение за него.";
-"%@ was reclaimed" = "%@ возвращено в реестр";
-"It lapsed and someone reclaimed it. It's free to register again." = "Имя освободилось, и его вернул кто-то другой. Его можно зарегистрировать снова.";
-"New offer on %@" = "Новое предложение за %@";
 "%@ KAS offered for it." = "За него предложили %@ KAS.";
-"%@ is yours now." = "%@ теперь ваше.";
-"Offer on %@ declined" = "Предложение за %@ отклонено";
 "The owner declined it. The KAS is back with you." = "Владелец его отклонил. KAS вернулись к вам.";
-"Offer on %@ expired" = "Предложение за %@ истекло";
 "Nobody accepted it in time. The KAS is back with you." = "Никто не принял его вовремя. KAS вернулись к вам.";
-"Offer on %@ returned" = "Предложение за %@ возвращено";
 "It can no longer be accepted. The KAS is back with you." = "Его больше нельзя принять. KAS вернулись к вам.";
-"Renew it soon to keep it." = "Продлите его в ближайшее время, чтобы сохранить.";
-"Renew it soon or anyone can claim it." = "Продлите его в ближайшее время, иначе его сможет забрать кто угодно.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
-"Reclaimable names appear here once .kachat names launch." = "Имена, которые можно вернуть, появятся здесь после запуска имён .kachat.";
 
 /* .kachat: Reclaim to Own */
-"Reclaim to Own" = "Вернуть и забрать себе";
-"Clear the lapsed name and get your bond back, then register it again." = "Освободите истёкшее имя и верните залог, затем зарегистрируйте его снова.";
-"Register %@ again?" = "Зарегистрировать %@ снова?";
-"Register Again" = "Зарегистрировать снова";
-"It's free now. Pick how long to hold it, like any new name: the hidden commit goes first and the name is registered about a minute later." = "Теперь оно свободно. Выберите срок, как для любого нового имени: сначала уходит скрытый коммит, а примерно через минуту имя регистрируется.";
-"Your name lapsed, so it can't be renewed any more. Reclaiming clears it from the registry: your bond comes back to you, and you also keep the freed registry deposit, less the network fee. Then you can register it again." = "Имя освободилось, и его больше нельзя продлить. Возврат удаляет его из реестра: ваш залог возвращается к вам, и вы также получаете освободившийся депозит реестра за вычетом комиссии сети. Затем его можно зарегистрировать снова.";
-"Bond back to you" = "Залог вернётся к вам";
 "Waiting for the old %@ to be cleared from the registry." = "Ждём, пока старое %@ уберут из реестра.";
 
 /* .kachat: a released or reclaimed name */
 
 /* .kachat registration progress half sheet */
-"Claiming %@" = "Получение %@";
-"Finish the name you're claiming first." = "Сначала завершите получение текущего имени.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "Оно больше не ваше и перешло в раздел «Можно вернуть» на маркетплейсе. Верните его сами, чтобы получить залог обратно.";
 
 /* Create Account: name step and seed length step */
 "Create a name for your wallet" = "Придумайте имя для кошелька";
 "This name is only stored on this device, to tell your wallets apart. No one else will ever see it." = "Это имя хранится только на этом устройстве, чтобы различать ваши кошельки. Его никто больше не увидит.";
-"The next screen shows your seed phrase. It is the only way to recover your account: write it down and store it securely, and make sure no one can see your screen." = "На следующем экране будет показана ваша seed phrase. Это единственный способ восстановить аккаунт: запишите её, храните в безопасном месте и убедитесь, что никто не видит ваш экран.";
+"The next screen shows your 12 or 24 words. They are the only way to recover your account: write them down and store them securely, and make sure no one can see your screen." = "На следующем экране будут ваши 12 или 24 слова. Это единственный способ восстановить аккаунт: запишите их, надёжно храните и убедитесь, что никто не видит ваш экран.";
 
 /* Create Account: seed length step title */
-"Choose seed phrase length" = "Выберите длину seed phrase";
+"Choose 12 or 24 words" = "Выберите 12 или 24 слова";
 
 /* .kachat sale tile: expiry flag */
 
 /* .kachat: expired names are available to claim */
-"Freeing %@ for you..." = "Освобождаем %@ для вас...";
-"%@ was freed" = "%@ освобождено";
-"It expired and was cleared from the registry. Your bond is back with you." = "Срок истёк, и имя удалено из реестра. Ваш залог вернулся к вам.";
 
 /* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ больше не ваше";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Срок истёк, и имя не продлили, поэтому теперь оно доступно всем на маркетплейсе. Залог вернётся к вам, когда кто-нибудь его получит.";
 
 /* .kachat: claims in progress button and busy-network notes */
-"The network is busy. Your commit is waiting for a block." = "Сеть загружена. Ваш коммит ждёт блока.";
-"The network is busy, so the commit was sent again." = "Сеть загружена, поэтому коммит отправлен повторно.";
 
 /* Onboarding: import length step and the seed phrase explainer */
-"How many words is the seed phrase you're importing?" = "Сколько слов в seed phrase, которую вы импортируете?";
+"How many words are you importing?" = "Сколько слов вы импортируете?";
 "What is this?" = "Что это?";
-"What is a seed phrase?" = "Что такое seed phrase?";
-"A seed phrase is a list of 12 or 24 ordinary words that works as the master key to your account. Your wallet, your chatting address and your messages all come from it." = "Seed phrase это список из 12 или 24 обычных слов, который служит главным ключом к вашему аккаунту. Из него получаются ваш кошелёк, адрес для чатов и сообщения.";
+"What are my 12 or 24 words?" = "Что такое мои 12 или 24 слова?";
+"Your 12 or 24 words are ordinary words that work as the master key to your account. Your wallet, your chatting address and your messages all come from them." = "Ваши 12 или 24 слова — это обычные слова, которые служат главным ключом к аккаунту. Ваш кошелёк, адрес для чатов и сообщения происходят из них.";
 "Anyone who has these words can take everything in your account. If you lose them and lose this device, nobody can get your account back, not even KaChat." = "Любой, у кого есть эти слова, может забрать всё из вашего аккаунта. Если вы потеряете их и потеряете это устройство, никто не сможет вернуть ваш аккаунт, даже KaChat.";
 "Write the words on paper, in order, and keep them somewhere safe and private. Never type them into a website, send them in a chat, or keep them in a screenshot or cloud notes." = "Запишите слова на бумаге по порядку и храните их в надёжном и укромном месте. Никогда не вводите их на сайтах, не отправляйте в чатах и не храните в скриншотах или облачных заметках.";
 "12 words are already very secure. 24 words add even more protection." = "12 слов уже очень надёжны. 24 слова дают ещё больше защиты.";
@@ -1162,7 +1001,6 @@
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts." = "Хранится в KaChat только для этого кошелька. Никогда не добавляется в контакты телефона.";
 "Remove from Address Book" = "Убрать из адресной книги";
 "Edit Address" = "Изменить адрес";
-"Add addresses in Kaspa Hub > Address Book." = "Добавляйте адреса в Kaspa Hub > Адресная книга.";
 "Open a wallet first." = "Сначала откройте кошелёк.";
 "Enter a name." = "Введите имя.";
 "Enter a valid Kaspa address." = "Введите правильный адрес Kaspa.";
@@ -1227,11 +1065,8 @@
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "Все адреса в этом файле — адреса Mainnet. KaChat работает в Testnet.";
 "Every address in that file is a Testnet address. KaChat is on Mainnet." = "Все адреса в этом файле — адреса Testnet. KaChat работает в Mainnet.";
 "Skipped %lld from the other network." = "Пропущено из другой сети: %lld.";
-"The network fee went up to %@ since you confirmed. Nothing was sent. Check the new fee and confirm again." = "С момента подтверждения комиссия сети выросла до %@. Ничего не отправлено. Проверьте новую комиссию и подтвердите снова.";
 
 /* .kachat registry v5 migration */
-"Names are moving to the new registry. New names can be claimed from %@." = "Имена переносятся в новый реестр. Новые имена можно будет занять с %@.";
-"Moved to the new registry" = "Перенесено в новый реестр";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
 "kaspa:qr... or domain" = "kaspa:qr... или домен";
@@ -1242,7 +1077,7 @@
 "Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Отсюда читаются имена и профили .kachat. Укажите свой индексатор, если он у вас есть. Если он не может отдавать имена, они читаются прямо из блокчейна. Разрешается первым везде, где можно ввести адрес.";
 "Other Domains" = "Другие домены";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Ищутся после .kachat и показываются в разделе «Другие домены», если введённое имя есть и там.";
-"If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Если эта сид-фраза уже хранит вашу личность на другом адресе — домен (.kachat, .kas, .k или .kaspa) или пополненный баланс для чата, — выберите его здесь. Показаны только адреса с балансом или доменами.";
+"If these words already hold your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Если эти слова уже хранят вашу личность на другом адресе (домен .kachat, .kas, .k или .kaspa либо баланс чата), выберите его здесь. Показаны только адреса с балансом или доменами.";
 ".kachat Names (%lld)" = "Имена .kachat (%lld)";
 ".kas Names (%lld)" = "Имена .kas (%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "Введите адрес Kaspa (kaspa:...) или домен. Сначала ищутся имена .kachat.";
@@ -1251,7 +1086,6 @@
 "No contacts match your search. Paste an address or a domain to invite someone new." = "Контакты не найдены. Вставьте адрес или домен, чтобы пригласить нового человека.";
 "No domain found by that name." = "Домен с таким именем не найден.";
 "%lld of your .kachat domains expired" = "Истёк срок действия доменов .kachat: %lld";
-"Renew %@ before its grace period ends on %@ to keep it." = "Продлите %@ до окончания льготного периода %@, чтобы сохранить его.";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Имена .kachat в этой сети пока не работают";
@@ -1268,21 +1102,15 @@
 "Live on Mainnet" = "Работает в Mainnet";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
-"An offer must be refundable before the name expires." = "Предложение должно стать возвратным до истечения имени.";
-"This name expires sooner, so your offer is refundable from %@." = "Это имя истекает раньше, поэтому ваше предложение можно вернуть с %@.";
 
 /* .kachat: combining many small coins before a name transaction */
-"Your KAS is in many small coins. Combining them into one first..." = "Ваши KAS разбиты на много мелких монет. Сначала они объединяются в одну...";
 "Not enough KAS on your chatting address for this." = "На вашем адресе для чатов недостаточно KAS для этого.";
 
 /* .kachat mainnet launch countdown */
-"Names open in" = "Имена откроются через";
 "Days" = "Дни";
 "Hours" = "Часы";
 "Minutes" = "Минуты";
 "Seconds" = "Секунды";
-"Then anyone can search and claim a .kachat name here." = "После этого любой сможет найти и занять здесь имя .kachat.";
-".kachat names open to everyone on %@." = "Имена .kachat откроются для всех %@.";
 
 /* Kaspa Hub > KaChat Bots */
 "Block Reward Tracker" = "Трекер наград за блоки";
@@ -1383,20 +1211,13 @@
 "You're all set" = "Всё готово";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
-"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "%@ остаются заблокированы вместе с вашим именем, пока оно ваше (залог + депозит реестра). Вы получите их обратно, освободив имя.";
-"%@ is locked with this name. It comes back to you when you release it." = "%@ заблокированы вместе с этим именем. Они вернутся к вам, когда вы освободите его.";
 
 /* Profile save: not enough funds popup (with the chatting address QR) */
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "Недостаточно средств. Отправьте не менее 1 KAS на ваш адрес для чата.";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"Buy From" = "Покупать с";
 "Fund" = "Пополнить";
 "Copy address" = "Копировать адрес";
-"Not enough KAS on this address for this name." = "На этом адресе недостаточно KAS для этого имени.";
-"Send KAS to this address to buy with it." = "Отправьте KAS на этот адрес, чтобы покупать с него.";
-"Choose the address the marketplace buys with" = "Выберите адрес, с которого маркетплейс покупает";
-"Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "Регистрации, покупки и предложения здесь оплачиваются с этого адреса, а имена, которые вы регистрируете или покупаете, принадлежат ему. Используйте новый адрес, чтобы имя не было связано с вашим адресом для чата.";
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "Ваш собственный адрес: %@";
@@ -1409,23 +1230,18 @@
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "На вашем адресе для чата нет KAS, чтобы сообщить %@ об этом платеже, поэтому они увидят его как платёж с неизвестного адреса, без заметки. KaChat сообщит, как только на адресе для чата появятся KAS.";
 
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
-"Your Dock" = "Ваш док";
-"Always in your dock" = "Всегда в доке";
 
 /* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
-"%@, %@ and %@ always stay in your dock." = "%@, %@ и %@ всегда остаются в доке.";
-"Your dock is full. Remove one from it to add one of these." = "Док заполнен. Уберите из него один раздел, чтобы добавить один из этих.";
 "In the order %@ shows them." = "В том порядке, в каком их показывает %@.";
 "Move %@ to %@" = "Переместить %@ в %@";
-"Add %@ to your dock" = "Добавить %@ в док";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
-"Recovery Phrase Needed" = "Нужна фраза восстановления";
-"Enter Recovery Phrase" = "Ввести фразу восстановления";
-"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ есть на этом iPhone, но ключей для него здесь нет. Так бывает после восстановления из резервной копии: ключи привязаны к телефону, на котором были созданы. Введите фразу восстановления аккаунта, чтобы войти. Его история на этом телефоне сохранится.";
-"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "На этом iPhone есть ваш аккаунт, но нет его ключей. Так бывает после восстановления телефона из резервной копии: ключи KaChat привязаны к устройству, на котором были созданы. Введите фразу восстановления, чтобы разблокировать его здесь. Ваши сообщения на этом устройстве сохранятся.";
+"12 or 24 Words Needed" = "Нужны 12 или 24 слова";
+"Enter 12 or 24 Words" = "Ввести 12 или 24 слова";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's 12 or 24 words to sign in. Its history on this phone is kept." = "%@ есть на этом iPhone, но его ключей нет. Так бывает после восстановления из резервной копии, потому что ключи привязаны к телефону, на котором созданы. Введите 12 или 24 слова аккаунта, чтобы войти. Его история на этом телефоне сохранится.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your 12 or 24 words to unlock it here. Your messages on this device are kept." = "На этом iPhone есть ваш аккаунт, но нет его ключей. Так бывает после восстановления телефона из резервной копии, потому что ключи KaChat привязаны к устройству, на котором созданы. Введите свои 12 или 24 слова, чтобы разблокировать его здесь. Сообщения на этом устройстве сохранятся.";
 
 
 /* The chat list's name for the chat with yourself */
@@ -1459,13 +1275,7 @@
 /* Chess leaderboard: this month / all time */
 "This month" = "Этот месяц";
 "All time" = "За всё время";
-"Leaderboard period" = "Период таблицы лидеров";
-"Resets on the 1st of every month (UTC)." = "Обнуляется 1-го числа каждого месяца (UTC).";
 "Counted from %@." = "Считается с %@.";
-"No finished 1v1 games this month yet." = "В этом месяце ещё нет завершённых партий 1v1.";
-"No finished 1v1 games yet." = "Ещё нет завершённых партий 1v1.";
-"No finished tournaments this month yet." = "В этом месяце ещё нет завершённых турниров.";
-"No finished tournaments yet." = "Ещё нет завершённых турниров.";
 
 /* KaPosts: post activity cards */
 
@@ -1565,3 +1375,454 @@
 "What Others Can See" = "Что видят другие";
 "Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Любой может увидеть этот адрес и его баланс в сети Kaspa, но не сможет прочитать ваши сообщения. Используйте его только для чатов и доменов .kachat.";
 "Say anything to the bot to get started." = "Напишите боту что угодно, чтобы начать.";
+"Requested for payment" = "Запрошена оплата";
+"Delete Chat?" = "Удалить чат?";
+"Delete Group?" = "Удалить группу?";
+"Deselect All" = "Снять выбор со всех";
+"Select All" = "Выбрать все";
+"Select" = "Выбрать";
+"This permanently deletes every message in this chat from this device. This cannot be undone." = "Это навсегда удалит с этого устройства все сообщения в этом чате. Это нельзя отменить.";
+"This removes this group and its messages from this device. This cannot be undone, and other members keep their copies." = "Группа и её сообщения будут удалены с этого устройства. Это нельзя отменить; у других участников копии останутся.";
+"%lld chat%@" = "Чатов: %lld%@";
+"Silenced" = "Без звука";
+"%1$@ reacted %2$@ to your message" = "%1$@ отреагировал(а) %2$@ на ваше сообщение";
+"%@ reacted to your message" = "%@ отреагировал(а) на ваше сообщение";
+"%1$@ reacted %2$@ to a message" = "%1$@ отреагировал(а) %2$@ на сообщение";
+"%@ reacted to a message" = "%@ отреагировал(а) на сообщение";
+"Do you already have a domain?" = "У вас уже есть домен?";
+"A KNS domain is your name on Kaspa. If you own one already, you can bring it here instead of buying another." = "Домен KNS — это ваше имя в Kaspa. Если он у вас уже есть, можно перенести его сюда, не покупая другой.";
+"Yes, I have one" = "Да, у меня есть";
+"No, I need one" = "Нет, он мне нужен";
+"Which domain should this profile use?" = "Какой домен должен использовать этот профиль?";
+"No domains on this address yet" = "На этом адресе пока нет доменов";
+"Go back and use Refresh once the transfer lands." = "Вернитесь и нажмите «Обновить», когда перевод придёт.";
+"Send your domain here" = "Отправьте свой домен сюда";
+"Transfer your domain to this address so your identity is connected to KaChat." = "Передайте свой домен на этот адрес, чтобы ваша личность была связана с KaChat.";
+"No domains on this address yet." = "На этом адресе пока нет доменов.";
+"%lld domain%@ found on this address." = "Найдено доменов по этому адресу: %lld%@.";
+"Checking..." = "Проверка...";
+"Refresh" = "Обновить";
+"Couldn't Create Account" = "Не удалось создать аккаунт";
+"App Settings" = "Настройки приложения";
+"Account name" = "Имя аккаунта";
+"Advanced: Create with a Passphrase" = "Дополнительно: создать с парольной фразой";
+"Customization" = "Персонализация";
+"Security" = "Безопасность";
+"Show Fee Estimate" = "Показывать оценку комиссии";
+"Quick Reactions" = "Быстрые реакции";
+"Local storage used: %@" = "Занято на устройстве: %@";
+"On This Device" = "На этом устройстве";
+"Cache" = "Кэш";
+"Nextcloud" = "Nextcloud";
+"Cloud Storage" = "Облачное хранилище";
+"Complete Your Backup" = "Завершите резервное копирование";
+"Back Up to NFC Card" = "Резервная копия на NFC-карту";
+"Wipe and re-sync incoming messages?" = "Очистить и заново синхронизировать входящие сообщения?";
+"KaChat is having trouble syncing right now. It keeps retrying, and your messages catch up on their own once the connection is back, so you shouldn't need to wipe." = "Сейчас у KaChat проблемы с синхронизацией. Он продолжает пытаться, и ваши сообщения подтянутся сами, когда связь восстановится, так что стирать данные не нужно.";
+"Privacy Policy" = "Политика конфиденциальности";
+"Open Source Licenses" = "Лицензии открытого ПО";
+"Appearance" = "Оформление";
+"Language" = "Язык";
+"Verbose API Logging" = "Подробный журнал API";
+"Reset to Default" = "Сбросить по умолчанию";
+"Choose Emoji" = "Выбрать эмодзи";
+"Wallet" = "Кошелёк";
+"Address Activity" = "Активность адреса";
+"Best practice is to write your 12 or 24 words down to back them up, and never store it online." = "Лучше всего записать ваши 12 или 24 слова на бумаге и никогда не хранить их в интернете.";
+"Default (Recommended)" = "По умолчанию (рекомендуется)";
+"Automatic Scan" = "Автосканирование";
+"Label (optional)" = "Метка (необязательно)";
+"host:port or grpcs://host" = "host:port или grpcs://host";
+"Delete saved address" = "Удалить сохранённый адрес";
+"Node connections appear blocked on this network. You can still receive and read messages through the indexer, but sending messages and payments needs a node connection." = "Подключения к узлам, похоже, заблокированы в этой сети. Вы по-прежнему можете получать и читать сообщения через индексатор, но для отправки сообщений и платежей нужно подключение к узлу.";
+"%lld ms" = "%lld мс";
+"Node Network" = "Сеть узлов";
+"Blocked" = "Заблокирован";
+"Primary: %@" = "Основной: %@";
+"%lldms" = "%lldмс";
+"DAA: %@" = "DAA: %@";
+"Disconnect Nextcloud" = "Отключить Nextcloud";
+"Restore from Backup" = "Восстановить из копии";
+"Connected Account" = "Подключённый аккаунт";
+"Server" = "Сервер";
+"Username" = "Имя пользователя";
+"Start Folder" = "Начальная папка";
+"No backup on this server yet." = "На этом сервере пока нет копии.";
+"Automatic Sync" = "Автосинхронизация";
+"Last synced" = "Последняя синхронизация";
+"Backup Folder" = "Папка резервных копий";
+"Back Up Messages Now" = "Создать резервную копию сообщений сейчас";
+"Last backup" = "Последняя копия";
+"Message Backup" = "Резервная копия сообщений";
+"Disconnect" = "Отключить";
+"Use https. Unencrypted connections are not supported." = "Используйте https. Незашифрованные соединения не поддерживаются.";
+"cloud.example.com" = "cloud.example.com";
+"App password" = "Пароль приложения";
+"Connect" = "Подключить";
+"The app password is removed from this device's Keychain. You can reconnect any time." = "Пароль приложения удаляется из связки ключей этого устройства. Вы можете подключиться снова в любой момент.";
+"Restore" = "Восстановить";
+"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Сообщения из копии на сервере объединяются с историей чатов на этом устройстве. Ничего не удаляется.";
+"Restore Complete" = "Восстановление завершено";
+"Restore Failed" = "Восстановление не удалось";
+"Restoring Backup" = "Восстановление копии";
+"Please keep the app open. Leaving now could corrupt your chat history." = "Не закрывайте приложение. Если выйти сейчас, история чатов может повредиться.";
+"Re-sync Complete" = "Повторная синхронизация завершена";
+"Re-sync Failed" = "Повторная синхронизация не удалась";
+"Re-syncing Messages" = "Повторная синхронизация сообщений";
+"Please keep the app open. Leaving now could leave chats without their history." = "Не закрывайте приложение. Если выйти сейчас, у некоторых чатов может пропасть история.";
+"Select Chats" = "Выбрать чаты";
+"No chats to re-sync." = "Нет чатов для повторной синхронизации.";
+"What's Cached" = "Что в кэше";
+"Clear All Cache" = "Очистить весь кэш";
+"NFC Card" = "NFC-карта";
+"Restore from an NFC card" = "Восстановить с NFC-карты";
+"Enter the card's PIN, then tap the card to read your backup." = "Введите PIN карты, затем приложите карту, чтобы прочитать вашу копию.";
+"Enter your passphrase" = "Введите парольную фразу";
+"The backup was read from your card. Your passphrase was never on the card, so enter it exactly as you set it, including capitals and spaces." = "Копия прочитана с карты. Парольной фразы на карте никогда не было, поэтому введите её точно так, как задали, с заглавными буквами и пробелами.";
+"Card PIN" = "PIN карты";
+"After 5 wrong tries the PIN is blocked for good, and this backup can no longer be read." = "После 5 неверных попыток PIN блокируется навсегда, и эту резервную копию больше нельзя будет прочитать.";
+"Scan Card" = "Считать карту";
+"Restore Account" = "Восстановить аккаунт";
+"Share this profile" = "Поделиться этим профилем";
+"No on-chain profile data yet." = "Данных профиля в блокчейне пока нет.";
+"Edit name" = "Изменить имя";
+"Redirect" = "Перенаправить";
+"Aliases" = "Алиасы";
+"Receiving alias" = "Алиас получения";
+"Sending alias" = "Алиас отправки";
+"Default (%@)" = "По умолчанию (%@)";
+"Chess Stats" = "Статистика по шахматам";
+"%lld day%@ ago" = "%lld дн.%@ назад";
+"PRIMARY" = "ОСНОВНОЙ";
+"React" = "Реакция";
+"No emoji match that." = "Нет подходящих эмодзи.";
+"%lld member%@" = "Участников: %lld%@";
+"Reply not sent" = "Ответ не отправлен";
+"Your reply couldn't be sent. Open KaChat to try again." = "Не удалось отправить ваш ответ. Откройте KaChat и повторите.";
+"1 Reaction" = "1 реакция";
+"%lld Reactions" = "Реакций: %lld";
+"1 person" = "1 человек";
+"%lld people" = "Человек: %lld";
+"Transaction" = "Транзакция";
+"This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "У этого аккаунта нет резервной копии. Если удалить его сейчас, аккаунт и его средства будут потеряны навсегда.";
+"To back it up first, sign in to it and use the card on the Profile tab." = "Чтобы сначала сделать копию, войдите в него и используйте карту на вкладке «Профиль».";
+"Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Убедитесь, что ваши 12 или 24 слова сохранены, а также парольная фраза, если она есть. Это единственный способ вернуть этот аккаунт и его средства.";
+"Couldn't load the coins at this address" = "Не удалось загрузить монеты на этом адресе";
+"Failed to send. Tap to retry." = "Не отправлено. Нажмите, чтобы повторить.";
+"Go to the first message" = "Перейти к первому сообщению";
+"This file is no longer shared" = "Доступ к этому файлу закрыт";
+"Tap to load preview" = "Нажмите, чтобы загрузить превью";
+"Could not load this file." = "Не удалось загрузить этот файл.";
+"No notifications yet" = "Уведомлений пока нет";
+"Kaspa arriving in your addresses shows up here." = "Здесь появится Kaspa, поступивший на ваши адреса.";
+"Clear All" = "Очистить всё";
+"Hidden while screen is being recorded or mirrored" = "Скрыто, пока идёт запись или трансляция экрана";
+"Group info for %@" = "Информация о группе: %@";
+"This only deletes the message from this device - other members still have their own copy, and the encrypted transaction remains permanently on the Kaspa blockchain, visible to anyone but unreadable without your keys. This cannot be undone." = "Это удаляет сообщение только с этого устройства: у остальных участников остаётся своя копия, а зашифрованная транзакция навсегда остаётся в блокчейне Kaspa — её может увидеть кто угодно, но без ваших ключей прочитать нельзя. Это нельзя отменить.";
+"Editing message" = "Редактирование сообщения";
+"Replying to %@" = "Ответ для %@";
+"Recording... %llds" = "Запись... %lld с";
+"edited" = "изменено";
+"%lld members" = "Участников: %lld";
+"Remove photo" = "Удалить фото";
+"Group photo" = "Фото группы";
+"Set group photo" = "Установить фото группы";
+"Remove group photo" = "Удалить фото группы";
+"Delete \"%@\"" = "Удалить «%@»";
+"Members (%lld)" = "Участники (%lld)";
+"Silent Group Chat" = "Беззвучный групповой чат";
+"Only Notify if I'm Mentioned" = "Уведомлять, только если меня упомянули";
+"Refresh Messages" = "Обновить сообщения";
+"Resend invites to all" = "Отправить приглашения всем снова";
+"Resend Invites" = "Отправить приглашения снова";
+"Resend invite" = "Отправить приглашение снова";
+"Remove member" = "Удалить участника";
+"Resend the group invite to %@?%@" = "Отправить %@ приглашение в группу ещё раз?%@";
+"Yes" = "Да";
+"Remove %@ from the group chat? A fresh group key is issued to everyone who stays.%@" = "Удалить %@ из группового чата? Всем оставшимся будет выдан новый ключ группы.%@";
+"Resend the group invite to every member? Use this if someone didn't receive the group.%@" = "Отправить приглашение в группу каждому участнику ещё раз? Используйте, если кто-то не получил группу.%@";
+"Group name" = "Название группы";
+"Every member will see the new name.%@" = "Все участники увидят новое имя.%@";
+"Set this as the group photo for everyone?%@" = "Установить это фото как фото группы для всех?%@";
+"Remove the group photo for everyone?%@" = "Удалить фото группы для всех?%@";
+"Add members" = "Добавить участников";
+"Everyone in your contacts is already in this group." = "Все ваши контакты уже в этой группе.";
+"New members can read messages from the moment they're added, not earlier history." = "Новые участники видят сообщения только с момента добавления, прежняя история им недоступна.";
+"Add %lld member%@ to the group?%@" = "Добавить в группу выбранных участников (%lld%@)?%@";
+"Refresh complete" = "Обновление завершено";
+"Rebuilding this group" = "Восстанавливаем эту группу";
+"Re-reading the whole group from the chain, the same way importing your 12 or 24 words does. Leaving now would stop it partway." = "Группа заново считывается из блокчейна, так же как при импорте ваших 12 или 24 слов. Если выйти сейчас, процесс прервётся на полпути.";
+"Recovered %lld message%@ this device had not been able to read." = "Восстановлено сообщений, которые это устройство не могло прочитать: %lld%@.";
+"No new messages were recovered." = "Новых сообщений восстановить не удалось.";
+"%lld message%@ from an epoch this device holds no key for" = "Сообщений из эпохи, ключа от которой нет на этом устройстве: %lld%@";
+"%lld from someone no longer in the group" = "%lld от тех, кого уже нет в группе";
+"%lld that failed to decrypt" = "Не удалось расшифровать: %lld";
+"Recovered %lld older epoch key%@" = "Восстановлено ключей прежних эпох: %lld%@";
+"Resign this game?" = "Сдаться в этой партии?";
+"Cancel game" = "Отменить игру";
+"Hide password" = "Скрыть пароль";
+"Show password" = "Показать пароль";
+"Change Chatting Address" = "Сменить адрес для чата";
+"Label" = "Метка";
+"Notify on receive" = "Уведомлять о получении";
+"When a spending address receives Kaspa from someone else." = "Когда адрес для трат получает Kaspa от другого человека.";
+"Checking address #%lld" = "Проверка адреса #%lld";
+"Checks the first thousand addresses whatever the gaps, then keeps going while it keeps finding." = "Проверяет первую тысячу адресов, даже если среди них есть пустые, и продолжает, пока находит новые.";
+"No addresses with a balance or domain yet" = "Пока нет адресов с балансом или доменом";
+"%lld found so far" = "Найдено пока: %lld";
+"Close and Keep Scanning" = "Закрыть и продолжить сканирование";
+"Contains domain" = "Содержит домен";
+"%lld separate transactions will be sent, one per address. Fast or Priority pays a higher fee to help them confirm sooner. Tap the fee amount to set a custom fee, applied to each." = "Будет отправлено отдельных транзакций: %lld, по одной на каждый адрес. «Быстрая» или «Приоритетная» платит более высокую комиссию, чтобы они подтвердились раньше. Нажмите на сумму комиссии, чтобы задать свою; она применится к каждой транзакции.";
+"Tap anywhere to copy" = "Нажмите в любом месте, чтобы скопировать";
+"Anyone with this address's private key can spend its funds. Never share it with anyone." = "Любой, у кого есть приватный ключ этого адреса, может потратить его средства. Никому его не сообщайте.";
+"Tap to reveal private key" = "Нажмите, чтобы показать приватный ключ";
+"Rename UTXO" = "Переименовать UTXO";
+"Receive" = "Получить";
+"Some transactions could not be loaded. Pull to refresh to try again." = "Не удалось загрузить часть транзакций. Потяните вниз, чтобы обновить.";
+"Could not load transactions." = "Не удалось загрузить транзакции.";
+"No UTXOs." = "Нет UTXO.";
+"Combines this address's UTXOs to reduce the inputs a future send needs. A single transaction can only merge so many at once, so if this address has a very large number, tap Compound again after it confirms to keep reducing." = "Объединяет UTXO этого адреса, чтобы для будущей отправки требовалось меньше входов. Одна транзакция может объединить только ограниченное число за раз, поэтому, если их на этом адресе очень много, нажмите «Объединить» ещё раз после подтверждения, чтобы продолжить сокращение.";
+"Coinbase" = "Coinbase";
+"Address Visibility" = "Видимость адреса";
+"These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "Сейчас не удалось получить эти адреса. Вернитесь на страницу назад или снова откройте этот экран, чтобы повторить.";
+"Add, import or export" = "Добавить, импортировать или экспортировать";
+"Call" = "Позвонить";
+"KaChat Contact" = "Контакт KaChat";
+"KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat создан с использованием этих библиотек с открытым кодом. Их авторы просят, чтобы эти уведомления распространялись вместе с приложением.";
+"24 words" = "24 слова";
+"Enter your 12 or 24 words" = "Введите ваши 12 или 24 слова";
+"More reactions" = "Другие реакции";
+"Storage problem" = "Проблема с хранилищем";
+"Your chats and history are up to date." = "Ваши чаты и история обновлены.";
+"Setting up your account" = "Настраиваем ваш аккаунт";
+"Downloading everything this account has on chain. It only takes this long once." = "Загружаем всё, что у этого аккаунта есть в блокчейне. Так долго это бывает только один раз.";
+"Continue anyway" = "Всё равно продолжить";
+"Share your profile" = "Поделитесь своим профилем";
+"Your Domains" = "Ваши домены";
+"Preparing a fresh address" = "Готовим новый адрес";
+"Share Profile" = "Поделиться профилем";
+"Confirm Changes" = "Подтвердить изменения";
+"%lld change%@. Each is submitted as its own on-chain transaction from your chatting address:" = "Изменений: %lld%@. Каждое отправляется отдельной транзакцией в блокчейн с вашего адреса для чата:";
+"Primary Domain" = "Основной домен";
+"Send Domain" = "Отправить домен";
+"If the network is busy, Fast or Priority pays a higher fee to help your transfer confirm sooner. Tap the fee amount to set a custom fee." = "Если сеть загружена, «Быстрая» или «Приоритетная» платит более высокую комиссию, чтобы перевод подтвердился раньше. Нажмите на сумму комиссии, чтобы задать свою.";
+"Sending %@" = "Отправка: %@";
+"A domain transfer is two transactions, so this takes a moment. Keep the app open until it finishes." = "Передача домена — это две транзакции, поэтому нужно немного подождать. Не закрывайте приложение, пока она не завершится.";
+"Combines all UTXOs at this address into a single one, to reduce the number of inputs a future send needs." = "Объединяет все UTXO этого адреса в один, чтобы для будущей отправки требовалось меньше входов.";
+"Public Key" = "Открытый ключ";
+"This address does not carry a public key." = "У этого адреса нет открытого ключа.";
+"This is the public half of your chatting address. It identifies you and cannot spend anything." = "Это открытая часть вашего адреса для чата. Она идентифицирует вас и ничего не может потратить.";
+"Safe to share" = "Можно делиться";
+"Copy Public Key" = "Скопировать открытый ключ";
+"Remove this account?" = "Удалить этот аккаунт?";
+"Couldn't remove" = "Не удалось удалить";
+"Removing…" = "Удаление…";
+"Remove This Account From the Phone" = "Удалить этот аккаунт с телефона";
+"The account and its message history are deleted from this phone. Nothing on the blockchain changes, and you can add the account again later with its 12 or 24 words." = "Аккаунт и история его сообщений будут удалены с этого телефона. В блокчейне ничего не изменится, и позже вы сможете снова добавить аккаунт по его 12 или 24 словам.";
+"Use All Files" = "Использовать все файлы";
+"Use This Folder" = "Использовать эту папку";
+"No subfolders." = "Вложенных папок нет.";
+"Chatting" = "Чат";
+"Spending" = "Траты";
+"Request" = "Запросить";
+"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "Звонки работают, только если Nextcloud Talk настроен у вас или у человека, которому вы звоните. Если он не настроен ни у одного из вас, звонить нельзя.";
+"Continue?" = "Продолжить?";
+"Enable calls and video calls with %@?" = "Включить звонки и видеозвонки с %@?";
+"They will be able to call you too." = "Они тоже смогут вам звонить.";
+"Call %@" = "Позвонить: %@";
+"%@ wants to switch to video" = "%@ хочет перейти на видео";
+"Tap to return" = "Нажмите, чтобы вернуться";
+"What is a passphrase?" = "Что такое парольная фраза?";
+"If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "Если вы не уверены, то ответ почти наверняка «нет». Парольную фразу вы бы ввели сами и намеренно.";
+"No" = "Нет";
+"Choose your passphrase" = "Придумайте парольную фразу";
+"Write it down somewhere safe. Without it this account cannot be recovered, even with your 12 or 24 words." = "Запишите её в надёжном месте. Без неё этот аккаунт не восстановить, даже с вашими 12 или 24 словами.";
+"It has to be exactly what you used before, including capital letters and spaces." = "Она должна быть точно такой же, как раньше, включая заглавные буквы и пробелы.";
+"Re-enter passphrase" = "Введите парольную фразу ещё раз";
+"Your chatting address" = "Ваш адрес для чата";
+"This is the account your 12 or 24 words open on their own." = "Это аккаунт, который открывают ваши 12 или 24 слова сами по себе.";
+"A different passphrase gives a different address, and a different account." = "Другая парольная фраза даёт другой адрес и другой аккаунт.";
+"This address holds funds, so this looks like the right account." = "На этом адресе есть средства, так что это, похоже, нужный аккаунт.";
+"No funds on this address. If you expected funds here, check your passphrase." = "На этом адресе нет средств. Если вы ждали их здесь, проверьте парольную фразу.";
+"We picked the first address with funds. Tap another if that's not the one you chat from." = "Мы выбрали первый адрес со средствами. Нажмите на другой, если вы общаетесь не с него.";
+"Address #%lld" = "Адрес #%lld";
+"Get KaChat Contacts" = "Получить контакты KaChat";
+"Return KaChat contacts as JSON strings." = "Возвращает контакты KaChat в виде строк JSON.";
+"Search" = "Поиск";
+"Limit" = "Лимит";
+"Returned %lld contacts" = "Возвращено контактов: %lld";
+"Get KaChat Messages" = "Получить сообщения KaChat";
+"Return recent KaChat messages as JSON strings." = "Возвращает последние сообщения KaChat в виде строк JSON.";
+"Contact" = "Контакт";
+"Include Outgoing" = "Включая исходящие";
+"Returned %lld messages" = "Возвращено сообщений: %lld";
+"Send KaChat Message" = "Отправить сообщение KaChat";
+"Send a text message to a KaChat contact." = "Отправьте текстовое сообщение контакту KaChat.";
+"Message sent to %@" = "Сообщение отправлено: %@";
+"Send KaChat Payment" = "Отправить платёж KaChat";
+"Send a KAS payment to a KaChat contact." = "Отправьте платёж в KAS контакту KaChat.";
+"Note" = "Заметка";
+"Payment sent to %@" = "Платёж отправлен: %@";
+"Send KaChat Audio" = "Отправить аудио KaChat";
+"Send an audio file to a KaChat contact." = "Отправьте аудиофайл контакту KaChat.";
+"Audio File" = "Аудиофайл";
+"Audio sent to %@" = "Аудио отправлено: %@";
+"Get Contacts" = "Получить контакты";
+"Get Messages" = "Получить сообщения";
+"Send Message" = "Отправить сообщение";
+"Send Payment" = "Отправить платёж";
+"Send Audio" = "Отправить аудио";
+"Backup Your Account To Prevent Loss Of Funds" = "Сделайте резервную копию аккаунта, чтобы не потерять средства";
+"You now have funds that aren't backed up." = "У вас теперь есть средства без резервной копии.";
+"If you lose this phone, your 12 or 24 words are the only way back." = "Если вы потеряете этот телефон, ваши 12 или 24 слова — единственный способ вернуться.";
+"Delete That Screenshot" = "Удалите этот скриншот";
+"This account's 12 or 24 words aren't available on this phone." = "12 или 24 слова этого аккаунта недоступны на этом телефоне.";
+"A screenshot of your 12 or 24 words can end up online. Delete it from your photos and write the words on paper instead." = "Скриншот ваших 12 или 24 слов может попасть в интернет. Удалите его из фото и запишите слова на бумаге.";
+"Start Backup" = "Начать копирование";
+"Show My 12 or 24 Words" = "Показать мои 12 или 24 слова";
+"Next Words" = "Следующие слова";
+"I Wrote Them Down" = "Слова записаны";
+"Check My Words" = "Проверить мои слова";
+"I Wrote It Down" = "Записано";
+"Check My Passphrase" = "Проверить парольную фразу";
+"Finish Backup" = "Завершить копирование";
+"Protect your funds" = "Защитите свои средства";
+"Your 12 or 24 words are your account" = "Ваши 12 или 24 слова — это ваш аккаунт";
+"These secret words are created just for you. They are the master key to your funds." = "Эти секретные слова создаются только для вас. Это главный ключ к вашим средствам.";
+"Your phone can't be your only copy" = "Телефон не должен быть единственной копией";
+"If you lose, break or replace this phone, these words are the only way back to your account." = "Если вы потеряете, сломаете или смените этот телефон, эти слова — единственный способ вернуться в ваш аккаунт.";
+"Nobody can reset them" = "Никто не сможет их сбросить";
+"There is no password reset. KaChat never sees your words, so we can't recover them for you." = "Сбросить пароль нельзя. KaChat никогда не видит ваши слова, поэтому мы не сможем их восстановить.";
+"Get ready" = "Приготовьтесь";
+"Your secret words are next. Before you see them:" = "Далее — ваши секретные слова. Прежде чем их увидеть:";
+"I have a pen and paper" = "У меня есть ручка и бумага";
+"Nobody can see my screen" = "Никто не видит мой экран";
+"I won't take a photo or screenshot" = "Не буду фотографировать и делать скриншоты";
+"Words %lld to %lld of %lld" = "Слова с %lld по %lld из %lld";
+"Write down these words" = "Запишите эти слова";
+"Write them on paper in this exact order, with their numbers." = "Запишите их на бумаге в точно таком порядке, с номерами.";
+"That doesn't match. Check your paper, or go back to see the words again." = "Не совпадает. Сверьтесь с бумагой или вернитесь назад, чтобы снова увидеть слова.";
+"Check your paper" = "Сверьтесь с бумагой";
+"Tap each box and type that word from what you wrote down, to be sure your copy is right." = "Нажмите на каждое поле и введите это слово так, как вы его записали, чтобы убедиться, что ваша запись верна.";
+"See My Words Again" = "Показать мои слова снова";
+"Word %lld" = "Слово %lld";
+"Type word %lld here" = "Введите здесь слово %lld";
+"Write down your passphrase" = "Запишите парольную фразу";
+"This account also needs its passphrase. Your 12 or 24 words alone won't bring it back. Write it exactly, including capital letters and spaces." = "Для этого аккаунта нужна ещё и парольная фраза. Одних 12 или 24 слов недостаточно, чтобы его вернуть. Введите её точно, с заглавными буквами и пробелами.";
+"That doesn't match. Check your paper, or go back to see it again." = "Не совпадает. Сверьтесь с бумагой или вернитесь назад, чтобы увидеть её снова.";
+"Check your passphrase" = "Проверьте парольную фразу";
+"Enter it from what you wrote down. It has to match exactly." = "Введите её так, как записали. Она должна совпадать точно.";
+"Keep it safe" = "Храните в безопасности";
+"Your copy is right. Now keep it that way." = "Ваша запись верна. Теперь сохраните её в таком виде.";
+"Keep it on paper" = "Храните на бумаге";
+"Store it somewhere safe and private, away from fire and water." = "Храните в надёжном укромном месте, вдали от огня и воды.";
+"Never keep it online" = "Не храните в интернете";
+"No photos, screenshots, cloud storage, notes apps, email or chats." = "Ни фото, ни скриншотов, ни облачного хранилища, ни приложений для заметок, ни почты, ни чатов.";
+"Never share it" = "Никому не сообщайте";
+"Nobody needs your words. KaChat and real support will never ask for them. Anyone who asks is trying to take your funds." = "Ваши слова никому не нужны. KaChat и настоящая поддержка никогда не будут их спрашивать. Тот, кто просит их, пытается забрать ваши средства.";
+"Keep your passphrase apart" = "Храните парольную фразу отдельно";
+"Store it away from your 12 or 24 words. You need both, and losing either one loses the account." = "Храните её отдельно от 12 или 24 слов. Нужно и то и другое: потеряв хоть одно, вы потеряете аккаунт.";
+"You can see it again" = "Вы сможете увидеть их снова";
+"Your 12 or 24 words stay available in Settings > Back Up Account." = "Ваши 12 или 24 слова остаются доступны в Настройки > Резервная копия аккаунта.";
+"Backup Hygiene" = "Правила хранения копии";
+"Let's ensure your account is backed up in case you lose access to your phone." = "Давайте сделаем резервную копию аккаунта на случай, если вы потеряете доступ к телефону.";
+"Enter these %lld of your 12 or 24 words. Each box shows the word's number." = "Введите эти %lld из ваших 12 или 24 слов. В каждом поле указан номер слова.";
+"Some of those words don't match. Check your paper and try again." = "Некоторые слова не совпадают. Сверьтесь с бумагой и попробуйте ещё раз.";
+"Now enter your passphrase" = "Теперь введите парольную фразу";
+"Your 12 or 24 words alone won't bring this account back. Enter the passphrase from what you wrote down, exactly, including capital letters and spaces." = "Одних 12 или 24 слов недостаточно, чтобы вернуть этот аккаунт. Введите парольную фразу так, как записали, точно, с заглавными буквами и пробелами.";
+"That doesn't match. Check your paper and try again." = "Не совпадает. Сверьтесь с бумагой и попробуйте ещё раз.";
+"Can't Complete This" = "Не удаётся выполнить";
+"Your backup is good" = "С вашей копией всё в порядке";
+"We'll check again in 6 months." = "Мы проверим снова через 6 месяцев.";
+"Requesting camera access..." = "Запрашиваем доступ к камере...";
+"No UTXOs found at this address." = "На этом адресе UTXO не найдено.";
+"Automatic (Clear Selection)" = "Автоматически (сбросить выбор)";
+"Use Automatic Selection" = "Использовать автоматический выбор";
+"Confirm Selection" = "Подтвердить выбор";
+"Chat info for %@" = "Информация о чате: %@";
+"Open active chess game" = "Открыть текущую шахматную партию";
+"This only deletes the message from this device - the recipient still has their own copy, and the encrypted transaction remains permanently on the Kaspa blockchain, visible to anyone but unreadable without your keys. This cannot be undone." = "Это удаляет сообщение только с этого устройства: у получателя остаётся своя копия, а зашифрованная транзакция навсегда остаётся в блокчейне Kaspa — её может увидеть кто угодно, но без ваших ключей прочитать нельзя. Это нельзя отменить.";
+"Handshake sent - send again" = "Запрос на общение отправлен - отправьте снова";
+"Timed games count down only while the board is open on your turn." = "В партиях с таймером время идёт, только пока доска открыта в ваш ход.";
+"Fund your chatting address to start chatting" = "Пополните адрес для чата, чтобы начать общение";
+"Copy chatting address" = "Скопировать адрес для чата";
+"Chess game invite sent" = "Приглашение в шахматы отправлено";
+"Invited you to a game of chess" = "Приглашает вас сыграть в шахматы";
+"Handshake completed" = "Запрос на общение завершён";
+"%@ sent a photo" = "%@ отправил(а) фото";
+"It shows 10 minutes after you have both sent a message." = "Появляется через 10 минут после того, как вы оба отправили сообщение.";
+"Voice message unavailable" = "Голосовое сообщение недоступно";
+"Tap to retry" = "Нажмите, чтобы повторить";
+"Loading…" = "Загрузка…";
+"Where are your 12 or 24 words from?" = "Откуда ваши 12 или 24 слова?";
+"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "Разные кошельки хранят ваши Kaspa по разным путям адресов. Выберите, откуда эти слова, чтобы KaChat нашёл ваши средства и домены.";
+"Restore from NFC Card" = "Восстановить с NFC-карты";
+"NFC Card Backup" = "Копия на NFC-карте";
+"Erase the backup on this card?" = "Стереть копию на этой карте?";
+"Replace the backup on this card?" = "Заменить копию на этой карте?";
+"Backup saved" = "Копия сохранена";
+"It was read back from the card and checked. To restore it, choose Import Existing Account, then Restore from NFC Card, and enter your PIN and passphrase. Your passphrase isn't on the card, so keep it and your written 12 or 24 words safe." = "Копия прочитана с карты и проверена. Чтобы восстановить её, выберите «Импортировать существующий аккаунт», затем «Восстановить с NFC-карты» и введите PIN и парольную фразу. Парольной фразы на карте нет, поэтому храните её и записанные 12 или 24 слова в надёжном месте.";
+"Backup erased" = "Копия стёрта";
+"The backup and PIN are gone from this card. The next backup on it will ask you to set a new PIN." = "Копия и PIN удалены с этой карты. При следующем копировании на неё нужно будет задать новый PIN.";
+"The backup is gone from this card. Its PIN stays the same." = "Копия удалена с этой карты. Её PIN остался прежним.";
+"Erase Backup" = "Стереть копию";
+"This can't be undone." = "Это нельзя отменить.";
+"Replace Backup" = "Заменить копию";
+"The old backup is removed once the new one is confirmed." = "Старая копия удаляется после подтверждения новой.";
+"Back up to an NFC card" = "Сделать копию на NFC-карту";
+"Saves this account's 12 or 24 words on your card, behind a 6-digit PIN." = "Сохраняет 12 или 24 слова этого аккаунта на вашей карте под 6-значным PIN.";
+"Your passphrase is never saved to the card. You'll enter it when you restore, and it's what keeps this account safe if someone gets past the PIN." = "Парольная фраза никогда не сохраняется на карте. Вы введёте её при восстановлении, и именно она защищает этот аккаунт, если кто-то обойдёт PIN.";
+"This isn't cold storage. The card only holds a copy and never creates keys, so keep your 12 or 24 words and passphrase written down too." = "Это не холодное хранение. Карта хранит только копию и никогда не создаёт ключи, поэтому 12 или 24 слова и парольную фразу всё равно нужно записать.";
+"Your card needs the KaChat-NFC software first. Load it from the NFC Card page in Kaspa Quick Start." = "Сначала на вашу карту нужно загрузить программу KaChat-NFC. Сделайте это на странице «NFC-карта» в Kaspa Quick Start.";
+"Erase a Backup on a Card" = "Стереть копию на карте";
+"%lld PIN tries left on this card." = "Осталось попыток PIN на этой карте: %lld.";
+"Pick one you'll remember. After 5 wrong tries the PIN is blocked, and the only fix is reloading the card in Kaspa Quick Start, which erases it." = "Выберите тот, который запомните. После 5 неверных попыток PIN блокируется, и единственный выход — заново загрузить карту в Kaspa Quick Start, что стирает её.";
+"This card already holds a backup. Saving replaces it once the new one is confirmed." = "На этой карте уже есть копия. Сохранение заменит её после подтверждения новой.";
+"New 6-digit PIN" = "Новый 6-значный PIN";
+"Save to Card" = "Сохранить на карту";
+"Erase a backup" = "Стереть копию";
+"Enter the card's PIN, then tap the card to erase the backup on it." = "Введите PIN карты, затем приложите карту, чтобы стереть копию на ней.";
+"Create group" = "Создать группу";
+"Create" = "Создать";
+"Create \"%@\" and invite %lld member%@?%@" = "Создать «%@» и пригласить участников (%lld%@)?%@";
+"Add\nPhoto" = "Добавить\nфото";
+"Add to Group" = "Добавить в группу";
+"Remove from group" = "Удалить из группы";
+"Already added to this group" = "Уже добавлен в эту группу";
+"Could not derive addresses from these words. Please try again." = "Не удалось получить адреса из этих слов. Попробуйте ещё раз.";
+"Choose Your Chatting Address" = "Выберите адрес для чата";
+"Scanning addresses %lld to %lld..." = "Сканируем адреса с %lld по %lld...";
+"Checking this wallet's address..." = "Проверяем адрес этого кошелька...";
+"Scanned the first %lld addresses." = "Просканированы первые адреса: %lld.";
+"This wallet type has a single address, so there is nothing further to scan." = "У этого типа кошелька один адрес, так что сканировать больше нечего.";
+"Scan Further" = "Сканировать дальше";
+"Current" = "Текущий";
+"Switch Chatting Address?" = "Сменить адрес для чата?";
+"Copied to clipboard" = "Скопировано в буфер обмена";
+"Tap the address to copy it" = "Нажмите на адрес, чтобы скопировать";
+"Current Chatting Address" = "Текущий адрес для чата";
+"Set as Chatting Address" = "Сделать адресом для чата";
+"Switch" = "Сменить";
+"These words already have conversations on the current chatting address. Switching starts fresh with the new address. Your existing conversations stay with the old address and are not deleted." = "У этих слов уже есть переписки на текущем адресе для чата. После смены вы начнёте с чистого листа с новым адресом. Ваши прежние переписки остаются на старом адресе и не удаляются.";
+"Done editing" = "Редактирование завершено";
+"Enter account name" = "Введите имя аккаунта";
+"Confirm deleting this account" = "Подтвердите удаление этого аккаунта";
+"Fee (KAS)" = "Комиссия (KAS)";
+"fee: %@ KAS" = "комиссия: %@ KAS";
+"This permanently deletes every message in each selected chat from this device. This cannot be undone." = "Это навсегда удалит с этого устройства все сообщения в каждом выбранном чате. Это нельзя отменить.";
+"Confirm sending Kaspa" = "Подтвердите отправку Kaspa";
+"From:" = "От:";
+"Accepted your request to communicate" = "Запрос на общение принят";
+"Sent you a message" = "Вам пришло сообщение";
+"[Payment]" = "[Платёж]";
+"My Account" = "Мой аккаунт";
+"Re-sync %lld Chat%@" = "Синхронизировать заново, чатов: %lld%@";
+"Re-synced %lld incoming message%@ across %lld chat%@." = "Повторно синхронизировано: входящих сообщений %lld%@, чатов %lld%@.";
+"Group Invites" = "Приглашения в группы";
+"Group Invite" = "Приглашение в группу";
+"Invited by %@" = "Приглашение от %@";
+"People and groups waiting for you" = "Вас ждут люди и группы";
+"You're not in this group unless you accept. Rejecting removes the invite." = "Вы не в этой группе, пока не примете приглашение. При отклонении оно удаляется.";
+"Invited" = "Приглашён";
+"Declined" = "Отклонено";
+"You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Вы не в этой группе, пока не примете приглашение. Ваш ответ отправляется небольшой зашифрованной транзакцией, чтобы группа и другие ваши устройства о нём узнали.";

@@ -1,12 +1,11 @@
 import Foundation
 
-/// `.kachat` names on Kaspa covenants: the transaction core (design: KACHAT_NAMES.md, byte-level
+/// `.kachat` names on Kaspa covenants: reading the registry (design: KACHAT_NAMES.md, byte-level
 /// reference: kachat-domains/README.md, source of truth: the kachat-domains Rust harness and CLI).
 ///
 /// Everything in `KachatNames` except `KachatNamesService` is pure value code (Foundation, BLAKE3,
-/// BLAKE2b): codecs, the manifest, the version-1 transaction with its hashes and masses, and the
-/// builders. It is checked byte for byte against `KaChatTests/KachatNamesVectors.json`, written by
-/// the kachat-domains `kachat-names-vectors` generator from the CLI's own builders.
+/// BLAKE2b): codecs, the manifest and the registry walker's decoding. The walker is checked against
+/// `KaChatTests/KachatNamesVectors.json` by `scripts/test_kachat_names_registry.swift`.
 enum KachatNames {
 
     /// Errors the core throws. Messages are for logs and developer UI; the screens map them.
@@ -20,10 +19,6 @@ enum KachatNames {
         /// the registry is being set up.
         static let outdatedRegistry = Failure("manifest: an earlier registry; this app needs a registry v4 or v5 manifest")
         static let newerRegistry = Failure("manifest: a later registry version than this app builds for; update KaChat")
-        /// Registry v5: `register` is refused until the migration deadline (unix ms).
-        static func registrationNotOpen(_ deadlineMs: Int64) -> Failure {
-            Failure("registration opens after the migration deadline (\(deadlineMs))")
-        }
 
         var isOutdatedRegistry: Bool { self == Failure.outdatedRegistry || self == Failure.newerRegistry }
 
@@ -34,41 +29,12 @@ enum KachatNames {
 
     // MARK: - Constants (rusty-kaspa a41a333, kachat-domains params)
 
-    static let sompiPerKas: UInt64 = 100_000_000
     /// A mainnet period. Registry v3 reads the period from the manifest (`Params.periodMs`):
     /// testnet-10 runs a 24-hour clock.
     static let yearMs: Int64 = 31_536_000_000
-    /// rusty-kaspa `LOCK_TIME_THRESHOLD`: lock times below it are DAA scores, above unix ms.
-    static let lockTimeThreshold: UInt64 = 500_000_000_000
-    /// `"kachat-commit:v1"`, the commit hash domain.
-    static let commitDomain = Data("kachat-commit:v1".utf8)
-    /// Value of a commit UTXO (returned at registration).
-    static let commitValue: UInt64 = 20_000_000
-    /// Change below this is not worth a UTXO (its storage mass alone would outweigh it).
-    static let minChange: UInt64 = 20_000_000
-    /// The builders aim for at least this much change.
-    static let targetChange: UInt64 = 100_000_000
-    /// Relay floor after Toccata: 100 sompi per gram of max(compute, normalized transient).
-    static let minFeerate: Double = 100.0
-    /// The most any name transaction pays per gram: 1000x the floor (the busiest testnet-10 seen,
-    /// 2026-10-07, asked 894). A fee estimate above it is treated as unknown (IOS-061).
-    static let maxFeerate: Double = minFeerate * 1000
 
-    /// A fee rate that is always safe to multiply: never NaN, infinite or negative, and within
-    /// [minFeerate, maxFeerate] - so a bad value from a node can neither crash nor drain.
-    static func safeFeerate(_ rate: Double) -> Double {
-        guard rate.isFinite, rate > 0 else { return minFeerate }
-        return min(max(rate, minFeerate), maxFeerate)
-    }
-    /// register, extend and renew sum at most 8 inputs and 8 outputs (the contracts' bounded loops).
-    static let maxInputsFeeEntry = 8
-    /// Every other operation: keep transactions small anyway.
-    static let maxInputs = 24
-    /// The highest listing price the name contract accepts.
-    static let maxListPrice: UInt64 = 2_900_000_000_000_000_000
     static let zero32 = Data(repeating: 0, count: 32)
     static let ff32 = Data(repeating: 0xff, count: 32)
-    static let sighashAll: UInt8 = 0x01
 
     // MARK: - Hex
 
@@ -133,13 +99,6 @@ enum KachatNames {
         return h.finalize()
     }
 
-    /// rusty-kaspa `blake3_hasher!` (keyed BLAKE3, the domain string zero padded to 32 bytes).
-    static func blake3Keyed(_ domain: String, _ data: Data) -> Data {
-        var h = Blake3(domain: domain)
-        h.update(data)
-        return h.finalize()
-    }
-
     // MARK: - Names
 
     enum Codec {
@@ -179,31 +138,6 @@ enum KachatNames {
             return String(decoding: bytes, as: UTF8.self)
         }
 
-        /// Price tier index for a name of `length` bytes: 1, 2, 3, 4, 5+.
-        static func tier(_ length: Int) -> Int { min(max(length, 1), 5) - 1 }
-
-        // MARK: Commit
-
-        /// `blake3("kachat-commit:v1" || name || ownerKey || salt)`.
-        static func commitment(name: String, owner: Data, salt: Data) -> Data {
-            var h = Blake3()
-            h.update(KachatNames.commitDomain)
-            h.update(Data(name.utf8))
-            h.update(owner)
-            h.update(salt)
-            return h.finalize()
-        }
-
-        /// `0x20 <c> OP_DROP 0x20 <ownerKey> OP_CHECKSIG` (68 bytes).
-        static func commitRedeem(commitment c: Data, owner: Data) -> Data {
-            var d = Data([0x20])
-            d.append(c)
-            d.append(contentsOf: [0x75, 0x20])
-            d.append(owner)
-            d.append(0xac)
-            return d
-        }
-
         // MARK: Integers
 
         /// 8-byte little-endian sign-magnitude (state ints, template part lengths).
@@ -211,28 +145,6 @@ enum KachatNames {
             precondition(v != Int64.min, "num8 of Int64.min")
             var out = KachatNames.le64(v.magnitude)
             if v < 0 { out[out.startIndex + 7] |= 0x80 }
-            return out
-        }
-
-        static func decodeNum8(_ d: Data) throws -> Int64 {
-            guard d.count == 8 else { throw Failure("state int must be 8 bytes") }
-            return try scriptNum(d)
-        }
-
-        /// Minimal script number bytes (rusty-kaspa `serialize_i64(v, None)`); empty for 0.
-        static func minimalNumber(_ v: Int64) -> Data {
-            precondition(v != Int64.min)
-            var magnitude = v.magnitude
-            var out = Data()
-            while magnitude > 0 {
-                out.append(UInt8(magnitude & 0xff))
-                magnitude >>= 8
-            }
-            if let last = out.last, last & 0x80 != 0 {
-                out.append(v < 0 ? 0x80 : 0x00)
-            } else if v < 0 {
-                out[out.endIndex - 1] |= 0x80
-            }
             return out
         }
 
@@ -281,31 +193,6 @@ enum KachatNames {
             return d
         }
 
-        static func decodeGapState(_ s: Data) throws -> (lo: Data, hi: Data) {
-            let b = [UInt8](s)
-            guard b.count == 66, b[0] == 0x20, b[33] == 0x20 else { throw Failure("not a gap state") }
-            return (Data(b[1..<33]), Data(b[34..<66]))
-        }
-
-        static func decodeNameState(_ s: Data) throws -> NameFields {
-            let b = [UInt8](s)
-            guard b.count == 126, b[0] == 0x20, b[33] == 0x20, b[66] == 0x20, b[99] == 0x08, b[108] == 0x08, b[117] == 0x08 else {
-                throw Failure("not a name state")
-            }
-            return NameFields(
-                key: Data(b[1..<33]), paddedName: Data(b[34..<66]), owner: Data(b[67..<99]),
-                price: try decodeNum8(Data(b[100..<108])), periodStart: try decodeNum8(Data(b[109..<117])),
-                expiresAt: try decodeNum8(Data(b[118..<126]))
-            )
-        }
-
-        static func decodeOfferState(_ s: Data) throws -> OfferFields {
-            let b = [UInt8](s)
-            guard b.count == 108, b[0] == 0x20, b[33] == 0x20, b[66] == 0x20, b[99] == 0x08 else { throw Failure("not an offer state") }
-            return OfferFields(key: Data(b[1..<33]), buyer: Data(b[34..<66]), seller: Data(b[67..<99]),
-                               refundAfter: try decodeNum8(Data(b[100..<108])))
-        }
-
         // MARK: Scripts
 
         /// `OP_BLAKE2B <blake2b-256(redeem)> OP_EQUAL` (rusty-kaspa `pay_to_script_hash_script`).
@@ -320,45 +207,6 @@ enum KachatNames {
         static func p2pkScript(_ xonly: Data) -> Data {
             var d = Data([0x20]); d.append(xonly); d.append(0xac)
             return d
-        }
-
-        /// The x-only key of a Schnorr P2PK script, nil for anything else.
-        static func p2pkKey(_ script: Data) -> Data? {
-            let b = [UInt8](script)
-            guard b.count == 34, b[0] == 0x20, b[33] == 0xac else { return nil }
-            return Data(b[1..<33])
-        }
-
-        /// Canonical minimal push (rusty-kaspa `ScriptBuilder::add_data`).
-        static func pushData(_ data: Data) -> Data {
-            let n = data.count
-            if n == 0 { return Data([0x00]) }
-            if n == 1 {
-                let v = data[data.startIndex]
-                if v >= 1 && v <= 16 { return Data([0x50 + v]) }
-                if v == 0x81 { return Data([0x4f]) }
-            }
-            var out: Data
-            if n <= 75 {
-                out = Data([UInt8(n)])
-            } else if n <= 0xff {
-                out = Data([0x4c, UInt8(n)])
-            } else if n <= 0xffff {
-                out = Data([0x4d]); out.append(KachatNames.le16(UInt16(n)))
-            } else {
-                out = Data([0x4e]); out.append(KachatNames.le32(UInt32(n)))
-            }
-            out.append(data)
-            return out
-        }
-
-        /// A script integer (rusty-kaspa `ScriptBuilder::add_i64`): OP_0, OP_1NEGATE, OP_1..OP_16,
-        /// else a minimal sign-magnitude push.
-        static func pushInt(_ v: Int64) -> Data {
-            if v == 0 { return Data([0x00]) }
-            if v == -1 { return Data([0x4f]) }
-            if v >= 1 && v <= 16 { return Data([0x50 + UInt8(v)]) }
-            return pushData(minimalNumber(v))
         }
 
         /// Every push of a push-only script, as bytes (OP_0 -> [], OP_n -> [n], OP_1NEGATE -> [0x81]).
@@ -423,15 +271,6 @@ enum KachatNames {
         }
 
         // MARK: Payload markers (KACHAT_NAMES_INDEXER.md B4)
-
-        /// `kchat:1:name:<op>:<name>`: informational, on every name transaction except commits.
-        static func namePayload(op: String, name: String) -> Data { Data("kchat:1:name:\(op):\(name)".utf8) }
-
-        /// `kchat:1:offer:<keyHex>:<buyerXonlyHex>:<sellerXonlyHex>:<refundAfterDaa>` (registry v3):
-        /// how an indexer finds offers.
-        static func offerPayload(_ f: OfferFields) -> Data {
-            Data("kchat:1:offer:\(KachatNames.hex(f.key)):\(KachatNames.hex(f.buyer)):\(KachatNames.hex(f.seller)):\(f.refundAfter)".utf8)
-        }
 
         /// `kchat:1:profile:<json>`: an address profile record (KACHAT_NAMES.md section 7).
         static func profilePayload(json: Data) -> Data {

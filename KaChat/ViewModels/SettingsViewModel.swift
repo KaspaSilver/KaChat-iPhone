@@ -3,7 +3,7 @@ import Combine
 
 /// Thread-safe cache for `AppSettings.load()`. Load used to do a UserDefaults read + a fresh
 /// JSONDecoder + a full ~25-field decode on EVERY call - and it's called from hot paths (per
-/// Kaspa block in the group/public chat scanners at ~10 blocks/sec, per day-separator render, per
+/// Kaspa block in the group scanners at ~10 blocks/sec, per day-separator render, per
 /// API request). Invalidated whenever settings change (`.settingsDidChange` is posted by every
 /// write path: `AppSettings.save` and `SettingsViewModel.saveSettings`).
 /// The Testnet toggle's choice, waiting for the next launch. The wallet address, the node pool and
@@ -141,11 +141,6 @@ final class SettingsViewModel: ObservableObject {
         NotificationCenter.default.post(name: .settingsDidChange, object: settings)
     }
 
-    func resetToDefaults() {
-        settings = .default
-        saveSettings()
-    }
-
     /// Settings > Connection > Testnet. Only records the choice: the switch, with each network's
     /// own connection settings (`AppSettings.switchNetwork(to:)`), happens at the next launch
     /// (`PendingNetworkSwitch`). Choosing the network the app runs on cancels a pending switch.
@@ -221,14 +216,6 @@ final class SettingsViewModel: ObservableObject {
         get { settings.kaspaExplorer }
         set {
             settings.kaspaExplorer = newValue
-            saveSettings()
-        }
-    }
-
-    var liveUpdatesEnabled: Bool {
-        get { settings.liveUpdatesEnabled }
-        set {
-            settings.liveUpdatesEnabled = newValue
             saveSettings()
         }
     }

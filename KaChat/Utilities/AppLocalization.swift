@@ -97,3 +97,11 @@ enum AppLocalization {
         bundle.localizedString(forKey: key, value: nil, table: nil)
     }
 }
+
+/// The plural "s" a localized string adds to its noun (`%lld member%@`), and only where an "s" is
+/// how the language makes a plural. Elsewhere the translation is written to read right without it.
+func pluralS<Count: BinaryInteger>(_ count: Count) -> String {
+    guard count != 1 else { return "" }
+    let language = AppLocalization.locale.language.languageCode?.identifier
+    return ["en", "fr", "es", "pt"].contains(language ?? "en") ? "s" : ""
+}

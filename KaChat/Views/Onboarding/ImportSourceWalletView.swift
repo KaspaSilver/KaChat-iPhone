@@ -48,10 +48,10 @@ struct ImportSourceWalletView: View {
                 Image(systemName: "wallet.pass.fill")
                     .font(.scaled(size: 44))
                     .foregroundColor(.accentColor)
-                Text("Where is this seed phrase from?")
+                Text("Where are your 12 or 24 words from?")
                     .font(.title3.weight(.bold))
                     .multilineTextAlignment(.center)
-                Text("Different wallets store your Kaspa on different address paths. Pick where this seed phrase comes from so KaChat finds your funds and domains.")
+                Text("Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -145,7 +145,7 @@ struct ImportSourceWalletView: View {
         .buttonStyle(.plain)
     }
 
-    /// The app's standard glass row treatment (see ColdStorageView and friends), with a subtle
+    /// The app's standard glass row treatment, with a subtle
     /// accent ring on the selected row.
     private func glassBackground(cornerRadius: CGFloat, selected: Bool) -> some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

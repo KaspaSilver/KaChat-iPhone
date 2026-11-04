@@ -184,9 +184,6 @@ actor NodeProfiler {
     /// Network type for filtering
     private var networkType: NetworkType = .mainnet
 
-    /// Last DNS resolution time
-    private var lastDNSRefresh: Date = Date.distantPast
-
     /// Tracks successful discovery calls (for TCP ping prerequisite)
     private var successfulDiscoveryCount: Int = 0
 
@@ -2177,7 +2174,6 @@ actor NodeProfiler {
             await registry.persistNow()
         }
 
-        lastDNSRefresh = Date()
         dnsResolveComplete = true
 
         // Check if we should start TCP ping checks now

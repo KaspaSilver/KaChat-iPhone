@@ -111,9 +111,6 @@ enum NodeOrigin: Int, Codable {
         case .userAdded: return "Manual"
         }
     }
-
-    /// Seeds should not be used for user traffic unless no alternatives
-    var isSeed: Bool { self == .seed }
 }
 
 // MARK: - Operation Class
@@ -224,22 +221,6 @@ struct NodeProfile: Codable {
     // Timestamps
     var lastProfiledAt: Date?             // When capabilities were last checked
     var profileTTL: TimeInterval = 600    // How long profile is valid (10 min default)
-
-    /// Whether the profile is stale and needs refresh
-    var isStale: Bool {
-        guard let lastProfiled = lastProfiledAt else { return true }
-        return Date().timeIntervalSince(lastProfiled) > profileTTL
-    }
-
-    /// Whether node has required capabilities for UTXO operations
-    var isUtxoCapable: Bool {
-        isSynced == true && isUtxoIndexed == true
-    }
-
-    /// Whether node is synced (for tx submission)
-    var isSyncedNode: Bool {
-        isSynced == true
-    }
 }
 
 // MARK: - Node Health
@@ -573,16 +554,6 @@ enum NetworkQuality: Int, Codable {
         case .good: return 2.0
         case .poor: return 5.0
         case .offline: return 1.0
-        }
-    }
-
-    /// Maximum candidates to discover per day
-    var discoveryBudgetPerDay: Int {
-        switch self {
-        case .excellent: return 30000
-        case .good: return 500
-        case .poor: return 200
-        case .offline: return 0
         }
     }
 

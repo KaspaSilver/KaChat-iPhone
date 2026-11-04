@@ -1418,10 +1418,6 @@ private actor DpiModeState {
         lastHTTP2FailureAt = nil
     }
 
-    func isDpiSuspected(epochId: Int) -> Bool {
-        dpiDetectedEpoch == epochId
-    }
-
     func recordHTTP2Success(
         responseBytes: Int,
         largeResponseThreshold: Int,

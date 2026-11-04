@@ -33,12 +33,8 @@ extension KaspaUnit {
 // MARK: - Shared pieces
 
 enum KachatLive {
-    /// The registry is live on this network (testnet only for now) - reads and actions run.
-    static var isEnabled: Bool { KachatNamesService.isLaunched }
     /// What the device lock prompt says before any .kachat transaction is signed.
     static var authReason: String { AppLocalization.string("Confirm this .kachat transaction") }
-    /// testnet-10 runs at 10 blocks per second
-    static let daaPerSecond: UInt64 = 10
 
     static func date(_ ms: Int64) -> Date { Date(timeIntervalSince1970: TimeInterval(ms) / 1000) }
 
@@ -51,38 +47,6 @@ enum KachatLive {
 
     /// The registry parameters, once the manifest is verified.
     @MainActor static var params: KachatNames.Params? { KachatNamesService.shared.manifest?.params }
-
-    /// The receipt's line for a registration: how much stays locked with the name.
-    @MainActor static var lockedNote: String? {
-        guard let p = params else { return nil }
-        return String(format: AppLocalization.string("%@ is locked with this name. It comes back to you when you release it."), KaspaUnit.amount(p.bond + p.gapValue))
-    }
-
-    /// Whether a period is a year (mainnet), not a short test clock (testnet's 24 hours).
-    @MainActor static var yearlyPeriods: Bool { (params?.periodMs ?? KachatNames.yearMs) == KachatNames.yearMs }
-
-    /// A length of time ("10 min", "10 days"), in the in-app language.
-    /// Time left until a moment, for a live countdown: "2d 5h" while days remain, else "1:04:09"
-    /// or "4:09" (hours, minutes, seconds).
-    static func countdown(_ ms: Int64) -> String {
-        let seconds = Double(max(ms, 0)) / 1000
-        let f: DateComponentsFormatter
-        if seconds >= 86_400 {
-            f = componentsFormatter("countdown-days") {
-                $0.allowedUnits = [.day, .hour]
-                $0.unitsStyle = .abbreviated
-                $0.maximumUnitCount = 2
-            }
-        } else {
-            let hours = seconds >= 3600
-            f = componentsFormatter(hours ? "countdown-hms" : "countdown-ms") {
-                $0.allowedUnits = hours ? [.hour, .minute, .second] : [.minute, .second]
-                $0.unitsStyle = .positional
-                $0.zeroFormattingBehavior = .pad
-            }
-        }
-        return f.string(from: seconds) ?? ""
-    }
 
     static func duration(_ ms: Int64) -> String {
         let seconds = Double(ms) / 1000
@@ -114,140 +78,6 @@ enum KachatLive {
         componentsFormatters[key] = f
         return f
     }
-
-    /// `count` periods: "1 year" / "2 years", or on a short clock "10 min" / "20 min".
-    @MainActor static func periods(_ count: Int64) -> String {
-        if yearlyPeriods {
-            return count == 1 ? AppLocalization.string("1 year") : String(format: AppLocalization.string("%lld years"), count)
-        }
-        return duration(count * (params?.periodMs ?? KachatNames.yearMs))
-    }
-
-    /// Who an address is when you haven't named it yourself: its `.kachat` name ("alice.kachat"),
-    /// the same rule as `ContactsManager.displayName`. nil without one (mainnet, until names
-    /// launch). Views that call this observe `KachatNamesRegistry` so the name lands on its own.
-    @MainActor static func identityName(_ address: String) -> String? {
-        guard !address.isEmpty else { return nil }
-        return KachatNamesRegistry.shared.cachedIdentity(for: address)?.label.map { "\($0).kachat" }
-    }
-
-    /// An address's `.kachat` profile banner and bio, each looked up from its social link on this
-    /// device (every network: profiles aren't registry data). Callers observe
-    /// `KachatNamesRegistry` and `KachatSocialImageResolver`.
-    @MainActor static func profileBanner(_ address: String) -> String? {
-        let link = KachatNamesRegistry.shared.cachedIdentity(for: address)?.profile?.banner
-        return KachatSocialImageResolver.shared.profile(for: link)?.banner
-    }
-
-    @MainActor static func profileBio(_ address: String) -> String? {
-        let link = KachatNamesRegistry.shared.cachedIdentity(for: address)?.profile?.bio
-        return KachatSocialImageResolver.shared.profile(for: link)?.bio
-    }
-
-    /// What registering `name` costs for its first period (registry v4: fixed, baked into the
-    /// pinned templates). Each further period costs `renewPrice`.
-    @MainActor static func price(_ name: String) -> UInt64? {
-        guard let prices = KachatNamesRegistry.shared.registerPrices, prices.count == 5 else { return nil }
-        return prices[KachatNames.Codec.tier(name.utf8.count)]
-    }
-
-    /// What one more period of `name` costs: extend, renew, and registering past the first period.
-    @MainActor static func renewPrice(_ name: String) -> UInt64? {
-        guard let prices = KachatNamesRegistry.shared.renewPrices, prices.count == 5 else { return nil }
-        return prices[KachatNames.Codec.tier(name.utf8.count)]
-    }
-
-    /// "Price per year", or on a short clock "Price per 10 min".
-    @MainActor static var pricePerPeriodTitle: LocalizedStringKey {
-        yearlyPeriods ? "Price per year" : "Price per \(periods(1))"
-    }
-
-    /// An event party: an address (indexer) or an x-only key in hex (walker), as a short address.
-    static func party(_ s: String?) -> String? {
-        guard let s, !s.isEmpty else { return nil }
-        if s.hasPrefix("kaspa") { return KachatNamesRegistry.shortAddress(s) }
-        if let key = try? KachatNames.unhex32(s), let a = KachatNamesRegistry.address(of: key) {
-            return KachatNamesRegistry.shortAddress(a)
-        }
-        return s
-    }
-
-    /// A key of this wallet: the chatting address or any revealed spending address (IOS-085).
-    @MainActor static func isMine(_ key: Data) -> Bool { KachatNamesActions.shared.isOwnKey(key) }
-
-    static func eventIcon(_ op: String) -> String {
-        switch op {
-        case "register": return "at.badge.plus"
-        case "transfer": return "arrow.left.arrow.right"
-        case "list": return "tag"
-        case "delist": return "tag.slash"
-        case "sale", "offer_accepted": return "cart"
-        case "extend": return "calendar.badge.plus"
-        case "renew": return "arrow.clockwise"
-        case "release": return "arrow.uturn.backward"
-        case "reclaim": return "arrow.3.trianglepath"
-        case "import": return "arrow.down.doc"
-        default: return "hand.raised"
-        }
-    }
-
-    static func eventTitle(_ op: String) -> LocalizedStringKey {
-        switch op {
-        case "register": return "Registered"
-        case "transfer": return "Transferred"
-        case "list": return "Listed"
-        case "delist": return "Delisted"
-        case "sale": return "Sold"
-        case "offer_accepted", "offer_accept": return "Offer accepted"
-        case "extend": return "Extended"
-        case "renew": return "Renewed"
-        case "release": return "Released"
-        case "reclaim": return "Reclaimed"
-        case "import": return "Moved to the new registry"
-        case "offer": return "Offer made"
-        case "offer_withdraw": return "Offer withdrawn"
-        case "offer_refund": return "Offer refunded"
-        case "offer_decline": return "Offer declined"
-        default: return "Activity"
-        }
-    }
-
-    /// Why a typed name is not a name.
-    static func invalidReason(_ name: String) -> LocalizedStringKey? {
-        let b = Array(name.utf8)
-        if b.isEmpty || b.count > 32 { return "A name is 1 to 32 characters." }
-        if !b.allSatisfy({ ($0 >= 0x61 && $0 <= 0x7a) || ($0 >= 0x30 && $0 <= 0x39) || $0 == 0x2d }) {
-            return "Use a-z, 0-9 and hyphens only."
-        }
-        if b.first == 0x2d || b.last == 0x2d { return "A name can't start or end with a hyphen." }
-        return nil
-    }
-
-    /// Opens (or starts) a 1:1 chat with `address`.
-    @MainActor
-    static func message(_ address: String) {
-        _ = ContactsManager.shared.getOrCreateContact(address: address)
-        ChatService.shared.pendingChatNavigation = address
-        NotificationCenter.default.post(name: .openChat, object: nil, userInfo: ["contactAddress": address])
-    }
-}
-
-/// The app's glass card (`.regularMaterial`, hairline, soft shadow).
-struct KachatGlass: ViewModifier {
-    var cornerRadius: CGFloat = 16
-
-    func body(content: Content) -> some View {
-        content.background(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(.regularMaterial)
-                .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).stroke(Color.white.opacity(0.18), lineWidth: 0.8))
-                .shadow(color: Color.black.opacity(0.10), radius: 8, x: 0, y: 4)
-        )
-    }
-}
-
-extension View {
-    func kachatGlass(cornerRadius: CGFloat = 16) -> some View { modifier(KachatGlass(cornerRadius: cornerRadius)) }
 }
 
 // MARK: - A finished transaction
@@ -379,7 +209,7 @@ struct KachatTxDoneSheet: View {
         .presentationDragIndicator(.visible)
         .task {
             // a transaction this sheet wasn't handed by `perform` (a profile save): follow it here
-            if actions.txStages[done.txId] == nil, !done.accepted { actions.follow(txId: done.txId, plan: nil) }
+            if actions.txStages[done.txId] == nil, !done.accepted { actions.follow(txId: done.txId) }
         }
         .fullScreenCover(isPresented: Binding(
             get: { browserURL != nil },
@@ -602,19 +432,6 @@ struct KachatSourceInput: Equatable {
     }
 }
 
-/// The title above the name field, with the way to get one right beside it.
-struct KachatNameSectionHeader: View {
-    var body: some View {
-        HStack(spacing: 10) {
-            Text(".kachat Name")
-            Button("Get a domain") { KaPayHandoff.openNamesMarket() }
-                .font(.caption.weight(.semibold))
-                .textCase(nil)
-                .buttonStyle(.borderless)
-        }
-    }
-}
-
 /// The address profile (KACHAT_NAMES.md section 7): where the avatar, banner and bio come from
 /// (a social profile link each - they can be different accounts), a Linktree link, and which of
 /// your names labels you - written as a `kchat:1:profile:` self-transfer. No free text and no
@@ -774,7 +591,7 @@ struct KachatLiveProfileEditor: View {
                         }
                     }
                 } header: {
-                    KachatNameSectionHeader()
+                    Text(".kachat Name")
                 }
                 Section {
                     Button {
@@ -1078,12 +895,6 @@ struct KachatOwnedNamesList: View {
                                            footnote: Self.expiryLine(for: n, graceMs: registry.graceMs))
                     }
                 }
-                Text("Buy, renew, sell and transfer .kachat names in KaChat Wallet.")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 4)
             }
             .padding()
         }

@@ -32,11 +32,6 @@
 "Chat Info" = "聊天信息";
 "Chat archived." = "聊天已归档。";
 "Chats" = "聊天";
-"Checking eligibility..." = "正在检查资格...";
-"Checking gift eligibility..." = "正在检查礼物领取资格...";
-"Claim Gift" = "领取礼物";
-"Claim some KAS to get started with your new account." = "领取一些 KAS，开始使用你的新账户。";
-"Claiming gift..." = "正在领取礼物...";
 "Clear" = "清除";
 "Clear Connection Pool" = "清除连接池";
 "Clear Link" = "清除链接";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "系统联系人关联失败。";
 "Failed to open archive: \(error.localizedDescription)" = "无法打开档案: \(error.localizedDescription)";
 "Generate Account" = "生成账户";
-"Gift" = "礼物";
-"Gift already claimed" = "礼物已领取";
-"Gift claim reset. You can request it again." = "礼物领取已重置。你可以重新申请。";
-"Gift claimed" = "礼物已领取";
-"Gift sent to your wallet!" = "礼物已发送到你的钱包！";
-"Gift unavailable" = "礼物不可用";
 "Request to communicate" = "请求通信";
 "Send audio" = "发送语音";
 "Send KAS" = "发送 KAS";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "隐藏自动创建的付款聊天";
 "High Transaction Traffic" = "交易流量过高";
 "I have written down my seed phrase and stored it securely" = "我已写下 seed phrase 并安全保管";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "如果因捐赠钱包暂时资金不足而领取失败，请稍后重试。";
 "Import" = "导入";
 "Import Account" = "导入账户";
 "Import Chat History" = "导入聊天记录";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "录音中… \\(Int(recordingDuration))秒";
 "Refresh Pool" = "刷新连接池";
 "Refresh Pool Now" = "立即刷新连接池";
-"Registered" = "已注册";
 "Remove Saved Account" = "移除已保存账户";
 "Remove from Device" = "从设备移除";
 "Required for cross-device sync and backup of sent messages." = "跨设备同步和已发送消息备份所需。";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "此账户将从此设备中移除。";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "此联系人将在创建后关联。你仍需输入 Kaspa 地址或 KNS 域名。";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "这将删除所有本地数据和 CloudKit 消息记录。此操作不可撤销。";
-"This device has already received the welcome gift." = "此设备已领取过欢迎礼物。";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "将从此设备移除 \(account.displayAlias)（\(account.shortPublicAddress)）及其本地数据。";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "将从此设备移除 \\(account.displayAlias)（\\(account.shortPublicAddress)）及其本地数据。";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "这将删除本地和 iCloud 中的所有接收消息，然后从区块链重新同步。你的账户信息和已发送消息将保留。";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "这将删除已发现的节点、断开当前会话并重新开始发现。";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "这将删除本地账户数据和消息。清除期间 CloudKit 同步将被禁用，完成后重新启用。";
 "This signs out of your account, but keeps local wallet and message data on this device." = "退出账户，但保留此设备上的本地钱包和消息数据。";
-"This welcome gift is a community-funded initiative." = "这份欢迎礼物由社区资助。";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "这将从此设备永久删除你的账户。请确保你已备份 seed phrase。";
 "To receive notifications, please enable them in Settings." = "要接收通知，请在设置中启用。";
 "Total" = "总计";
@@ -292,7 +277,6 @@
 "Voice message" = "语音消息";
 "Watching" = "监控中";
 "Website" = "网站";
-"Welcome Gift" = "欢迎礼物";
 "Welcome to KaChat!" = "欢迎使用 KaChat！";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "禁用后，此联系人的消息将定期获取而非实时获取。适用于交易量大的联系人，可节省电量和网络流量。";
 "Wipe Account & Messages" = "清除账户和消息";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "请尽快续期以保留它。";
 "Renew it soon or anyone can claim it." = "请尽快续期，否则任何人都可以认领。";
-"%@ has lapsed" = "%@ 已失效";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "现在任何人都可以认领。自己回收即可取回保证金。";
 "Offer on %@ declined" = "对 %@ 的报价被拒绝";
 "The owner declined it. The KAS is back with you." = "所有者拒绝了报价。KAS 已退回给你。";
 "Offer on %@ expired" = "对 %@ 的报价已过期";
 "Nobody accepted it in time. The KAS is back with you." = "没有人及时接受。KAS 已退回给你。";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "它已不再属于你，已移至市场的“可回收”标签。自己回收即可取回你的押金。";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ 已不再属于你";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "向你发送了 %@ KAS";
 "Sent you a payment" = "向你发送了一笔付款";
+"Requested for payment" = "请求付款";
+"You were invited to \"%@\"" = "你被邀请加入“%@”";

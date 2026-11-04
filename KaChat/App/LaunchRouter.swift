@@ -9,7 +9,7 @@ enum LaunchRoute: Equatable {
 }
 
 enum LaunchRouter {
-    /// `isPendingSeedPhraseConfirmation` covers the window where `WalletManager.createWallet`
+    /// `isPendingSeedPhraseConfirmation` covers the window where wallet creation
     /// has already generated and persisted a new wallet (so `hasCurrentWallet` is `true`) but the
     /// user hasn't yet reviewed/acknowledged its seed phrase on `CreateWalletView` - routing to
     /// `.mainApp` during that window would tear down the seed-phrase screen before it's had a

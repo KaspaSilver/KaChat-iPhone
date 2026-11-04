@@ -14,7 +14,6 @@ struct KaChatApp: App {
     @StateObject private var settingsViewModel = SettingsViewModel()
     @StateObject private var pushManager = PushNotificationManager.shared
     @StateObject private var groupChatService = GroupChatService.shared
-    @State private var pendingOutboundShareId: String?
     /// The blur over the app in the App Switcher and behind system prompts: balances, chats
     /// and the seed screen used to sit in iOS's snapshot of the app in plain view.
     @State private var showPrivacyCover = false
@@ -92,7 +91,7 @@ struct KaChatApp: App {
                     handleIncomingURL(url)
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
-                    // Universal links (https://kachat.app/post/<txid>) - same router.
+                    // Universal links (https://kachat.app/u/<address>) - same router.
                     if let url = activity.webpageURL {
                         handleIncomingURL(url)
                     }
@@ -295,7 +294,7 @@ struct KaChatApp: App {
                         ReadStatusSyncManager.shared.runMigrationIfNeeded()
                     }
                 }
-                // Own-address receive catch-up: diff spending/cold-storage balances against the
+                // Own-address receive catch-up: diff spending balances against the
                 // persisted baseline and notify for external receipts that landed while away
                 // (internally debounced; first run only seeds the baseline).
                 Task {
@@ -356,7 +355,6 @@ struct KaChatApp: App {
             return
         }
 
-        pendingOutboundShareId = shareId
         Task {
             await processPendingOutboundShareIfNeeded()
         }
@@ -381,7 +379,6 @@ struct KaChatApp: App {
         // user shared them. The deep-linked share id (if any) is just one of these; processing
         // the whole queue also covers shares from earlier failed app-open attempts.
         let shares = SharedDataManager.getOutboundShares().sorted { $0.createdAtMs < $1.createdAtMs }
-        pendingOutboundShareId = nil
         guard !shares.isEmpty else { return }
 
         for share in shares {
@@ -840,7 +837,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // Own-address activity (a spending address received Kaspa) notification tapped: these
         // are wallet events, not chats - the thread id must never fall through to the
         // contact-address branch below (it would stage a bogus pendingChatNavigation). A receipt
-        // lands on Profile, which shows the wallet's addresses and balances. `PendingTabRoute`
+        // lands on Wallet, which shows the addresses and balances. `PendingTabRoute`
         // covers the cold start, where the post below has no observer yet.
         if threadIdentifier == AddressActivityNotifier.notificationThreadIdentifier {
             if let address = response.notification.request.content.userInfo["address"] as? String, !address.isEmpty {
@@ -849,7 +846,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                 OwnAddressRoute.pending = address
                 NotificationCenter.default.post(name: .openOwnAddress, object: nil)
             } else {
-                PendingTabRoute.pending = .profile
+                PendingTabRoute.pending = .wallet
                 NotificationCenter.default.post(name: .openProfile, object: nil)
             }
             completionHandler()
@@ -881,6 +878,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                     object: nil,
                     userInfo: ["groupId": groupId]
                 )
+            }
+        } else if threadIdentifier == "group_requests" {
+            // An invite: answered in Message Requests, on Chats.
+            Task { @MainActor in
+                GroupChatService.shared.pendingGroupListNavigation = true
+                GroupChatService.shared.pendingMessageRequestsOpen = true
             }
         } else if threadIdentifier == "group" {
             // Undecryptable group push: NotificationService's `deliverGroupFallback` can only
@@ -1016,9 +1019,9 @@ enum KaChatLinkRouter {
     /// Any URL a user taps inside the app: a KaChat link (kachat.app or the kachat:// scheme) goes straight to its profile or payment request; everything else leaves the
     /// app as usual. The one call every "Open" button should make.
     @MainActor
-    static func openAnywhere(_ url: URL) {
+    static func openAnywhere(_ url: URL, fromChat: Bool = false) {
         if let link = KaChatInternalLink.parse(url) {
-            open(link)
+            open(link, fromChat: fromChat)
             return
         }
         guard isSafeExternalLink(url) else {
@@ -1038,21 +1041,26 @@ enum KaChatLinkRouter {
     }
 
     @MainActor
-    static func open(_ link: KaChatInternalLink) {
+    static func open(_ link: KaChatInternalLink, fromChat: Bool = false) {
         switch link {
         case .profile(let address):
             openProfile(address: address)
         case .paymentRequest(let request):
-            openPaymentRequest(request)
+            openPaymentRequest(request, fromChat: fromChat)
         }
     }
 
-    /// A payment request: someone else's is paid in KaPay (`KaPayHandoff`; the App Store when
-    /// it isn't installed). A chat-payment one opens Send Kaspa here with it filled in, and your
-    /// own shows it (amount, memo, the address it pays into) with its link to copy or share again
-    /// (`PaymentRequestSheetPresenter`, in `MainTabView`).
+    /// A payment request tapped in a chat is paid right here, on Send Kaspa with it filled in.
+    /// From anywhere else, someone else's is paid in KaPay (`KaPayHandoff`; the App Store when it
+    /// isn't installed), except a chat-payment one. Your own shows it (amount, memo, the address
+    /// it pays into) with its link to copy or share again (`PaymentRequestSheetPresenter`, in
+    /// `MainTabView`).
     @MainActor
-    static func openPaymentRequest(_ request: PaymentRequest) {
+    static func openPaymentRequest(_ request: PaymentRequest, fromChat: Bool = false) {
+        guard !fromChat else {
+            PaymentRequestRouter.shared.pending = request
+            return
+        }
         KaPayHandoff.pay(request, inApp: { PaymentRequestRouter.shared.pending = request })
     }
 
@@ -1100,12 +1108,7 @@ enum KaChatLinkRouter {
 
 extension Notification.Name {
     static let openChat = Notification.Name("openChat")
-    /// Lands on the Profile tab with the KNS profile editor open, rather than rebuilding the
-    /// editor elsewhere: `KNSProfileEditorSheet` is driven by a spread of ProfileView's own state
-    /// (domains, primary, in-flight set-primary), and a second copy of that would be a second
-    /// thing to keep correct.
-    static let openKNSProfileEditor = Notification.Name("openKNSProfileEditor")
-    /// A wallet receipt was tapped: the Profile tab.
+    /// A wallet receipt was tapped: the Wallet tab.
     static let openProfile = Notification.Name("openProfile")
     /// A "Received" notification for one of your addresses was tapped: `OwnAddressRoute.pending`.
     static let openOwnAddress = Notification.Name("openOwnAddress")

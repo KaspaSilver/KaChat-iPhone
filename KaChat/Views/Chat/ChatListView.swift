@@ -246,6 +246,9 @@ struct ChatListView: View {
             .onChange(of: groupChatService.pendingGroupListNavigation) { newValue in
                 if newValue { groupChatService.pendingGroupListNavigation = false }
             }
+            .onChange(of: groupChatService.pendingMessageRequestsOpen) { newValue in
+                if newValue { openPendingMessageRequests() }
+            }
             // A pending group tap that arrived before its group was created (catch-up in flight)
             // resolves the instant the group is inserted into the list.
             .onChange(of: groupChatService.groups) { _ in
@@ -255,6 +258,7 @@ struct ChatListView: View {
                 loadGroupPins()
                 checkPendingGroupNavigation()
                 groupChatService.pendingGroupListNavigation = false
+                openPendingMessageRequests()
             }
 
         return withGroupRouting
@@ -488,7 +492,6 @@ struct ChatListView: View {
         .accessibilityLabel(Text("New"))
     }
 
-    static let createTileSize: CGFloat = 104
     /// New Chat or New Group Chat, and then that screen at full height.
     @ViewBuilder
     private var createSheet: some View {
@@ -558,8 +561,6 @@ struct ChatListView: View {
 
     private static let createMenuHeight: PresentationDetent = .height(250)
 
-    /// One row of tiles (Profile's send / receive sheet).
-    static let createSheetHeight: PresentationDetent = .height(262)
 
     private var emptyStateView: some View {
         VStack(spacing: 20) {
@@ -641,8 +642,7 @@ struct ChatListView: View {
 
     // MARK: - Circles (bot chats)
 
-    /// Every bot is always a circle in the row above the chats (since 2026-10-24 there is no
-    /// Kaspa Hub page for them), with its chat when there is one. Bot chats never sit in the chat
+    /// Every bot is always a circle in the row above the chats, with its chat when there is one. Bot chats never sit in the chat
     /// list itself.
     private var botCircles: [BotCircle] {
         KaChatBot.available.map { bot in
@@ -722,7 +722,9 @@ struct ChatListView: View {
         }
 
         let showsRequestsRow = searchText.isEmpty && editMode != .active
-        let requestCount = showsRequestsRow ? chatService.messageRequestCount : 0
+        let requestCount = showsRequestsRow
+            ? chatService.messageRequestCount + groupChatService.pendingGroupInvites.count
+            : 0
         return List(selection: $selectedEntryIDs) {
             // The bot chats and the chats you pinned, as circles under the search bar - swipe
             // sideways for all of them. Tap opens, hold opens their half sheet.
@@ -783,7 +785,7 @@ struct ChatListView: View {
                     }
                 }
 
-                Text("\(totalCount) chat\(totalCount == 1 ? "" : "s")")
+                Text("\(totalCount) chat\(pluralS(totalCount))")
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity)
@@ -1183,7 +1185,7 @@ struct ChatListView: View {
     private var balanceToolbarView: some View {
         let sompi = walletManager.currentWallet?.balanceSompi
         let exact = sompi.map(formatKaspaExact) ?? "--"
-        // Kaspa logo + bold, matching KaPosts' balance header style.
+        // Kaspa logo + bold.
         return HStack(spacing: 6) {
             Image("KaspaLogo")
                 .resizable()
@@ -1235,6 +1237,12 @@ struct ChatListView: View {
         } else {
             refreshFilteredConversations()
         }
+    }
+
+    private func openPendingMessageRequests() {
+        guard groupChatService.pendingMessageRequestsOpen else { return }
+        groupChatService.pendingMessageRequestsOpen = false
+        showMessageRequests = true
     }
 
     private func scheduleAvatarPrefetch() {
@@ -1967,7 +1975,7 @@ struct ChatRowPressStyle: ButtonStyle {
         .environmentObject(WalletManager.shared)
 }
 
-/// The red unread count - on the circles above the Chats and Groups lists.
+/// The red unread count - on the circles above the chat list.
 struct ChatsTabUnreadBadge: View {
     let count: Int
 
@@ -2199,6 +2207,113 @@ struct PinnedCircleButton<Avatar: View>: View {
 
 // MARK: - Message Requests
 
+/// A group you were added to, in Message Requests.
+private struct GroupInviteRow: View {
+    let invite: PendingGroupInvite
+
+    var body: some View {
+        HStack(spacing: 12) {
+            GroupInviteAvatar(size: 50)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: invite.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text("Invited by \(ContactsManager.shared.displayName(for: invite.adminAddress))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private struct GroupInviteAvatar: View {
+    let size: CGFloat
+
+    var body: some View {
+        Image(systemName: "person.3.fill")
+            .font(.scaled(size: size * 0.36, weight: .semibold))
+            .foregroundColor(.accentColor)
+            .frame(width: size, height: size)
+            .background(Circle().fill(Color.accentColor.opacity(0.2)))
+    }
+}
+
+/// What you'd be joining, with Accept and Reject. Nothing of the group exists on this device
+/// beyond the invite: its messages only come in after Accept.
+private struct GroupInviteRequestView: View {
+    let invite: PendingGroupInvite
+
+    @EnvironmentObject private var groupChatService: GroupChatService
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List {
+            Section {
+                VStack(spacing: 10) {
+                    GroupInviteAvatar(size: 76)
+                    Text(verbatim: invite.name)
+                        .font(.title3.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                    Text("Invited by \(ContactsManager.shared.displayName(for: invite.adminAddress))")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    Text("You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know.")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 6)
+                .listRowBackground(Color.clear)
+            }
+            Section("Members") {
+                ForEach(invite.members, id: \.self) { address in
+                    HStack(spacing: 10) {
+                        KNSAvatarView(avatarURLString: nil, fallbackText: "", size: 32, contactAddress: address)
+                        Text(verbatim: ContactsManager.shared.displayName(for: address))
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .navigationTitle("Group Invite")
+        .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .bottom) {
+            HStack(spacing: 12) {
+                Button(role: .destructive) {
+                    groupChatService.rejectGroupInvite(invite)
+                    dismiss()
+                } label: {
+                    Text("Reject")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(.bordered)
+                Button {
+                    groupChatService.acceptGroupInvite(invite)
+                    dismiss()
+                } label: {
+                    Text("Accept")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(.bar)
+        }
+    }
+}
+
 /// The chat list's Message Requests row: everyone who wrote first and hasn't been accepted.
 private struct MessageRequestsRow: View {
     let count: Int
@@ -2214,7 +2329,7 @@ private struct MessageRequestsRow: View {
                 Text("Message Requests")
                     .font(.headline)
                     .foregroundColor(.primary)
-                Text(count > 0 ? "People who wrote to you first" : "No new requests")
+                Text(count > 0 ? "People and groups waiting for you" : "No new requests")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -2239,15 +2354,29 @@ private struct MessageRequestsRow: View {
 
 /// Chats someone else started that you haven't accepted (NO_HANDSHAKE_MESSAGING.md). Open one to
 /// read everything they sent, then Accept or Reject from inside it. Their messages never notify
-/// you beyond the first "New message request".
+/// you beyond the first "New message request". Groups you were added to wait here too: you aren't
+/// in one until you accept.
 struct MessageRequestsView: View {
     @EnvironmentObject private var chatService: ChatService
+    @EnvironmentObject private var groupChatService: GroupChatService
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             let requests = chatService.messageRequests
+            let invites = groupChatService.pendingGroupInvites
             List {
+                if !invites.isEmpty {
+                    Section("Group Invites") {
+                        ForEach(invites) { invite in
+                            NavigationLink {
+                                GroupInviteRequestView(invite: invite)
+                            } label: {
+                                GroupInviteRow(invite: invite)
+                            }
+                        }
+                    }
+                }
                 Section {
                     ForEach(requests) { conversation in
                         NavigationLink {
@@ -2260,7 +2389,7 @@ struct MessageRequestsView: View {
             }
             .listStyle(.insetGrouped)
             .overlay {
-                if requests.isEmpty {
+                if requests.isEmpty && invites.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "tray")
                             .font(.scaled(size: 40))
@@ -2278,36 +2407,6 @@ struct MessageRequestsView: View {
                 }
             }
         }
-    }
-}
-
-/// One square option in the Chats New sheet and Profile's Send and Receive sheet: an icon over a
-/// two-line title, on glass.
-struct CreateTile: View {
-    let title: LocalizedStringKey
-    let hint: LocalizedStringKey
-    let systemImage: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 10) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundColor(.accentColor)
-                Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(.primary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-            }
-            .padding(8)
-            .frame(width: ChatListView.createTileSize, height: ChatListView.createTileSize)
-            .background(sendKaspaGlass(cornerRadius: 18))
-        }
-        .buttonStyle(ChatRowPressStyle())
-        .accessibilityHint(Text(hint))
     }
 }
 

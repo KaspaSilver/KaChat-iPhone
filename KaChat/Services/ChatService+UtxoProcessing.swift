@@ -393,14 +393,25 @@ extension ChatService {
 
                     // Own self-stash transactions: contextual messages we sent to a contact.
                     // If we have this message locally (we sent it from this device), skip.
-                    // Otherwise it was sent from another device with the same wallet: the
-                    // indexer only has a payload encrypted for the recipient, so the text
-                    // arrives with the next Nextcloud archive restore, not from here.
+                    // Otherwise it was sent from another device with the same wallet, and the
+                    // seed can read it back (the push path does all of this).
                     if utxoAddress == myAddress {
                         if await findLocalMessage(txId: txId) != nil {
                             AppLog.log("[ChatService] Own self-stash %@ already exists locally - skipping",
                                   String(txId.prefix(12)))
                             continue
+                        }
+                        // A moment first: this device's own send may still be recording its txId.
+                        let ownTxId = txId
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            guard isActiveWallet(myAddress), await findLocalMessage(txId: ownTxId) == nil else { return }
+                            _ = await addOutgoingMessageFromPush(
+                                txId: ownTxId,
+                                sender: myAddress,
+                                payload: nil,
+                                timestamp: Int64(Date().timeIntervalSince1970 * 1000)
+                            )
                         }
                         AppLog.log("[ChatService] Own self-stash %@ not found locally - sent from another device; text arrives with the archive",
                               String(txId.prefix(12)))
@@ -461,7 +472,7 @@ extension ChatService {
             // Case 3: UTXO to unknown address (e.g., change) - skip silently
         }
 
-        // Own-address (spending / cold-storage) receives: wallet notifications, never chats.
+        // Own-address (spending) receives: wallet notifications, never chats.
         // Handed the WHOLE batch so one tx paying several of our addresses notifies once,
         // plus the per-tx removed sets for the self-send fast path (a tx spending FROM any
         // watched own address is our own change/consolidation/withdrawal - no notification).
@@ -1292,6 +1303,18 @@ extension ChatService {
            let myOutputs = outputsByAddress[myAddress] {
             let amountToMe = myOutputs.reduce(UInt64(0)) { $0 + $1.amount }
             if amountToMe > 0 {
+                // An output to a contact doesn't make them the payer: anyone can pay one in the
+                // same transaction, with a memo, to file a payment under their name.
+                switch await provenSender(of: txId, expected: sender, myAddress: myAddress) {
+                case .proven:
+                    break
+                case .forged:
+                    AppLog.log("[ChatService] Mempool %@ isn't from the contact it pays - left to the payment sync", String(txId.prefix(12)))
+                    return
+                case .unknown:
+                    scheduleSelfStashRetry(txId: txId, myAddress: myAddress, blockDaaScore: blockDaaScore, privateKey: privateKey)
+                    return
+                }
                 AppLog.log("[ChatService] Mempool resolved %@ as incoming from %@",
                       String(txId.prefix(12)), String(sender.suffix(10)))
                 let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
@@ -1352,6 +1375,26 @@ extension ChatService {
         }
     }
 
+    enum SenderProof { case proven, forged, unknown }
+
+    /// Whether `expected` signed `txId`, from the transaction's own input signatures (read from the
+    /// REST API, which takes a couple of seconds to list a new transaction).
+    func provenSender(of txId: String, expected: String, myAddress: String) async -> SenderProof {
+        guard let tx = await fetchKaspaFullTransaction(txId: txId, retries: 3, delayNs: 800_000_000) else {
+            return .unknown
+        }
+        let verdict = await verifyIncomingPaymentSignatures(tx, myAddress: myAddress)
+        switch verdict.check {
+        case .invalid:
+            return .forged
+        case .valid:
+            guard let sender = verdict.sender else { return .unknown }
+            return sender.lowercased() == expected.lowercased() ? .proven : .forged
+        default:
+            return .unknown
+        }
+    }
+
     /// Resolve and process self-stash (contextual message) from contact
     /// Uses fast mempool RPC racing against REST API since sender is already known
     func resolveAndProcessSelfStash(
@@ -1400,6 +1443,20 @@ extension ChatService {
             // Skip if already processed. Checked here (not inside MainActor.run) because
             // findLocalMessage is async and MainActor.run's body must be synchronous.
             if await findLocalMessage(txId: txId) != nil { return }
+            // Anyone can seal a message to us under a contact's public alias and pay dust to the
+            // contact's address, so the subscription can't say who wrote this: only the
+            // signatures on the transaction's inputs can.
+            switch await provenSender(of: txId, expected: contactAddress, myAddress: myAddress) {
+            case .proven:
+                break
+            case .forged:
+                AppLog.log("[ChatService] Dropped %@: not signed by the contact it claims", String(txId.prefix(12)))
+                return
+            case .unknown:
+                // Not readable yet. The indexer files messages by the sender of the transaction.
+                _ = await fetchContextualMessagesFromContact(contactAddress: contactAddress, myAddress: myAddress, privateKey: privateKey)
+                return
+            }
             await MainActor.run {
                 let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
                 AppLog.log("[ChatService] Decrypted message from %@ via fast resolve", String(contactAddress.suffix(10)))

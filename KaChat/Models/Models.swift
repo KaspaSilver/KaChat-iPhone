@@ -1103,8 +1103,7 @@ enum MessageReactionCodec {
 /// edit is a new transaction that names the original by txId and carries the new text, and
 /// every client shows the newest edit's text in place of the original with an "edited" mark.
 /// Same envelope-in-content pattern as reactions - embedded in the normal encrypted contextual
-/// content (1:1), the group-encrypted message (groups), or the plaintext public chat row (public
-/// chats) - and never rendered as a bubble of its own. Rules, the same on every platform:
+/// content (1:1) or the group-encrypted message (groups) - and never rendered as a bubble of its own. Rules, the same on every platform:
 /// only the original sender's edits count; the newest by block time wins; text only (a
 /// payment, voice message, photo, chess move or call line is never editable). Wire format in
 /// MESSAGING.md ("Message Edits") - Android/desktop must match.
@@ -1599,7 +1598,7 @@ enum MediaFileEnvelope {
 
 /// Lightweight sniff for the same inline voice-message JSON shape `MediaFile` parses in 1:1 chats
 /// (`ChatService.sendAudio`/`MessageBubbleView.MediaFile`) - used where only a yes/no check and a
-/// placeholder label are needed (e.g. a public chat bubble or a reply quote preview), without
+/// placeholder label are needed (e.g. a reply quote preview), without
 /// pulling in the full image/audio-player decoding path.
 enum VoiceMessageSniff {
     struct Payload {
@@ -1655,30 +1654,6 @@ enum VoiceMessageSniff {
 }
 
 // MARK: - Diagnostics Models
-
-struct ConnectionStatus: Equatable {
-    var isConnected: Bool
-    var pingMs: Int?
-    var nodeAddress: String?
-    var indexerAddress: String?
-    var lastChecked: Date?
-    var networkType: NetworkType
-    var blockHeight: UInt64?
-    var error: String?
-
-    static var disconnected: ConnectionStatus {
-        ConnectionStatus(
-            isConnected: false,
-            pingMs: nil,
-            nodeAddress: nil,
-            indexerAddress: nil,
-            lastChecked: nil,
-            networkType: .mainnet,
-            blockHeight: nil,
-            error: nil
-        )
-    }
-}
 
 enum NetworkType: String, Codable, CaseIterable {
     case mainnet
@@ -2004,11 +1979,11 @@ enum AppCurrency: String, Codable, CaseIterable {
     var displayName: String { "\(name) (\(code))" }
 }
 
-/// The dock (since 2026-10-26 a fixed five: Addresses, Groups, Chats, Profile, Settings - no
-/// Kaspa Hub and no Customize Dock; Chats in the center). `tag` is a fixed identifier per case so tag-based navigation (jumping to
+/// The dock, a fixed five: Contacts, Wallet, Chats, Profile, Settings (Chats in the center). `tag` is a fixed identifier per case so tag-based navigation (jumping to
 /// Chats on a notification tap) never depends on position.
 enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     case chats
+    case wallet
     /// Address Book (2026-10-08): saved Kaspa addresses with names, per wallet, kept in KaChat.
     case addressBook
     case profile
@@ -2020,6 +1995,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var label: String {
         switch self {
         case .chats: return "Chats"
+        case .wallet: return "Wallet"
         // "Contacts" (owner's call, 2026-10-28; "Addresses" before, as in the KaChat wallet app).
         case .addressBook: return "Contacts"
         case .profile: return "Profile"
@@ -2030,6 +2006,10 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var icon: String {
         switch self {
         case .chats: return "bubble.left.and.bubble.right"
+        case .wallet:
+            // Matches KaPay's Wallet tab.
+            if #available(iOS 17, *) { return "wallet.bifold" }
+            return "wallet.pass"
         case .addressBook: return "person.text.rectangle"
         case .profile: return "person.crop.circle"
         case .settings: return "gearshape"
@@ -2039,6 +2019,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     var tag: Int {
         switch self {
         case .chats: return 1
+        case .wallet: return 18
         case .profile: return 2
         case .addressBook: return 14
         case .settings: return 16
@@ -2046,7 +2027,7 @@ enum AppTab: String, CaseIterable, Identifiable, Equatable, Hashable {
     }
 
     /// What the dock renders, in order.
-    static let dock: [AppTab] = [.addressBook, .chats, .profile, .settings]
+    static let dock: [AppTab] = [.addressBook, .wallet, .chats, .profile, .settings]
 }
 
 /// Block explorer used for "view transaction" links, matching Android's KaspaExplorer enum.
@@ -2207,7 +2188,7 @@ struct AppSettings: Codable {
     // Connection settings
     var indexerURL: String
     var pushIndexerURL: String
-    /// Where `.kachat` names, profiles and the market are read (Settings > Connection Settings >
+    /// Where `.kachat` names and profiles are read (Settings > Connection Settings >
     /// Domains). Its own field so anyone can run the names indexer themselves without also moving
     /// their chats. Starts as the same KaChat indexer as `indexerURL`; settings saved before the
     /// field existed take whatever `indexerURL` held then, which is where names were read from.
@@ -2673,17 +2654,6 @@ struct AppSettings: Codable {
         get { false }
         set { }
     }
-
-    var pushNotificationsEnabled: Bool {
-        get { notificationMode == .remotePush }
-        set {
-            if newValue {
-                notificationMode = .remotePush
-            } else if notificationMode == .remotePush {
-                notificationMode = .disabled
-            }
-        }
-    }
 }
 
 // MARK: - Error Types
@@ -2707,11 +2677,11 @@ enum KasiaError: LocalizedError {
         case .walletNotFound:
             return "Account not found. Please create or import an account."
         case .invalidSeedPhrase:
-            return "Invalid seed phrase. Please enter 12 or 24 words."
+            return "Invalid words. Please enter 12 or 24 words."
         case .seedPhraseParsingFailed(let wordCount):
-            return "Seed phrase parsing failed. Detected \(wordCount) words (expected 12 or 24)."
+            return "Couldn't read your words. Detected \(wordCount) words (expected 12 or 24)."
         case .mnemonicValidationFailed(let reason):
-            return "Mnemonic validation failed: \(reason)"
+            return "Word check failed: \(reason)"
         case .invalidAddress:
             return "Invalid Kaspa address format."
         case .ownAccountAddress:
@@ -2816,17 +2786,6 @@ enum EndpointOrigin: Int, Codable {
         case .dynamic: return "Discovered"
         case .userAdded: return "Manual"
         case .preProvisioned: return "Default"
-        }
-    }
-
-    /// Whether this endpoint can be deleted by user
-    var canDelete: Bool { true }
-
-    /// Maximum cooling time for this origin type
-    var maxCoolingMinutes: Int {
-        switch self {
-        case .preProvisioned: return 5
-        default: return 7 * 24 * 60 // 1 week
         }
     }
 }
@@ -3019,61 +2978,6 @@ struct GrpcEndpoint: Codable, Identifiable, Equatable {
             return url
         }
         return host
-    }
-
-    /// Time since endpoint was added, formatted for display
-    var addedAgo: String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: dateAdded, relativeTo: Date())
-    }
-
-    /// Whether endpoint is currently in cooling period
-    var isCooling: Bool {
-        guard let coolingUntil = coolingUntil else { return false }
-        return Date() < coolingUntil
-    }
-
-    /// Calculate cooling time based on error count and origin
-    mutating func setCoolingTime() {
-        let baseMinutes: Double
-        let maxMinutes: Double
-        let randomRange: Double
-
-        switch origin {
-        case .preProvisioned:
-            baseMinutes = 1
-            maxMinutes = 5
-            randomRange = 1
-        default:
-            baseMinutes = 10
-            maxMinutes = Double(7 * 24 * 60) // 1 week
-            randomRange = 10
-        }
-
-        let coolingMinutes = min(maxMinutes, baseMinutes * pow(2, Double(errorCount)))
-        let randomMinutes = Double.random(in: 0...randomRange)
-        coolingUntil = Date().addingTimeInterval((coolingMinutes + randomMinutes) * 60)
-    }
-
-    /// Set success cooling time (for periodic rechecks)
-    mutating func setSuccessCoolingTime() {
-        let baseMinutes: Double
-        let randomRange: Double
-
-        switch pool {
-        case .hot:
-            baseMinutes = 10
-            randomRange = 10
-        case .warm:
-            baseMinutes = 30
-            randomRange = 30
-        case .cold:
-            baseMinutes = 60
-            randomRange = 60
-        }
-
-        coolingUntil = Date().addingTimeInterval((baseMinutes + Double.random(in: 0...randomRange)) * 60)
     }
 }
 

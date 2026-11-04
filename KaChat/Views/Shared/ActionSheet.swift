@@ -15,8 +15,7 @@ private func glassBackground(cornerRadius: CGFloat) -> some View {
 /// One option in a half-sheet menu: an icon, a title, and a line saying what the option does.
 ///
 /// The app's menus used to be popovers and confirmation dialogs of bare labels, which have room
-/// for a verb and nothing else. Every menu that has since become a sheet - the cold storage
-/// account and address menus, Address Actions, the transaction menu below - is built from this,
+/// for a verb and nothing else. Every menu that has since become a sheet - Address Actions, the transaction menu below - is built from this,
 /// so they read as the same kind of object wherever they appear.
 struct ActionSheetRow: View {
     let title: String
@@ -165,92 +164,10 @@ enum ActionSheetTileMetrics {
     }
 }
 
-/// Renaming something, in a half sheet.
-///
-/// A system alert with a text field is the platform's default for this, and it is the wrong
-/// shape: it steals the whole screen for one word, and its field is a cramped afterthought. This
-/// is the same sheet every other cold-storage action already uses.
-struct RenameSheet: View {
-    let title: String
-    var subtitle: String?
-    var fieldLabel: String = "Name"
-    @Binding var text: String
-    let onSave: (String) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @FocusState private var focused: Bool
-
-    private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-    var body: some View {
-        VStack(spacing: 12) {
-            VStack(spacing: 4) {
-                Text(title)
-                    .font(.headline)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-            }
-            .padding(.top, 20)
-            .padding(.bottom, 4)
-
-            TextField(fieldLabel, text: $text)
-                .textInputAutocapitalization(.words)
-                .autocorrectionDisabled()
-                .submitLabel(.done)
-                .focused($focused)
-                .onSubmit(save)
-                .padding(14)
-                .background(glassBackground(cornerRadius: 16))
-
-            HStack(spacing: 12) {
-                Button("Cancel") { dismiss() }
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundColor(.primary)
-                    .background(glassBackground(cornerRadius: 16))
-
-                Button("Save", action: save)
-                    .font(.subheadline.weight(.bold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundColor(.black)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.accentColor.opacity(trimmed.isEmpty ? 0.4 : 1))
-                    )
-                    .disabled(trimmed.isEmpty)
-            }
-            .buttonStyle(.plain)
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .presentationDetents([.height(260)])
-        .presentationDragIndicator(.visible)
-        // A turn later: the field does not exist yet on the tap that presented this.
-        .onAppear { DispatchQueue.main.async { focused = true } }
-    }
-
-    private func save() {
-        guard !trimmed.isEmpty else { return }
-        onSave(trimmed)
-        Haptics.success()
-        dismiss()
-    }
-}
-
 /// Who reacted to one message, and with what.
 ///
 /// The pill on a bubble shows which emoji are on it and nothing else - not how many of each, and
-/// not from whom. Shared by 1:1, group and public chat messages, which each carry their own
+/// not from whom. Shared by 1:1 and group messages, which each carry their own
 /// reaction snapshot type; callers map theirs into `Entry`.
 struct ReactionsSheet: View {
     struct Entry: Identifiable {
@@ -418,7 +335,7 @@ struct LinkActionsSheet: View {
     let url: URL
     let onOpen: () -> Void
     let onCopy: () -> Void
-    /// Nil where replying makes no sense (a KaPost, a public chat you cannot reply into).
+    /// Nil where replying makes no sense (a message that has no thread to reply in).
     var onReply: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
 
@@ -463,81 +380,6 @@ struct LinkActionsSheet: View {
     }
 }
 
-/// Repost as-is, or quote it with your own words - the half-sheet form of the old dialog.
-struct RepostActionsSheet: View {
-    let onRepost: () -> Void
-    let onQuote: () -> Void
-    /// Set when the post is already reposted, so the first row offers to take it back.
-    var isReposted: Bool = false
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text(isReposted ? "Reposted" : "Repost")
-                .font(.headline)
-                .padding(.top, 20)
-                .padding(.bottom, 4)
-
-            ActionSheetRow(
-                title: isReposted ? "Undo Repost" : "Repost",
-                subtitle: isReposted
-                    ? "Removes it from your profile."
-                    : "Shares it to your followers as-is.",
-                systemImage: isReposted ? "arrow.uturn.backward" : "arrow.2.squarepath",
-                tint: isReposted ? .red : .accentColor
-            ) { dismiss(); onRepost() }
-
-            ActionSheetRow(
-                title: "Quote",
-                subtitle: "Adds your own words above it.",
-                systemImage: "quote.bubble"
-            ) { dismiss(); onQuote() }
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-        .presentationDetents([.height(280)])
-    }
-}
-
-
-/// Closing the composer with something written: keep it, or throw it away.
-///
-/// A sheet rather than a confirmation dialog so each choice can say what happens to the post -
-/// "Save Draft" and "Discard" as bare verbs leave you to work out where a saved one goes.
-struct ComposerCloseOptionsSheet: View {
-    let onSaveDraft: () -> Void
-    let onDiscard: () -> Void
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("Save this post?")
-                .font(.headline)
-                .padding(.top, 20)
-                .padding(.bottom, 4)
-
-            ActionSheetRow(
-                title: "Save Draft",
-                subtitle: "Keep it in Drafts to finish later.",
-                systemImage: "square.and.arrow.down"
-            ) { dismiss(); onSaveDraft() }
-
-            ActionSheetRow(
-                title: "Discard",
-                subtitle: "Throw this away.",
-                systemImage: "trash",
-                tint: .red
-            ) { dismiss(); onDiscard() }
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-        .presentationDetents([.height(280)])
-    }
-}
 
 /// A yes/no confirmation, in a half sheet.
 ///
@@ -632,7 +474,7 @@ struct DeleteAccountSheet: View {
                     }
                 }
 
-                Text("Make sure your seed phrase is backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds.")
+                Text("Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds.")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -641,13 +483,13 @@ struct DeleteAccountSheet: View {
                 if notBackedUp, let onBackUp {
                     ActionSheetRow(
                         title: "Back Up Account",
-                        subtitle: "Write down your seed phrase before you delete.",
+                        subtitle: "Write down your 12 or 24 words before you delete.",
                         systemImage: "exclamationmark.shield",
                         action: onBackUp
                     )
                 } else if let onViewSeedPhrase {
                     ActionSheetRow(
-                        title: "View Seed Phrase and Passphrase",
+                        title: "View 12 or 24 Words and Passphrase",
                         subtitle: "The passphrase shows too, if this account has one.",
                         systemImage: "key",
                         action: onViewSeedPhrase
@@ -694,7 +536,7 @@ struct SentTransaction: Identifiable, Equatable {
 /// transaction id as a live link to whichever block explorer Settings names.
 ///
 /// This used to be `WithdrawalSuccessCard`, a dimmed full-screen overlay, and only the two
-/// withdraw screens had it - a tip on KaPosts or a payment in a chat just closed the sheet and
+/// withdraw screens had it - a payment in a chat just closed the sheet and
 /// left you with nothing to check. A send is the one moment where the txid is worth handing over,
 /// so it is a link rather than text: tapping it opens the explorer.
 ///
@@ -835,9 +677,6 @@ struct MessageAction: Identifiable {
     static func copyLink(_ action: @escaping () -> Void) -> MessageAction {
         MessageAction(title: "Copy Link", subtitle: "Copies the address to your clipboard.", systemImage: "link", action: action)
     }
-    static func openLink(_ action: @escaping () -> Void) -> MessageAction {
-        MessageAction(title: "Open Link", subtitle: "Opens it in your browser.", systemImage: "safari", action: action)
-    }
     static func explorer(_ url: URL) -> MessageAction {
         MessageAction(title: "View in Explorer", subtitle: "Opens this transaction in the block explorer.", systemImage: "safari") {
             UIApplication.shared.open(url)
@@ -848,15 +687,6 @@ struct MessageAction: Identifiable {
     }
     static func retry(_ action: @escaping () -> Void) -> MessageAction {
         MessageAction(title: "Retry Send", subtitle: "Sends this message again.", systemImage: "arrow.clockwise", action: action)
-    }
-    static func translate(into language: String, _ action: @escaping () -> Void) -> MessageAction {
-        MessageAction(title: "Translate", subtitle: "Shows this message in \(language).", systemImage: "character.bubble", action: action)
-    }
-    static func showOriginal(_ action: @escaping () -> Void) -> MessageAction {
-        MessageAction(title: "Show Original", subtitle: "Back to the text as it was sent.", systemImage: "arrow.uturn.backward", action: action)
-    }
-    static func showTranslation(_ action: @escaping () -> Void) -> MessageAction {
-        MessageAction(title: "Show Translation", subtitle: "The translated text again.", systemImage: "character.bubble", action: action)
     }
     static func select(_ action: @escaping () -> Void) -> MessageAction {
         MessageAction(title: "Select", subtitle: "Pick several messages at once.", systemImage: "checkmark.circle", action: action)
@@ -965,7 +795,7 @@ extension View {
 // MARK: - Coin list failure
 
 /// In place of an empty coin list when the node could not be asked. An outage used to render
-/// as "no coins", which on a cold storage address is the wrong thing to believe.
+/// as "no coins", which is the wrong thing to believe.
 struct UtxoLoadFailureRow: View {
     let detail: String
     let retry: () -> Void
@@ -1009,7 +839,7 @@ extension Font {
 /// swipe-left-to-reveal times (5.2).
 struct MessageTimeLine<Status: View>: View {
     let date: Date
-    /// Public chat rooms are long feeds: a message from another day says which ("Yesterday,
+    /// In a long feed, a message from another day says which ("Yesterday,
     /// 9:41 AM", "Sep 28, 9:41 AM"). Threads keep the bare time under their day separators.
     var showsDay: Bool = false
     @ViewBuilder var status: () -> Status
@@ -1101,7 +931,7 @@ struct DeliveryStatusLabel: View {
 
 // MARK: - Chat header tap band
 
-/// The header row over a 1:1, group or public chat thread: the avatar-over-name chip, centred
+/// The header row over a 1:1 or group thread: the avatar-over-name chip, centred
 /// in a full-width band. Taps over the chip - and a margin either side of it - open the info
 /// screen; taps on the dead space further out jump to the first message.
 ///
@@ -1238,8 +1068,8 @@ struct PinnedListHeader: View {
 // MARK: - Underline tab bar
 
 /// The app's tab bar for switching pages inside a screen: bold teal labels (dimmed when not
-/// selected), a teal bar under the selected one, a divider below - the look of the Chats /
-/// Group Chats / Public Chats bar. Used by Your Domains and Connection Settings.
+/// selected), a teal bar under the selected one, a divider below.
+/// Used by Your Domains and Connection Settings.
 struct UnderlineTabBar<Tab: Hashable>: View {
     let tabs: [(tab: Tab, title: String)]
     @Binding var selection: Tab

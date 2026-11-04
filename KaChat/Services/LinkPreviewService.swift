@@ -46,15 +46,7 @@ enum KaChatInternalLink: Equatable {
         return URL(string: KaChatInternalLink.profile(address: normalized).universalLinkString)
     }
 
-    /// The `kachat://` form of the link.
-    var shareLinkString: String {
-        switch self {
-        case .profile(let address): return "kachat://profile/\(address)"
-        case .paymentRequest(let request): return "kachat://pay/\(request.linkTail)"
-        }
-    }
-
-    /// The https twin of `shareLinkString` - survives apps that strip unknown schemes, and
+    /// The https form of the link - survives apps that strip unknown schemes, and
     /// falls back to the web/App Store for people who don't have KaChat installed.
     var universalLinkString: String {
         switch self {
@@ -407,7 +399,7 @@ enum NextcloudMediaKind: String, Equatable {
 
 /// Fetches Open Graph preview metadata for links sent in chat messages. Auto-fetch on render is
 /// gated by sender trust (see `LinkPreviewCardView.autoFetch`): accepted 1:1 contacts and group
-/// chats fetch automatically; non-accepted senders and public chat rooms fetch only when the user
+/// chats fetch automatically; non-accepted senders fetch only when the user
 /// taps the placeholder card. Each recipient's own device does this fetch when the message
 /// renders, rather than the sender embedding preview data in the encrypted message payload, so
 /// link previews never bloat the on-chain/indexer payload. Mirrors `KNSService`'s async-fetch

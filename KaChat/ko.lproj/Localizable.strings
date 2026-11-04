@@ -34,8 +34,7 @@
 "Always Hide" = "항상 숨기기";
 "Always Show" = "항상 표시";
 "Always shown" = "항상 표시됨";
-"Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "동일한 채널 이름에 참여한 사람은 누구나 메시지를 보고 게시할 수 있습니다 - 소유자나 초대가 없습니다.";
-"Anyone with your seed phrase can access your account. Never share it with anyone." = "seed phrase를 알고 있는 사람은 누구나 계정에 접근할 수 있습니다. 절대 다른 사람과 공유하지 마세요.";
+"Anyone with your 12 or 24 words can access your account. Never share them with anyone." = "12개 또는 24개 단어를 가진 사람은 누구나 계정에 접근할 수 있습니다. 절대 다른 사람과 공유하지 마세요.";
 "Archive" = "보관";
 "Archived Chats" = "보관된 채팅";
 "Asset ID" = "자산 ID";
@@ -51,18 +50,12 @@
 "Balance copied to clipboard." = "잔액이 클립보드에 복사되었습니다.";
 "Balanced" = "균형";
 "Banner" = "기치";
-"Before You Swap" = "스왑하기 전";
 "Best" = "최고";
 "Bio" = "바이오";
-"Broadcast Settings" = "방송 설정";
-"Broadcasts" = "방송";
-"Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "방송은 공개적이고 암호화되지 않은 채널입니다 - 동일한 채널 이름에 참여한 사람은 누구나 같은 메시지를 봅니다.";
 "Camera" = "카메라";
 "Camera Access Required" = "카메라 접근 권한 필요";
 "Cancel" = "취소";
 "Change" = "변경";
-"ChangeNOW Exchange ID" = "ChangeNOW 교환 ID";
-"Channels" = "채널";
 "Chat History" = "채팅 기록";
 "Chat Info" = "채팅 정보";
 "User Info" = "사용자 정보";
@@ -73,8 +66,6 @@
 "Chatting vs. Spending Address" = "채팅 주소 대 지출 주소";
 "Check Again" = "다시 확인";
 "Checking availability..." = "이용 가능 여부 확인 중...";
-"Checking eligibility..." = "자격 확인 중...";
-"Checking gift eligibility..." = "선물 수령 자격 확인 중...";
 "Checking your chatting address balance..." = "채팅 주소의 잔액을 확인하는 중...";
 "Chess" = "체스";
 "Choose Address" = "주소 선택";
@@ -84,11 +75,6 @@
 "Choose Your Currency" = "통화를 선택하세요";
 "Choose Your Language" = "언어를 선택하세요";
 "Choose a conversation on the left" = "왼쪽에서 대화를 선택하세요";
-"Choose which tabs appear in your bottom menu." = "하단 메뉴에 표시할 탭을 선택하세요.";
-"Claim Gift" = "선물 받기";
-"Claim a Gift of 3 Kaspa to Get Started" = "시작하려면 3 Kaspa 선물을 받으세요";
-"Claim some KAS to get started with your new account." = "새 계정을 시작할 수 있도록 KAS를 받아 보세요.";
-"Claiming gift..." = "선물 수령 중...";
 "Clear" = "지우기";
 "Clear Connection Pool" = "연결 풀 초기화";
 "Clear Link" = "링크 해제";
@@ -116,14 +102,13 @@
 "Copy Link" = "링크 복사";
 "Copy Message" = "메시지 복사";
 "Copy Private Key Hex" = "개인 키 Hex 복사";
-"Copy Seed Phrase" = "Seed Phrase 복사";
+"Copy 12 or 24 Words" = "12개 또는 24개 단어 복사";
 "Copy Transaction ID" = "트랜잭션 ID 복사";
 "Copy to Clipboard" = "클립보드에 복사";
 "Could not encode selected image" = "선택한 이미지를 인코딩할 수 없습니다.";
 "Could not initialize image encoder" = "이미지 인코더를 초기화할 수 없습니다.";
 "Could not load selected image" = "선택한 이미지를 로드할 수 없습니다.";
 "Could not process selected image" = "선택한 이미지를 처리할 수 없습니다.";
-"Couldn't Join Channel" = "채널에 참여할 수 없음";
 "Couldn't Rename Group" = "그룹 이름을 변경할 수 없음";
 "Country" = "국가";
 "Create Account" = "계정 만들기";
@@ -178,7 +163,6 @@
 "Export Chat History" = "채팅 기록 내보내기";
 "Export Diagnostics Archive" = "진단 아카이브 내보내기";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "앱/기기 정보, 연결 설정, 로컬 메시지 수, 최근 앱 로그를 zip 파일로 내보냅니다 - 지원팀과의 문제 해결용입니다. 개인 키, 시드 문구 또는 복호화된 메시지 내용은 포함되지 않습니다.";
-"Extended Public Key" = "확장 공개 키";
 "Failed to Send" = "전송 실패";
 "Failed to export diagnostics." = "진단 내보내기에 실패했습니다.";
 "Failed to link system contact." = "시스템 연락처 연결에 실패했습니다.";
@@ -194,18 +178,10 @@
 "Generate New Address" = "새 주소 생성";
 "Generate New Spending Address" = "새 지출 주소 생성";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "채팅하는 주소와 별도의 주소에서 결제를 보내려면 아래에서 하나를 생성하세요.";
-"Gift" = "선물";
-"Gift already claimed" = "선물을 이미 받았습니다";
-"Gift claim reset. You can request it again." = "선물 수령이 초기화되었습니다. 다시 요청할 수 있습니다.";
-"Gift claimed" = "선물 수령 완료";
-"Gift claimed! Check your balance shortly." = "선물을 받았습니다! 잠시 후 잔액을 확인하세요.";
-"Gift sent to your wallet!" = "지갑으로 선물이 전송되었습니다!";
-"Gift unavailable" = "선물을 이용할 수 없습니다";
 "Give this address a label to help you recognize it." = "알아볼 수 있도록 이 주소에 라벨을 지정하세요.";
 "Group Info" = "그룹 정보";
 "Group Name" = "그룹 이름";
 "Hidden Addresses" = "숨겨진 주소";
-"Hidden Broadcast Room Users" = "숨겨진 방송방 사용자";
 "Hidden Users" = "숨겨진 사용자";
 "Hide" = "숨기기";
 "Hide User" = "사용자 숨기기";
@@ -217,14 +193,12 @@
 "I already have a domain somewhere else" = "이미 다른 곳에 도메인이 있어요";
 "I have written down my seed phrase and stored it securely" = "seed phrase를 적어서 안전하게 보관했습니다";
 "IP Address Book" = "IP 주소록";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "기부 지갑의 잔액이 일시적으로 부족해 수령에 실패하면 나중에 다시 시도해 주세요.";
 "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee." = "네트워크가 혼잡한 경우 빠름 또는 우선순위는 더 빨리 확인되도록 더 높은 수수료를 지불합니다. 사용자 지정 수수료를 설정하려면 수수료 금액을 탭하세요.";
 "If the network is busy, Fast or Priority pays a higher fee to help your withdrawal confirm sooner. Tap the fee amount to set a custom fee." = "네트워크가 혼잡한 경우 빠름 또는 우선순위는 출금이 더 빨리 확인되도록 더 높은 수수료를 지불합니다. 사용자 지정 수수료를 설정하려면 수수료 금액을 탭하세요.";
 "If the network is busy, a higher fee can help your transaction confirm faster." = "네트워크가 혼잡한 경우 더 높은 수수료가 거래를 더 빨리 확인하는 데 도움이 될 수 있습니다.";
 "Import" = "가져오기";
 "Import Account" = "계정 가져오기";
 "Import Chat History" = "채팅 기록 가져오기";
-"Import Cold Storage Account" = "콜드 스토리지 계정 가져오기";
 "Import Existing Account" = "기존 계정 가져오기";
 "Import Your Account" = "계정 가져오기";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "가져오기 실패: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
@@ -276,7 +250,6 @@
 "Latency" = "지연 시간";
 "Leave" = "나가기";
 "Leave & Delete" = "나가기 및 삭제";
-"Leaving this broadcast permanently deletes every message cached for it on this device. This cannot be undone - rejoining later starts with no history." = "이 방송을 나가면 이 기기에 캐시된 모든 메시지가 영구적으로 삭제됩니다. 되돌릴 수 없습니다 - 나중에 다시 참여하면 기록 없이 시작됩니다.";
 "Let's add more details about yourself" = "당신에 대한 세부 정보를 더 추가해 봅시다";
 "Let's walk through the basics so you're ready to send your first message." = "첫 메시지를 보낼 준비가 되도록 기본 사항을 살펴보겠습니다.";
 "Link System Contact" = "링크 시스템 연락처";
@@ -330,7 +303,6 @@
 "No active account" = "활성 계정 없음";
 "No active nodes" = "활성 노드 없음";
 "No archived chats" = "보관된 채팅 없음";
-"No broadcast channels yet" = "아직 방송 채널이 없습니다";
 "No contacts found." = "연락처를 찾을 수 없습니다.";
 "No domains yet." = "아직 도메인이 없습니다.";
 "No emoji found" = "이모지를 찾을 수 없습니다.";
@@ -344,7 +316,6 @@
 "No other nodes" = "다른 노드 없음";
 "No saved addresses" = "저장된 주소 없음";
 "No spendable funds available yet. Wait for confirmations and try again." = "아직 사용 가능한 자금이 없습니다. 컨펌을 기다린 후 다시 시도하세요.";
-"No swaps yet." = "아직 스왑이 없습니다.";
 "No system contacts found." = "시스템 연락처를 찾을 수 없습니다.";
 "No transactions yet." = "아직 거래가 없습니다.";
 "No verified nodes" = "검증된 노드 없음";
@@ -367,7 +338,6 @@
 "Other Nodes" = "기타 노드";
 "Paste" = "붙여넣기";
 "Paste from Clipboard" = "클립보드에서 붙여넣기";
-"Paste the kpub exported from your KasSigner device. This contains no private key material." = "KasSigner 기기에서 내보낸 kpub를 붙여넣으세요. 개인 키 자료는 포함되어 있지 않습니다.";
 "Pay in Kaspa" = "Kaspa로 결제";
 "Payment" = "결제";
 "Payment: %@ KAS — %@" = "결제: %@ KAS — %@";
@@ -380,15 +350,11 @@
 "Play sound" = "소리 재생";
 "Please check your network connection and try again." = "네트워크 연결을 확인하고 다시 시도해 주세요.";
 "Please enable camera access in Settings to scan QR codes." = "QR 코드를 스캔하려면 설정에서 카메라 접근을 허용하세요.";
-"Please enable camera access in Settings to scan the signed transaction." = "서명된 거래를 스캔하려면 설정에서 카메라 접근을 활성화하세요.";
 "Please enter exactly 12 or 24 words" = "정확히 12개 또는 24개 단어를 입력하세요";
 "Point camera at a QR code" = "QR 코드에 카메라를 향하세요";
-"Point camera at the KasSigner screen" = "카메라를 KasSigner 화면에 향하게 하세요";
 "Pool Health" = "풀 상태";
 "Pool Status" = "풀 상태";
-"Popular Tab" = "인기 탭";
 "Preparing profile update..." = "프로필 업데이트 준비 중...";
-"Press and drag a tab in the preview below to reorder it." = "재정렬하려면 아래 미리보기에서 탭을 길게 누르고 드래그하세요.";
 "Primary" = "기본";
 "Primary Latency" = "기본 지연 시간";
 "Primary domain set to %@." = "기본 도메인이 %@로 설정되었습니다.";
@@ -434,7 +400,6 @@
 "Refresh Pool" = "풀 새로고침";
 "Refresh Pool Now" = "지금 풀 새로고침";
 "Refresh Status" = "상태 새로고침";
-"Registered" = "등록됨";
 "Remote push" = "원격 푸시";
 "Remove" = "제거";
 "Remove Avatar" = "아바타 제거";
@@ -444,7 +409,6 @@
 "Rename" = "이름 변경";
 "Rename Account" = "계정 이름 변경";
 "Rename Address" = "주소 이름 변경";
-"Rename Cold Storage Account" = "콜드 스토리지 계정 이름 변경";
 "Rename Group" = "그룹 이름 변경";
 "Reply" = "답장";
 "Request to communicate" = "통신 요청";
@@ -470,9 +434,9 @@
 "Search emoji" = "이모지 검색";
 "Secure messaging on Kaspa BlockDAG" = "Kaspa BlockDAG에서 안전한 메시징";
 "Security Warning" = "보안 경고";
-"Seed Phrase" = "Seed Phrase";
+"12 or 24 Words" = "12개 또는 24개 단어";
 "Seed Phrase Length" = "Seed Phrase 길이";
-"Seed phrase copied. Clipboard will clear in 30s." = "Seed Phrase가 복사되었습니다. 클립보드는 30초 후 지워집니다.";
+"Words copied. Clipboard will clear in 30s." = "단어를 복사했습니다. 30초 후 클립보드가 지워집니다.";
 "Select a chat" = "채팅을 선택하세요";
 "Select mainnet for real transactions or testnet for testing" = "실제 트랜잭션에는 mainnet, 테스트에는 testnet을 선택하세요";
 "Select the currency you'd like prices displayed in." = "가격을 표시할 통화를 선택하세요.";
@@ -510,8 +474,6 @@
 "Show QR Code" = "QR 코드 표시";
 "Show Setup Guides" = "설정 가이드 표시";
 "Show contact balance" = "연락처 잔액 표시";
-"Shows a tab of recommended broadcast rooms you can jump into." = "참여할 수 있는 추천 방송방 탭을 표시합니다.";
-"Shows senders' KNS avatars in rooms and looks them up automatically as messages appear. Off shows plain initials for everyone and never fetches avatars." = "방에 있는 발신자의 KNS 아바타를 표시하고 메시지가 나타날 때 자동으로 조회합니다. 끄기는 모두에게 단순한 이니셜을 표시하고 아바타를 절대 가져오지 않습니다.";
 "Sign In Failed" = "로그인 실패";
 "Skip" = "건너뛰기";
 "Small Amount" = "소액 송금";
@@ -534,8 +496,6 @@
 "Submitting transfer..." = "이체 제출 중...";
 "Support Email" = "지원 이메일";
 "Suspected" = "의심됨";
-"Swap Details" = "스왑 세부정보";
-"Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "스왑은 타사 거래소인 ChangeNOW에서 처리됩니다. 계속하면 ChangeNOW 자체 서비스 약관을 읽고 동의했음을 확인하는 것입니다. KaChat은 스왑 요청을 제출하고 상태를 표시할 뿐입니다; KaChat은 실패, 지연 또는 손실된 스왑에 대해 책임을 지지 않습니다. 스왑이 진행되지 않으면 ChangeNOW 지원팀에 직접 문의하세요.";
 "Switch direction" = "방향 전환";
 "Sync system contacts" = "시스템 연락처 동기화";
 "Sync warning detected" = "동기화 경고 감지";
@@ -546,12 +506,11 @@
 "Tap a node to copy host:port." = "노드를 탭하여 host:port를 복사하세요.";
 "Tap send to record" = "보내기를 탭하여 녹음";
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "조정하려면 탭하세요. 네트워크가 혼잡한 경우 더 높은 수수료가 거래를 더 빨리 확인하는 데 도움이 될 수 있습니다.";
-"Tap to reveal seed phrase" = "탭하여 seed phrase 보기";
+"Tap to reveal your 12 or 24 words" = "탭하여 12개 또는 24개 단어 보기";
 "This account will be removed from this device." = "이 계정은 이 기기에서 제거됩니다.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "이 연락처는 생성 후 연결됩니다. Kaspa 주소 또는 KNS 도메인을 입력해야 합니다.";
 "This could take a few minutes while it confirms on-chain." = "체인에서 확인되는 동안 몇 분 정도 걸릴 수 있습니다.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "모든 로컬 데이터와 CloudKit 메시지 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.";
-"This device has already received the welcome gift." = "이 기기는 이미 환영 선물을 받았습니다.";
 "This domain is not available." = "이 도메인을 사용할 수 없습니다.";
 "This is a live check of your iCloud account, separate from local storage above." = "이는 위의 로컬 저장소와는 별개로 iCloud 계정을 실시간으로 확인하는 것입니다.";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "이는 iCloud를 포함하여 그들과의 모든 메시지를 영구적으로 삭제하므로 다른 기기에서도 제거됩니다. 되돌릴 수 없습니다.";
@@ -562,8 +521,7 @@
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "로컬 계정 데이터와 메시지를 삭제합니다. 삭제 중 CloudKit 동기화가 비활성화되고 완료 후 다시 활성화됩니다.";
 "This removes the group and its messages from this device. This cannot be undone, and other members won't be notified." = "이는 이 기기에서 그룹과 메시지를 제거합니다. 되돌릴 수 없으며 다른 멤버에게 알림이 가지 않습니다.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "계정에서 로그아웃하지만, 이 기기의 로컬 지갑과 메시지 데이터는 유지됩니다.";
-"This welcome gift is a community-funded initiative." = "이 환영 선물은 커뮤니티 후원으로 제공됩니다.";
-"This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "이 기기에서 계정이 영구적으로 삭제됩니다. seed phrase를 백업했는지 확인하세요.";
+"This will permanently delete your account from this device. Make sure you have backed up your 12 or 24 words." = "이 기기에서 계정이 영구 삭제됩니다. 12개 또는 24개 단어를 백업했는지 확인하세요.";
 "To (Primary Address)" = "받는 주소 (기본 주소)";
 "To chat with someone, press Create Chat and enter their Kaspa address or KNS domain. If you send a message, they will not see it unless you send a handshake first, or you both decide to message each other around the same time - doing the latter increases your privacy." = "누군가와 채팅하려면 채팅 만들기를 누르고 상대방의 Kaspa 주소 또는 KNS 도메인을 입력하세요. 메시지를 보내면 먼저 핸드셰이크를 보내거나 두 사람이 거의 동시에 서로에게 메시지를 보내기로 결정하지 않는 한 상대방은 이를 볼 수 없습니다 - 후자의 경우 개인정보 보호가 강화됩니다.";
 "To receive notifications, please enable them in Settings." = "알림을 받으려면 설정에서 알림을 활성화하세요.";
@@ -598,7 +556,7 @@
 "Vibration" = "진동";
 "View Profile" = "프로필 보기";
 "Back Up Account" = "계정 백업";
-"View Seed Phrase" = "Seed Phrase 보기";
+"View 12 or 24 Words" = "12개 또는 24개 단어 보기";
 "View in Explorer" = "탐색기에서 보기";
 "Voice message" = "음성 메시지";
 "Walk through setting up your domain, banner, avatar, and details step by step." = "도메인, 배너, 아바타 및 세부 정보 설정을 단계별로 안내합니다.";
@@ -606,7 +564,6 @@
 "Wallet not available." = "지갑을 사용할 수 없습니다.";
 "Watching" = "감시 중";
 "Website" = "웹사이트";
-"Welcome Gift" = "환영 선물";
 "Welcome Guide" = "환영 가이드";
 "Welcome to KaChat" = "KaChat에 오신 것을 환영합니다";
 "Welcome to KaChat!" = "KaChat에 오신 것을 환영합니다!";
@@ -691,14 +648,10 @@
 "Testnet is for testing only - testnet KAS has no value. On testnet your account uses its kaspatest: address, with its own balance and chats, and Connection Settings holds testnet values: the testnet explorer, automatic node discovery, and no KaChat indexers until testnet ones exist. Turning it off brings your mainnet settings back." = "테스트넷은 테스트 전용이며 테스트넷 KAS는 가치가 없습니다. 테스트넷에서는 계정이 kaspatest: 주소를 쓰고 잔액과 채팅도 따로입니다. 연결 설정에는 테스트넷 값(테스트넷 탐색기, 자동 노드 검색, 테스트넷용이 생길 때까지 KaChat 인덱서 없음)이 들어갑니다. 끄면 메인넷 설정이 돌아옵니다.";
 "Close KaChat completely and open it again to finish switching to Testnet." = "테스트넷 전환을 마치려면 KaChat을 완전히 종료한 뒤 다시 여세요.";
 "Close KaChat completely and open it again to finish switching back to Mainnet." = "메인넷으로 돌아가려면 KaChat을 완전히 종료한 뒤 다시 여세요.";
-"Switches this default room off. Turn it back on in Public Chats settings." = "이 기본 방을 끕니다. 공개 채팅 설정에서 다시 켤 수 있습니다.";
-"#%@ is off - turn it back on in Public Chats settings" = "#%@이(가) 꺼졌습니다. 공개 채팅 설정에서 다시 켜세요";
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "자동 검색은 사용 가능한 최적의 노드를 찾아 연결합니다. 특정 노드를 선택하면 다른 노드로 전환하지 않고 그 노드에만 연결합니다. 다른 탭의 인덱서, 도메인, 탐색기에는 영향이 없습니다. 여기서 선택하려면 아래 IP 주소록에 주소를 추가하세요.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"My Names" = "내 이름";
 "Activity" = "활동";
-"Claim a Name" = "이름 받기";
 
 /* 5.2: range and section labels */
 "All-time only" = "전체 기간만";
@@ -713,16 +666,13 @@
 "A short bio and your links. All of it is optional." = "짧은 소개와 링크. 모두 선택 사항입니다.";
 "That's the whole setup" = "설정은 여기까지입니다";
 ".kachat names are coming soon. When they launch, this guide claims your name and saves your profile in one go." = ".kachat 이름이 곧 출시됩니다. 출시되면 이 가이드가 이름을 받고 프로필을 한 번에 저장합니다.";
-"Walk through claiming your .kachat name and setting up your avatar, banner and details step by step." = ".kachat 이름을 받고 아바타, 배너, 세부 정보를 단계별로 설정하세요.";
 ".kachat Profile Setup Guide" = ".kachat 프로필 설정 가이드";
-"Claim your .kachat name and set up your avatar, banner and bio step by step." = ".kachat 이름을 받고 아바타, 배너, 소개를 단계별로 설정하세요.";
 "The full first-run tour: wallet, chats, payments and more." = "처음 사용자를 위한 전체 안내: 지갑, 채팅, 결제 등.";
 "Previous" = "이전";
 "Email" = "이메일";
 "Help" = "도움말";
 
 /* 5.2: .kachat listing, buy and offer */
-"No offers yet." = "아직 제안이 없습니다.";
 "History" = "기록";
 "Network fee" = "네트워크 수수료";
 
@@ -736,7 +686,6 @@
 "This folder is empty." = "이 폴더는 비어 있습니다.";
 
 /* Kaspa Hub empty state (Swap off) */
-"KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "KaPosts, 공개 채팅, Kaspa Websites는 독에 없을 때 여기에 표시됩니다. 설정 > Customization > Customize Dock에서 관리하세요.";
 
 /* 5.2: an address's .kachat Domains tab */
 
@@ -744,12 +693,6 @@
 "Moved to %@." = "%@(으)로 이동했습니다.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-". Network fees counted: %lld" = ". 집계한 네트워크 수수료: %lld";
-"Sells: %lld. Oldest buys first (FIFO)." = "매도: %lld건. 오래된 매수부터(FIFO).";
-"%@ sold with no buy on record, counted at zero cost." = "매수 기록 없이 매도된 %@, 원가 0으로 계산했습니다.";
-"Realized P&L %@" = "실현 손익 %@";
-"Transactions: %lld. Some prices are still loading." = "거래: %lld건. 일부 가격을 아직 불러오는 중입니다.";
-"Transactions: %lld, at each day's price." = "거래: %lld건, 각 날짜의 가격 기준.";
 
 /* Day labels (message times, date dividers) */
 "Today" = "오늘";
@@ -760,7 +703,7 @@
 /* Receive / chatting address QR text */
 
 /* 5.2: name discovery across services */
-"If this seed already holds your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "이 시드가 이미 다른 주소에 내 신원(.kas, .k, .kaspa 도메인 또는 잔액이 있는 채팅 주소)을 가지고 있다면 여기서 선택하세요. 잔액이나 도메인이 있는 주소만 표시됩니다.";
+"If these words already hold your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "이 단어들의 다른 주소에 이미 내 신원이 있다면(.kas, .k, .kaspa 도메인 또는 채팅 잔액) 여기서 선택하세요. 잔액이나 도메인이 있는 주소만 표시됩니다.";
 ".k and .kaspa Names (%lld)" = ".k 및 .kaspa 이름 (%lld)";
 
 /* 5.2: Message Requests, Private chats */
@@ -784,62 +727,25 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "누군가와 채팅하려면 채팅 만들기를 누르고 상대의 Kaspa 주소나 .kachat 이름을 입력하세요. 첫 메시지는 상대가 수락할 수 있는 메시지 요청으로 전달됩니다. 개인정보를 최대한 지키려면 비공개 채팅을 켜세요. 체인에서 두 사람을 연결하는 것이 없으며, 상대도 나와 비공개 채팅을 시작하면 메시지를 볼 수 있습니다.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "시작하려면 50 Kaspa를 권장합니다. .kachat 이름을 받고 한동안 채팅하기에 충분합니다. 5 Kaspa면 약 2500개의 메시지를 보낼 수 있습니다.";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "공개 메시지 신원입니다. 메시지 수수료와 .kachat 이름 비용으로 소액을 넣어 두세요. 쓸 돈은 절대 여기로 보내지 마세요.";
-"There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "테스트넷용 KaPost 인덱서가 없습니다. 메인넷에서 읽고 게시하려면 설정 > 연결에서 테스트넷을 끄세요.";
 "Nextcloud is off while Testnet is on." = "테스트넷이 켜져 있는 동안 Nextcloud는 꺼집니다.";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Nextcloud를 통한 백업, 동기화, 미디어, 통화는 메인넷에서만 작동하므로 테스트넷이 메인넷 백업을 덮어쓸 일은 없습니다. 설정 > 연결에서 테스트넷을 끄면 Nextcloud 연결이 그대로 돌아옵니다.";
-"On Testnet, claim one in Kaspa Hub > .kachat." = "테스트넷에서는 Kaspa Hub > .kachat에서 받을 수 있어요.";
 "Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names come after an audit." = "테스트넷에서 운영 중: 여기의 이름, 가격, 결제는 testnet-10의 TKAS를 씁니다. 메인넷 이름은 감사 후에 나옵니다.";
 "Live on Testnet (testnet-10 registry)" = "테스트넷에서 운영 중 (testnet-10 레지스트리)";
-"Transferred" = "이전됨";
-"Delisted" = "판매 취소됨";
-"Sold" = "판매됨";
-"Offer accepted" = "제안 수락됨";
-"Renewed" = "갱신됨";
-"Released" = "해제됨";
-"Reclaimed" = "회수됨";
-"Offer made" = "제안함";
-"Offer withdrawn" = "제안 철회됨";
-"Offer refunded" = "제안 환불됨";
-"A name is 1 to 32 characters." = "이름은 1~32자입니다.";
-"Use a-z, 0-9 and hyphens only." = "a-z, 0-9, 하이픈만 사용하세요.";
-"A name can't start or end with a hyphen." = "이름은 하이픈으로 시작하거나 끝날 수 없어요.";
-"Lapsed" = "소멸됨";
-"Lapsed - reclaim it, then claim it" = "소멸됨 - 회수한 다음 받으세요";
 "Cancelled." = "취소됐어요.";
 "Confirm this .kachat transaction" = "이 .kachat 거래 확인";
-"Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "소유자가 판매 중인 이름이에요. 구매하면 한 번의 거래로 소유자에게 지불되고 이름이 나에게 옵니다.";
-"Reclaimable" = "회수 가능";
-"Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "소유자가 소멸되도록 둔 이름이에요. 누구나 회수할 수 있어요. 보증금은 마지막 소유자에게 돌아가고, 풀려난 예치금은 보상으로 내가 갖고, 이름은 다시 받을 수 있게 돼요.";
-"Nothing to reclaim." = "회수할 이름이 없어요.";
-"Reclaim" = "회수";
-"Renew, list, transfer or release them, and pick the one KaChat shows for you." = "갱신, 판매, 이전, 해제하고 KaChat이 나로 보여 줄 이름을 고르세요.";
-"Search for a name above and claim it." = "위에서 이름을 검색해 받아 보세요.";
-"Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "내가 한 제안이에요. 언제든 철회할 수 있고, 환불 시간이 지나면 누구나 나에게 돌려줄 수 있어요.";
-"Refundable now" = "지금 환불 가능";
 "Your balance" = "내 잔액";
 "It shows here once the network accepts it, usually within seconds." = "네트워크가 받아들이면 여기에 보여요. 보통 몇 초 걸려요.";
 "Cost" = "비용";
-"The name is yours for the years you paid. Renew it any time before it expires." = "결제한 기간 동안 이름은 내 것이에요. 만료 전에 언제든 갱신하세요.";
 "Make %@ your primary name?" = "%@을(를) 대표 이름으로 할까요?";
 "Set as Primary" = "대표 이름으로 설정";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat이 내 이름으로 보여 줘요. 네트워크 수수료를 내고 체인의 프로필 기록에 저장돼요.";
-"Expired - renew to keep it. Until the grace period ends nobody else can take it." = "만료됨 - 유지하려면 갱신하세요. 유예 기간이 끝날 때까지 다른 사람은 가져갈 수 없어요.";
-"Expired. It no longer resolves; the owner can still renew it." = "만료됨. 더 이상 주소로 연결되지 않지만 소유자가 아직 갱신할 수 있어요.";
-"Lapsed: anyone may reclaim it, and then claim it again." = "소멸됨: 누구나 회수한 다음 다시 받을 수 있어요.";
 "You" = "나";
-"Accept one to sell the name for it." = "하나를 수락하면 그 금액에 이름을 팔아요.";
 "Saved. Transaction %@" = "저장했어요. 거래 %@";
-"A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "갱신은 현재 만료일에 더해져요. 이미 지났어도 마찬가지예요. 가격은 채굴자에게 가요.";
-"Price per year" = "연간 가격";
 "To" = "받는 사람";
 "kaspatest:... or name.kachat" = "kaspatest:... 또는 name.kachat";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "테스트넷 주소나 .kachat 이름 - 표시된 주소로 변환돼요.";
-"Not a testnet Schnorr address." = "테스트넷 Schnorr 주소가 아니에요.";
 "Enter an address or a .kachat name." = "주소나 .kachat 이름을 입력하세요.";
 "No active .kachat name by that name." = "그런 이름의 활성 .kachat 이름이 없어요.";
-"The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "이름의 보증금은 마지막 소유자에게 돌아가고, 풀려난 레지스트리 예치금(수수료 제외)은 보상으로 내가 갖고, 이름은 비게 돼요. 내 것으로 하려면 그다음에 받으세요.";
-"Bond to the last owner" = "보증금 (마지막 소유자에게)";
-"Claim one in Kaspa Hub > .kachat." = "Kaspa Hub > .kachat에서 받아 보세요.";
 "Your profile belongs to your address, not to a name: it stays the same when you buy, sell or let a name go." = "프로필은 이름이 아니라 내 주소에 속해요. 이름을 사거나 팔거나 놓아도 그대로예요.";
 "https://... or ipfs://..." = "https://... 또는 ipfs://...";
 "Image links must start with https:// or ipfs://." = "이미지 링크는 https:// 또는 ipfs://로 시작해야 해요.";
@@ -859,15 +765,6 @@
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "프로필은 공개되며 체인에 있어요. 누구나 읽을 수 있고, 바꾼 뒤에도 이전 버전을 읽을 수 있어요. 네트워크 수수료를 내고 기록돼요.";
 "No testnet wallet is open." = "열린 테스트넷 지갑이 없어요.";
 "This wallet's key does not match its address." = "이 지갑의 키가 주소와 맞지 않아요.";
-"%@ is not a valid key (not on the secp256k1 curve)." = "%@은(는) 올바른 키가 아니에요 (secp256k1 곡선 위에 없음).";
-"The secret for this registration is missing on this device." = "이 등록의 비밀값이 이 기기에 없어요.";
-"The new owner" = "새 소유자";
-"An expired name can't be listed. Renew it first." = "만료된 이름은 판매할 수 없어요. 먼저 갱신하세요.";
-"Your key" = "내 키";
-"The buyer" = "구매자";
-"%@ is already registered." = "%@은(는) 이미 등록되어 있어요.";
-"The commit never reached the chain." = "커밋이 체인에 도달하지 않았어요.";
-"The commit is no longer on chain." = "커밋이 더 이상 체인에 없어요.";
 "Paste a profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite." = "X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram 또는 LinkedIn 프로필 링크나 Discord 서버 초대 링크를 붙여넣으세요.";
 "Paste your profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite. KaChat shows the picture that platform shows, so its moderation applies here too." = "X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram 또는 LinkedIn의 내 프로필 링크나 Discord 서버 초대 링크를 붙여넣으세요. KaChat은 해당 플랫폼이 보여주는 사진을 그대로 보여주므로 그 플랫폼의 관리 기준이 여기에도 적용됩니다.";
 "Banners come from an X or YouTube profile link, or a Discord server invite." = "배너는 X 또는 YouTube 프로필 링크, 또는 Discord 서버 초대 링크에서 가져옵니다.";
@@ -900,15 +797,11 @@
 "Balance change" = "잔액 변화";
 "Transaction sent" = "거래를 보냈습니다";
 "Listed for sale" = "판매 등록했습니다";
-"Name reclaimed" = "이름을 회수했습니다";
 "Profile saved" = "프로필을 저장했습니다";
 "Your Profile" = "내 프로필";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "채팅 주소에서 자기 자신에게 보내는 방식으로 온체인에 저장됩니다.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "프로필은 공개되며 온체인에 저장됩니다. 누구나 읽을 수 있고, 변경한 뒤에도 이전 버전을 읽을 수 있습니다.";
-"Extended" = "연장됨";
-"Renewal opens on %@" = "갱신은 %@부터 가능";
-"The names indexer didn't send this name's paid period. Pull to refresh and try again." = "이름 인덱서가 이 이름의 결제 기간을 보내지 않았어요. 아래로 당겨 새로 고친 뒤 다시 시도하세요.";
 "Setting up" = "설정 중";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "테스트넷의 .kachat 레지스트리를 업그레이드하고 있어요. 새 레지스트리가 가동되면 여기서 이름이 다시 열려요.";
 ".kachat Names" = ".kachat 이름";
@@ -951,11 +844,9 @@
 "New" = "새로 만들기";
 "New Chat" = "새 채팅";
 "New Group Chat" = "새 그룹 채팅";
-"New Public Chat" = "새 공개 채팅";
 "Fund Chatting Address" = "채팅 주소 충전";
 "Message someone by their address or name." = "주소나 이름으로 메시지를 보냅니다.";
 "Start an encrypted group with several people." = "여러 사람과 암호화된 그룹을 시작합니다.";
-"Join a public room, or create one." = "공개 방에 참여하거나 새로 만듭니다.";
 "Show the QR code to add Kaspa for sending messages." = "메시지 전송용 Kaspa를 추가할 QR 코드를 보여줍니다.";
 "Show a fresh address to get paid." = "결제를 받을 새 주소를 보여줍니다.";
 "A fresh address, never used before. Kaspa sent here lands in this account and shows in your spending total. This address should be used for everything not related to chatting or domains." = "한 번도 사용하지 않은 새 주소입니다. 여기로 보낸 Kaspa는 이 계정에 들어오며 지출 잔액에 표시됩니다. 채팅이나 도메인과 관련 없는 모든 용도에 이 주소를 사용하세요.";
@@ -984,7 +875,6 @@
 "Goes back to its place by latest activity." = "최근 활동 순서의 원래 자리로 돌아갑니다.";
 "Keeps it first in the row above your chats." = "채팅 위 줄의 맨 앞에 유지됩니다.";
 "Hold for options" = "길게 눌러 옵션 보기";
-"Delete Room?" = "방을 삭제할까요?";
 "This address is on a different network than the app." = "이 주소는 앱과 다른 네트워크에 있습니다.";
 ".kachat names aren't on mainnet yet. Your avatar, banner, bio and links save now; you can pick a primary name once names launch." = ".kachat 이름은 아직 메인넷에 없습니다. 아바타, 배너, 소개, 링크는 지금 저장되며, 이름이 출시되면 대표 이름을 고를 수 있습니다.";
 "Claim Testnet Kaspa" = "테스트넷 Kaspa 받기";
@@ -993,28 +883,12 @@
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "채팅 주소를 복사하고 TN10 포싯을 엽니다. 붙여넣고 확인을 통과한 뒤 최대 금액을 받으세요.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "TN10 채팅 주소가 복사되었습니다. 포싯의 주소 칸에 붙여넣으세요.";
 "Expires in %@" = "%@ 후 만료";
-"Tap an offer to accept it. Expired offers go back to their buyers." = "제안을 탭하여 수락하세요. 만료된 제안은 구매자에게 반환됩니다.";
-"This offer has expired. It's going back to the buyer." = "이 제안은 만료되었습니다. 구매자에게 반환됩니다.";
-"This offer was made before the name changed hands, so it's declined and going back to the buyer." = "이 제안은 이름의 소유자가 바뀌기 전에 이루어져 거절되었으며 구매자에게 반환됩니다.";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
-"This name is already paid up to its longest period. Renewal opens on %@." = "이 이름은 이미 최대 기간까지 결제되어 있어요. 갱신은 %@부터 가능해요.";
-"The price record is busy right now. Try again in a moment." = "가격 기록이 지금 사용 중이에요. 잠시 후 다시 시도하세요.";
-"You can't make an offer on your own name." = "내 이름에는 제안할 수 없어요.";
-"An offer can run for up to 7 days." = "제안은 최대 7일까지 유지돼요.";
-"Price per %@" = "%@당 가격";
-"Pays for more time now, up to the %@ limit." = "지금 더 많은 기간을 결제해요. 최대 %@까지예요.";
-"Offer declined" = "제안 거절됨";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
-"The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "확인한 뒤 가격이 %@(으)로 바뀌었어요. 아무것도 전송되지 않았어요. 새 가격을 확인하고 다시 확인하세요.";
-"The price changed to %@ since you confirmed, so nothing was sent. Confirm the new price to continue, or cancel the commit." = "확인한 뒤 가격이 %@(으)로 바뀌어서 아무것도 전송되지 않았어요. 계속하려면 새 가격을 확인하거나 커밋을 취소하세요.";
-"Confirm New Price" = "새 가격 확인";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"This name has been expired too long to renew. It can only be reclaimed and registered again." = "이 이름은 만료된 지 너무 오래되어 갱신할 수 없어요. 회수한 뒤 다시 등록하는 수밖에 없어요.";
-"Offers can only be made on active names." = "제안은 활성 이름에만 할 수 있어요.";
-"This name has expired. Offers can only be accepted while the name is active. Renew it first." = "이 이름은 만료되었어요. 제안은 이름이 활성 상태일 때만 수락할 수 있어요. 먼저 갱신하세요.";
 
 /* Wallet: import / sign-in stop if the current account can't be backed up (IOS-016) */
 "The current account's keys couldn't be backed up on this device, so nothing was changed. Try again." = "이 기기에서 현재 계정의 키를 백업하지 못해 아무것도 바꾸지 않았어요. 다시 시도하세요.";
@@ -1040,80 +914,45 @@
 "Goes to their public chatting address" = "상대의 공개 채팅 주소로 가요";
 
 /* Profile bell: .kachat news and public chats */
-"Renew %@" = "%@ 갱신";
-"Renewal is open: renew it before %@ to keep it." = "갱신 가능: 유지하려면 %@ 전에 갱신하세요.";
 "%@ has expired" = "%@ 만료됨";
-"Renew it before %@ or anyone can claim it." = "%@ 전에 갱신하지 않으면 누구나 가져갈 수 있어요.";
-"%@ has lapsed" = "%@ 소멸됨";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "이제 누구나 가져갈 수 있어요. 직접 회수하면 보증금을 돌려받아요.";
-"%@ sold" = "%@ 판매됨";
 "%@ KAS was paid to you." = "%@ KAS가 지급되었어요.";
-"Your listing was bought." = "등록한 이름이 판매되었어요.";
-"You accepted an offer for it." = "이 이름에 대한 제안을 수락했어요.";
-"%@ was reclaimed" = "%@ 회수됨";
-"It lapsed and someone reclaimed it. It's free to register again." = "소멸된 뒤 다른 사람이 회수했어요. 다시 등록할 수 있어요.";
-"New offer on %@" = "%@에 새 제안";
 "%@ KAS offered for it." = "%@ KAS가 제안되었어요.";
-"%@ is yours now." = "%@이(가) 이제 내 것이에요.";
-"Offer on %@ declined" = "%@에 대한 제안 거절됨";
 "The owner declined it. The KAS is back with you." = "소유자가 거절했어요. KAS가 돌아왔어요.";
-"Offer on %@ expired" = "%@에 대한 제안 만료됨";
 "Nobody accepted it in time. The KAS is back with you." = "제때 아무도 수락하지 않았어요. KAS가 돌아왔어요.";
-"Offer on %@ returned" = "%@에 대한 제안 반환됨";
 "It can no longer be accepted. The KAS is back with you." = "더 이상 수락할 수 없어요. KAS가 돌아왔어요.";
-"Renew it soon to keep it." = "유지하려면 곧 갱신하세요.";
-"Renew it soon or anyone can claim it." = "곧 갱신하지 않으면 누구나 가져갈 수 있어요.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
-"Reclaimable names appear here once .kachat names launch." = ".kachat 이름이 출시되면 회수 가능한 이름이 여기에 표시돼요.";
 
 /* .kachat: Reclaim to Own */
-"Reclaim to Own" = "회수해서 다시 소유";
-"Clear the lapsed name and get your bond back, then register it again." = "소멸된 이름을 정리하고 보증금을 돌려받은 뒤 다시 등록해요.";
-"Register %@ again?" = "%@을(를) 다시 등록할까요?";
-"Register Again" = "다시 등록";
-"It's free now. Pick how long to hold it, like any new name: the hidden commit goes first and the name is registered about a minute later." = "이제 비어 있어요. 새 이름처럼 보유 기간을 고르세요. 숨겨진 커밋이 먼저 전송되고 약 1분 뒤 이름이 등록돼요.";
-"Your name lapsed, so it can't be renewed any more. Reclaiming clears it from the registry: your bond comes back to you, and you also keep the freed registry deposit, less the network fee. Then you can register it again." = "이름이 소멸되어 더 이상 갱신할 수 없어요. 회수하면 레지스트리에서 정리되어 보증금이 돌아오고, 네트워크 수수료를 뺀 레지스트리 예치금도 받아요. 그다음 다시 등록할 수 있어요.";
-"Bond back to you" = "돌려받는 보증금";
 "Waiting for the old %@ to be cleared from the registry." = "예전 %@이(가) 레지스트리에서 정리되기를 기다리는 중이에요.";
 
 /* .kachat: a released or reclaimed name */
 
 /* .kachat registration progress half sheet */
-"Claiming %@" = "%@ 받는 중";
-"Finish the name you're claiming first." = "먼저 받고 있는 이름을 완료하세요.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "더 이상 내 이름이 아니며 마켓플레이스의 회수 가능 탭으로 옮겨졌습니다. 직접 회수하면 보증금을 돌려받습니다.";
 
 /* Create Account: name step and seed length step */
 "Create a name for your wallet" = "지갑 이름 만들기";
 "This name is only stored on this device, to tell your wallets apart. No one else will ever see it." = "이 이름은 지갑을 구분하기 위해 이 기기에만 저장됩니다. 다른 누구도 볼 수 없습니다.";
-"The next screen shows your seed phrase. It is the only way to recover your account: write it down and store it securely, and make sure no one can see your screen." = "다음 화면에 seed phrase가 표시됩니다. 계정을 복구하는 유일한 방법입니다. 적어서 안전하게 보관하고, 아무도 화면을 볼 수 없는지 확인하세요.";
+"The next screen shows your 12 or 24 words. They are the only way to recover your account: write them down and store them securely, and make sure no one can see your screen." = "다음 화면에 12개 또는 24개 단어가 표시됩니다. 계정을 복구하는 유일한 방법입니다. 적어서 안전하게 보관하고 아무도 화면을 보지 못하게 하세요.";
 
 /* Create Account: seed length step title */
-"Choose seed phrase length" = "seed phrase 길이 선택";
+"Choose 12 or 24 words" = "12개 또는 24개 단어 선택";
 
 /* .kachat sale tile: expiry flag */
 
 /* .kachat: expired names are available to claim */
-"Freeing %@ for you..." = "%@ 해제 중...";
-"%@ was freed" = "%@ 해제됨";
-"It expired and was cleared from the registry. Your bond is back with you." = "만료되어 레지스트리에서 정리되었습니다. 보증금이 돌아왔습니다.";
 
 /* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@은(는) 더 이상 내 것이 아닙니다";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "만료되었고 갱신되지 않아 이제 마켓플레이스에서 누구나 받을 수 있습니다. 누군가 받으면 보증금이 돌아옵니다.";
 
 /* .kachat: claims in progress button and busy-network notes */
-"The network is busy. Your commit is waiting for a block." = "네트워크가 혼잡합니다. 커밋이 블록을 기다리고 있습니다.";
-"The network is busy, so the commit was sent again." = "네트워크가 혼잡해 커밋을 다시 보냈습니다.";
 
 /* Onboarding: import length step and the seed phrase explainer */
-"How many words is the seed phrase you're importing?" = "가져오는 seed phrase는 몇 단어인가요?";
+"How many words are you importing?" = "몇 개의 단어를 가져오나요?";
 "What is this?" = "이게 뭔가요?";
-"What is a seed phrase?" = "seed phrase란?";
-"A seed phrase is a list of 12 or 24 ordinary words that works as the master key to your account. Your wallet, your chatting address and your messages all come from it." = "seed phrase는 계정의 마스터 키 역할을 하는 12개 또는 24개의 평범한 단어 목록입니다. 지갑, 채팅 주소, 메시지가 모두 여기에서 만들어집니다.";
+"What are my 12 or 24 words?" = "12개 또는 24개 단어란 무엇인가요?";
+"Your 12 or 24 words are ordinary words that work as the master key to your account. Your wallet, your chatting address and your messages all come from them." = "12개 또는 24개 단어는 계정의 마스터 키 역할을 하는 평범한 단어입니다. 지갑, 채팅 주소, 메시지는 모두 여기서 나옵니다.";
 "Anyone who has these words can take everything in your account. If you lose them and lose this device, nobody can get your account back, not even KaChat." = "이 단어를 가진 사람은 누구나 계정의 모든 것을 가져갈 수 있습니다. 단어를 잃어버리고 이 기기도 잃어버리면 아무도 계정을 되찾을 수 없습니다. KaChat도 마찬가지입니다.";
 "Write the words on paper, in order, and keep them somewhere safe and private. Never type them into a website, send them in a chat, or keep them in a screenshot or cloud notes." = "단어를 순서대로 종이에 적어 안전하고 남이 볼 수 없는 곳에 보관하세요. 웹사이트에 입력하거나, 채팅으로 보내거나, 스크린샷이나 클라우드 메모에 저장하지 마세요.";
 "12 words are already very secure. 24 words add even more protection." = "12개 단어도 이미 매우 안전합니다. 24개 단어는 더 강한 보호를 더해 줍니다.";
@@ -1162,7 +1001,6 @@
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts." = "이 지갑 전용으로 KaChat에 저장됩니다. 휴대폰 연락처에는 추가되지 않습니다.";
 "Remove from Address Book" = "주소록에서 제거";
 "Edit Address" = "주소 편집";
-"Add addresses in Kaspa Hub > Address Book." = "Kaspa Hub > 주소록에서 주소를 추가하세요.";
 "Open a wallet first." = "먼저 지갑을 여세요.";
 "Enter a name." = "이름을 입력하세요.";
 "Enter a valid Kaspa address." = "올바른 Kaspa 주소를 입력하세요.";
@@ -1227,11 +1065,8 @@
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "이 파일의 모든 주소는 Mainnet 주소입니다. KaChat은 Testnet에 있습니다.";
 "Every address in that file is a Testnet address. KaChat is on Mainnet." = "이 파일의 모든 주소는 Testnet 주소입니다. KaChat은 Mainnet에 있습니다.";
 "Skipped %lld from the other network." = "다른 네트워크의 %lld개를 건너뛰었습니다.";
-"The network fee went up to %@ since you confirmed. Nothing was sent. Check the new fee and confirm again." = "확인한 뒤 네트워크 수수료가 %@(으)로 올랐습니다. 아무것도 보내지 않았습니다. 새 수수료를 확인하고 다시 확인하세요.";
 
 /* .kachat registry v5 migration */
-"Names are moving to the new registry. New names can be claimed from %@." = "이름을 새 레지스트리로 옮기는 중입니다. 새 이름은 %@부터 받을 수 있습니다.";
-"Moved to the new registry" = "새 레지스트리로 이동됨";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
 "kaspa:qr... or domain" = "kaspa:qr... 또는 도메인";
@@ -1242,7 +1077,7 @@
 "Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat 이름과 프로필을 여기서 읽습니다. 직접 인덱서를 운영한다면 여기에 지정하세요. 이름을 제공하지 못하면 체인에서 직접 읽습니다. 주소를 입력할 수 있는 모든 곳에서 가장 먼저 확인됩니다.";
 "Other Domains" = "다른 도메인";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = ".kachat 다음에 찾으며, 입력한 이름이 그곳에도 있으면 다른 도메인 아래에 표시됩니다.";
-"If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "이 시드가 이미 다른 주소에 신원을 갖고 있다면(.kachat, .kas, .k, .kaspa 도메인 또는 입금된 채팅 잔액) 여기에서 선택하세요. 잔액이나 도메인이 있는 주소만 표시됩니다.";
+"If these words already hold your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "이 단어들의 다른 주소에 이미 내 신원이 있다면(.kachat, .kas, .k, .kaspa 도메인 또는 채팅 잔액) 여기서 선택하세요. 잔액이나 도메인이 있는 주소만 표시됩니다.";
 ".kachat Names (%lld)" = ".kachat 이름 (%lld)";
 ".kas Names (%lld)" = ".kas 이름 (%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "Kaspa 주소(kaspa:...) 또는 도메인을 입력하세요. .kachat 이름을 먼저 찾습니다.";
@@ -1251,7 +1086,6 @@
 "No contacts match your search. Paste an address or a domain to invite someone new." = "검색과 일치하는 연락처가 없습니다. 주소나 도메인을 붙여넣어 새로운 사람을 초대하세요.";
 "No domain found by that name." = "그 이름의 도메인을 찾을 수 없습니다.";
 "%lld of your .kachat domains expired" = ".kachat 도메인 %lld개가 만료되었습니다";
-"Renew %@ before its grace period ends on %@ to keep it." = "%@을(를) 유지하려면 유예 기간이 끝나는 %@ 전에 갱신하세요.";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "이 네트워크에서는 아직 .kachat 이름을 사용할 수 없습니다";
@@ -1268,21 +1102,15 @@
 "Live on Mainnet" = "Mainnet 가동 중";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
-"An offer must be refundable before the name expires." = "제안은 이름이 만료되기 전에 환불할 수 있어야 합니다.";
-"This name expires sooner, so your offer is refundable from %@." = "이 이름이 더 일찍 만료되므로 제안은 %@부터 환불할 수 있습니다.";
 
 /* .kachat: combining many small coins before a name transaction */
-"Your KAS is in many small coins. Combining them into one first..." = "KAS가 작은 코인 여러 개에 나뉘어 있습니다. 먼저 하나로 합치는 중...";
 "Not enough KAS on your chatting address for this." = "채팅 주소에 이 작업을 할 KAS가 부족합니다.";
 
 /* .kachat mainnet launch countdown */
-"Names open in" = "이름 공개까지";
 "Days" = "일";
 "Hours" = "시간";
 "Minutes" = "분";
 "Seconds" = "초";
-"Then anyone can search and claim a .kachat name here." = "그 후 누구나 여기서 .kachat 이름을 검색하고 받을 수 있습니다.";
-".kachat names open to everyone on %@." = ".kachat 이름이 %@에 모두에게 열립니다.";
 
 /* Kaspa Hub > KaChat Bots */
 "Block Reward Tracker" = "블록 보상 추적기";
@@ -1383,20 +1211,13 @@
 "You're all set" = "준비 완료";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
-"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "이름을 보유하는 동안 %@이(가) 이름과 함께 잠깁니다(보증금 + 레지스트리 예치금). 이름을 놓으면 돌려받습니다.";
-"%@ is locked with this name. It comes back to you when you release it." = "%@이(가) 이 이름과 함께 잠겨 있습니다. 이름을 놓으면 돌아옵니다.";
 
 /* Profile save: not enough funds popup (with the chatting address QR) */
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "잔액이 부족합니다. 채팅 주소로 최소 1 KAS를 보내 주세요.";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"Buy From" = "구매할 주소";
 "Fund" = "입금";
 "Copy address" = "주소 복사";
-"Not enough KAS on this address for this name." = "이 주소에 이 이름을 위한 KAS가 부족합니다.";
-"Send KAS to this address to buy with it." = "이 주소로 구매하려면 이 주소로 KAS를 보내세요.";
-"Choose the address the marketplace buys with" = "마켓에서 구매에 쓸 주소 선택";
-"Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "여기서의 등록, 구매, 제안은 이 주소에서 결제되며, 등록하거나 구매한 이름은 이 주소에 속합니다. 이름을 채팅 주소와 분리해 두려면 새 주소를 사용하세요.";
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "내 주소: %@";
@@ -1409,23 +1230,18 @@
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "채팅 주소에 KAS가 없어 이 결제를 %@에게 알릴 수 없습니다. 상대에게는 알 수 없는 주소에서 온 메모 없는 결제로 보입니다. 채팅 주소에 KAS가 생기면 KaChat이 알려 줍니다.";
 
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
-"Your Dock" = "내 독";
-"Always in your dock" = "항상 독에 있음";
 
 /* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
-"%@, %@ and %@ always stay in your dock." = "%@, %@, %@은(는) 항상 독에 있습니다.";
-"Your dock is full. Remove one from it to add one of these." = "독이 가득 찼습니다. 이 중 하나를 추가하려면 독에서 하나를 빼세요.";
 "In the order %@ shows them." = "%@에 표시되는 순서입니다.";
 "Move %@ to %@" = "%@을(를) %@(으)로 이동";
-"Add %@ to your dock" = "%@을(를) 독에 추가";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
-"Recovery Phrase Needed" = "복구 문구 필요";
-"Enter Recovery Phrase" = "복구 문구 입력";
-"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ 계정은 이 iPhone에 있지만 키가 없습니다. 키는 생성된 기기에 고정되므로 백업에서 복원하면 이렇게 됩니다. 로그인하려면 이 계정의 복구 문구를 입력하세요. 이 기기의 기록은 유지됩니다.";
-"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "이 iPhone에 계정은 있지만 키가 없습니다. KaChat의 키는 생성된 기기에 고정되므로 백업에서 복원하면 이렇게 됩니다. 여기서 사용하려면 복구 문구를 입력하세요. 이 기기의 메시지는 유지됩니다.";
+"12 or 24 Words Needed" = "12개 또는 24개 단어 필요";
+"Enter 12 or 24 Words" = "12개 또는 24개 단어 입력";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's 12 or 24 words to sign in. Its history on this phone is kept." = "%@ 계정은 이 iPhone에 있지만 키는 없습니다. 백업에서 복원하면 이런 일이 생깁니다. 키는 생성된 휴대폰에 묶여 있기 때문입니다. 로그인하려면 계정의 12개 또는 24개 단어를 입력하세요. 이 휴대폰의 기록은 유지됩니다.";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your 12 or 24 words to unlock it here. Your messages on this device are kept." = "이 iPhone에 계정은 있지만 키는 없습니다. 휴대폰을 백업에서 복원하면 이런 일이 생깁니다. KaChat의 키는 생성된 기기에 묶여 있기 때문입니다. 여기서 잠금 해제하려면 12개 또는 24개 단어를 입력하세요. 이 기기의 메시지는 유지됩니다.";
 
 
 /* The chat list's name for the chat with yourself */
@@ -1459,13 +1275,7 @@
 /* Chess leaderboard: this month / all time */
 "This month" = "이번 달";
 "All time" = "전체 기간";
-"Leaderboard period" = "리더보드 기간";
-"Resets on the 1st of every month (UTC)." = "매월 1일(UTC)에 초기화됩니다.";
 "Counted from %@." = "%@부터 집계됩니다.";
-"No finished 1v1 games this month yet." = "이번 달에 끝난 1v1 게임이 아직 없습니다.";
-"No finished 1v1 games yet." = "끝난 1v1 게임이 아직 없습니다.";
-"No finished tournaments this month yet." = "이번 달에 끝난 토너먼트가 아직 없습니다.";
-"No finished tournaments yet." = "끝난 토너먼트가 아직 없습니다.";
 
 /* KaPosts: post activity cards */
 
@@ -1565,3 +1375,454 @@
 "What Others Can See" = "다른 사람이 볼 수 있는 것";
 "Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "이 주소와 잔액은 Kaspa 네트워크에서 누구나 볼 수 있지만 메시지는 읽을 수 없습니다. 채팅과 .kachat 도메인에만 사용하세요.";
 "Say anything to the bot to get started." = "봇에게 아무 말이나 보내 시작하세요.";
+"Requested for payment" = "결제를 요청했습니다";
+"Delete Chat?" = "채팅을 삭제할까요?";
+"Delete Group?" = "그룹을 삭제할까요?";
+"Deselect All" = "모두 선택 해제";
+"Select All" = "모두 선택";
+"Select" = "선택";
+"This permanently deletes every message in this chat from this device. This cannot be undone." = "이 채팅의 모든 메시지가 이 기기에서 영구 삭제됩니다. 이 작업은 되돌릴 수 없습니다.";
+"This removes this group and its messages from this device. This cannot be undone, and other members keep their copies." = "이 그룹과 메시지가 이 기기에서 제거됩니다. 이 작업은 되돌릴 수 없으며, 다른 멤버는 자신의 사본을 그대로 가집니다.";
+"%lld chat%@" = "채팅 %lld개%@";
+"Silenced" = "알림 끔";
+"%1$@ reacted %2$@ to your message" = "%1$@님이 내 메시지에 %2$@ 반응을 남겼습니다";
+"%@ reacted to your message" = "%@님이 내 메시지에 반응했습니다";
+"%1$@ reacted %2$@ to a message" = "%1$@님이 메시지에 %2$@ 반응을 남겼습니다";
+"%@ reacted to a message" = "%@님이 메시지에 반응했습니다";
+"Do you already have a domain?" = "이미 도메인이 있나요?";
+"A KNS domain is your name on Kaspa. If you own one already, you can bring it here instead of buying another." = "KNS 도메인은 Kaspa에서 쓰는 내 이름입니다. 이미 가지고 있다면 새로 사지 않고 여기로 가져올 수 있습니다.";
+"Yes, I have one" = "네, 있습니다";
+"No, I need one" = "아니요, 필요합니다";
+"Which domain should this profile use?" = "이 프로필에 어떤 도메인을 사용할까요?";
+"No domains on this address yet" = "이 주소에는 아직 도메인이 없습니다";
+"Go back and use Refresh once the transfer lands." = "돌아가서 송금이 도착하면 새로고침을 사용하세요.";
+"Send your domain here" = "여기로 도메인 보내기";
+"Transfer your domain to this address so your identity is connected to KaChat." = "도메인을 이 주소로 이전해서 내 신원을 KaChat과 연결하세요.";
+"No domains on this address yet." = "이 주소에는 아직 도메인이 없습니다.";
+"%lld domain%@ found on this address." = "이 주소에서 도메인 %lld개%@를 찾았습니다.";
+"Checking..." = "확인 중...";
+"Refresh" = "새로고침";
+"Couldn't Create Account" = "계정을 만들 수 없습니다";
+"App Settings" = "앱 설정";
+"Account name" = "계정 이름";
+"Advanced: Create with a Passphrase" = "고급: 패스프레이즈로 만들기";
+"Customization" = "맞춤 설정";
+"Security" = "보안";
+"Show Fee Estimate" = "예상 수수료 표시";
+"Quick Reactions" = "빠른 반응";
+"Local storage used: %@" = "사용 중인 로컬 저장 공간: %@";
+"On This Device" = "이 기기에";
+"Cache" = "캐시";
+"Nextcloud" = "Nextcloud";
+"Cloud Storage" = "클라우드 저장소";
+"Complete Your Backup" = "백업 완료하기";
+"Back Up to NFC Card" = "NFC 카드에 백업";
+"Wipe and re-sync incoming messages?" = "수신 메시지를 삭제하고 다시 동기화할까요?";
+"KaChat is having trouble syncing right now. It keeps retrying, and your messages catch up on their own once the connection is back, so you shouldn't need to wipe." = "KaChat이 지금 동기화에 어려움을 겪고 있습니다. 계속 재시도하고 있으며, 연결이 복구되면 메시지가 저절로 따라잡으므로 삭제할 필요는 없을 겁니다.";
+"Privacy Policy" = "개인정보 처리방침";
+"Open Source Licenses" = "오픈 소스 라이선스";
+"Appearance" = "화면 스타일";
+"Language" = "언어";
+"Verbose API Logging" = "자세한 API 로그";
+"Reset to Default" = "기본값으로 재설정";
+"Choose Emoji" = "이모지 선택";
+"Wallet" = "지갑";
+"Address Activity" = "주소 활동";
+"Best practice is to write your 12 or 24 words down to back them up, and never store it online." = "백업하는 가장 좋은 방법은 12개 또는 24개 단어를 종이에 적어 두는 것이며, 온라인에는 절대 저장하지 마세요.";
+"Default (Recommended)" = "기본값 (권장)";
+"Automatic Scan" = "자동 스캔";
+"Label (optional)" = "라벨 (선택)";
+"host:port or grpcs://host" = "host:port 또는 grpcs://host";
+"Delete saved address" = "저장된 주소 삭제";
+"Node connections appear blocked on this network. You can still receive and read messages through the indexer, but sending messages and payments needs a node connection." = "이 네트워크에서는 노드 연결이 차단된 것으로 보입니다. 인덱서를 통해 메시지를 받고 읽을 수는 있지만, 메시지와 결제를 보내려면 노드 연결이 필요합니다.";
+"%lld ms" = "%lld ms";
+"Node Network" = "노드 네트워크";
+"Blocked" = "차단됨";
+"Primary: %@" = "기본: %@";
+"%lldms" = "%lldms";
+"DAA: %@" = "DAA: %@";
+"Disconnect Nextcloud" = "Nextcloud 연결 해제";
+"Restore from Backup" = "백업에서 복원";
+"Connected Account" = "연결된 계정";
+"Server" = "서버";
+"Username" = "사용자 이름";
+"Start Folder" = "시작 폴더";
+"No backup on this server yet." = "이 서버에 아직 백업이 없습니다.";
+"Automatic Sync" = "자동 동기화";
+"Last synced" = "마지막 동기화";
+"Backup Folder" = "백업 폴더";
+"Back Up Messages Now" = "지금 메시지 백업";
+"Last backup" = "마지막 백업";
+"Message Backup" = "메시지 백업";
+"Disconnect" = "연결 해제";
+"Use https. Unencrypted connections are not supported." = "https를 사용하세요. 암호화되지 않은 연결은 지원하지 않습니다.";
+"cloud.example.com" = "cloud.example.com";
+"App password" = "앱 비밀번호";
+"Connect" = "연결";
+"The app password is removed from this device's Keychain. You can reconnect any time." = "앱 비밀번호가 이 기기의 키체인에서 제거됩니다. 언제든 다시 연결할 수 있습니다.";
+"Restore" = "복원";
+"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "서버 백업의 메시지가 이 기기의 채팅 기록에 병합됩니다. 아무것도 삭제되지 않습니다.";
+"Restore Complete" = "복원 완료";
+"Restore Failed" = "복원 실패";
+"Restoring Backup" = "백업 복원 중";
+"Please keep the app open. Leaving now could corrupt your chat history." = "앱을 열어 두세요. 지금 나가면 채팅 기록이 손상될 수 있습니다.";
+"Re-sync Complete" = "다시 동기화 완료";
+"Re-sync Failed" = "다시 동기화 실패";
+"Re-syncing Messages" = "메시지 다시 동기화 중";
+"Please keep the app open. Leaving now could leave chats without their history." = "앱을 열어 두세요. 지금 나가면 일부 채팅의 기록이 빠질 수 있습니다.";
+"Select Chats" = "채팅 선택";
+"No chats to re-sync." = "다시 동기화할 채팅이 없습니다.";
+"What's Cached" = "캐시된 항목";
+"Clear All Cache" = "모든 캐시 지우기";
+"NFC Card" = "NFC 카드";
+"Restore from an NFC card" = "NFC 카드에서 복원하기";
+"Enter the card's PIN, then tap the card to read your backup." = "카드의 PIN을 입력한 다음 카드를 탭하면 백업을 읽습니다.";
+"Enter your passphrase" = "패스프레이즈 입력";
+"The backup was read from your card. Your passphrase was never on the card, so enter it exactly as you set it, including capitals and spaces." = "카드에서 백업을 읽었습니다. 패스프레이즈는 카드에 저장된 적이 없으므로, 설정한 그대로 대문자와 공백까지 정확히 입력하세요.";
+"Card PIN" = "카드 PIN";
+"After 5 wrong tries the PIN is blocked for good, and this backup can no longer be read." = "5번 틀리면 PIN이 영구적으로 잠기고, 이 백업은 더 이상 읽을 수 없습니다.";
+"Scan Card" = "카드 스캔";
+"Restore Account" = "계정 복원";
+"Share this profile" = "이 프로필 공유";
+"No on-chain profile data yet." = "아직 온체인 프로필 데이터가 없습니다.";
+"Edit name" = "이름 편집";
+"Redirect" = "리디렉션";
+"Aliases" = "별칭";
+"Receiving alias" = "수신 별칭";
+"Sending alias" = "별칭 보내는 중";
+"Default (%@)" = "기본값 (%@)";
+"Chess Stats" = "체스 통계";
+"%lld day%@ ago" = "%lld일 전%@";
+"PRIMARY" = "기본";
+"React" = "반응";
+"No emoji match that." = "일치하는 이모지가 없습니다.";
+"%lld member%@" = "멤버 %lld명%@";
+"Reply not sent" = "답장을 보내지 못함";
+"Your reply couldn't be sent. Open KaChat to try again." = "답장을 보내지 못했습니다. KaChat을 열어 다시 시도하세요.";
+"1 Reaction" = "반응 1개";
+"%lld Reactions" = "반응 %lld개";
+"1 person" = "1명";
+"%lld people" = "%lld명";
+"Transaction" = "거래";
+"This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "이 계정은 백업되어 있지 않습니다. 지금 삭제하면 계정과 자금을 다시는 복구할 수 없습니다.";
+"To back it up first, sign in to it and use the card on the Profile tab." = "먼저 백업하려면 그 계정에 로그인하고 프로필 탭의 카드를 사용하세요.";
+"Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "12개 또는 24개 단어가 백업되어 있는지 확인하고, 패스프레이즈가 있다면 그것도 확인하세요. 이것이 이 계정과 자금을 복구하는 유일한 방법입니다.";
+"Couldn't load the coins at this address" = "이 주소의 코인을 불러올 수 없습니다";
+"Failed to send. Tap to retry." = "전송하지 못했습니다. 탭하여 다시 시도";
+"Go to the first message" = "첫 메시지로 이동";
+"This file is no longer shared" = "이 파일은 더 이상 공유되지 않습니다";
+"Tap to load preview" = "탭하여 미리보기 불러오기";
+"Could not load this file." = "이 파일을 불러올 수 없습니다.";
+"No notifications yet" = "아직 알림이 없습니다";
+"Kaspa arriving in your addresses shows up here." = "내 주소로 들어오는 Kaspa가 여기에 표시됩니다.";
+"Clear All" = "모두 지우기";
+"Hidden while screen is being recorded or mirrored" = "화면을 녹화하거나 미러링하는 동안 숨겨집니다";
+"Group info for %@" = "%@ 그룹 정보";
+"This only deletes the message from this device - other members still have their own copy, and the encrypted transaction remains permanently on the Kaspa blockchain, visible to anyone but unreadable without your keys. This cannot be undone." = "이 기기에서만 메시지가 삭제됩니다. 다른 멤버는 각자의 사본을 그대로 가지고 있고, 암호화된 거래는 Kaspa 블록체인에 영구히 남습니다. 누구나 볼 수 있지만 내 키 없이는 읽을 수 없습니다. 이 작업은 되돌릴 수 없습니다.";
+"Editing message" = "메시지 편집 중";
+"Replying to %@" = "%@님에게 답장 중";
+"Recording... %llds" = "녹음 중... %lld초";
+"edited" = "수정됨";
+"%lld members" = "멤버 %lld명";
+"Remove photo" = "사진 제거";
+"Group photo" = "그룹 사진";
+"Set group photo" = "그룹 사진 설정";
+"Remove group photo" = "그룹 사진 제거";
+"Delete \"%@\"" = "\"%@\" 삭제";
+"Members (%lld)" = "멤버 (%lld)";
+"Silent Group Chat" = "알림 끈 그룹 채팅";
+"Only Notify if I'm Mentioned" = "멘션될 때만 알림";
+"Refresh Messages" = "메시지 새로고침";
+"Resend invites to all" = "모두에게 초대 다시 보내기";
+"Resend Invites" = "초대 다시 보내기";
+"Resend invite" = "초대 다시 보내기";
+"Remove member" = "멤버 제거";
+"Resend the group invite to %@?%@" = "%@님에게 그룹 초대를 다시 보낼까요?%@";
+"Yes" = "예";
+"Remove %@ from the group chat? A fresh group key is issued to everyone who stays.%@" = "%@님을 그룹 채팅에서 제거할까요? 남는 모든 사람에게 새 그룹 키가 발급됩니다.%@";
+"Resend the group invite to every member? Use this if someone didn't receive the group.%@" = "모든 멤버에게 그룹 초대를 다시 보낼까요? 그룹을 받지 못한 사람이 있을 때 사용하세요.%@";
+"Group name" = "그룹 이름";
+"Every member will see the new name.%@" = "모든 멤버에게 새 이름이 보입니다.%@";
+"Set this as the group photo for everyone?%@" = "이 사진을 모두의 그룹 사진으로 설정할까요?%@";
+"Remove the group photo for everyone?%@" = "모두에게서 그룹 사진을 제거할까요?%@";
+"Add members" = "멤버 추가";
+"Everyone in your contacts is already in this group." = "연락처의 모든 사람이 이미 이 그룹에 있습니다.";
+"New members can read messages from the moment they're added, not earlier history." = "새 멤버는 추가된 시점부터의 메시지만 읽을 수 있고, 그 이전 기록은 읽을 수 없습니다.";
+"Add %lld member%@ to the group?%@" = "그룹에 멤버 %lld명%@을 추가할까요?%@";
+"Refresh complete" = "새로고침 완료";
+"Rebuilding this group" = "이 그룹을 다시 만드는 중";
+"Re-reading the whole group from the chain, the same way importing your 12 or 24 words does. Leaving now would stop it partway." = "12개 또는 24개 단어를 가져올 때와 같은 방식으로 체인에서 그룹 전체를 다시 읽고 있습니다. 지금 나가면 중간에 멈춥니다.";
+"Recovered %lld message%@ this device had not been able to read." = "이 기기에서 읽지 못했던 메시지 %lld개%@를 복구했습니다.";
+"No new messages were recovered." = "새로 복구된 메시지가 없습니다.";
+"%lld message%@ from an epoch this device holds no key for" = "이 기기에 키가 없는 기간의 메시지 %lld개%@";
+"%lld from someone no longer in the group" = "그룹을 나간 사람의 메시지 %lld개";
+"%lld that failed to decrypt" = "복호화에 실패한 메시지 %lld개";
+"Recovered %lld older epoch key%@" = "이전 기간의 키 %lld개%@를 복구했습니다";
+"Resign this game?" = "이 대국에서 기권할까요?";
+"Cancel game" = "게임 취소";
+"Hide password" = "비밀번호 숨기기";
+"Show password" = "비밀번호 보기";
+"Change Chatting Address" = "채팅 주소 변경";
+"Label" = "라벨";
+"Notify on receive" = "수신 시 알림";
+"When a spending address receives Kaspa from someone else." = "지출 주소가 다른 사람에게서 Kaspa를 받을 때.";
+"Checking address #%lld" = "주소 #%lld 확인 중";
+"Checks the first thousand addresses whatever the gaps, then keeps going while it keeps finding." = "중간에 빈 곳이 있어도 처음 1,000개 주소를 확인하고, 계속 발견되는 동안 이어서 확인합니다.";
+"No addresses with a balance or domain yet" = "잔액이나 도메인이 있는 주소가 아직 없습니다";
+"%lld found so far" = "지금까지 %lld개 찾음";
+"Close and Keep Scanning" = "닫고 계속 스캔";
+"Contains domain" = "도메인 포함";
+"%lld separate transactions will be sent, one per address. Fast or Priority pays a higher fee to help them confirm sooner. Tap the fee amount to set a custom fee, applied to each." = "거래 %lld건이 주소마다 하나씩 따로 전송됩니다. 빠름 또는 우선을 선택하면 더 높은 수수료를 내고 더 빨리 확인됩니다. 수수료 금액을 탭하면 직접 수수료를 정할 수 있으며, 각 거래에 적용됩니다.";
+"Tap anywhere to copy" = "아무 곳이나 탭하여 복사";
+"Anyone with this address's private key can spend its funds. Never share it with anyone." = "이 주소의 개인 키를 가진 사람은 누구나 이 주소의 자금을 쓸 수 있습니다. 절대로 누구에게도 공유하지 마세요.";
+"Tap to reveal private key" = "탭하여 개인 키 보기";
+"Rename UTXO" = "UTXO 이름 변경";
+"Receive" = "받기";
+"Some transactions could not be loaded. Pull to refresh to try again." = "일부 거래를 불러오지 못했습니다. 아래로 당겨 새로고침한 뒤 다시 시도하세요.";
+"Could not load transactions." = "거래를 불러올 수 없습니다.";
+"No UTXOs." = "UTXO가 없습니다.";
+"Combines this address's UTXOs to reduce the inputs a future send needs. A single transaction can only merge so many at once, so if this address has a very large number, tap Compound again after it confirms to keep reducing." = "이 주소의 UTXO를 합쳐서 이후 보내기에 필요한 입력 수를 줄입니다. 한 번의 거래로 합칠 수 있는 개수에는 한계가 있으므로, UTXO가 매우 많다면 확인된 후 통합을 다시 탭해 계속 줄이세요.";
+"Coinbase" = "Coinbase";
+"Address Visibility" = "주소 공개 설정";
+"These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "지금은 이 주소들을 생성할 수 없습니다. 이전 페이지로 가거나 이 화면을 다시 열어 재시도하세요.";
+"Add, import or export" = "추가, 가져오기 또는 내보내기";
+"Call" = "통화";
+"KaChat Contact" = "KaChat 연락처";
+"KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat은 이 오픈 소스 라이브러리로 만들어졌습니다. 제작자들의 요청에 따라 이 고지가 앱과 함께 제공됩니다.";
+"24 words" = "24개 단어";
+"Enter your 12 or 24 words" = "12개 또는 24개 단어 입력";
+"More reactions" = "반응 더 보기";
+"Storage problem" = "저장 공간 문제";
+"Your chats and history are up to date." = "채팅과 기록이 최신 상태입니다.";
+"Setting up your account" = "계정 설정 중";
+"Downloading everything this account has on chain. It only takes this long once." = "이 계정이 체인에 가진 모든 것을 내려받는 중입니다. 이렇게 오래 걸리는 것은 처음 한 번뿐입니다.";
+"Continue anyway" = "그래도 계속";
+"Share your profile" = "내 프로필 공유";
+"Your Domains" = "내 도메인";
+"Preparing a fresh address" = "새 주소를 준비하는 중";
+"Share Profile" = "프로필 공유";
+"Confirm Changes" = "변경 사항 확인";
+"%lld change%@. Each is submitted as its own on-chain transaction from your chatting address:" = "변경 %lld개%@. 각각 내 채팅 주소에서 별도의 온체인 거래로 제출됩니다:";
+"Primary Domain" = "기본 도메인";
+"Send Domain" = "도메인 보내기";
+"If the network is busy, Fast or Priority pays a higher fee to help your transfer confirm sooner. Tap the fee amount to set a custom fee." = "네트워크가 혼잡하면 빠름 또는 우선을 선택해 더 높은 수수료를 내고 송금이 더 빨리 확인되게 할 수 있습니다. 수수료 금액을 탭하면 직접 수수료를 정할 수 있습니다.";
+"Sending %@" = "%@ 보내는 중";
+"A domain transfer is two transactions, so this takes a moment. Keep the app open until it finishes." = "도메인 이전은 거래 두 건으로 이루어지므로 잠시 걸립니다. 끝날 때까지 앱을 열어 두세요.";
+"Combines all UTXOs at this address into a single one, to reduce the number of inputs a future send needs." = "이 주소의 모든 UTXO를 하나로 합쳐, 이후 보내기에 필요한 입력 수를 줄입니다.";
+"Public Key" = "공개 키";
+"This address does not carry a public key." = "이 주소에는 공개 키가 없습니다.";
+"This is the public half of your chatting address. It identifies you and cannot spend anything." = "채팅 주소의 공개 절반입니다. 나를 식별하는 용도이며 아무것도 쓸 수 없습니다.";
+"Safe to share" = "공유해도 안전합니다";
+"Copy Public Key" = "공개 키 복사";
+"Remove this account?" = "이 계정을 제거할까요?";
+"Couldn't remove" = "삭제할 수 없음";
+"Removing…" = "제거 중…";
+"Remove This Account From the Phone" = "이 휴대폰에서 이 계정 제거";
+"The account and its message history are deleted from this phone. Nothing on the blockchain changes, and you can add the account again later with its 12 or 24 words." = "계정과 메시지 기록이 이 휴대폰에서 삭제됩니다. 블록체인은 아무것도 바뀌지 않으며, 12개 또는 24개 단어로 나중에 이 계정을 다시 추가할 수 있습니다.";
+"Use All Files" = "모든 파일 사용";
+"Use This Folder" = "이 폴더 사용";
+"No subfolders." = "하위 폴더가 없습니다.";
+"Chatting" = "채팅";
+"Spending" = "지출";
+"Request" = "요청";
+"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "통화는 나 또는 상대방이 Nextcloud Talk를 설정한 경우에만 사용할 수 있습니다. 양쪽 모두 설정하지 않았다면 통화할 수 없습니다.";
+"Continue?" = "계속할까요?";
+"Enable calls and video calls with %@?" = "%@님과 통화 및 영상 통화를 사용할까요?";
+"They will be able to call you too." = "상대방도 나에게 전화할 수 있게 됩니다.";
+"Call %@" = "%@에게 전화";
+"%@ wants to switch to video" = "%@님이 영상 통화로 전환하려고 합니다";
+"Tap to return" = "탭하여 돌아가기";
+"What is a passphrase?" = "패스프레이즈란?";
+"If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "잘 모르겠다면 거의 확실히 아니요입니다. 패스프레이즈는 직접 일부러 입력했던 것입니다.";
+"No" = "아니요";
+"Choose your passphrase" = "패스프레이즈를 정하세요";
+"Write it down somewhere safe. Without it this account cannot be recovered, even with your 12 or 24 words." = "안전한 곳에 적어 두세요. 이것이 없으면 12개 또는 24개 단어가 있어도 이 계정을 복구할 수 없습니다.";
+"It has to be exactly what you used before, including capital letters and spaces." = "이전에 사용한 것과 대문자와 공백까지 정확히 같아야 합니다.";
+"Re-enter passphrase" = "패스프레이즈 다시 입력";
+"Your chatting address" = "내 채팅 주소";
+"This is the account your 12 or 24 words open on their own." = "12개 또는 24개 단어만으로 열리는 계정입니다.";
+"A different passphrase gives a different address, and a different account." = "패스프레이즈가 다르면 주소가 달라지고, 계정도 달라집니다.";
+"This address holds funds, so this looks like the right account." = "이 주소에 자금이 있으므로 맞는 계정으로 보입니다.";
+"No funds on this address. If you expected funds here, check your passphrase." = "이 주소에는 자금이 없습니다. 여기에 있어야 한다면 패스프레이즈를 확인하세요.";
+"We picked the first address with funds. Tap another if that's not the one you chat from." = "자금이 있는 첫 번째 주소를 골랐습니다. 그 주소로 채팅하지 않는다면 다른 주소를 탭하세요.";
+"Address #%lld" = "주소 #%lld";
+"Get KaChat Contacts" = "KaChat 연락처 가져오기";
+"Return KaChat contacts as JSON strings." = "KaChat 연락처를 JSON 문자열로 반환합니다.";
+"Search" = "검색";
+"Limit" = "한도";
+"Returned %lld contacts" = "연락처 %lld개를 반환했습니다";
+"Get KaChat Messages" = "KaChat 메시지 가져오기";
+"Return recent KaChat messages as JSON strings." = "최근 KaChat 메시지를 JSON 문자열로 반환합니다.";
+"Contact" = "연락처";
+"Include Outgoing" = "보낸 것 포함";
+"Returned %lld messages" = "메시지 %lld개를 반환했습니다";
+"Send KaChat Message" = "KaChat 메시지 보내기";
+"Send a text message to a KaChat contact." = "KaChat 연락처에게 문자 메시지를 보냅니다.";
+"Message sent to %@" = "%@님에게 메시지를 보냈습니다";
+"Send KaChat Payment" = "KaChat 결제 보내기";
+"Send a KAS payment to a KaChat contact." = "KaChat 연락처에게 KAS를 보냅니다.";
+"Note" = "메모";
+"Payment sent to %@" = "%@님에게 결제를 보냈습니다";
+"Send KaChat Audio" = "KaChat 오디오 보내기";
+"Send an audio file to a KaChat contact." = "KaChat 연락처에게 오디오 파일을 보냅니다.";
+"Audio File" = "오디오 파일";
+"Audio sent to %@" = "%@님에게 오디오를 보냈습니다";
+"Get Contacts" = "연락처 가져오기";
+"Get Messages" = "메시지 가져오기";
+"Send Message" = "메시지 보내기";
+"Send Payment" = "결제 보내기";
+"Send Audio" = "오디오 보내기";
+"Backup Your Account To Prevent Loss Of Funds" = "자금을 잃지 않도록 계정을 백업하세요";
+"You now have funds that aren't backed up." = "백업되지 않은 자금이 생겼습니다.";
+"If you lose this phone, your 12 or 24 words are the only way back." = "이 휴대폰을 잃어버리면 12개 또는 24개 단어만이 되돌아올 유일한 방법입니다.";
+"Delete That Screenshot" = "그 스크린샷 삭제";
+"This account's 12 or 24 words aren't available on this phone." = "이 계정의 12개 또는 24개 단어는 이 휴대폰에서 사용할 수 없습니다.";
+"A screenshot of your 12 or 24 words can end up online. Delete it from your photos and write the words on paper instead." = "12개 또는 24개 단어를 찍은 스크린샷은 온라인에 유출될 수 있습니다. 사진에서 삭제하고 대신 종이에 단어를 적어 두세요.";
+"Start Backup" = "백업 시작";
+"Show My 12 or 24 Words" = "12개 또는 24개 단어 보기";
+"Next Words" = "다음 단어";
+"I Wrote Them Down" = "적었습니다";
+"Check My Words" = "단어 확인";
+"I Wrote It Down" = "적었습니다";
+"Check My Passphrase" = "패스프레이즈 확인";
+"Finish Backup" = "백업 마치기";
+"Protect your funds" = "자금을 보호하세요";
+"Your 12 or 24 words are your account" = "12개 또는 24개 단어가 내 계정입니다";
+"These secret words are created just for you. They are the master key to your funds." = "이 비밀 단어는 나만을 위해 만들어집니다. 내 자금의 마스터 키입니다.";
+"Your phone can't be your only copy" = "휴대폰이 유일한 사본이면 안 됩니다";
+"If you lose, break or replace this phone, these words are the only way back to your account." = "이 휴대폰을 잃어버리거나 망가뜨리거나 바꾸면, 이 단어들이 계정으로 돌아오는 유일한 방법입니다.";
+"Nobody can reset them" = "아무도 재설정할 수 없습니다";
+"There is no password reset. KaChat never sees your words, so we can't recover them for you." = "비밀번호 재설정은 없습니다. KaChat은 내 단어를 전혀 볼 수 없어서 대신 복구해 드릴 수 없습니다.";
+"Get ready" = "준비하세요";
+"Your secret words are next. Before you see them:" = "다음은 비밀 단어입니다. 보기 전에:";
+"I have a pen and paper" = "펜과 종이가 있습니다";
+"Nobody can see my screen" = "아무도 내 화면을 볼 수 없습니다";
+"I won't take a photo or screenshot" = "사진이나 스크린샷을 찍지 않겠습니다";
+"Words %lld to %lld of %lld" = "단어 %lld~%lld / %lld";
+"Write down these words" = "이 단어들을 적어 두세요";
+"Write them on paper in this exact order, with their numbers." = "번호와 함께 이 순서 그대로 종이에 적으세요.";
+"That doesn't match. Check your paper, or go back to see the words again." = "일치하지 않습니다. 종이를 확인하거나 돌아가서 단어를 다시 확인하세요.";
+"Check your paper" = "종이를 확인하세요";
+"Tap each box and type that word from what you wrote down, to be sure your copy is right." = "각 칸을 탭하고 적어 둔 대로 해당 단어를 입력해, 사본이 맞는지 확인하세요.";
+"See My Words Again" = "내 단어 다시 보기";
+"Word %lld" = "단어 %lld";
+"Type word %lld here" = "여기에 %lld번째 단어 입력";
+"Write down your passphrase" = "패스프레이즈를 적어 두세요";
+"This account also needs its passphrase. Your 12 or 24 words alone won't bring it back. Write it exactly, including capital letters and spaces." = "이 계정에는 패스프레이즈도 필요합니다. 12개 또는 24개 단어만으로는 복구되지 않습니다. 대문자와 공백까지 그대로 정확히 적으세요.";
+"That doesn't match. Check your paper, or go back to see it again." = "일치하지 않습니다. 종이를 확인하거나 돌아가서 다시 확인하세요.";
+"Check your passphrase" = "패스프레이즈를 확인하세요";
+"Enter it from what you wrote down. It has to match exactly." = "적어 둔 것을 보고 입력하세요. 정확히 일치해야 합니다.";
+"Keep it safe" = "안전하게 보관하세요";
+"Your copy is right. Now keep it that way." = "사본이 맞습니다. 이제 그대로 유지하세요.";
+"Keep it on paper" = "종이에 보관하세요";
+"Store it somewhere safe and private, away from fire and water." = "불과 물을 피해 안전하고 외부에 보이지 않는 곳에 보관하세요.";
+"Never keep it online" = "온라인에 보관하지 마세요";
+"No photos, screenshots, cloud storage, notes apps, email or chats." = "사진, 스크린샷, 클라우드 저장소, 메모 앱, 이메일, 채팅에는 두지 마세요.";
+"Never share it" = "절대 공유하지 마세요";
+"Nobody needs your words. KaChat and real support will never ask for them. Anyone who asks is trying to take your funds." = "아무도 내 단어를 필요로 하지 않습니다. KaChat과 정식 고객 지원은 절대 요구하지 않습니다. 요구하는 사람은 내 자금을 가져가려는 것입니다.";
+"Keep your passphrase apart" = "패스프레이즈는 따로 보관하세요";
+"Store it away from your 12 or 24 words. You need both, and losing either one loses the account." = "12개 또는 24개 단어와 따로 보관하세요. 둘 다 필요하며, 하나라도 잃으면 계정을 잃습니다.";
+"You can see it again" = "다시 볼 수 있습니다";
+"Your 12 or 24 words stay available in Settings > Back Up Account." = "12개 또는 24개 단어는 설정 > 계정 백업에서 계속 볼 수 있습니다.";
+"Backup Hygiene" = "백업 안전 수칙";
+"Let's ensure your account is backed up in case you lose access to your phone." = "휴대폰에 접근할 수 없게 되더라도 계정을 되찾을 수 있도록 백업해 두세요.";
+"Enter these %lld of your 12 or 24 words. Each box shows the word's number." = "12개 또는 24개 단어 중 이 %lld개를 입력하세요. 각 칸에 단어의 번호가 표시됩니다.";
+"Some of those words don't match. Check your paper and try again." = "일부 단어가 맞지 않습니다. 종이를 확인하고 다시 시도하세요.";
+"Now enter your passphrase" = "이제 패스프레이즈를 입력하세요";
+"Your 12 or 24 words alone won't bring this account back. Enter the passphrase from what you wrote down, exactly, including capital letters and spaces." = "12개 또는 24개 단어만으로는 이 계정을 복구할 수 없습니다. 적어 둔 패스프레이즈를 대문자와 공백까지 정확히 입력하세요.";
+"That doesn't match. Check your paper and try again." = "일치하지 않습니다. 종이를 확인하고 다시 시도하세요.";
+"Can't Complete This" = "완료할 수 없음";
+"Your backup is good" = "백업이 정상입니다";
+"We'll check again in 6 months." = "6개월 후에 다시 확인하겠습니다.";
+"Requesting camera access..." = "카메라 접근 요청 중...";
+"No UTXOs found at this address." = "이 주소에서 UTXO를 찾을 수 없습니다.";
+"Automatic (Clear Selection)" = "자동 (선택 해제)";
+"Use Automatic Selection" = "자동 선택 사용";
+"Confirm Selection" = "선택 확인";
+"Chat info for %@" = "%@ 채팅 정보";
+"Open active chess game" = "진행 중인 체스 대국 열기";
+"This only deletes the message from this device - the recipient still has their own copy, and the encrypted transaction remains permanently on the Kaspa blockchain, visible to anyone but unreadable without your keys. This cannot be undone." = "이 기기에서만 메시지가 삭제됩니다. 상대방은 자신의 사본을 그대로 가지고 있고, 암호화된 거래는 Kaspa 블록체인에 영구히 남습니다. 누구나 볼 수 있지만 내 키 없이는 읽을 수 없습니다. 이 작업은 되돌릴 수 없습니다.";
+"Handshake sent - send again" = "통신 요청 전송됨 - 다시 보내기";
+"Timed games count down only while the board is open on your turn." = "시간제 게임은 내 차례에 보드가 열려 있는 동안에만 시간이 줄어듭니다.";
+"Fund your chatting address to start chatting" = "채팅을 시작하려면 채팅 주소에 입금하세요";
+"Copy chatting address" = "채팅 주소 복사";
+"Chess game invite sent" = "체스 초대를 보냈습니다";
+"Invited you to a game of chess" = "체스 대국에 초대했습니다";
+"Handshake completed" = "통신 요청 완료";
+"%@ sent a photo" = "%@님이 사진을 보냈습니다";
+"It shows 10 minutes after you have both sent a message." = "서로 메시지를 보낸 지 10분 후에 표시됩니다.";
+"Voice message unavailable" = "음성 메시지를 사용할 수 없습니다";
+"Tap to retry" = "탭하여 다시 시도";
+"Loading…" = "불러오는 중…";
+"Where are your 12 or 24 words from?" = "12개 또는 24개 단어는 어디서 왔나요?";
+"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "지갑마다 Kaspa를 보관하는 주소 경로가 다릅니다. KaChat이 자금과 도메인을 찾을 수 있도록 이 단어가 어디서 왔는지 고르세요.";
+"Restore from NFC Card" = "NFC 카드에서 복원";
+"NFC Card Backup" = "NFC 카드 백업";
+"Erase the backup on this card?" = "이 카드의 백업을 지울까요?";
+"Replace the backup on this card?" = "카드의 백업을 교체할까요?";
+"Backup saved" = "백업이 저장되었습니다";
+"It was read back from the card and checked. To restore it, choose Import Existing Account, then Restore from NFC Card, and enter your PIN and passphrase. Your passphrase isn't on the card, so keep it and your written 12 or 24 words safe." = "카드에서 다시 읽어 확인했습니다. 복원하려면 기존 계정 가져오기를 선택하고 NFC 카드에서 복원을 누른 다음 PIN과 패스프레이즈를 입력하세요. 패스프레이즈는 카드에 없으므로, 적어 둔 12개 또는 24개 단어와 함께 안전하게 보관하세요.";
+"Backup erased" = "백업이 지워졌습니다";
+"The backup and PIN are gone from this card. The next backup on it will ask you to set a new PIN." = "이 카드에서 백업과 PIN이 사라집니다. 다음에 이 카드에 백업할 때 새 PIN을 설정하게 됩니다.";
+"The backup is gone from this card. Its PIN stays the same." = "이 카드에서 백업이 사라집니다. PIN은 그대로 유지됩니다.";
+"Erase Backup" = "백업 지우기";
+"This can't be undone." = "이 작업은 되돌릴 수 없습니다.";
+"Replace Backup" = "백업 교체";
+"The old backup is removed once the new one is confirmed." = "새 백업이 확인되면 이전 백업이 제거됩니다.";
+"Back up to an NFC card" = "NFC 카드에 백업하기";
+"Saves this account's 12 or 24 words on your card, behind a 6-digit PIN." = "이 계정의 12개 또는 24개 단어를 6자리 PIN으로 보호해 카드에 저장합니다.";
+"Your passphrase is never saved to the card. You'll enter it when you restore, and it's what keeps this account safe if someone gets past the PIN." = "패스프레이즈는 카드에 절대 저장되지 않습니다. 복원할 때 입력하며, 누군가 PIN을 뚫더라도 이것이 계정을 지켜줍니다.";
+"This isn't cold storage. The card only holds a copy and never creates keys, so keep your 12 or 24 words and passphrase written down too." = "이것은 콜드 스토리지가 아닙니다. 카드는 사본만 보관하고 키를 만들지 않으므로, 12개 또는 24개 단어와 패스프레이즈도 적어서 보관하세요.";
+"Your card needs the KaChat-NFC software first. Load it from the NFC Card page in Kaspa Quick Start." = "카드에 먼저 KaChat-NFC 소프트웨어가 필요합니다. Kaspa Quick Start의 NFC 카드 페이지에서 불러오세요.";
+"Erase a Backup on a Card" = "카드의 백업 지우기";
+"%lld PIN tries left on this card." = "이 카드의 PIN을 %lld번 더 시도할 수 있습니다.";
+"Pick one you'll remember. After 5 wrong tries the PIN is blocked, and the only fix is reloading the card in Kaspa Quick Start, which erases it." = "기억할 수 있는 것으로 고르세요. 5번 틀리면 PIN이 잠기고, 해결 방법은 Kaspa Quick Start에서 카드를 다시 불러오는 것뿐이며 그러면 카드 내용이 지워집니다.";
+"This card already holds a backup. Saving replaces it once the new one is confirmed." = "이 카드에는 이미 백업이 있습니다. 저장하면 새 백업이 확인된 후에 교체됩니다.";
+"New 6-digit PIN" = "새 6자리 PIN";
+"Save to Card" = "카드에 저장";
+"Erase a backup" = "백업 지우기";
+"Enter the card's PIN, then tap the card to erase the backup on it." = "카드의 PIN을 입력한 다음 카드를 탭하면 카드의 백업이 지워집니다.";
+"Create group" = "그룹 만들기";
+"Create" = "만들기";
+"Create \"%@\" and invite %lld member%@?%@" = "\"%@\" 그룹을 만들고 멤버 %lld명%@을 초대할까요?%@";
+"Add\nPhoto" = "사진\n추가";
+"Add to Group" = "그룹에 추가";
+"Remove from group" = "그룹에서 제거";
+"Already added to this group" = "이미 이 그룹에 추가되었습니다";
+"Could not derive addresses from these words. Please try again." = "이 단어로 주소를 생성하지 못했습니다. 다시 시도해 주세요.";
+"Choose Your Chatting Address" = "채팅 주소 선택";
+"Scanning addresses %lld to %lld..." = "주소 %lld~%lld 스캔 중...";
+"Checking this wallet's address..." = "이 지갑의 주소를 확인하는 중...";
+"Scanned the first %lld addresses." = "처음 %lld개 주소를 스캔했습니다.";
+"This wallet type has a single address, so there is nothing further to scan." = "이 지갑 유형은 주소가 하나뿐이라 더 스캔할 것이 없습니다.";
+"Scan Further" = "더 스캔";
+"Current" = "현재";
+"Switch Chatting Address?" = "채팅 주소를 전환할까요?";
+"Copied to clipboard" = "클립보드에 복사했습니다";
+"Tap the address to copy it" = "주소를 탭하여 복사";
+"Current Chatting Address" = "현재 채팅 주소";
+"Set as Chatting Address" = "채팅 주소로 설정";
+"Switch" = "전환";
+"These words already have conversations on the current chatting address. Switching starts fresh with the new address. Your existing conversations stay with the old address and are not deleted." = "이 단어들에는 현재 채팅 주소에 이미 대화가 있습니다. 전환하면 새 주소로 처음부터 시작합니다. 기존 대화는 이전 주소에 남아 있으며 삭제되지 않습니다.";
+"Done editing" = "편집 완료";
+"Enter account name" = "계정 이름 입력";
+"Confirm deleting this account" = "이 계정 삭제 확인";
+"Fee (KAS)" = "수수료 (KAS)";
+"fee: %@ KAS" = "수수료: %@ KAS";
+"This permanently deletes every message in each selected chat from this device. This cannot be undone." = "선택한 각 채팅의 모든 메시지가 이 기기에서 영구 삭제됩니다. 이 작업은 되돌릴 수 없습니다.";
+"Confirm sending Kaspa" = "Kaspa 보내기 확인";
+"From:" = "보낸 사람:";
+"Accepted your request to communicate" = "통신 요청을 수락했습니다";
+"Sent you a message" = "메시지를 보냈습니다";
+"[Payment]" = "[결제]";
+"My Account" = "내 계정";
+"Re-sync %lld Chat%@" = "채팅 %lld개 다시 동기화%@";
+"Re-synced %lld incoming message%@ across %lld chat%@." = "수신 메시지 %lld개%@, 채팅 %lld개%@를 다시 동기화했습니다.";
+"Group Invites" = "그룹 초대";
+"Group Invite" = "그룹 초대";
+"Invited by %@" = "%@님의 초대";
+"People and groups waiting for you" = "사람과 그룹이 기다리고 있습니다";
+"You're not in this group unless you accept. Rejecting removes the invite." = "수락하기 전에는 이 그룹에 참여하지 않습니다. 거절하면 초대가 삭제됩니다.";
+"Invited" = "초대됨";
+"Declined" = "거절함";
+"You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "수락하기 전에는 이 그룹에 참여하지 않습니다. 답변은 소액의 암호화된 거래로 전송되어 그룹과 내 다른 기기에 전달됩니다.";

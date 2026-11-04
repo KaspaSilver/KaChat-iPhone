@@ -34,6 +34,7 @@ final class SharedDataManager {
         /// in - and would name a push using an alias from the wrong account.
         static let contactsWallet = "shared_contacts_wallet"
         static let groups = "shared_groups"
+        static let handledGroupInvites = "handled_group_invites"
         static let sharedSecrets = "shared_secrets"
         static let pendingMessages = "pending_messages"
         static let storedMessages = "stored_messages"
@@ -165,18 +166,12 @@ final class SharedDataManager {
         return recents
     }
 
-    static func removeRecentConversation(address: String) {
-        let recents = getRecentConversations()
-        let filtered = recents.filter { $0.address != address }
-        guard filtered.count != recents.count else { return }
-        if filtered.isEmpty {
-            sharedDefaults?.removeObject(forKey: Keys.recentConversations)
-        } else if let data = try? JSONEncoder().encode(filtered) {
-            sharedDefaults?.set(data, forKey: Keys.recentConversations)
-        }
-    }
-
     // MARK: - Group Sync
+
+    /// Groups the push extension shouldn't announce as a new invite (`GroupChatService`).
+    static func setHandledGroupInvites(_ groupIds: [String]) {
+        sharedDefaults?.set(groupIds, forKey: Keys.handledGroupInvites)
+    }
 
     /// Sync group rosters to the shared container for the notification extension. The NSE has no
     /// Core Data access (that's where `GroupStore` lives), so this is the only way it can learn
@@ -254,15 +249,6 @@ final class SharedDataManager {
         }
     }
 
-    /// Get all groups from shared container (called from notification extension)
-    static func getAllGroups() -> [SharedGroup] {
-        guard let data = sharedDefaults?.data(forKey: Keys.groups),
-              let groups = try? JSONDecoder().decode([SharedGroup].self, from: data) else {
-            return []
-        }
-        return groups
-    }
-
     /// Sync notification defaults used by the notification service extension.
     /// Deliberately nonisolated: UserDefaults is thread-safe and AppSettings.save is
     /// documented as callable from any context.
@@ -291,18 +277,9 @@ final class SharedDataManager {
         sharedDefaults?.set(address, forKey: Keys.walletAddress)
     }
 
-    static func getWalletAddress() -> String? {
-        return sharedDefaults?.string(forKey: Keys.walletAddress)
-    }
-
     /// Get contact by address (called from notification extension)
     static func getContact(address: String) -> SharedContact? {
         return sharedContactsForCurrentWallet().first { $0.address == address }
-    }
-
-    /// Get all contacts from shared container
-    static func getAllContacts() -> [SharedContact] {
-        return sharedContactsForCurrentWallet()
     }
 
     /// The shared contact list, but ONLY when it belongs to the wallet currently signed in.
@@ -328,56 +305,8 @@ final class SharedDataManager {
 
     // MARK: - Shared Secrets
 
-    /// Store a shared secret for a contact address (call when handshake is processed)
-    static func storeSharedSecret(_ secret: Data, for address: String) {
-        var secrets = getSharedSecrets()
-        secrets[address] = secret.base64EncodedString()
-
-        guard let data = try? JSONEncoder().encode(secrets) else {
-            AppLog.log("[SharedData] Failed to encode shared secrets")
-            return
-        }
-
-        sharedDefaults?.set(data, forKey: Keys.sharedSecrets)
-        AppLog.log("[SharedData] Stored shared secret for %@", String(address.suffix(8)))
-    }
-
-    /// Get shared secret for a contact address
-    static func getSharedSecret(for address: String) -> Data? {
-        let secrets = getSharedSecrets()
-        guard let base64 = secrets[address],
-              let data = Data(base64Encoded: base64) else {
-            return nil
-        }
-        return data
-    }
-
-    /// Get all shared secrets
-    private static func getSharedSecrets() -> [String: String] {
-        guard let data = sharedDefaults?.data(forKey: Keys.sharedSecrets),
-              let secrets = try? JSONDecoder().decode([String: String].self, from: data) else {
-            return [:]
-        }
-        return secrets
-    }
-
-    /// Remove shared secret for an address (call when contact is deleted)
-    static func removeSharedSecret(for address: String) {
-        var secrets = getSharedSecrets()
-        secrets.removeValue(forKey: address)
-
-        if let data = try? JSONEncoder().encode(secrets) {
-            sharedDefaults?.set(data, forKey: Keys.sharedSecrets)
-        }
-    }
-
-    /// Clear all shared secrets (call on wallet delete)
-    static func clearSharedSecrets() {
-        sharedDefaults?.removeObject(forKey: Keys.sharedSecrets)
-    }
-
-    /// One-time hygiene at launch: `storeSharedSecret` has no callers anywhere in the app
-    /// anymore (the NSE derives per-message secrets from the Keychain private key instead),
+    /// One-time hygiene at launch: nothing writes this key any more
+    /// (the NSE derives per-message secrets from the Keychain private key instead),
     /// but earlier releases DID write per-contact ECDH shared secrets into this plain-plist
     /// App Group key. Those bytes are message-decryption key material and have no business
     /// sitting in a UserDefaults plist, so wipe any legacy residue unconditionally.
@@ -493,43 +422,9 @@ final class SharedDataManager {
 
     // MARK: - Outbound Shares (Share Extension -> Main App)
 
-    static func enqueueOutboundShare(contactAddress: String, text: String, autoSend: Bool = true) -> SharedOutboundShare? {
-        let cleanedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !cleanedText.isEmpty else { return nil }
-
-        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
-        var shares = getOutboundShares()
-            .filter { nowMs - $0.createdAtMs <= SharedOutboundShare.maxAgeMs }
-
-        let share = SharedOutboundShare(
-            id: UUID().uuidString,
-            contactAddress: contactAddress,
-            text: cleanedText,
-            createdAtMs: nowMs,
-            autoSend: autoSend
-        )
-        shares.append(share)
-
-        if shares.count > SharedOutboundShare.maxStoredItems {
-            shares = Array(shares.suffix(SharedOutboundShare.maxStoredItems))
-        }
-
-        guard let data = try? JSONEncoder().encode(shares) else {
-            AppLog.log("[SharedData] Failed to encode outbound shares")
-            return nil
-        }
-
-        sharedDefaults?.set(data, forKey: Keys.outboundShares)
-        return share
-    }
-
     static func outboundShareImageFileURL(for image: SharedOutboundShare.ImageAttachment) -> URL? {
         guard let sharedContainerURL else { return nil }
         return sharedContainerURL.appendingPathComponent(image.relativePath, isDirectory: false)
-    }
-
-    static func getOutboundShare(id: String) -> SharedOutboundShare? {
-        getOutboundShares().first { $0.id == id }
     }
 
     static func getOutboundShares() -> [SharedOutboundShare] {
@@ -586,10 +481,6 @@ final class SharedDataManager {
         sharedDefaults?.set(available, forKey: Keys.privateKeyAvailable)
     }
 
-    static func isPrivateKeyAvailable() -> Bool {
-        return sharedDefaults?.bool(forKey: Keys.privateKeyAvailable) ?? false
-    }
-
     // MARK: - Cleanup
 
     /// Clear all shared data (call on wallet delete)
@@ -612,8 +503,8 @@ final class SharedDataManager {
         sharedDefaults?.removeObject(forKey: Keys.unreadCount)
         sharedDefaults?.removeObject(forKey: Keys.incomingNotificationSoundEnabled)
         sharedDefaults?.removeObject(forKey: Keys.incomingNotificationVibrationEnabled)
-        // Per-wallet data the extensions and the widget keep (IOS-053): message requests, push
-        // bookkeeping and debug, group notification modes, and the portfolio widget's snapshot,
+        // Per-wallet data the extensions keep (IOS-053): message requests, push
+        // bookkeeping and debug, group notification modes, and the old portfolio widget's snapshot,
         // which kept showing a deleted wallet's holdings on the Home Screen.
         for key in [Keys.chatRequestAddresses, Keys.chatBlockedAddresses, Keys.chatRequestsWallet,
                     "chat_request_notified", "chat_request_notified_v2",
@@ -640,16 +531,6 @@ final class SharedDataManager {
 
     static func setUnreadCount(_ count: Int) {
         sharedDefaults?.set(max(0, count), forKey: Keys.unreadCount)
-    }
-
-    static func incrementUnreadCount() -> Int {
-        let newValue = max(0, getUnreadCount() + 1)
-        setUnreadCount(newValue)
-        return newValue
-    }
-
-    static func resetUnreadCount() {
-        setUnreadCount(0)
     }
 }
 

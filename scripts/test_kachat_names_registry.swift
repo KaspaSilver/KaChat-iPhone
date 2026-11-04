@@ -8,7 +8,7 @@ import Foundation
 //
 // swiftc -O -parse-as-library KaChat/Utilities/Blake3.swift KaChat/Services/Blake2b.swift KaChat/Utilities/Bech32.swift \
 //   KaChat/Services/KachatNames/KachatNamesCodec.swift KaChat/Services/KachatNames/KachatNamesTransaction.swift \
-//   KaChat/Services/KachatNames/KachatNamesManifest.swift KaChat/Services/KachatNames/KachatNamesBuilder.swift \
+//   KaChat/Services/KachatNames/KachatNamesManifest.swift \
 //   KaChat/Services/KachatNames/KachatNamesRegistryState.swift scripts/test_kachat_names_registry.swift \
 //   -o /tmp/kachat_names_registry_test && /tmp/kachat_names_registry_test
 //
@@ -24,6 +24,29 @@ enum NetworkType { case mainnet, testnet }
 
 typealias KN = KachatNames
 typealias J = [String: Any]
+
+/// A minimal script data push (the app no longer builds scripts; this test forges one).
+func pushData(_ data: Data) -> Data {
+    let n = data.count
+    if n == 0 { return Data([0x00]) }
+    if n == 1 {
+        let v = data[data.startIndex]
+        if v >= 1 && v <= 16 { return Data([0x50 + v]) }
+        if v == 0x81 { return Data([0x4f]) }
+    }
+    var out: Data
+    if n <= 75 {
+        out = Data([UInt8(n)])
+    } else if n <= 0xff {
+        out = Data([0x4c, UInt8(n)])
+    } else if n <= 0xffff {
+        out = Data([0x4d]); out.append(KachatNames.le16(UInt16(n)))
+    } else {
+        out = Data([0x4e]); out.append(KachatNames.le32(UInt32(n)))
+    }
+    out.append(data)
+    return out
+}
 
 final class Report {
     var pass = 0
@@ -245,7 +268,7 @@ func runWalker(_ v: J, _ r: Report) {
     var pushes = try! KN.Codec.parsePushes(badRedeem.inputs[0].signatureScript)
     var redeem = pushes.removeLast()
     redeem[redeem.count - 1] ^= 0x01
-    badRedeem.inputs[0].signatureScript = pushes.map { KN.Codec.pushData($0) }.reduce(Data(), +) + KN.Codec.pushData(redeem)
+    badRedeem.inputs[0].signatureScript = pushes.map { pushData($0) }.reduce(Data(), +) + pushData(redeem)
     r.check((try? st0.apply(badRedeem, manifest: m)) == nil, "a spend revealing another redeem script was accepted")
     r.eq(st0, KN.RegistryState.atGenesis(m), "refusals left the state alone")
     // an unrelated transaction is ignored
@@ -514,37 +537,16 @@ func runRules(_ r: Report) {
     r.check(SS(link: "t.me/telegram", for: .bio) != nil, "bio source on Telegram")
     r.eq(SS.discordDescription(fromInviteJSON: Data("{\"guild\":{\"id\":\"1\",\"description\":\"Devs\"}}".utf8)), "Devs", "Discord server description")
 
-    // the paid period on a NameInfo (mainnet's clock: a year, a 10-day window)
-    let params = KN.Params(bond: 1, gapValue: 1, tCommit: 600, maxYears: 2, periodMs: KN.yearMs, graceMs: g, renewWindowMs: 864_000_000,
-                           registerPrices: [1, 1, 1, 1, 1], renewPrices: [1, 1, 1, 1, 1], offerMaxFee: 1)
+    // the paid period on a NameInfo
     var period = info("period", exp: now + KN.yearMs, reg: 1)
-    r.eq(period.extendableYears(params), 0, "period unknown: no extend")
     r.eq(period.fields, nil, "period unknown: no on-chain state")
     period.periodStart = now
-    r.eq(period.extendableYears(params), 1, "1 year paid of 2: extend by 1")
     r.eq(period.fields?.periodStart, now, "fields carry periodStart")
-    r.check(!period.renewOpen(params, nowMs: now), "renewal closed a year before expiry")
-    r.eq(period.renewOpens(params), now + KN.yearMs - 864_000_000, "renewal opens 10 days before expiry")
-    r.check(period.renewOpen(params, nowMs: now + KN.yearMs - 864_000_000), "renewal open at the opening")
-    period.expiresAt = now + 2 * KN.yearMs
-    r.eq(period.extendableYears(params), 0, "2 years paid: no extend")
-    // testnet's 10-minute clock
-    let tn = KN.Params(bond: 1, gapValue: 1, tCommit: 600, maxYears: 2, periodMs: 600_000, graceMs: 600_000, renewWindowMs: 600_000,
-                       registerPrices: [1, 1, 1, 1, 1], renewPrices: [1, 1, 1, 1, 1], offerMaxFee: 1)
-    var short = info("short", exp: now + 600_000, reg: 1)
-    short.periodStart = now
-    r.eq(short.extendableYears(tn), 1, "10 min paid of 20: extend by 1")
-    r.check(short.renewOpen(tn, nowMs: now), "a 1-period name's window is open at once on the short clock")
-    short.expiresAt = now + 1_200_000
-    r.eq(short.extendableYears(tn), 0, "20 min paid: no extend")
-    r.check(!short.renewOpen(tn, nowMs: now), "renewal closed 20 min before expiry")
 
-    // offers: declined once the name has another owner
+    // an offer's fields
     let seller = Data(repeating: 3, count: 32)
     let offer = KN.OfferInfo(outpoint: KN.Outpoint(txid: KN.zero32, index: 0), key: KN.Codec.key("x"), name: "x", buyer: me, seller: seller,
                              amount: 5, refundAfter: 100, createdAt: nil)
-    r.check(!offer.isDeclined(currentOwner: seller), "an offer to the current owner stands")
-    r.check(offer.isDeclined(currentOwner: me), "an offer to an earlier owner is declined")
     r.eq(offer.fields.seller, seller, "offer fields carry the seller")
 
     // a cache written before registry v4 (format 1 - 3) is dropped

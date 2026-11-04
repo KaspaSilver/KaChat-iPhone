@@ -32,11 +32,6 @@
 "Chat Info" = "Thông tin trò chuyện";
 "Chat archived." = "Đã lưu trữ cuộc trò chuyện.";
 "Chats" = "Trò chuyện";
-"Checking eligibility..." = "Đang kiểm tra điều kiện...";
-"Checking gift eligibility..." = "Đang kiểm tra điều kiện nhận quà...";
-"Claim Gift" = "Nhận quà";
-"Claim some KAS to get started with your new account." = "Nhận một ít KAS để bắt đầu với tài khoản mới của bạn.";
-"Claiming gift..." = "Đang nhận quà...";
 "Clear" = "Xóa";
 "Clear Connection Pool" = "Xóa nhóm kết nối";
 "Clear Link" = "Xóa liên kết";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "Không thể liên kết liên hệ hệ thống.";
 "Failed to open archive: \(error.localizedDescription)" = "Không thể mở kho lưu trữ: \(error.localizedDescription)";
 "Generate Account" = "Tạo tài khoản";
-"Gift" = "Quà tặng";
-"Gift already claimed" = "Quà đã được nhận";
-"Gift claim reset. You can request it again." = "Yêu cầu nhận quà đã được đặt lại. Bạn có thể yêu cầu lại.";
-"Gift claimed" = "Đã nhận quà";
-"Gift sent to your wallet!" = "Quà đã được gửi đến ví của bạn!";
-"Gift unavailable" = "Không có quà";
 "Request to communicate" = "Yêu cầu liên lạc";
 "Send audio" = "Gửi âm thanh";
 "Send KAS" = "Gửi KAS";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "Ẩn cuộc trò chuyện thanh toán tự động tạo";
 "High Transaction Traffic" = "Lưu lượng giao dịch cao";
 "I have written down my seed phrase and stored it securely" = "Tôi đã ghi lại seed phrase và lưu trữ an toàn";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "Nếu nhận quà thất bại do ví tài trợ tạm thời hết tiền, vui lòng thử lại sau.";
 "Import" = "Nhập";
 "Import Account" = "Nhập tài khoản";
 "Import Chat History" = "Nhập lịch sử trò chuyện";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "Đang ghi… \\(Int(recordingDuration))s";
 "Refresh Pool" = "Làm mới nhóm";
 "Refresh Pool Now" = "Làm mới nhóm ngay";
-"Registered" = "Đã đăng ký";
 "Remove Saved Account" = "Xóa tài khoản đã lưu";
 "Remove from Device" = "Xóa khỏi thiết bị";
 "Required for cross-device sync and backup of sent messages." = "Cần thiết cho đồng bộ liên thiết bị và sao lưu tin nhắn đã gửi.";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "Tài khoản này sẽ bị xóa khỏi thiết bị này.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Liên hệ này sẽ được liên kết sau khi tạo. Bạn vẫn cần nhập địa chỉ Kaspa hoặc tên miền KNS.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "Thao tác này xóa tất cả dữ liệu cục bộ và bản ghi tin nhắn CloudKit. Không thể hoàn tác.";
-"This device has already received the welcome gift." = "Thiết bị này đã nhận quà chào mừng rồi.";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "Thao tác này xóa \(account.displayAlias) (\(account.shortPublicAddress)) và dữ liệu cục bộ khỏi thiết bị này.";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "Thao tác này xóa \\(account.displayAlias) (\\(account.shortPublicAddress)) và dữ liệu cục bộ khỏi thiết bị này.";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "Thao tác này xóa tất cả tin nhắn đến cục bộ và trên iCloud, sau đó đồng bộ lại từ blockchain. Thông tin tài khoản và tin nhắn đã gửi được giữ nguyên.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "Thao tác này xóa các nút đã phát hiện, ngắt kết nối phiên hiện tại và khởi động lại khám phá.";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "Thao tác này xóa dữ liệu tài khoản cục bộ và tin nhắn. Đồng bộ CloudKit bị tắt trong quá trình xóa và được bật lại sau đó.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "Thao tác này đăng xuất khỏi tài khoản, nhưng giữ lại dữ liệu ví và tin nhắn trên thiết bị này.";
-"This welcome gift is a community-funded initiative." = "Quà chào mừng này là sáng kiến do cộng đồng tài trợ.";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "Thao tác này sẽ xóa vĩnh viễn tài khoản khỏi thiết bị này. Hãy đảm bảo bạn đã sao lưu seed phrase.";
 "To receive notifications, please enable them in Settings." = "Để nhận thông báo, vui lòng bật trong Cài đặt.";
 "Total" = "Tổng";
@@ -292,7 +277,6 @@
 "Voice message" = "Tin nhắn thoại";
 "Watching" = "Đang theo dõi";
 "Website" = "Trang web";
-"Welcome Gift" = "Quà chào mừng";
 "Welcome to KaChat!" = "Chào mừng đến với KaChat!";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "Khi tắt, tin nhắn từ liên hệ này sẽ được tải định kỳ thay vì thời gian thực. Sử dụng cho liên hệ có lượng giao dịch cao để tiết kiệm pin và lưu lượng mạng.";
 "Wipe Account & Messages" = "Xóa tài khoản & tin nhắn";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "Hãy sớm gia hạn để giữ tên.";
 "Renew it soon or anyone can claim it." = "Hãy sớm gia hạn nếu không ai cũng có thể lấy.";
-"%@ has lapsed" = "%@ đã mất hiệu lực";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "Giờ ai cũng có thể lấy. Tự thu hồi để nhận lại tiền ký quỹ.";
 "Offer on %@ declined" = "Đề nghị cho %@ bị từ chối";
 "The owner declined it. The KAS is back with you." = "Chủ đã từ chối. KAS đã trở về với bạn.";
 "Offer on %@ expired" = "Đề nghị cho %@ đã hết hạn";
 "Nobody accepted it in time. The KAS is back with you." = "Không ai chấp nhận kịp. KAS đã trở về với bạn.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "Tên này không còn là của bạn và đã chuyển sang mục “Có thể thu hồi” trong chợ. Hãy tự thu hồi để lấy lại tiền đặt cọc.";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ không còn là của bạn";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Đã gửi cho bạn %@ KAS";
 "Sent you a payment" = "Đã gửi cho bạn một khoản thanh toán";
+"Requested for payment" = "Đã yêu cầu thanh toán";
+"You were invited to \"%@\"" = "Bạn được mời vào \"%@\"";

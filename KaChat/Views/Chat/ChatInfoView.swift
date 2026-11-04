@@ -43,11 +43,6 @@ struct ChatInfoView: View {
     @State private var toastStyle: ToastStyle = .success
     @State private var messageSent: Int = 0
     @State private var messageReceived: Int = 0
-    /// False only until the KNS address-info lookup for this contact has come back at least
-    /// once (seeded true in `onAppear` when the cache already has an entry, so a revisit shows
-    /// the list straight away instead of flashing a spinner). Purely cosmetic - the Domains
-    /// section never blocks the rest of the Form on it.
-    @State private var knsDomainsLoaded = false
     @FocusState private var isEditing: Bool
     private let qrContext = CIContext()
 
@@ -344,7 +339,7 @@ struct ChatInfoView: View {
                         // contact linking, two pickers and a stats block - which is a lot of screen
                         // to scroll past to reach any one of them.
                         // Straight into the 1:1 thread. This screen is also reached from a group
-                        // roster or a public chat room, where the person may be someone you have
+                        // roster, where the person may be someone you have
                         // never messaged - and the only route to them was backing out and finding
                         // them on the chat list.
                         if !isSelf {
@@ -459,8 +454,6 @@ struct ChatInfoView: View {
                 // the name you gave them, wherever you gave it (the chat or the Address Book)
                 editedAlias = contact.assignedName ?? addressBook.entry(for: contact.address)?.customName ?? ""
                 notificationModeOverride = contact.notificationModeOverride
-                // Already cached? Show the domains immediately rather than a spinner.
-                if knsInfo != nil { knsDomainsLoaded = true }
             }
             .task {
                 // Always force-refresh selected contact KNS info and profile when opening chat info.
@@ -470,9 +463,6 @@ struct ChatInfoView: View {
                 if KNSService.showsDomainNamesAsIdentity {
                     _ = await KNSService.shared.fetchInfo(for: contact.address, force: true)
                 }
-                // The Domains section stops showing its loading row once the lookup has
-                // answered, whether or not it found anything.
-                knsDomainsLoaded = true
                 // On testnet identity is .kachat (loadKachatIdentity); KNS isn't asked there.
                 if !KachatNamesService.isEnabled {
                     _ = await KNSService.shared.fetchProfile(for: contact.address, force: true)
@@ -688,7 +678,7 @@ struct ChatInfoView: View {
                         Text(lastMessage, style: .relative)
                     } else {
                         let days = max(1, Int(Date().timeIntervalSince(lastMessage) / 86_400))
-                        Text("\(days) day\(days == 1 ? "" : "s") ago")
+                        Text("\(days) day\(pluralS(days)) ago")
                     }
                 }
             }
@@ -823,7 +813,7 @@ struct ChatInfoView: View {
         String(format: AppLocalization.string(key), locale: AppLocalization.locale, arguments: args)
     }
 
-    /// Ensures a contact row exists for this address (a public chat sender or a group member may
+    /// Ensures a contact row exists for this address (a group member may
     /// not be one yet), dismisses this sheet, and asks the router to open their thread.
     private func openChatWithContact() {
         let address = contact.address

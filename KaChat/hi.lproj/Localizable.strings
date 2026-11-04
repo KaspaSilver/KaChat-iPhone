@@ -34,8 +34,7 @@
 "Always Hide" = "हमेशा छिपाएं";
 "Always Show" = "हमेशा दिखाएं";
 "Always shown" = "हमेशा दिखाया जाता है";
-"Anyone who joins the same channel name can see and post messages there - there's no owner or invite." = "जो कोई भी उसी चैनल नाम से जुड़ता है वह वहां संदेश देख और पोस्ट कर सकता है - कोई मालिक या आमंत्रण नहीं है।";
-"Anyone with your seed phrase can access your account. Never share it with anyone." = "आपके seed phrase से कोई भी आपके खाते तक पहुंच सकता है। इसे कभी किसी के साथ साझा न करें।";
+"Anyone with your 12 or 24 words can access your account. Never share them with anyone." = "जिसके पास आपके 12 या 24 शब्द हैं, वह आपके खाते तक पहुँच सकता है। इन्हें कभी किसी से साझा न करें।";
 "Archive" = "संग्रह";
 "Archived Chats" = "संग्रहित चैट";
 "Asset ID" = "संपत्ति आईडी";
@@ -51,18 +50,12 @@
 "Balance copied to clipboard." = "बैलेंस क्लिपबोर्ड पर कॉपी किया गया।";
 "Balanced" = "संतुलित";
 "Banner" = "बैनर";
-"Before You Swap" = "स्वैप करने से पहले";
 "Best" = "श्रेष्ठ";
 "Bio" = "जैव";
-"Broadcast Settings" = "ब्रॉडकास्ट सेटिंग्स";
-"Broadcasts" = "ब्रॉडकास्ट";
-"Broadcasts are public, unencrypted channels - anyone who joins the same channel name sees the same messages." = "ब्रॉडकास्ट सार्वजनिक, अनएन्क्रिप्टेड चैनल हैं - जो कोई भी उसी चैनल नाम से जुड़ता है वह वही संदेश देखता है।";
 "Camera" = "कैमरा";
 "Camera Access Required" = "कैमरा एक्सेस आवश्यक";
 "Cancel" = "रद्द करें";
 "Change" = "बदलें";
-"ChangeNOW Exchange ID" = "ChangeNOW एक्सचेंज आईडी";
-"Channels" = "चैनल";
 "Chat History" = "चैट इतिहास";
 "Chat Info" = "चैट जानकारी";
 "User Info" = "उपयोगकर्ता जानकारी";
@@ -73,8 +66,6 @@
 "Chatting vs. Spending Address" = "चैट पता बनाम खर्च पता";
 "Check Again" = "फिर से जांचें";
 "Checking availability..." = "उपलब्धता की जाँच की जा रही है...";
-"Checking eligibility..." = "पात्रता जांची जा रही है...";
-"Checking gift eligibility..." = "उपहार पात्रता जांची जा रही है...";
 "Checking your chatting address balance..." = "आपकी चैट पते का बैलेंस जांचा जा रहा है...";
 "Chess" = "शतरंज";
 "Choose Address" = "पता चुनें";
@@ -84,11 +75,6 @@
 "Choose Your Currency" = "अपनी मुद्रा चुनें";
 "Choose Your Language" = "अपनी भाषा चुनें";
 "Choose a conversation on the left" = "बाईं ओर कोई वार्तालाप चुनें";
-"Choose which tabs appear in your bottom menu." = "चुनें कि आपके निचले मेनू में कौन से टैब दिखाई देते हैं।";
-"Claim Gift" = "उपहार प्राप्त करें";
-"Claim a Gift of 3 Kaspa to Get Started" = "शुरू करने के लिए 3 Kaspa का उपहार प्राप्त करें";
-"Claim some KAS to get started with your new account." = "अपने नए खाते की शुरुआत के लिए कुछ KAS क्लेम करें।";
-"Claiming gift..." = "उपहार प्राप्त किया जा रहा है...";
 "Clear" = "साफ़ करें";
 "Clear Connection Pool" = "कनेक्शन पूल साफ़ करें";
 "Clear Link" = "लिंक हटाएं";
@@ -116,14 +102,13 @@
 "Copy Link" = "लिंक कॉपी करें";
 "Copy Message" = "संदेश कॉपी करें";
 "Copy Private Key Hex" = "प्राइवेट की Hex कॉपी करें";
-"Copy Seed Phrase" = "Seed Phrase कॉपी करें";
+"Copy 12 or 24 Words" = "12 या 24 शब्द कॉपी करें";
 "Copy Transaction ID" = "ट्रांज़ैक्शन ID कॉपी करें";
 "Copy to Clipboard" = "क्लिपबोर्ड पर कॉपी करें";
 "Could not encode selected image" = "चयनित छवि को एन्कोड नहीं किया जा सका";
 "Could not initialize image encoder" = "छवि एन्कोडर प्रारंभ नहीं किया जा सका";
 "Could not load selected image" = "चयनित छवि लोड नहीं हो सकी";
 "Could not process selected image" = "चयनित छवि संसाधित नहीं की जा सकी";
-"Couldn't Join Channel" = "चैनल में शामिल नहीं हो सका";
 "Couldn't Rename Group" = "समूह का नाम नहीं बदला जा सका";
 "Country" = "देश";
 "Create Account" = "खाता बनाएं";
@@ -178,7 +163,6 @@
 "Export Chat History" = "चैट इतिहास निर्यात करें";
 "Export Diagnostics Archive" = "डायग्नोस्टिक्स आर्काइव निर्यात करें";
 "Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "ऐप/डिवाइस जानकारी, कनेक्शन सेटिंग्स, स्थानीय संदेश गणना और हाल के ऐप लॉग को zip के रूप में निर्यात करता है - सपोर्ट के साथ समस्या निवारण के लिए। कोई निजी कुंजियां, सीड फ़्रेज़ या डिक्रिप्ट किया गया संदेश सामग्री शामिल नहीं है।";
-"Extended Public Key" = "विस्तारित सार्वजनिक कुंजी";
 "Failed to Send" = "भेजने में विफल";
 "Failed to export diagnostics." = "डायग्नोस्टिक्स निर्यात करने में विफल।";
 "Failed to link system contact." = "सिस्टम संपर्क लिंक करने में विफल।";
@@ -194,18 +178,10 @@
 "Generate New Address" = "नया पता जनरेट करें";
 "Generate New Spending Address" = "नया खर्च पता जनरेट करें";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "जिस पते से आप चैट करते हैं उससे अलग पते से भुगतान भेजना शुरू करने के लिए नीचे एक जनरेट करें।";
-"Gift" = "उपहार";
-"Gift already claimed" = "उपहार पहले ही लिया जा चुका है";
-"Gift claim reset. You can request it again." = "उपहार क्लेम रीसेट। आप इसे फिर से अनुरोध कर सकते हैं।";
-"Gift claimed" = "उपहार प्राप्त हुआ";
-"Gift claimed! Check your balance shortly." = "उपहार प्राप्त हुआ! जल्द ही अपना बैलेंस देखें।";
-"Gift sent to your wallet!" = "उपहार आपके वॉलेट में भेज दिया गया!";
-"Gift unavailable" = "उपहार उपलब्ध नहीं है";
 "Give this address a label to help you recognize it." = "इसे पहचानने में मदद के लिए इस पते को एक लेबल दें।";
 "Group Info" = "समूह जानकारी";
 "Group Name" = "समूह का नाम";
 "Hidden Addresses" = "छिपे हुए पते";
-"Hidden Broadcast Room Users" = "छिपे हुए ब्रॉडकास्ट रूम उपयोगकर्ता";
 "Hidden Users" = "छिपे हुए उपयोगकर्ता";
 "Hide" = "छिपाएं";
 "Hide User" = "उपयोगकर्ता छिपाएं";
@@ -217,14 +193,12 @@
 "I already have a domain somewhere else" = "मेरे पास पहले से ही कहीं और एक डोमेन है";
 "I have written down my seed phrase and stored it securely" = "मैंने अपना seed phrase लिख लिया है और इसे सुरक्षित रूप से संग्रहित कर लिया है";
 "IP Address Book" = "IP पता पुस्तिका";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "यदि दान वॉलेट में अस्थायी रूप से फंड न होने के कारण क्लेम विफल हो जाए, तो बाद में फिर प्रयास करें।";
 "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee." = "अगर नेटवर्क व्यस्त है, तो तेज़ या प्राथमिकता इसे जल्दी कन्फर्म करने में मदद के लिए अधिक शुल्क देती है। कस्टम शुल्क सेट करने के लिए शुल्क राशि पर टैप करें।";
 "If the network is busy, Fast or Priority pays a higher fee to help your withdrawal confirm sooner. Tap the fee amount to set a custom fee." = "अगर नेटवर्क व्यस्त है, तो तेज़ या प्राथमिकता आपकी निकासी को जल्दी कन्फर्म करने में मदद के लिए अधिक शुल्क देती है। कस्टम शुल्क सेट करने के लिए शुल्क राशि पर टैप करें।";
 "If the network is busy, a higher fee can help your transaction confirm faster." = "अगर नेटवर्क व्यस्त है, तो अधिक शुल्क आपके लेन-देन को तेज़ी से कन्फर्म करने में मदद कर सकता है।";
 "Import" = "आयात करें";
 "Import Account" = "खाता आयात करें";
 "Import Chat History" = "चैट इतिहास आयात करें";
-"Import Cold Storage Account" = "कोल्ड स्टोरेज खाता आयात करें";
 "Import Existing Account" = "मौजूदा खाता आयात करें";
 "Import Your Account" = "अपना खाता आयात करें";
 "Import failed: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)" = "आयात विफल: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\(error.localizedDescription)";
@@ -276,7 +250,6 @@
 "Latency" = "विलंबता";
 "Leave" = "छोड़ें";
 "Leave & Delete" = "छोड़ें और हटाएं";
-"Leaving this broadcast permanently deletes every message cached for it on this device. This cannot be undone - rejoining later starts with no history." = "इस ब्रॉडकास्ट को छोड़ने से इस डिवाइस पर इसके लिए कैश किया गया हर संदेश स्थायी रूप से हट जाता है। इसे पूर्ववत नहीं किया जा सकता - बाद में फिर से शामिल होना बिना इतिहास के शुरू होता है।";
 "Let's add more details about yourself" = "आइए आपके बारे में और विवरण जोड़ें";
 "Let's walk through the basics so you're ready to send your first message." = "आइए बुनियादी बातें देखें ताकि आप अपना पहला संदेश भेजने के लिए तैयार हो सकें।";
 "Link System Contact" = "लिंक सिस्टम संपर्क";
@@ -330,7 +303,6 @@
 "No active account" = "कोई सक्रिय खाता नहीं";
 "No active nodes" = "कोई सक्रिय नोड नहीं";
 "No archived chats" = "कोई संग्रहित चैट नहीं";
-"No broadcast channels yet" = "अभी तक कोई ब्रॉडकास्ट चैनल नहीं";
 "No contacts found." = "कोई संपर्क नहीं मिला।";
 "No domains yet." = "अभी तक कोई डोमेन नहीं.";
 "No emoji found" = "कोई इमोजी नहीं मिला।";
@@ -344,7 +316,6 @@
 "No other nodes" = "कोई अन्य नोड नहीं";
 "No saved addresses" = "कोई सहेजा गया पता नहीं";
 "No spendable funds available yet. Wait for confirmations and try again." = "अभी खर्च करने योग्य फंड उपलब्ध नहीं हैं। पुष्टि होने तक प्रतीक्षा करें और फिर से प्रयास करें।";
-"No swaps yet." = "अभी तक कोई स्वैप नहीं।";
 "No system contacts found." = "कोई सिस्टम संपर्क नहीं मिला।";
 "No transactions yet." = "अभी तक कोई लेन-देन नहीं।";
 "No verified nodes" = "कोई सत्यापित नोड नहीं";
@@ -367,7 +338,6 @@
 "Other Nodes" = "अन्य नोड";
 "Paste" = "पेस्ट करें";
 "Paste from Clipboard" = "क्लिपबोर्ड से पेस्ट करें";
-"Paste the kpub exported from your KasSigner device. This contains no private key material." = "अपने KasSigner डिवाइस से निर्यात किया गया kpub पेस्ट करें। इसमें कोई निजी कुंजी सामग्री नहीं है।";
 "Pay in Kaspa" = "कास्पा में भुगतान करें";
 "Payment" = "भुगतान";
 "Payment: %@ KAS — %@" = "भुगतान: %@ KAS — %@";
@@ -380,15 +350,11 @@
 "Play sound" = "ध्वनि चलाएं";
 "Please check your network connection and try again." = "कृपया अपना नेटवर्क कनेक्शन जांचें और पुनः प्रयास करें।";
 "Please enable camera access in Settings to scan QR codes." = "QR कोड स्कैन करने के लिए कृपया सेटिंग्स में कैमरा एक्सेस सक्षम करें।";
-"Please enable camera access in Settings to scan the signed transaction." = "हस्ताक्षरित लेन-देन को स्कैन करने के लिए सेटिंग्स में कैमरा एक्सेस सक्षम करें।";
 "Please enter exactly 12 or 24 words" = "कृपया ठीक 12 या 24 शब्द दर्ज करें";
 "Point camera at a QR code" = "कैमरा QR कोड की ओर करें";
-"Point camera at the KasSigner screen" = "कैमरे को KasSigner स्क्रीन की ओर इंगित करें";
 "Pool Health" = "पूल स्वास्थ्य";
 "Pool Status" = "पूल स्थिति";
-"Popular Tab" = "लोकप्रिय टैब";
 "Preparing profile update..." = "प्रोफ़ाइल अद्यतन तैयार किया जा रहा है...";
-"Press and drag a tab in the preview below to reorder it." = "पुनर्व्यवस्थित करने के लिए नीचे दिए गए पूर्वावलोकन में एक टैब को दबाकर रखें और खींचें।";
 "Primary" = "प्राथमिक";
 "Primary Latency" = "प्राथमिक विलंबता";
 "Primary domain set to %@." = "प्राथमिक डोमेन %@ पर सेट है।";
@@ -434,7 +400,6 @@
 "Refresh Pool" = "पूल रीफ्रेश करें";
 "Refresh Pool Now" = "पूल अभी रीफ्रेश करें";
 "Refresh Status" = "स्थिति रीफ़्रेश करें";
-"Registered" = "पंजीकृत";
 "Remote push" = "दूर से धक्का";
 "Remove" = "हटाएं";
 "Remove Avatar" = "अवतार हटाएँ";
@@ -444,7 +409,6 @@
 "Rename" = "नाम बदलें";
 "Rename Account" = "खाते का नाम बदलें";
 "Rename Address" = "पते का नाम बदलें";
-"Rename Cold Storage Account" = "कोल्ड स्टोरेज खाते का नाम बदलें";
 "Rename Group" = "समूह का नाम बदलें";
 "Reply" = "जवाब दें";
 "Request to communicate" = "संवाद का अनुरोध";
@@ -470,9 +434,9 @@
 "Search emoji" = "इमोजी खोजें";
 "Secure messaging on Kaspa BlockDAG" = "Kaspa BlockDAG पर सुरक्षित मैसेजिंग";
 "Security Warning" = "सुरक्षा चेतावनी";
-"Seed Phrase" = "Seed Phrase";
+"12 or 24 Words" = "12 या 24 शब्द";
 "Seed Phrase Length" = "Seed Phrase की लंबाई";
-"Seed phrase copied. Clipboard will clear in 30s." = "Seed phrase कॉपी किया गया। क्लिपबोर्ड 30 सेकंड में साफ़ हो जाएगा।";
+"Words copied. Clipboard will clear in 30s." = "शब्द कॉपी हो गए। क्लिपबोर्ड 30 सेकंड में साफ़ हो जाएगा।";
 "Select a chat" = "एक चैट चुनें";
 "Select mainnet for real transactions or testnet for testing" = "वास्तविक ट्रांज़ैक्शन के लिए mainnet या परीक्षण के लिए testnet चुनें";
 "Select the currency you'd like prices displayed in." = "वह मुद्रा चुनें जिसमें आप कीमतें देखना चाहते हैं।";
@@ -510,8 +474,6 @@
 "Show QR Code" = "QR कोड दिखाएं";
 "Show Setup Guides" = "सेटअप गाइड दिखाएं";
 "Show contact balance" = "संपर्क बैलेंस दिखाएं";
-"Shows a tab of recommended broadcast rooms you can jump into." = "अनुशंसित ब्रॉडकास्ट रूम का एक टैब दिखाता है जिनमें आप शामिल हो सकते हैं।";
-"Shows senders' KNS avatars in rooms and looks them up automatically as messages appear. Off shows plain initials for everyone and never fetches avatars." = "कमरों में भेजने वालों के KNS अवतार दिखाता है और संदेश दिखाई देने पर स्वचालित रूप से उन्हें खोजता है। बंद सभी के लिए सादे आद्याक्षर दिखाता है और कभी भी अवतार प्राप्त नहीं करता।";
 "Sign In Failed" = "साइन इन विफल";
 "Skip" = "छोड़ें";
 "Small Amount" = "छोटी राशि";
@@ -534,8 +496,6 @@
 "Submitting transfer..." = "स्थानांतरण सबमिट किया जा रहा है...";
 "Support Email" = "सहायता ईमेल";
 "Suspected" = "संदिग्ध";
-"Swap Details" = "स्वैप विवरण";
-"Swaps are processed by ChangeNOW, a third-party exchange. By continuing, you confirm you've read and agree to ChangeNOW's own Terms of Service. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "स्वैप ChangeNOW द्वारा संसाधित किए जाते हैं, जो एक तीसरे पक्ष का एक्सचेंज है। जारी रखकर, आप पुष्टि करते हैं कि आपने ChangeNOW की अपनी सेवा शर्तों को पढ़ लिया है और सहमत हैं। KaChat केवल आपका स्वैप अनुरोध सबमिट करता है और उसकी स्थिति प्रदर्शित करता है; असफल, विलंबित या खोए हुए स्वैप के लिए KaChat जिम्मेदार नहीं है। अगर कोई स्वैप नहीं होता, तो सीधे ChangeNOW सपोर्ट से संपर्क करें।";
 "Switch direction" = "दिशा बदलें";
 "Sync system contacts" = "सिस्टम संपर्क सिंक करें";
 "Sync warning detected" = "सिंक चेतावनी पाई गई";
@@ -546,12 +506,11 @@
 "Tap a node to copy host:port." = "host:port कॉपी करने के लिए नोड पर टैप करें।";
 "Tap send to record" = "रिकॉर्ड करने के लिए भेजें टैप करें";
 "Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "समायोजित करने के लिए टैप करें। अगर नेटवर्क व्यस्त है, तो अधिक शुल्क आपके लेन-देन को तेज़ी से कन्फर्म करने में मदद कर सकता है।";
-"Tap to reveal seed phrase" = "Seed phrase प्रकट करने के लिए टैप करें";
+"Tap to reveal your 12 or 24 words" = "अपने 12 या 24 शब्द दिखाने के लिए टैप करें";
 "This account will be removed from this device." = "यह खाता इस डिवाइस से हटा दिया जाएगा।";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "यह संपर्क बनने के बाद लिंक किया जाएगा। आपको अभी भी एक Kaspa पता या KNS डोमेन दर्ज करना होगा।";
 "This could take a few minutes while it confirms on-chain." = "चेन पर कन्फर्म होने में कुछ मिनट लग सकते हैं।";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "यह सभी स्थानीय डेटा और CloudKit संदेश रिकॉर्ड हटा देता है। यह पूर्ववत नहीं किया जा सकता।";
-"This device has already received the welcome gift." = "इस डिवाइस को पहले ही स्वागत उपहार मिल चुका है।";
 "This domain is not available." = "यह डोमेन उपलब्ध नहीं है.";
 "This is a live check of your iCloud account, separate from local storage above." = "यह आपके iCloud खाते की एक लाइव जांच है, जो ऊपर दिए गए स्थानीय स्टोरेज से अलग है।";
 "This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "यह उनके साथ हर संदेश को स्थायी रूप से हटा देता है, जिसमें iCloud से भी शामिल है, इसलिए यह आपके अन्य डिवाइस से भी हट जाता है। इसे पूर्ववत नहीं किया जा सकता।";
@@ -562,8 +521,7 @@
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "यह स्थानीय खाता डेटा और संदेश हटाता है। वाइप के दौरान CloudKit सिंक अक्षम रहता है और बाद में पुनः सक्षम होता है।";
 "This removes the group and its messages from this device. This cannot be undone, and other members won't be notified." = "यह समूह और उसके संदेशों को इस डिवाइस से हटा देता है। इसे पूर्ववत नहीं किया जा सकता, और अन्य सदस्यों को सूचित नहीं किया जाएगा।";
 "This signs out of your account, but keeps local wallet and message data on this device." = "यह आपके खाते से साइन आउट करता है, लेकिन इस डिवाइस पर स्थानीय वॉलेट और संदेश डेटा रखता है।";
-"This welcome gift is a community-funded initiative." = "यह स्वागत उपहार समुदाय द्वारा वित्तपोषित पहल है।";
-"This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "यह आपके खाते को इस डिवाइस से स्थायी रूप से हटा देगा। सुनिश्चित करें कि आपने अपना seed phrase बैकअप कर लिया है।";
+"This will permanently delete your account from this device. Make sure you have backed up your 12 or 24 words." = "इससे आपका खाता इस डिवाइस से स्थायी रूप से हट जाएगा। सुनिश्चित करें कि आपने अपने 12 या 24 शब्दों का बैकअप लिया है।";
 "To (Primary Address)" = "प्रति (मुख्य पता)";
 "To chat with someone, press Create Chat and enter their Kaspa address or KNS domain. If you send a message, they will not see it unless you send a handshake first, or you both decide to message each other around the same time - doing the latter increases your privacy." = "किसी के साथ चैट करने के लिए, चैट बनाएं पर टैप करें और उनका Kaspa पता या KNS डोमेन दर्ज करें। यदि आप कोई संदेश भेजते हैं, तो वे उसे तब तक नहीं देखेंगे जब तक आप पहले हैंडशेक नहीं भेजते, या आप दोनों लगभग एक ही समय पर एक-दूसरे को संदेश भेजने का निर्णय नहीं लेते - बाद वाला विकल्प आपकी गोपनीयता बढ़ाता है।";
 "To receive notifications, please enable them in Settings." = "सूचनाएं प्राप्त करने के लिए, कृपया उन्हें सेटिंग्स में सक्षम करें।";
@@ -598,7 +556,7 @@
 "Vibration" = "कंपन";
 "View Profile" = "प्रोफ़ाइल देखें";
 "Back Up Account" = "खाते का बैकअप लें";
-"View Seed Phrase" = "Seed Phrase देखें";
+"View 12 or 24 Words" = "12 या 24 शब्द देखें";
 "View in Explorer" = "एक्सप्लोरर में देखें";
 "Voice message" = "वॉइस संदेश";
 "Walk through setting up your domain, banner, avatar, and details step by step." = "आपके डोमेन, बैनर, अवतार और विवरण को सेट करने में चरण-दर-चरण मार्गदर्शन करता है।";
@@ -606,7 +564,6 @@
 "Wallet not available." = "बटुआ उपलब्ध नहीं है.";
 "Watching" = "निगरानी";
 "Website" = "वेबसाइट";
-"Welcome Gift" = "स्वागत उपहार";
 "Welcome Guide" = "स्वागत गाइड";
 "Welcome to KaChat" = "KaChat में आपका स्वागत है";
 "Welcome to KaChat!" = "KaChat में आपका स्वागत है!";
@@ -691,14 +648,10 @@
 "Testnet is for testing only - testnet KAS has no value. On testnet your account uses its kaspatest: address, with its own balance and chats, and Connection Settings holds testnet values: the testnet explorer, automatic node discovery, and no KaChat indexers until testnet ones exist. Turning it off brings your mainnet settings back." = "टेस्टनेट केवल परीक्षण के लिए है - टेस्टनेट KAS का कोई मूल्य नहीं। टेस्टनेट पर आपका खाता अपने अलग बैलेंस और चैट के साथ kaspatest: पता उपयोग करता है, और कनेक्शन सेटिंग्स में टेस्टनेट मान होते हैं: टेस्टनेट एक्सप्लोरर, स्वचालित नोड खोज, और टेस्टनेट के लिए बनने तक कोई KaChat इंडेक्सर नहीं। बंद करने पर आपकी मेननेट सेटिंग्स लौट आती हैं।";
 "Close KaChat completely and open it again to finish switching to Testnet." = "टेस्टनेट पर स्विच पूरा करने के लिए KaChat को पूरी तरह बंद करके फिर खोलें।";
 "Close KaChat completely and open it again to finish switching back to Mainnet." = "मेननेट पर वापस जाने के लिए KaChat को पूरी तरह बंद करके फिर खोलें।";
-"Switches this default room off. Turn it back on in Public Chats settings." = "इस डिफ़ॉल्ट रूम को बंद करता है। पब्लिक चैट सेटिंग्स में इसे फिर चालू करें।";
-"#%@ is off - turn it back on in Public Chats settings" = "#%@ बंद है - पब्लिक चैट सेटिंग्स में इसे फिर चालू करें";
 "Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "स्वचालित स्कैन सबसे अच्छे उपलब्ध नोड खोजकर उनसे जुड़ता है। कोई विशेष नोड चुनने पर केवल उसी से जुड़ता है, दूसरों पर नहीं जाता। अन्य टैब के इंडेक्सर, डोमेन या एक्सप्लोरर पर असर नहीं पड़ता। यहाँ चुनने के लिए नीचे IP पता पुस्तिका में अपने पते जोड़ें।";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"My Names" = "मेरे नाम";
 "Activity" = "गतिविधि";
-"Claim a Name" = "नाम लें";
 
 /* 5.2: range and section labels */
 "All-time only" = "सिर्फ़ अब तक";
@@ -713,16 +666,13 @@
 "A short bio and your links. All of it is optional." = "छोटा बायो और आपके लिंक। सब वैकल्पिक है।";
 "That's the whole setup" = "बस इतना ही सेटअप है";
 ".kachat names are coming soon. When they launch, this guide claims your name and saves your profile in one go." = ".kachat नाम जल्द आ रहे हैं। लॉन्च होने पर यह गाइड आपका नाम लेगा और आपकी प्रोफ़ाइल एक साथ सहेज देगा।";
-"Walk through claiming your .kachat name and setting up your avatar, banner and details step by step." = "अपना .kachat नाम लें और अवतार, बैनर व विवरण चरण-दर-चरण सेट करें।";
 ".kachat Profile Setup Guide" = ".kachat प्रोफ़ाइल सेटअप गाइड";
-"Claim your .kachat name and set up your avatar, banner and bio step by step." = "अपना .kachat नाम लें और अवतार, बैनर व बायो चरण-दर-चरण सेट करें।";
 "The full first-run tour: wallet, chats, payments and more." = "शुरुआत का पूरा परिचय: वॉलेट, चैट, भुगतान और बहुत कुछ।";
 "Previous" = "पिछला";
 "Email" = "ईमेल";
 "Help" = "सहायता";
 
 /* 5.2: .kachat listing, buy and offer */
-"No offers yet." = "अभी कोई ऑफ़र नहीं।";
 "History" = "इतिहास";
 "Network fee" = "नेटवर्क शुल्क";
 
@@ -736,7 +686,6 @@
 "This folder is empty." = "यह फ़ोल्डर खाली है।";
 
 /* Kaspa Hub empty state (Swap off) */
-"KaPosts, Public Chats and Kaspa Websites appear here when they are not in your dock. Manage them in Settings > Customization > Customize Dock." = "KaPosts, सार्वजनिक चैट और Kaspa Websites आपके डॉक में न होने पर यहाँ दिखते हैं। इन्हें सेटिंग्स > Customization > Customize Dock में प्रबंधित करें।";
 
 /* 5.2: an address's .kachat Domains tab */
 
@@ -744,12 +693,6 @@
 "Moved to %@." = "%@ में ले जाया गया।";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
-". Network fees counted: %lld" = ". गिने गए नेटवर्क शुल्क: %lld";
-"Sells: %lld. Oldest buys first (FIFO)." = "बिक्री: %lld. सबसे पुरानी खरीद पहले (FIFO).";
-"%@ sold with no buy on record, counted at zero cost." = "%@ बिना दर्ज खरीद के बेचे गए, शून्य लागत पर गिने गए।";
-"Realized P&L %@" = "वास्तविक लाभ/हानि %@";
-"Transactions: %lld. Some prices are still loading." = "लेन-देन: %lld. कुछ कीमतें अभी लोड हो रही हैं।";
-"Transactions: %lld, at each day's price." = "लेन-देन: %lld, हर दिन की कीमत पर।";
 
 /* Day labels (message times, date dividers) */
 "Today" = "आज";
@@ -760,7 +703,7 @@
 /* Receive / chatting address QR text */
 
 /* 5.2: name discovery across services */
-"If this seed already holds your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "अगर यह सीड आपकी पहचान किसी दूसरे पते पर पहले से रखता है - कोई डोमेन (.kas, .k या .kaspa) या बैलेंस वाला चैट पता - तो उसे यहाँ चुनें। सिर्फ़ बैलेंस या डोमेन वाले पते दिखाए जाते हैं।";
+"If these words already hold your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "यदि इन शब्दों में किसी अन्य पते पर आपकी पहचान पहले से है (.kas, .k या .kaspa डोमेन, या चैट बैलेंस), तो उसे यहाँ चुनें। केवल बैलेंस या डोमेन वाले पते दिखाए जाते हैं।";
 ".k and .kaspa Names (%lld)" = ".k और .kaspa नाम (%lld)";
 
 /* 5.2: Message Requests, Private chats */
@@ -784,62 +727,25 @@
 "To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "किसी से चैट करने के लिए चैट बनाएँ दबाएँ और उनका Kaspa पता या .kachat नाम दर्ज करें। आपका पहला मैसेज उन्हें मैसेज अनुरोध के रूप में मिलता है, जिसे वे स्वीकार कर सकते हैं। सबसे ज़्यादा प्राइवेसी के लिए प्राइवेट चैट चालू करें: चेन पर आप दोनों को कुछ नहीं जोड़ता, और जब वे भी आपके साथ प्राइवेट चैट शुरू करेंगे तब आपके मैसेज देख पाएँगे।";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "शुरुआत के लिए 50 Kaspa की सलाह दी जाती है - इतना कि एक .kachat नाम ले सकें और कुछ समय चैट कर सकें। 5 Kaspa लगभग 2500 मैसेज के लिए काफ़ी हैं।";
 "Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "आपकी सार्वजनिक मैसेजिंग पहचान। मैसेज शुल्क और अपने .kachat नाम के लिए इसमें थोड़ी राशि डालें - जो पैसा खर्च करना हो उसे यहाँ कभी न भेजें।";
-"There is no KaPost indexer for testnet. Turn off Testnet in Settings > Connection to read and post on mainnet." = "टेस्टनेट के लिए कोई KaPost इंडेक्सर नहीं है। मेननेट पर पढ़ने और पोस्ट करने के लिए सेटिंग्स > कनेक्शन में टेस्टनेट बंद करें।";
 "Nextcloud is off while Testnet is on." = "टेस्टनेट चालू रहने तक Nextcloud बंद है।";
 "Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Nextcloud के ज़रिए बैकअप, सिंक, मीडिया और कॉल सिर्फ़ मेननेट पर काम करते हैं, ताकि टेस्टनेट कभी आपके मेननेट बैकअप को ओवरराइट न कर सके। सेटिंग्स > कनेक्शन में टेस्टनेट बंद करें और आपका Nextcloud कनेक्शन पहले जैसा वापस आ जाएगा।";
-"On Testnet, claim one in Kaspa Hub > .kachat." = "टेस्टनेट पर, Kaspa Hub > .kachat में एक लें।";
 "Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names come after an audit." = "टेस्टनेट पर लाइव: यहाँ नाम, कीमतें और भुगतान testnet-10 पर TKAS में हैं। मेननेट नाम ऑडिट के बाद आएँगे।";
 "Live on Testnet (testnet-10 registry)" = "टेस्टनेट पर लाइव (testnet-10 रजिस्ट्री)";
-"Transferred" = "ट्रांसफ़र हुआ";
-"Delisted" = "बिक्री से हटाया";
-"Sold" = "बिक गया";
-"Offer accepted" = "ऑफ़र स्वीकार हुआ";
-"Renewed" = "नवीनीकृत";
-"Released" = "छोड़ दिया गया";
-"Reclaimed" = "वापस लिया गया";
-"Offer made" = "ऑफ़र दिया गया";
-"Offer withdrawn" = "ऑफ़र वापस लिया";
-"Offer refunded" = "ऑफ़र लौटाया गया";
-"A name is 1 to 32 characters." = "नाम 1 से 32 अक्षरों का होता है।";
-"Use a-z, 0-9 and hyphens only." = "केवल a-z, 0-9 और हाइफ़न इस्तेमाल करें।";
-"A name can't start or end with a hyphen." = "नाम हाइफ़न से शुरू या खत्म नहीं हो सकता।";
-"Lapsed" = "व्यपगत";
-"Lapsed - reclaim it, then claim it" = "व्यपगत - वापस लें, फिर उसे लें";
 "Cancelled." = "रद्द हो गया।";
 "Confirm this .kachat transaction" = "इस .kachat लेन-देन की पुष्टि करें";
-"Names their owners have listed. Buying pays the owner and moves the name to you in one transaction." = "वे नाम जिन्हें मालिकों ने बिक्री पर रखा है। खरीदने पर एक ही लेन-देन में मालिक को भुगतान होता है और नाम आपको मिलता है।";
-"Reclaimable" = "वापस लेने योग्य";
-"Names whose owners let them lapse. Anyone may reclaim one: the bond goes back to its last owner, you keep the freed deposit as a bounty, and the name is free to claim." = "वे नाम जिन्हें मालिकों ने व्यपगत होने दिया। कोई भी इन्हें वापस ले सकता है: बॉन्ड पिछले मालिक को लौटता है, मुक्त हुई जमा राशि इनाम के रूप में आपकी, और नाम लेने के लिए खाली हो जाता है।";
-"Nothing to reclaim." = "वापस लेने को कुछ नहीं।";
-"Reclaim" = "वापस लें";
-"Renew, list, transfer or release them, and pick the one KaChat shows for you." = "नवीनीकरण करें, बिक्री पर रखें, ट्रांसफ़र करें या छोड़ दें, और चुनें कि KaChat आपके लिए कौन सा दिखाए।";
-"Search for a name above and claim it." = "ऊपर कोई नाम खोजें और उसे लें।";
-"Offers you made. Withdraw one any time; once it passes its refund time anyone can return it to you." = "आपके दिए ऑफ़र। कभी भी वापस लें; रिफ़ंड का समय बीतने पर कोई भी उसे आपको लौटा सकता है।";
-"Refundable now" = "अब लौटाया जा सकता है";
 "Your balance" = "आपका बैलेंस";
 "It shows here once the network accepts it, usually within seconds." = "नेटवर्क के स्वीकार करते ही यह यहाँ दिखेगा, आम तौर पर कुछ सेकंड में।";
 "Cost" = "लागत";
-"The name is yours for the years you paid. Renew it any time before it expires." = "जितने वर्षों का भुगतान किया, उतने समय तक नाम आपका है। समाप्त होने से पहले कभी भी नवीनीकरण करें।";
 "Make %@ your primary name?" = "%@ को अपना मुख्य नाम बनाएँ?";
 "Set as Primary" = "मुख्य के रूप में सेट करें";
 "KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat इसे आपके नाम के रूप में दिखाता है। यह नेटवर्क शुल्क देकर चेन पर आपके प्रोफ़ाइल रिकॉर्ड में सहेजा जाता है।";
-"Expired - renew to keep it. Until the grace period ends nobody else can take it." = "समाप्त - रखने के लिए नवीनीकरण करें। ग्रेस अवधि खत्म होने तक कोई और इसे नहीं ले सकता।";
-"Expired. It no longer resolves; the owner can still renew it." = "समाप्त। अब यह पते में नहीं बदलता; मालिक अब भी नवीनीकरण कर सकता है।";
-"Lapsed: anyone may reclaim it, and then claim it again." = "व्यपगत: कोई भी इसे वापस लेकर फिर से ले सकता है।";
 "You" = "आप";
-"Accept one to sell the name for it." = "किसी एक को स्वीकार कर नाम उसी पर बेचें।";
 "Saved. Transaction %@" = "सहेजा गया। लेन-देन %@";
-"A renewal adds to the current expiry, even after it passed. The price goes to the miners." = "नवीनीकरण मौजूदा समाप्ति में जुड़ता है, भले ही वह बीत चुकी हो। कीमत माइनरों को जाती है।";
-"Price per year" = "प्रति वर्ष कीमत";
 "To" = "को";
 "kaspatest:... or name.kachat" = "kaspatest:... या name.kachat";
 "A testnet address, or a .kachat name - it's resolved to the address shown." = "टेस्टनेट पता या .kachat नाम - यह दिखाए गए पते में बदला जाता है।";
-"Not a testnet Schnorr address." = "यह टेस्टनेट Schnorr पता नहीं है।";
 "Enter an address or a .kachat name." = "कोई पता या .kachat नाम डालें।";
 "No active .kachat name by that name." = "इस नाम से कोई सक्रिय .kachat नाम नहीं।";
-"The name's bond goes back to its last owner, you keep the freed registry deposit (less the fee) as a bounty, and the name is free. To own it, claim it afterwards." = "नाम का बॉन्ड पिछले मालिक को लौटता है, मुक्त हुई रजिस्ट्री जमा (शुल्क घटाकर) इनाम के रूप में आपकी, और नाम खाली हो जाता है। इसे अपना बनाने के लिए बाद में लें।";
-"Bond to the last owner" = "बॉन्ड पिछले मालिक को";
-"Claim one in Kaspa Hub > .kachat." = "Kaspa Hub > .kachat में एक लें।";
 "Your profile belongs to your address, not to a name: it stays the same when you buy, sell or let a name go." = "आपकी प्रोफ़ाइल आपके पते की है, किसी नाम की नहीं: नाम खरीदने, बेचने या छोड़ने पर भी यह वही रहती है।";
 "https://... or ipfs://..." = "https://... या ipfs://...";
 "Image links must start with https:// or ipfs://." = "इमेज लिंक https:// या ipfs:// से शुरू होने चाहिए।";
@@ -859,15 +765,6 @@
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "प्रोफ़ाइल सार्वजनिक और चेन पर होती हैं: कोई भी पढ़ सकता है, और बदलने के बाद भी पुराने संस्करण पढ़े जा सकते हैं। यह नेटवर्क शुल्क देकर लिखी जाती है।";
 "No testnet wallet is open." = "कोई टेस्टनेट वॉलेट खुला नहीं है।";
 "This wallet's key does not match its address." = "इस वॉलेट की कुंजी उसके पते से मेल नहीं खाती।";
-"%@ is not a valid key (not on the secp256k1 curve)." = "%@ मान्य कुंजी नहीं है (secp256k1 वक्र पर नहीं)।";
-"The secret for this registration is missing on this device." = "इस रजिस्ट्रेशन का गुप्त डेटा इस डिवाइस पर नहीं है।";
-"The new owner" = "नया मालिक";
-"An expired name can't be listed. Renew it first." = "समाप्त नाम बिक्री पर नहीं रखा जा सकता। पहले नवीनीकरण करें।";
-"Your key" = "आपकी कुंजी";
-"The buyer" = "खरीदार";
-"%@ is already registered." = "%@ पहले से रजिस्टर है।";
-"The commit never reached the chain." = "कमिट कभी चेन तक नहीं पहुँचा।";
-"The commit is no longer on chain." = "कमिट अब चेन पर नहीं है।";
 "Paste a profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite." = "X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram या LinkedIn का प्रोफ़ाइल लिंक, या किसी Discord सर्वर का इनवाइट पेस्ट करें।";
 "Paste your profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite. KaChat shows the picture that platform shows, so its moderation applies here too." = "X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram या LinkedIn का अपना प्रोफ़ाइल लिंक, या किसी Discord सर्वर का इनवाइट पेस्ट करें। वह प्लेटफ़ॉर्म जो तस्वीर दिखाता है, KaChat वही दिखाता है, इसलिए उसका मॉडरेशन यहाँ भी लागू होता है।";
 "Banners come from an X or YouTube profile link, or a Discord server invite." = "बैनर X या YouTube प्रोफ़ाइल लिंक, या Discord सर्वर इनवाइट से आते हैं।";
@@ -900,15 +797,11 @@
 "Balance change" = "बैलेंस में बदलाव";
 "Transaction sent" = "लेन-देन भेजा गया";
 "Listed for sale" = "बिक्री के लिए सूचीबद्ध";
-"Name reclaimed" = "नाम वापस लिया गया";
 "Profile saved" = "प्रोफ़ाइल सहेजी गई";
 "Your Profile" = "आपकी प्रोफ़ाइल";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "आपके चैट पते से उसी को ऑन-चेन सहेजा जाता है।";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "प्रोफ़ाइल सार्वजनिक और ऑन-चेन होती हैं: कोई भी उन्हें पढ़ सकता है, और बदलने के बाद भी पुराने संस्करण पढ़े जा सकते हैं।";
-"Extended" = "बढ़ाया गया";
-"Renewal opens on %@" = "नवीनीकरण %@ को खुलेगा";
-"The names indexer didn't send this name's paid period. Pull to refresh and try again." = "नाम इंडेक्सर ने इस नाम की भुगतान की गई अवधि नहीं भेजी। रीफ़्रेश करने के लिए नीचे खींचें और फिर कोशिश करें।";
 "Setting up" = "सेट अप हो रहा है";
 "The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "टेस्टनेट पर .kachat रजिस्ट्री अपग्रेड हो रही है। नई रजिस्ट्री लाइव होते ही नाम यहां फिर खुलेंगे।";
 ".kachat Names" = ".kachat नाम";
@@ -951,11 +844,9 @@
 "New" = "नया";
 "New Chat" = "नई चैट";
 "New Group Chat" = "नई ग्रुप चैट";
-"New Public Chat" = "नई सार्वजनिक चैट";
 "Fund Chatting Address" = "चैटिंग पता फंड करें";
 "Message someone by their address or name." = "किसी को उसके पते या नाम से मैसेज करें।";
 "Start an encrypted group with several people." = "कई लोगों के साथ एन्क्रिप्टेड ग्रुप शुरू करें।";
-"Join a public room, or create one." = "किसी सार्वजनिक रूम से जुड़ें या नया बनाएँ।";
 "Show the QR code to add Kaspa for sending messages." = "मैसेज भेजने के लिए Kaspa जोड़ने का QR कोड दिखाता है।";
 "Show a fresh address to get paid." = "भुगतान पाने के लिए नया पता दिखाता है।";
 "A fresh address, never used before. Kaspa sent here lands in this account and shows in your spending total. This address should be used for everything not related to chatting or domains." = "एक नया पता, जो पहले कभी इस्तेमाल नहीं हुआ। यहाँ भेजे गए Kaspa इस खाते में आते हैं और आपके खर्च बैलेंस में दिखते हैं। चैट या डोमेन से असंबंधित हर चीज़ के लिए यही पता इस्तेमाल करें।";
@@ -984,7 +875,6 @@
 "Goes back to its place by latest activity." = "हाल की गतिविधि के अनुसार अपनी जगह पर लौट जाता है।";
 "Keeps it first in the row above your chats." = "आपकी चैट्स के ऊपर की पंक्ति में सबसे आगे रहता है।";
 "Hold for options" = "विकल्पों के लिए दबाकर रखें";
-"Delete Room?" = "रूम हटाएँ?";
 "This address is on a different network than the app." = "यह पता ऐप से अलग नेटवर्क पर है।";
 ".kachat names aren't on mainnet yet. Your avatar, banner, bio and links save now; you can pick a primary name once names launch." = ".kachat नाम अभी मेननेट पर नहीं हैं। आपका अवतार, बैनर, बायो और लिंक अभी सहेजे जाते हैं; नाम लॉन्च होने पर आप प्राथमिक नाम चुन सकेंगे।";
 "Claim Testnet Kaspa" = "टेस्टनेट कास्पा क्लेम करें";
@@ -993,28 +883,12 @@
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "आपका चैटिंग पता कॉपी करके TN10 फ़ॉसेट खोलता है: पेस्ट करें, जाँच पास करें और अधिकतम राशि क्लेम करें।";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "आपका TN10 चैटिंग पता कॉपी हो गया है। इसे फ़ॉसेट के पता फ़ील्ड में पेस्ट करें।";
 "Expires in %@" = "%@ में समाप्त";
-"Tap an offer to accept it. Expired offers go back to their buyers." = "स्वीकार करने के लिए किसी ऑफ़र पर टैप करें। समाप्त ऑफ़र खरीदारों को लौट जाते हैं।";
-"This offer has expired. It's going back to the buyer." = "यह ऑफ़र समाप्त हो गया है। यह खरीदार को लौट रहा है।";
-"This offer was made before the name changed hands, so it's declined and going back to the buyer." = "यह ऑफ़र नाम का मालिक बदलने से पहले दिया गया था, इसलिए अस्वीकृत है और खरीदार को लौट रहा है।";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
-"This name is already paid up to its longest period. Renewal opens on %@." = "यह नाम पहले से सबसे लंबी अवधि तक भुगतान किया हुआ है। नवीनीकरण %@ को खुलेगा।";
-"The price record is busy right now. Try again in a moment." = "मूल्य रिकॉर्ड अभी व्यस्त है। थोड़ी देर में फिर से कोशिश करें।";
-"You can't make an offer on your own name." = "आप अपने ही नाम पर ऑफ़र नहीं दे सकते।";
-"An offer can run for up to 7 days." = "एक ऑफ़र अधिकतम 7 दिन तक चल सकता है।";
-"Price per %@" = "प्रति %@ मूल्य";
-"Pays for more time now, up to the %@ limit." = "अभी और समय के लिए भुगतान करता है, %@ की सीमा तक।";
-"Offer declined" = "ऑफ़र अस्वीकृत";
 
 /* .kachat: never pay more than the confirmed price (IOS-054) */
-"The price changed to %@ since you confirmed. Nothing was sent. Check the new price and confirm again." = "आपके पुष्टि करने के बाद मूल्य बदलकर %@ हो गया। कुछ भी नहीं भेजा गया। नया मूल्य देखें और फिर से पुष्टि करें।";
-"The price changed to %@ since you confirmed, so nothing was sent. Confirm the new price to continue, or cancel the commit." = "आपके पुष्टि करने के बाद मूल्य बदलकर %@ हो गया, इसलिए कुछ भी नहीं भेजा गया। जारी रखने के लिए नए मूल्य की पुष्टि करें, या कमिट रद्द करें।";
-"Confirm New Price" = "नए मूल्य की पुष्टि करें";
 
 /* .kachat: no offers on expired names, no renewals that stay expired (IOS-055, IOS-056) */
-"This name has been expired too long to renew. It can only be reclaimed and registered again." = "यह नाम बहुत समय से समाप्त है, इसलिए इसे नवीनीकृत नहीं किया जा सकता। इसे केवल वापस लेकर फिर से पंजीकृत किया जा सकता है।";
-"Offers can only be made on active names." = "ऑफ़र केवल सक्रिय नामों पर दिए जा सकते हैं।";
-"This name has expired. Offers can only be accepted while the name is active. Renew it first." = "यह नाम समाप्त हो गया है। ऑफ़र केवल तभी स्वीकार किए जा सकते हैं जब नाम सक्रिय हो। पहले इसे नवीनीकृत करें।";
 
 /* Wallet: import / sign-in stop if the current account can't be backed up (IOS-016) */
 "The current account's keys couldn't be backed up on this device, so nothing was changed. Try again." = "इस डिवाइस पर मौजूदा खाते की कुंजियों का बैकअप नहीं लिया जा सका, इसलिए कुछ भी नहीं बदला गया। फिर से कोशिश करें।";
@@ -1040,80 +914,45 @@
 "Goes to their public chatting address" = "उनके सार्वजनिक चैटिंग पते पर जाता है";
 
 /* Profile bell: .kachat news and public chats */
-"Renew %@" = "%@ नवीनीकृत करें";
-"Renewal is open: renew it before %@ to keep it." = "नवीनीकरण खुला है: रखने के लिए %@ से पहले नवीनीकृत करें।";
 "%@ has expired" = "%@ की अवधि समाप्त";
-"Renew it before %@ or anyone can claim it." = "%@ से पहले नवीनीकृत करें वरना कोई भी इसे ले सकता है।";
-"%@ has lapsed" = "%@ समाप्त हो गया";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "अब कोई भी इसे ले सकता है। अपना बॉन्ड वापस पाने के लिए खुद वापस लें।";
-"%@ sold" = "%@ बिक गया";
 "%@ KAS was paid to you." = "आपको %@ KAS का भुगतान हुआ।";
-"Your listing was bought." = "आपकी लिस्टिंग खरीदी गई।";
-"You accepted an offer for it." = "आपने इसके लिए एक ऑफ़र स्वीकार किया।";
-"%@ was reclaimed" = "%@ वापस लिया गया";
-"It lapsed and someone reclaimed it. It's free to register again." = "यह समाप्त हुआ और किसी ने इसे वापस लिया। इसे फिर से पंजीकृत किया जा सकता है।";
-"New offer on %@" = "%@ पर नया ऑफ़र";
 "%@ KAS offered for it." = "इसके लिए %@ KAS ऑफ़र किए गए।";
-"%@ is yours now." = "%@ अब आपका है।";
-"Offer on %@ declined" = "%@ पर ऑफ़र अस्वीकृत";
 "The owner declined it. The KAS is back with you." = "मालिक ने इसे अस्वीकार किया। KAS आपके पास वापस आ गए।";
-"Offer on %@ expired" = "%@ पर ऑफ़र समाप्त";
 "Nobody accepted it in time. The KAS is back with you." = "किसी ने समय पर स्वीकार नहीं किया। KAS आपके पास वापस आ गए।";
-"Offer on %@ returned" = "%@ पर ऑफ़र लौटाया गया";
 "It can no longer be accepted. The KAS is back with you." = "इसे अब स्वीकार नहीं किया जा सकता। KAS आपके पास वापस आ गए।";
-"Renew it soon to keep it." = "इसे रखने के लिए जल्द नवीनीकृत करें।";
-"Renew it soon or anyone can claim it." = "जल्द नवीनीकृत करें वरना कोई भी इसे ले सकता है।";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
-"Reclaimable names appear here once .kachat names launch." = ".kachat नाम लॉन्च होने पर वापस लिए जा सकने वाले नाम यहाँ दिखेंगे।";
 
 /* .kachat: Reclaim to Own */
-"Reclaim to Own" = "अपनाने के लिए वापस लें";
-"Clear the lapsed name and get your bond back, then register it again." = "समाप्त नाम हटाएँ और अपना बॉन्ड वापस पाएँ, फिर इसे दोबारा पंजीकृत करें।";
-"Register %@ again?" = "%@ फिर से पंजीकृत करें?";
-"Register Again" = "फिर से पंजीकृत करें";
-"It's free now. Pick how long to hold it, like any new name: the hidden commit goes first and the name is registered about a minute later." = "यह अब खाली है। किसी भी नए नाम की तरह चुनें कि कितने समय रखना है: पहले छिपा कमिट जाता है और लगभग एक मिनट बाद नाम पंजीकृत होता है।";
-"Your name lapsed, so it can't be renewed any more. Reclaiming clears it from the registry: your bond comes back to you, and you also keep the freed registry deposit, less the network fee. Then you can register it again." = "आपका नाम समाप्त हो गया, इसलिए अब इसे नवीनीकृत नहीं किया जा सकता। वापस लेने से यह रजिस्ट्री से हटता है: आपका बॉन्ड आपको वापस मिलता है, और नेटवर्क शुल्क घटाकर मुक्त हुई रजिस्ट्री जमा भी आपकी रहती है। फिर आप इसे दोबारा पंजीकृत कर सकते हैं।";
-"Bond back to you" = "बॉन्ड आपको वापस";
 "Waiting for the old %@ to be cleared from the registry." = "रजिस्ट्री से पुराने %@ के हटने का इंतज़ार है।";
 
 /* .kachat: a released or reclaimed name */
 
 /* .kachat registration progress half sheet */
-"Claiming %@" = "%@ का दावा किया जा रहा है";
-"Finish the name you're claiming first." = "पहले वह नाम पूरा करें जिसका आप दावा कर रहे हैं।";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "यह अब आपका नहीं है और मार्केटप्लेस में “वापस लेने योग्य” में चला गया है। अपनी जमानत वापस पाने के लिए इसे खुद पुनः प्राप्त करें।";
 
 /* Create Account: name step and seed length step */
 "Create a name for your wallet" = "अपने वॉलेट के लिए एक नाम बनाएं";
 "This name is only stored on this device, to tell your wallets apart. No one else will ever see it." = "यह नाम केवल इसी डिवाइस पर रहता है, ताकि आप अपने वॉलेट अलग-अलग पहचान सकें। इसे कोई और कभी नहीं देखेगा।";
-"The next screen shows your seed phrase. It is the only way to recover your account: write it down and store it securely, and make sure no one can see your screen." = "अगली स्क्रीन पर आपका seed phrase दिखाया जाएगा। यह आपके खाते को पुनर्प्राप्त करने का एकमात्र तरीका है: इसे लिख लें, सुरक्षित रखें, और ध्यान रखें कि कोई आपकी स्क्रीन न देख सके।";
+"The next screen shows your 12 or 24 words. They are the only way to recover your account: write them down and store them securely, and make sure no one can see your screen." = "अगली स्क्रीन पर आपके 12 या 24 शब्द दिखेंगे। खाता वापस पाने का यही एकमात्र तरीका है: इन्हें लिखकर सुरक्षित रखें और ध्यान रखें कि कोई आपकी स्क्रीन न देखे।";
 
 /* Create Account: seed length step title */
-"Choose seed phrase length" = "seed phrase की लंबाई चुनें";
+"Choose 12 or 24 words" = "12 या 24 शब्द चुनें";
 
 /* .kachat sale tile: expiry flag */
 
 /* .kachat: expired names are available to claim */
-"Freeing %@ for you..." = "आपके लिए %@ मुक्त किया जा रहा है...";
-"%@ was freed" = "%@ मुक्त हो गया";
-"It expired and was cleared from the registry. Your bond is back with you." = "इसकी अवधि समाप्त हुई और इसे रजिस्ट्री से हटा दिया गया। आपकी जमानत आपको वापस मिल गई।";
 
 /* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ अब आपका नहीं है";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "इसकी अवधि समाप्त हो गई और इसे नवीनीकृत नहीं किया गया, इसलिए अब यह मार्केटप्लेस में किसी के भी लिए उपलब्ध है। कोई इसे लेगा तो आपकी जमानत आपको वापस मिल जाएगी।";
 
 /* .kachat: claims in progress button and busy-network notes */
-"The network is busy. Your commit is waiting for a block." = "नेटवर्क व्यस्त है। आपका कमिट एक ब्लॉक का इंतज़ार कर रहा है।";
-"The network is busy, so the commit was sent again." = "नेटवर्क व्यस्त है, इसलिए कमिट फिर से भेजा गया।";
 
 /* Onboarding: import length step and the seed phrase explainer */
-"How many words is the seed phrase you're importing?" = "आप जो seed phrase इम्पोर्ट कर रहे हैं उसमें कितने शब्द हैं?";
+"How many words are you importing?" = "आप कितने शब्द इंपोर्ट कर रहे हैं?";
 "What is this?" = "यह क्या है?";
-"What is a seed phrase?" = "seed phrase क्या है?";
-"A seed phrase is a list of 12 or 24 ordinary words that works as the master key to your account. Your wallet, your chatting address and your messages all come from it." = "seed phrase 12 या 24 साधारण शब्दों की एक सूची है जो आपके खाते की मास्टर चाबी की तरह काम करती है। आपका वॉलेट, चैटिंग पता और संदेश सब इसी से बनते हैं।";
+"What are my 12 or 24 words?" = "मेरे 12 या 24 शब्द क्या हैं?";
+"Your 12 or 24 words are ordinary words that work as the master key to your account. Your wallet, your chatting address and your messages all come from them." = "आपके 12 या 24 शब्द साधारण शब्द हैं जो आपके खाते की मास्टर चाबी की तरह काम करते हैं। आपका वॉलेट, चैट पता और संदेश सब इन्हीं से बनते हैं।";
 "Anyone who has these words can take everything in your account. If you lose them and lose this device, nobody can get your account back, not even KaChat." = "जिसके पास ये शब्द हैं वह आपके खाते का सब कुछ ले सकता है। अगर आप इन्हें खो दें और यह डिवाइस भी खो दें, तो कोई भी आपका खाता वापस नहीं ला सकता, KaChat भी नहीं।";
 "Write the words on paper, in order, and keep them somewhere safe and private. Never type them into a website, send them in a chat, or keep them in a screenshot or cloud notes." = "शब्दों को क्रम से कागज़ पर लिखें और किसी सुरक्षित, निजी जगह पर रखें। इन्हें कभी किसी वेबसाइट पर टाइप न करें, चैट में न भेजें, और स्क्रीनशॉट या क्लाउड नोट्स में न रखें।";
 "12 words are already very secure. 24 words add even more protection." = "12 शब्द पहले से ही बहुत सुरक्षित हैं। 24 शब्द और भी ज़्यादा सुरक्षा देते हैं।";
@@ -1162,7 +1001,6 @@
 "Saved in KaChat for this wallet only. Never added to your phone's Contacts." = "सिर्फ़ इस वॉलेट के लिए KaChat में सहेजा गया। कभी आपके फ़ोन के संपर्कों में नहीं जोड़ा जाता।";
 "Remove from Address Book" = "एड्रेस बुक से हटाएँ";
 "Edit Address" = "पता संपादित करें";
-"Add addresses in Kaspa Hub > Address Book." = "Kaspa Hub > एड्रेस बुक में पते जोड़ें।";
 "Open a wallet first." = "पहले एक वॉलेट खोलें।";
 "Enter a name." = "एक नाम दर्ज करें।";
 "Enter a valid Kaspa address." = "एक मान्य Kaspa पता दर्ज करें।";
@@ -1227,11 +1065,8 @@
 "Every address in that file is a Mainnet address. KaChat is on Testnet." = "इस फ़ाइल का हर पता Mainnet का है। KaChat Testnet पर है।";
 "Every address in that file is a Testnet address. KaChat is on Mainnet." = "इस फ़ाइल का हर पता Testnet का है। KaChat Mainnet पर है।";
 "Skipped %lld from the other network." = "दूसरे नेटवर्क के %lld छोड़ दिए गए।";
-"The network fee went up to %@ since you confirmed. Nothing was sent. Check the new fee and confirm again." = "आपके पुष्टि करने के बाद नेटवर्क शुल्क बढ़कर %@ हो गया। कुछ नहीं भेजा गया। नया शुल्क देखें और फिर से पुष्टि करें।";
 
 /* .kachat registry v5 migration */
-"Names are moving to the new registry. New names can be claimed from %@." = "नाम नए रजिस्ट्री में ले जाए जा रहे हैं। नए नाम %@ से क्लेम किए जा सकेंगे।";
-"Moved to the new registry" = "नई रजिस्ट्री में ले जाया गया";
 
 /* .kachat first: domains in every address field, Other domains, expired-name banner */
 "kaspa:qr... or domain" = "kaspa:qr... या डोमेन";
@@ -1242,7 +1077,7 @@
 "Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = ".kachat नाम और प्रोफ़ाइल यहीं से पढ़े जाते हैं। अगर आप अपना इंडेक्सर चलाते हैं तो उसे यहाँ डालें। अगर यह नाम नहीं दे पाता, तो वे सीधे चेन से पढ़े जाते हैं। जहाँ भी आप पता लिख सकते हैं, यह सबसे पहले हल होता है।";
 "Other Domains" = "अन्य डोमेन";
 "Looked up after .kachat, and listed under Other domains when a typed name also exists there." = ".kachat के बाद खोजे जाते हैं, और लिखा गया नाम वहाँ भी हो तो अन्य डोमेन में दिखते हैं।";
-"If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "अगर यह सीड पहले से किसी दूसरे पते पर आपकी पहचान रखता है - एक डोमेन (.kachat, .kas, .k या .kaspa) या फ़ंड किया हुआ चैट बैलेंस - तो उसे यहाँ चुनें। केवल बैलेंस या डोमेन वाले पते दिखाए जाते हैं।";
+"If these words already hold your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "यदि इन शब्दों में किसी अन्य पते पर आपकी पहचान पहले से है (.kachat, .kas, .k या .kaspa डोमेन, या चैट बैलेंस), तो उसे यहाँ चुनें। केवल बैलेंस या डोमेन वाले पते दिखाए जाते हैं।";
 ".kachat Names (%lld)" = ".kachat नाम (%lld)";
 ".kas Names (%lld)" = ".kas नाम (%lld)";
 "Enter a Kaspa address (kaspa:...) or a domain. .kachat names are looked up first." = "एक Kaspa पता (kaspa:...) या डोमेन दर्ज करें। .kachat नाम पहले खोजे जाते हैं।";
@@ -1251,7 +1086,6 @@
 "No contacts match your search. Paste an address or a domain to invite someone new." = "आपकी खोज से कोई संपर्क मेल नहीं खाता। किसी नए व्यक्ति को आमंत्रित करने के लिए पता या डोमेन पेस्ट करें।";
 "No domain found by that name." = "उस नाम का कोई डोमेन नहीं मिला।";
 "%lld of your .kachat domains expired" = "आपके %lld .kachat डोमेन की अवधि समाप्त हो गई";
-"Renew %@ before its grace period ends on %@ to keep it." = "%@ को बनाए रखने के लिए %@ को ग्रेस अवधि खत्म होने से पहले नवीनीकृत करें।";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = ".kachat नाम अभी इस नेटवर्क पर चालू नहीं हैं";
@@ -1268,21 +1102,15 @@
 "Live on Mainnet" = "Mainnet पर चालू";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
-"An offer must be refundable before the name expires." = "नाम की अवधि खत्म होने से पहले ऑफ़र वापस लेने योग्य होना चाहिए।";
-"This name expires sooner, so your offer is refundable from %@." = "यह नाम पहले समाप्त होता है, इसलिए आपका ऑफ़र %@ से वापस लिया जा सकता है।";
 
 /* .kachat: combining many small coins before a name transaction */
-"Your KAS is in many small coins. Combining them into one first..." = "आपका KAS कई छोटे कॉइन में बँटा है। पहले उन्हें एक में मिलाया जा रहा है...";
 "Not enough KAS on your chatting address for this." = "इसके लिए आपके चैटिंग पते पर पर्याप्त KAS नहीं है।";
 
 /* .kachat mainnet launch countdown */
-"Names open in" = "नाम खुलने में";
 "Days" = "दिन";
 "Hours" = "घंटे";
 "Minutes" = "मिनट";
 "Seconds" = "सेकंड";
-"Then anyone can search and claim a .kachat name here." = "फिर कोई भी यहाँ .kachat नाम खोजकर क्लेम कर सकेगा।";
-".kachat names open to everyone on %@." = ".kachat नाम सबके लिए %@ को खुलेंगे।";
 
 /* Kaspa Hub > KaChat Bots */
 "Block Reward Tracker" = "ब्लॉक रिवॉर्ड ट्रैकर";
@@ -1383,20 +1211,13 @@
 "You're all set" = "सब तैयार है";
 
 /* .kachat: the bond + registry deposit locked with a name (claim screen, receipt) */
-"%@ stays locked with your name while you hold it (bond + registry deposit). You get it back when you release the name." = "जब तक नाम आपके पास है, %@ उसके साथ लॉक रहता है (बॉन्ड + रजिस्ट्री जमा)। नाम छोड़ने पर आपको वापस मिल जाता है।";
-"%@ is locked with this name. It comes back to you when you release it." = "%@ इस नाम के साथ लॉक है। इसे छोड़ने पर यह आपको वापस मिल जाएगा।";
 
 /* Profile save: not enough funds popup (with the chatting address QR) */
 "You don't have enough funds. Please send at least 1 KAS to your chatting address." = "आपके पास पर्याप्त धनराशि नहीं है। कृपया अपने चैटिंग पते पर कम से कम 1 KAS भेजें।";
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
-"Buy From" = "यहाँ से खरीदें";
 "Fund" = "फ़ंड करें";
 "Copy address" = "पता कॉपी करें";
-"Not enough KAS on this address for this name." = "इस नाम के लिए इस पते पर पर्याप्त KAS नहीं है।";
-"Send KAS to this address to buy with it." = "इससे खरीदने के लिए इस पते पर KAS भेजें।";
-"Choose the address the marketplace buys with" = "वह पता चुनें जिससे मार्केटप्लेस खरीदता है";
-"Claims, purchases and offers here are paid from this address, and the names you claim or buy belong to it. Use a fresh address to keep a name apart from your chatting address." = "यहाँ दावे, खरीद और ऑफ़र इसी पते से चुकाए जाते हैं, और आप जो नाम दावा करते या खरीदते हैं वे इसी के होते हैं। किसी नाम को अपने चैटिंग पते से अलग रखने के लिए नया पता इस्तेमाल करें।";
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "आपका अपना पता: %@";
@@ -1409,23 +1230,18 @@
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "इस भुगतान के बारे में %@ को बताने के लिए आपके चैटिंग पते में कोई KAS नहीं है, इसलिए वे इसे किसी अनजान पते से आया भुगतान देखेंगे, मेमो के बिना। आपके चैटिंग पते में कुछ KAS आते ही KaChat उन्हें बता देगा।";
 
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
-"Your Dock" = "आपका डॉक";
-"Always in your dock" = "हमेशा आपके डॉक में";
 
 /* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
-"%@, %@ and %@ always stay in your dock." = "%@, %@ और %@ हमेशा आपके डॉक में रहते हैं।";
-"Your dock is full. Remove one from it to add one of these." = "आपका डॉक भरा है। इनमें से कोई जोड़ने के लिए डॉक से एक हटाएँ।";
 "In the order %@ shows them." = "उसी क्रम में जिसमें %@ उन्हें दिखाता है।";
 "Move %@ to %@" = "%@ को %@ में ले जाएँ";
-"Add %@ to your dock" = "%@ को डॉक में जोड़ें";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
 
 /* Lost-keys recovery: WalletRecoveryView + the saved-account keys-needed sheet */
-"Recovery Phrase Needed" = "रिकवरी वाक्यांश चाहिए";
-"Enter Recovery Phrase" = "रिकवरी वाक्यांश डालें";
-"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's recovery phrase to sign in. Its history on this phone is kept." = "%@ इस iPhone पर है, पर इसकी चाबियाँ नहीं हैं। बैकअप से रिस्टोर करने के बाद ऐसा होता है, क्योंकि चाबियाँ उसी फ़ोन से बंधी होती हैं जिस पर बनी थीं। साइन इन करने के लिए इस खाते का रिकवरी वाक्यांश डालें। इस फ़ोन पर इसका इतिहास बना रहेगा।";
-"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your recovery phrase to unlock it here. Your messages on this device are kept." = "इस iPhone पर आपका खाता है, पर उसकी चाबियाँ नहीं। बैकअप से फ़ोन रिस्टोर करने के बाद ऐसा होता है, क्योंकि KaChat की चाबियाँ उसी डिवाइस से बंधी होती हैं जिस पर बनी थीं। इसे यहाँ खोलने के लिए अपना रिकवरी वाक्यांश डालें। इस डिवाइस पर आपके संदेश बने रहेंगे।";
+"12 or 24 Words Needed" = "12 या 24 शब्द चाहिए";
+"Enter 12 or 24 Words" = "12 या 24 शब्द दर्ज करें";
+"%@ is on this iPhone, but its keys are not. That happens after restoring from a backup, because keys are locked to the phone they were made on. Enter the account's 12 or 24 words to sign in. Its history on this phone is kept." = "%@ इस iPhone पर है, लेकिन इसकी चाबियाँ नहीं। बैकअप से रिस्टोर करने पर ऐसा होता है, क्योंकि चाबियाँ उसी फ़ोन से जुड़ी होती हैं जिस पर वे बनी थीं। साइन इन करने के लिए खाते के 12 या 24 शब्द दर्ज करें। इस फ़ोन पर इसका इतिहास बना रहेगा।";
+"This iPhone has your account but not its keys. That happens after restoring a phone from a backup, because KaChat's keys are locked to the device they were created on. Enter your 12 or 24 words to unlock it here. Your messages on this device are kept." = "इस iPhone पर आपका खाता है, लेकिन उसकी चाबियाँ नहीं। फ़ोन को बैकअप से रिस्टोर करने पर ऐसा होता है, क्योंकि KaChat की चाबियाँ उसी डिवाइस से जुड़ी होती हैं जिस पर वे बनी थीं। यहाँ अनलॉक करने के लिए अपने 12 या 24 शब्द दर्ज करें। इस डिवाइस पर आपके संदेश बने रहेंगे।";
 
 
 /* The chat list's name for the chat with yourself */
@@ -1459,13 +1275,7 @@
 /* Chess leaderboard: this month / all time */
 "This month" = "इस महीने";
 "All time" = "अब तक";
-"Leaderboard period" = "लीडरबोर्ड अवधि";
-"Resets on the 1st of every month (UTC)." = "हर महीने की 1 तारीख को रीसेट होता है (UTC)।";
 "Counted from %@." = "%@ से गिना गया।";
-"No finished 1v1 games this month yet." = "इस महीने अभी तक कोई 1v1 गेम पूरा नहीं हुआ।";
-"No finished 1v1 games yet." = "अभी तक कोई 1v1 गेम पूरा नहीं हुआ।";
-"No finished tournaments this month yet." = "इस महीने अभी तक कोई टूर्नामेंट पूरा नहीं हुआ।";
-"No finished tournaments yet." = "अभी तक कोई टूर्नामेंट पूरा नहीं हुआ।";
 
 /* KaPosts: post activity cards */
 
@@ -1565,3 +1375,454 @@
 "What Others Can See" = "दूसरे क्या देख सकते हैं";
 "Anyone can see this address and its balance on the Kaspa network, but they can't read your messages. Use it only for chatting and .kachat domains." = "Kaspa नेटवर्क पर कोई भी यह पता और इसका बैलेंस देख सकता है, लेकिन आपके संदेश नहीं पढ़ सकता। इसका उपयोग केवल चैट और .kachat डोमेन के लिए करें।";
 "Say anything to the bot to get started." = "शुरू करने के लिए बॉट से कुछ भी कहें।";
+"Requested for payment" = "भुगतान का अनुरोध किया";
+"Delete Chat?" = "चैट हटाएं?";
+"Delete Group?" = "समूह हटाएं?";
+"Deselect All" = "सभी चयन हटाएं";
+"Select All" = "सभी चुनें";
+"Select" = "चुनें";
+"This permanently deletes every message in this chat from this device. This cannot be undone." = "यह इस चैट के सभी संदेश इस डिवाइस से हमेशा के लिए हटा देता है। इसे पूर्ववत नहीं किया जा सकता।";
+"This removes this group and its messages from this device. This cannot be undone, and other members keep their copies." = "यह इस समूह और उसके संदेशों को इस डिवाइस से हटाता है। इसे पूर्ववत नहीं किया जा सकता, और बाकी सदस्यों के पास उनकी कॉपी रहती है।";
+"%lld chat%@" = "%lld चैट%@";
+"Silenced" = "म्यूट";
+"%1$@ reacted %2$@ to your message" = "%1$@ ने आपके संदेश पर %2$@ से प्रतिक्रिया दी";
+"%@ reacted to your message" = "%@ ने आपके संदेश पर प्रतिक्रिया दी";
+"%1$@ reacted %2$@ to a message" = "%1$@ ने एक संदेश पर %2$@ से प्रतिक्रिया दी";
+"%@ reacted to a message" = "%@ ने एक संदेश पर प्रतिक्रिया दी";
+"Do you already have a domain?" = "क्या आपके पास पहले से कोई डोमेन है?";
+"A KNS domain is your name on Kaspa. If you own one already, you can bring it here instead of buying another." = "KNS डोमेन Kaspa पर आपका नाम है। अगर आपके पास पहले से एक है, तो दूसरा खरीदने की बजाय उसे यहाँ ला सकते हैं।";
+"Yes, I have one" = "हाँ, मेरे पास है";
+"No, I need one" = "नहीं, मुझे चाहिए";
+"Which domain should this profile use?" = "यह प्रोफ़ाइल कौन-सा डोमेन इस्तेमाल करे?";
+"No domains on this address yet" = "इस पते पर अभी कोई डोमेन नहीं";
+"Go back and use Refresh once the transfer lands." = "ट्रांसफ़र पहुँचने के बाद वापस जाएं और रीफ़्रेश करें।";
+"Send your domain here" = "अपना डोमेन यहाँ भेजें";
+"Transfer your domain to this address so your identity is connected to KaChat." = "अपना डोमेन इस पते पर ट्रांसफ़र करें ताकि आपकी पहचान KaChat से जुड़ जाए।";
+"No domains on this address yet." = "इस पते पर अभी कोई डोमेन नहीं।";
+"%lld domain%@ found on this address." = "इस पते पर %lld डोमेन%@ मिला।";
+"Checking..." = "जांच हो रही है...";
+"Refresh" = "रीफ़्रेश";
+"Couldn't Create Account" = "खाता नहीं बन सका";
+"App Settings" = "ऐप सेटिंग्स";
+"Account name" = "खाते का नाम";
+"Advanced: Create with a Passphrase" = "उन्नत: पासफ़्रेज़ के साथ बनाएं";
+"Customization" = "कस्टमाइज़ेशन";
+"Security" = "सुरक्षा";
+"Show Fee Estimate" = "शुल्क का अनुमान दिखाएं";
+"Quick Reactions" = "त्वरित प्रतिक्रियाएं";
+"Local storage used: %@" = "उपयोग हुआ लोकल स्टोरेज: %@";
+"On This Device" = "इस डिवाइस पर";
+"Cache" = "कैश";
+"Nextcloud" = "Nextcloud";
+"Cloud Storage" = "क्लाउड स्टोरेज";
+"Complete Your Backup" = "अपना बैकअप पूरा करें";
+"Back Up to NFC Card" = "NFC कार्ड पर बैकअप लें";
+"Wipe and re-sync incoming messages?" = "आने वाले संदेश मिटाकर री-सिंक करें?";
+"KaChat is having trouble syncing right now. It keeps retrying, and your messages catch up on their own once the connection is back, so you shouldn't need to wipe." = "KaChat को अभी सिंक करने में दिक्कत हो रही है। यह कोशिश करता रहता है, और कनेक्शन वापस आने पर आपके संदेश अपने आप अपडेट हो जाते हैं, इसलिए आपको मिटाने की ज़रूरत नहीं होनी चाहिए।";
+"Privacy Policy" = "गोपनीयता नीति";
+"Open Source Licenses" = "ओपन सोर्स लाइसेंस";
+"Appearance" = "दिखावट";
+"Language" = "भाषा";
+"Verbose API Logging" = "विस्तृत API लॉगिंग";
+"Reset to Default" = "डिफ़ॉल्ट पर रीसेट करें";
+"Choose Emoji" = "इमोजी चुनें";
+"Wallet" = "वॉलेट";
+"Address Activity" = "पते की गतिविधि";
+"Best practice is to write your 12 or 24 words down to back them up, and never store it online." = "सबसे अच्छा तरीका है कि बैकअप के लिए अपने 12 या 24 शब्द कागज़ पर लिखें, और उन्हें कभी ऑनलाइन न रखें।";
+"Default (Recommended)" = "डिफ़ॉल्ट (अनुशंसित)";
+"Automatic Scan" = "स्वचालित स्कैन";
+"Label (optional)" = "लेबल (वैकल्पिक)";
+"host:port or grpcs://host" = "host:port or grpcs://host";
+"Delete saved address" = "सहेजा गया पता हटाएं";
+"Node connections appear blocked on this network. You can still receive and read messages through the indexer, but sending messages and payments needs a node connection." = "इस नेटवर्क पर नोड कनेक्शन ब्लॉक लगते हैं। आप इंडेक्सर के ज़रिए संदेश पा और पढ़ सकते हैं, लेकिन संदेश और भुगतान भेजने के लिए नोड कनेक्शन चाहिए।";
+"%lld ms" = "%lld ms";
+"Node Network" = "नोड नेटवर्क";
+"Blocked" = "ब्लॉक किया गया";
+"Primary: %@" = "प्राथमिक: %@";
+"%lldms" = "%lldms";
+"DAA: %@" = "DAA: %@";
+"Disconnect Nextcloud" = "Nextcloud डिस्कनेक्ट करें";
+"Restore from Backup" = "बैकअप से बहाल करें";
+"Connected Account" = "जुड़ा हुआ खाता";
+"Server" = "सर्वर";
+"Username" = "उपयोगकर्ता नाम";
+"Start Folder" = "शुरुआती फ़ोल्डर";
+"No backup on this server yet." = "इस सर्वर पर अभी कोई बैकअप नहीं है।";
+"Automatic Sync" = "स्वचालित सिंक";
+"Last synced" = "पिछला सिंक";
+"Backup Folder" = "बैकअप फ़ोल्डर";
+"Back Up Messages Now" = "संदेशों का बैकअप अभी लें";
+"Last backup" = "पिछला बैकअप";
+"Message Backup" = "संदेश बैकअप";
+"Disconnect" = "डिस्कनेक्ट करें";
+"Use https. Unencrypted connections are not supported." = "https का उपयोग करें। बिना एन्क्रिप्शन वाले कनेक्शन समर्थित नहीं हैं।";
+"cloud.example.com" = "cloud.example.com";
+"App password" = "ऐप पासवर्ड";
+"Connect" = "कनेक्ट करें";
+"The app password is removed from this device's Keychain. You can reconnect any time." = "ऐप पासवर्ड इस डिवाइस के Keychain से हटा दिया जाता है। आप कभी भी फिर से कनेक्ट कर सकते हैं।";
+"Restore" = "बहाल करें";
+"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "सर्वर बैकअप के संदेश इस डिवाइस की चैट हिस्ट्री में जोड़ दिए जाते हैं। कुछ भी हटाया नहीं जाता।";
+"Restore Complete" = "बहाली पूरी हुई";
+"Restore Failed" = "बहाली विफल रही";
+"Restoring Backup" = "बैकअप बहाल हो रहा है";
+"Please keep the app open. Leaving now could corrupt your chat history." = "कृपया ऐप खुला रखें। अभी छोड़ने से आपकी चैट हिस्ट्री खराब हो सकती है।";
+"Re-sync Complete" = "री-सिंक पूरा हुआ";
+"Re-sync Failed" = "री-सिंक विफल रहा";
+"Re-syncing Messages" = "संदेश री-सिंक हो रहे हैं";
+"Please keep the app open. Leaving now could leave chats without their history." = "कृपया ऐप खुला रखें। अभी छोड़ने से चैट बिना अपनी हिस्ट्री के रह सकती हैं।";
+"Select Chats" = "चैट चुनें";
+"No chats to re-sync." = "री-सिंक करने के लिए कोई चैट नहीं।";
+"What's Cached" = "क्या कैश है";
+"Clear All Cache" = "पूरा कैश साफ़ करें";
+"NFC Card" = "NFC कार्ड";
+"Restore from an NFC card" = "NFC कार्ड से बहाल करें";
+"Enter the card's PIN, then tap the card to read your backup." = "कार्ड का PIN दर्ज करें, फिर अपना बैकअप पढ़ने के लिए कार्ड को फ़ोन से छुआएं।";
+"Enter your passphrase" = "अपना पासफ़्रेज़ दर्ज करें";
+"The backup was read from your card. Your passphrase was never on the card, so enter it exactly as you set it, including capitals and spaces." = "बैकअप आपके कार्ड से पढ़ा गया। आपका पासफ़्रेज़ कभी कार्ड पर नहीं था, इसलिए उसे ठीक वैसे ही दर्ज करें जैसे आपने सेट किया था, बड़े अक्षरों और स्पेस समेत।";
+"Card PIN" = "कार्ड PIN";
+"After 5 wrong tries the PIN is blocked for good, and this backup can no longer be read." = "5 गलत प्रयासों के बाद PIN हमेशा के लिए ब्लॉक हो जाता है, और यह बैकअप फिर पढ़ा नहीं जा सकता।";
+"Scan Card" = "कार्ड स्कैन करें";
+"Restore Account" = "खाता बहाल करें";
+"Share this profile" = "यह प्रोफ़ाइल साझा करें";
+"No on-chain profile data yet." = "अभी कोई ऑन-चेन प्रोफ़ाइल डेटा नहीं।";
+"Edit name" = "नाम संपादित करें";
+"Redirect" = "रीडायरेक्ट";
+"Aliases" = "उपनाम";
+"Receiving alias" = "प्राप्त करने का उपनाम";
+"Sending alias" = "भेजने का उपनाम";
+"Default (%@)" = "डिफ़ॉल्ट (%@)";
+"Chess Stats" = "शतरंज के आंकड़े";
+"%lld day%@ ago" = "%lld दिन%@ पहले";
+"PRIMARY" = "प्राथमिक";
+"React" = "प्रतिक्रिया दें";
+"No emoji match that." = "इससे कोई इमोजी मेल नहीं खाता।";
+"%lld member%@" = "%lld सदस्य%@";
+"Reply not sent" = "जवाब नहीं भेजा गया";
+"Your reply couldn't be sent. Open KaChat to try again." = "आपका जवाब भेजा नहीं जा सका। फिर कोशिश करने के लिए KaChat खोलें।";
+"1 Reaction" = "1 प्रतिक्रिया";
+"%lld Reactions" = "%lld प्रतिक्रियाएं";
+"1 person" = "1 व्यक्ति";
+"%lld people" = "%lld लोग";
+"Transaction" = "लेन-देन";
+"This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "इस खाते का बैकअप नहीं है। अगर आप इसे अभी हटाते हैं, तो यह और इसके फंड कभी वापस नहीं मिल सकते।";
+"To back it up first, sign in to it and use the card on the Profile tab." = "पहले इसका बैकअप लेने के लिए इसमें साइन इन करें और प्रोफ़ाइल टैब पर कार्ड का उपयोग करें।";
+"Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "पक्का करें कि आपके 12 या 24 शब्दों का बैकअप है, और अगर पासफ़्रेज़ है तो उसका भी। इस खाते और इसके फंड को वापस पाने का यही एकमात्र रास्ता है।";
+"Couldn't load the coins at this address" = "इस पते के कॉइन लोड नहीं हो सके";
+"Failed to send. Tap to retry." = "भेजना विफल रहा। फिर कोशिश करने के लिए टैप करें।";
+"Go to the first message" = "पहले संदेश पर जाएं";
+"This file is no longer shared" = "यह फ़ाइल अब साझा नहीं है";
+"Tap to load preview" = "प्रीव्यू लोड करने के लिए टैप करें";
+"Could not load this file." = "यह फ़ाइल लोड नहीं हो सकी।";
+"No notifications yet" = "अभी कोई सूचना नहीं";
+"Kaspa arriving in your addresses shows up here." = "आपके पतों में आने वाला Kaspa यहाँ दिखता है।";
+"Clear All" = "सब साफ़ करें";
+"Hidden while screen is being recorded or mirrored" = "स्क्रीन रिकॉर्ड या मिरर होने पर छिपा रहता है";
+"Group info for %@" = "%@ की समूह जानकारी";
+"This only deletes the message from this device - other members still have their own copy, and the encrypted transaction remains permanently on the Kaspa blockchain, visible to anyone but unreadable without your keys. This cannot be undone." = "यह संदेश सिर्फ़ इस डिवाइस से हटाता है - बाकी सदस्यों के पास उनकी अपनी कॉपी रहती है, और एन्क्रिप्टेड लेन-देन हमेशा के लिए Kaspa ब्लॉकचेन पर रहता है, सबको दिखता है पर आपकी कुंजियों के बिना पढ़ा नहीं जा सकता। इसे पूर्ववत नहीं किया जा सकता।";
+"Editing message" = "संदेश संपादित किया जा रहा है";
+"Replying to %@" = "%@ को जवाब दिया जा रहा है";
+"Recording... %llds" = "रिकॉर्डिंग... %llds";
+"edited" = "संपादित";
+"%lld members" = "%lld सदस्य";
+"Remove photo" = "फ़ोटो हटाएं";
+"Group photo" = "समूह की फ़ोटो";
+"Set group photo" = "समूह की फ़ोटो सेट करें";
+"Remove group photo" = "समूह की फ़ोटो हटाएं";
+"Delete \"%@\"" = "“%@” हटाएं";
+"Members (%lld)" = "सदस्य (%lld)";
+"Silent Group Chat" = "साइलेंट समूह चैट";
+"Only Notify if I'm Mentioned" = "केवल मेंशन होने पर सूचित करें";
+"Refresh Messages" = "संदेश रीफ़्रेश करें";
+"Resend invites to all" = "सभी को आमंत्रण फिर भेजें";
+"Resend Invites" = "आमंत्रण फिर भेजें";
+"Resend invite" = "आमंत्रण फिर भेजें";
+"Remove member" = "सदस्य हटाएं";
+"Resend the group invite to %@?%@" = "%@ को समूह का आमंत्रण फिर भेजें?%@";
+"Yes" = "हाँ";
+"Remove %@ from the group chat? A fresh group key is issued to everyone who stays.%@" = "%@ को समूह चैट से हटाएं? जो सदस्य रहेंगे, सभी को नई समूह कुंजी दी जाएगी।%@";
+"Resend the group invite to every member? Use this if someone didn't receive the group.%@" = "हर सदस्य को समूह का आमंत्रण फिर भेजें? अगर किसी को समूह नहीं मिला, तो इसका इस्तेमाल करें।%@";
+"Group name" = "समूह का नाम";
+"Every member will see the new name.%@" = "हर सदस्य नया नाम देखेगा।%@";
+"Set this as the group photo for everyone?%@" = "इसे सभी के लिए समूह की फ़ोटो बनाएं?%@";
+"Remove the group photo for everyone?%@" = "सभी के लिए समूह की फ़ोटो हटाएं?%@";
+"Add members" = "सदस्य जोड़ें";
+"Everyone in your contacts is already in this group." = "आपके संपर्कों में जितने लोग हैं, सब पहले से इस समूह में हैं।";
+"New members can read messages from the moment they're added, not earlier history." = "नए सदस्य जुड़ने के बाद के संदेश पढ़ सकते हैं, पुरानी हिस्ट्री नहीं।";
+"Add %lld member%@ to the group?%@" = "समूह में %lld सदस्य%@ जोड़ें?%@";
+"Refresh complete" = "रीफ़्रेश पूरा हुआ";
+"Rebuilding this group" = "यह समूह दोबारा बनाया जा रहा है";
+"Re-reading the whole group from the chain, the same way importing your 12 or 24 words does. Leaving now would stop it partway." = "पूरे समूह को चेन से दोबारा पढ़ा जा रहा है, ठीक वैसे ही जैसे आपके 12 या 24 शब्द आयात करने पर होता है। अभी छोड़ने से यह बीच में रुक जाएगा।";
+"Recovered %lld message%@ this device had not been able to read." = "%lld संदेश%@ वापस मिले, जिन्हें यह डिवाइस पहले नहीं पढ़ पाया था।";
+"No new messages were recovered." = "कोई नया संदेश वापस नहीं मिला।";
+"%lld message%@ from an epoch this device holds no key for" = "%lld संदेश%@ ऐसी कुंजी अवधि के, जिसकी कुंजी इस डिवाइस के पास नहीं है";
+"%lld from someone no longer in the group" = "%lld ऐसे व्यक्ति से जो अब समूह में नहीं है";
+"%lld that failed to decrypt" = "%lld जो डिक्रिप्ट नहीं हो सके";
+"Recovered %lld older epoch key%@" = "%lld पुरानी कुंजी%@ वापस मिली";
+"Resign this game?" = "इस गेम में हार मानें?";
+"Cancel game" = "गेम रद्द करें";
+"Hide password" = "पासवर्ड छिपाएं";
+"Show password" = "पासवर्ड दिखाएं";
+"Change Chatting Address" = "चैट पता बदलें";
+"Label" = "लेबल";
+"Notify on receive" = "प्राप्त होने पर सूचित करें";
+"When a spending address receives Kaspa from someone else." = "जब किसी खर्च पते को किसी और से Kaspa मिलता है।";
+"Checking address #%lld" = "पता #%lld जांचा जा रहा है";
+"Checks the first thousand addresses whatever the gaps, then keeps going while it keeps finding." = "पहले एक हज़ार पते जांचता है, चाहे बीच में खाली पते हों, फिर जब तक कुछ मिलता रहता है तब तक आगे बढ़ता रहता है।";
+"No addresses with a balance or domain yet" = "अभी तक कोई बैलेंस या डोमेन वाला पता नहीं";
+"%lld found so far" = "अब तक %lld मिले";
+"Close and Keep Scanning" = "बंद करें और स्कैन जारी रखें";
+"Contains domain" = "डोमेन शामिल है";
+"%lld separate transactions will be sent, one per address. Fast or Priority pays a higher fee to help them confirm sooner. Tap the fee amount to set a custom fee, applied to each." = "%lld अलग-अलग लेन-देन भेजे जाएंगे, हर पते से एक। तेज़ या प्राथमिकता में ज़्यादा शुल्क लगता है ताकि वे जल्दी कन्फ़र्म हों। कस्टम शुल्क तय करने के लिए शुल्क की राशि पर टैप करें, जो हर एक पर लागू होगा।";
+"Tap anywhere to copy" = "कॉपी करने के लिए कहीं भी टैप करें";
+"Anyone with this address's private key can spend its funds. Never share it with anyone." = "इस पते की प्राइवेट की जिसके पास है, वह इसके फंड खर्च कर सकता है। इसे कभी किसी के साथ साझा न करें।";
+"Tap to reveal private key" = "प्राइवेट की दिखाने के लिए टैप करें";
+"Rename UTXO" = "UTXO का नाम बदलें";
+"Receive" = "प्राप्त करें";
+"Some transactions could not be loaded. Pull to refresh to try again." = "कुछ लेन-देन लोड नहीं हो सके। फिर कोशिश करने के लिए नीचे खींचकर रीफ़्रेश करें।";
+"Could not load transactions." = "लेन-देन लोड नहीं हो सके।";
+"No UTXOs." = "कोई UTXO नहीं।";
+"Combines this address's UTXOs to reduce the inputs a future send needs. A single transaction can only merge so many at once, so if this address has a very large number, tap Compound again after it confirms to keep reducing." = "इस पते के UTXO को मिलाकर आगे भेजने में लगने वाले इनपुट कम करता है। एक लेन-देन में एक बार में सीमित संख्या ही मिल सकती है, इसलिए अगर इस पते पर बहुत ज़्यादा हैं, तो कन्फ़र्म होने के बाद और कम करने के लिए समेकित करें पर फिर टैप करें।";
+"Coinbase" = "Coinbase";
+"Address Visibility" = "पते की दृश्यता";
+"These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "इन पतों को अभी निकाला नहीं जा सका। एक पेज पीछे जाएं या दोबारा कोशिश करने के लिए यह स्क्रीन फिर खोलें।";
+"Add, import or export" = "जोड़ें, आयात करें या निर्यात करें";
+"Call" = "कॉल";
+"KaChat Contact" = "KaChat संपर्क";
+"KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat इन ओपन सोर्स लाइब्रेरी से बना है। इनके लेखक चाहते हैं कि ये नोटिस ऐप के साथ रहें।";
+"24 words" = "24 शब्द";
+"Enter your 12 or 24 words" = "अपने 12 या 24 शब्द दर्ज करें";
+"More reactions" = "और प्रतिक्रियाएं";
+"Storage problem" = "स्टोरेज की समस्या";
+"Your chats and history are up to date." = "आपकी चैट और हिस्ट्री अप-टू-डेट हैं।";
+"Setting up your account" = "आपका खाता सेट किया जा रहा है";
+"Downloading everything this account has on chain. It only takes this long once." = "इस खाते का चेन पर जो कुछ भी है, उसे डाउनलोड किया जा रहा है। इसमें इतना समय सिर्फ़ एक बार लगता है।";
+"Continue anyway" = "फिर भी जारी रखें";
+"Share your profile" = "अपनी प्रोफ़ाइल साझा करें";
+"Your Domains" = "आपके डोमेन";
+"Preparing a fresh address" = "नया पता तैयार किया जा रहा है";
+"Share Profile" = "प्रोफ़ाइल साझा करें";
+"Confirm Changes" = "बदलावों की पुष्टि करें";
+"%lld change%@. Each is submitted as its own on-chain transaction from your chatting address:" = "%lld बदलाव%@। हर एक आपके चैट पते से अलग ऑन-चेन लेन-देन के रूप में भेजा जाता है:";
+"Primary Domain" = "प्राथमिक डोमेन";
+"Send Domain" = "डोमेन भेजें";
+"If the network is busy, Fast or Priority pays a higher fee to help your transfer confirm sooner. Tap the fee amount to set a custom fee." = "नेटवर्क व्यस्त हो तो तेज़ या प्राथमिकता में ज़्यादा शुल्क लगता है ताकि आपका ट्रांसफ़र जल्दी कन्फ़र्म हो। कस्टम शुल्क तय करने के लिए शुल्क की राशि पर टैप करें।";
+"Sending %@" = "%@ भेजा जा रहा है";
+"A domain transfer is two transactions, so this takes a moment. Keep the app open until it finishes." = "डोमेन ट्रांसफ़र में दो लेन-देन होते हैं, इसलिए थोड़ा समय लगता है। पूरा होने तक ऐप खुला रखें।";
+"Combines all UTXOs at this address into a single one, to reduce the number of inputs a future send needs." = "इस पते के सभी UTXO को एक में मिला देता है, ताकि आगे भेजने में कम इनपुट लगें।";
+"Public Key" = "पब्लिक की";
+"This address does not carry a public key." = "इस पते में पब्लिक की नहीं है।";
+"This is the public half of your chatting address. It identifies you and cannot spend anything." = "यह आपके चैट पते का सार्वजनिक हिस्सा है। यह आपकी पहचान बताता है और इससे कुछ भी खर्च नहीं किया जा सकता।";
+"Safe to share" = "साझा करना सुरक्षित";
+"Copy Public Key" = "पब्लिक की कॉपी करें";
+"Remove this account?" = "यह खाता हटाएं?";
+"Couldn't remove" = "हटाया नहीं जा सका";
+"Removing…" = "हटाया जा रहा है…";
+"Remove This Account From the Phone" = "इस खाते को फ़ोन से हटाएं";
+"The account and its message history are deleted from this phone. Nothing on the blockchain changes, and you can add the account again later with its 12 or 24 words." = "खाता और उसकी संदेश हिस्ट्री इस फ़ोन से हटा दी जाती है। ब्लॉकचेन पर कुछ नहीं बदलता, और आप बाद में उसके 12 या 24 शब्दों से खाता फिर जोड़ सकते हैं।";
+"Use All Files" = "सभी फ़ाइलें उपयोग करें";
+"Use This Folder" = "यह फ़ोल्डर उपयोग करें";
+"No subfolders." = "कोई सबफ़ोल्डर नहीं।";
+"Chatting" = "चैटिंग";
+"Spending" = "खर्च";
+"Request" = "अनुरोध";
+"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "कॉलिंग तभी काम करती है जब आपके या जिस व्यक्ति से आप बात करना चाहते हैं, उनके पास Nextcloud Talk सेट किया हुआ हो। अगर किसी के पास भी सेट नहीं है, तो कॉल नहीं की जा सकती।";
+"Continue?" = "जारी रखें?";
+"Enable calls and video calls with %@?" = "%@ के साथ कॉल और वीडियो कॉल चालू करें?";
+"They will be able to call you too." = "वे भी आपको कॉल कर सकेंगे।";
+"Call %@" = "%@ को कॉल करें";
+"%@ wants to switch to video" = "%@ वीडियो पर जाना चाहते हैं";
+"Tap to return" = "वापस जाने के लिए टैप करें";
+"What is a passphrase?" = "पासफ़्रेज़ क्या है?";
+"If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "अगर आपको यकीन नहीं है, तो जवाब लगभग निश्चित रूप से नहीं है। पासफ़्रेज़ वह चीज़ है जिसे आपने जानबूझकर दर्ज किया होता।";
+"No" = "नहीं";
+"Choose your passphrase" = "अपना पासफ़्रेज़ चुनें";
+"Write it down somewhere safe. Without it this account cannot be recovered, even with your 12 or 24 words." = "इसे किसी सुरक्षित जगह लिख लें। इसके बिना यह खाता वापस नहीं पाया जा सकता, आपके 12 या 24 शब्दों के साथ भी नहीं।";
+"It has to be exactly what you used before, including capital letters and spaces." = "यह ठीक वही होना चाहिए जो आपने पहले इस्तेमाल किया था, बड़े अक्षरों और स्पेस समेत।";
+"Re-enter passphrase" = "पासफ़्रेज़ फिर से दर्ज करें";
+"Your chatting address" = "आपका चैट पता";
+"This is the account your 12 or 24 words open on their own." = "यह वह खाता है जो आपके 12 या 24 शब्द अपने आप खोलते हैं।";
+"A different passphrase gives a different address, and a different account." = "अलग पासफ़्रेज़ से अलग पता बनता है, और अलग खाता भी।";
+"This address holds funds, so this looks like the right account." = "इस पते में फंड हैं, इसलिए यह सही खाता लगता है।";
+"No funds on this address. If you expected funds here, check your passphrase." = "इस पते पर कोई फंड नहीं है। अगर आपको यहाँ फंड की उम्मीद थी, तो अपना पासफ़्रेज़ जांचें।";
+"We picked the first address with funds. Tap another if that's not the one you chat from." = "हमने फंड वाला पहला पता चुना है। अगर आप उससे चैट नहीं करते, तो कोई दूसरा चुनने के लिए टैप करें।";
+"Address #%lld" = "पता #%lld";
+"Get KaChat Contacts" = "KaChat संपर्क प्राप्त करें";
+"Return KaChat contacts as JSON strings." = "KaChat संपर्कों को JSON स्ट्रिंग के रूप में लौटाता है।";
+"Search" = "खोजें";
+"Limit" = "सीमा";
+"Returned %lld contacts" = "%lld संपर्क लौटाए गए";
+"Get KaChat Messages" = "KaChat संदेश प्राप्त करें";
+"Return recent KaChat messages as JSON strings." = "हाल के KaChat संदेशों को JSON स्ट्रिंग के रूप में लौटाता है।";
+"Contact" = "संपर्क";
+"Include Outgoing" = "भेजे गए संदेश शामिल करें";
+"Returned %lld messages" = "%lld संदेश लौटाए गए";
+"Send KaChat Message" = "KaChat संदेश भेजें";
+"Send a text message to a KaChat contact." = "KaChat संपर्क को टेक्स्ट संदेश भेजें।";
+"Message sent to %@" = "%@ को संदेश भेजा गया";
+"Send KaChat Payment" = "KaChat भुगतान भेजें";
+"Send a KAS payment to a KaChat contact." = "KaChat संपर्क को KAS भुगतान भेजें।";
+"Note" = "नोट";
+"Payment sent to %@" = "%@ को भुगतान भेजा गया";
+"Send KaChat Audio" = "KaChat ऑडियो भेजें";
+"Send an audio file to a KaChat contact." = "KaChat संपर्क को ऑडियो फ़ाइल भेजें।";
+"Audio File" = "ऑडियो फ़ाइल";
+"Audio sent to %@" = "%@ को ऑडियो भेजा गया";
+"Get Contacts" = "संपर्क प्राप्त करें";
+"Get Messages" = "संदेश प्राप्त करें";
+"Send Message" = "संदेश भेजें";
+"Send Payment" = "भुगतान भेजें";
+"Send Audio" = "ऑडियो भेजें";
+"Backup Your Account To Prevent Loss Of Funds" = "फंड खोने से बचने के लिए अपने खाते का बैकअप लें";
+"You now have funds that aren't backed up." = "अब आपके पास ऐसे फंड हैं जिनका बैकअप नहीं है।";
+"If you lose this phone, your 12 or 24 words are the only way back." = "अगर यह फ़ोन खो गया, तो आपके 12 या 24 शब्द ही वापस आने का एकमात्र रास्ता हैं।";
+"Delete That Screenshot" = "वह स्क्रीनशॉट हटाएं";
+"This account's 12 or 24 words aren't available on this phone." = "इस खाते के 12 या 24 शब्द इस फ़ोन पर उपलब्ध नहीं हैं।";
+"A screenshot of your 12 or 24 words can end up online. Delete it from your photos and write the words on paper instead." = "आपके 12 या 24 शब्दों का स्क्रीनशॉट ऑनलाइन पहुँच सकता है। उसे अपनी फ़ोटो से हटा दें और शब्दों को कागज़ पर लिखें।";
+"Start Backup" = "बैकअप शुरू करें";
+"Show My 12 or 24 Words" = "मेरे 12 या 24 शब्द दिखाएं";
+"Next Words" = "अगले शब्द";
+"I Wrote Them Down" = "मैंने इन्हें लिख लिया";
+"Check My Words" = "मेरे शब्द जांचें";
+"I Wrote It Down" = "मैंने लिख लिया";
+"Check My Passphrase" = "मेरा पासफ़्रेज़ जांचें";
+"Finish Backup" = "बैकअप पूरा करें";
+"Protect your funds" = "अपने फंड की सुरक्षा करें";
+"Your 12 or 24 words are your account" = "आपके 12 या 24 शब्द ही आपका खाता हैं";
+"These secret words are created just for you. They are the master key to your funds." = "ये गोपनीय शब्द सिर्फ़ आपके लिए बनाए गए हैं। ये आपके फंड की मास्टर कुंजी हैं।";
+"Your phone can't be your only copy" = "आपका फ़ोन आपकी इकलौती कॉपी नहीं हो सकता";
+"If you lose, break or replace this phone, these words are the only way back to your account." = "अगर यह फ़ोन खो जाए, टूट जाए या बदल जाए, तो ये शब्द ही आपके खाते तक वापस पहुँचने का एकमात्र रास्ता हैं।";
+"Nobody can reset them" = "इन्हें कोई रीसेट नहीं कर सकता";
+"There is no password reset. KaChat never sees your words, so we can't recover them for you." = "पासवर्ड रीसेट नहीं होता। KaChat आपके शब्द कभी नहीं देखता, इसलिए हम उन्हें आपके लिए वापस नहीं ला सकते।";
+"Get ready" = "तैयार हो जाएं";
+"Your secret words are next. Before you see them:" = "अगले चरण में आपके गोपनीय शब्द हैं। उन्हें देखने से पहले:";
+"I have a pen and paper" = "मेरे पास पेन और कागज़ है";
+"Nobody can see my screen" = "मेरी स्क्रीन कोई नहीं देख सकता";
+"I won't take a photo or screenshot" = "कोई फ़ोटो या स्क्रीनशॉट नहीं लिया जाएगा";
+"Words %lld to %lld of %lld" = "शब्द %lld से %lld, कुल %lld में से";
+"Write down these words" = "ये शब्द लिख लें";
+"Write them on paper in this exact order, with their numbers." = "इन्हें कागज़ पर ठीक इसी क्रम में, उनके नंबरों के साथ लिखें।";
+"That doesn't match. Check your paper, or go back to see the words again." = "यह मेल नहीं खाता। अपना कागज़ जांचें, या शब्द फिर देखने के लिए वापस जाएं।";
+"Check your paper" = "अपना कागज़ जांचें";
+"Tap each box and type that word from what you wrote down, to be sure your copy is right." = "हर बॉक्स पर टैप करें और जो आपने लिखा है, उसमें से वह शब्द टाइप करें, ताकि पक्का हो कि आपकी कॉपी सही है।";
+"See My Words Again" = "मेरे शब्द फिर देखें";
+"Word %lld" = "शब्द %lld";
+"Type word %lld here" = "यहाँ शब्द %lld टाइप करें";
+"Write down your passphrase" = "अपना पासफ़्रेज़ लिख लें";
+"This account also needs its passphrase. Your 12 or 24 words alone won't bring it back. Write it exactly, including capital letters and spaces." = "इस खाते को अपना पासफ़्रेज़ भी चाहिए। सिर्फ़ आपके 12 या 24 शब्द इसे वापस नहीं लाएंगे। उसे ठीक वैसे ही लिखें, बड़े अक्षरों और स्पेस समेत।";
+"That doesn't match. Check your paper, or go back to see it again." = "यह मेल नहीं खाता। अपना कागज़ जांचें, या इसे फिर देखने के लिए वापस जाएं।";
+"Check your passphrase" = "अपना पासफ़्रेज़ जांचें";
+"Enter it from what you wrote down. It has to match exactly." = "जो आपने लिखा है, उसी से दर्ज करें। यह बिल्कुल मेल खाना चाहिए।";
+"Keep it safe" = "इसे सुरक्षित रखें";
+"Your copy is right. Now keep it that way." = "आपकी कॉपी सही है। अब इसे ऐसे ही बनाए रखें।";
+"Keep it on paper" = "इसे कागज़ पर रखें";
+"Store it somewhere safe and private, away from fire and water." = "इसे किसी सुरक्षित और निजी जगह पर रखें, आग और पानी से दूर।";
+"Never keep it online" = "इसे कभी ऑनलाइन न रखें";
+"No photos, screenshots, cloud storage, notes apps, email or chats." = "फ़ोटो, स्क्रीनशॉट, क्लाउड स्टोरेज, नोट्स ऐप, ईमेल या चैट में नहीं।";
+"Never share it" = "इसे कभी साझा न करें";
+"Nobody needs your words. KaChat and real support will never ask for them. Anyone who asks is trying to take your funds." = "आपके शब्दों की किसी को ज़रूरत नहीं है। KaChat और असली सपोर्ट कभी उन्हें नहीं माँगेंगे। जो भी माँगे, वह आपके फंड चुराने की कोशिश कर रहा है।";
+"Keep your passphrase apart" = "अपना पासफ़्रेज़ अलग रखें";
+"Store it away from your 12 or 24 words. You need both, and losing either one loses the account." = "इसे अपने 12 या 24 शब्दों से अलग रखें। दोनों चाहिए, और किसी एक के खोने से खाता खो जाता है।";
+"You can see it again" = "आप इसे फिर देख सकते हैं";
+"Your 12 or 24 words stay available in Settings > Back Up Account." = "आपके 12 या 24 शब्द सेटिंग्स > खाते का बैकअप लें में उपलब्ध रहेंगे।";
+"Backup Hygiene" = "बैकअप की अच्छी आदतें";
+"Let's ensure your account is backed up in case you lose access to your phone." = "आइए पक्का करें कि फ़ोन तक पहुँच खोने की स्थिति में आपके खाते का बैकअप मौजूद है।";
+"Enter these %lld of your 12 or 24 words. Each box shows the word's number." = "अपने 12 या 24 शब्दों में से ये %lld दर्ज करें। हर बॉक्स में शब्द का नंबर दिखता है।";
+"Some of those words don't match. Check your paper and try again." = "इनमें से कुछ शब्द मेल नहीं खाते। अपना कागज़ जांचें और फिर कोशिश करें।";
+"Now enter your passphrase" = "अब अपना पासफ़्रेज़ दर्ज करें";
+"Your 12 or 24 words alone won't bring this account back. Enter the passphrase from what you wrote down, exactly, including capital letters and spaces." = "सिर्फ़ आपके 12 या 24 शब्द इस खाते को वापस नहीं लाएंगे। जो आपने लिखा है उसमें से पासफ़्रेज़ ठीक वैसे ही दर्ज करें, बड़े अक्षरों और स्पेस समेत।";
+"That doesn't match. Check your paper and try again." = "यह मेल नहीं खाता। अपना कागज़ जांचें और फिर कोशिश करें।";
+"Can't Complete This" = "यह पूरा नहीं हो सकता";
+"Your backup is good" = "आपका बैकअप सही है";
+"We'll check again in 6 months." = "हम 6 महीने बाद फिर जांचेंगे।";
+"Requesting camera access..." = "कैमरा एक्सेस माँगा जा रहा है...";
+"No UTXOs found at this address." = "इस पते पर कोई UTXO नहीं मिला।";
+"Automatic (Clear Selection)" = "स्वचालित (चयन हटाएं)";
+"Use Automatic Selection" = "स्वचालित चयन उपयोग करें";
+"Confirm Selection" = "चयन की पुष्टि करें";
+"Chat info for %@" = "%@ की चैट जानकारी";
+"Open active chess game" = "चालू शतरंज गेम खोलें";
+"This only deletes the message from this device - the recipient still has their own copy, and the encrypted transaction remains permanently on the Kaspa blockchain, visible to anyone but unreadable without your keys. This cannot be undone." = "यह संदेश सिर्फ़ इस डिवाइस से हटाता है - पाने वाले के पास उसकी अपनी कॉपी रहती है, और एन्क्रिप्टेड लेन-देन हमेशा के लिए Kaspa ब्लॉकचेन पर रहता है, सबको दिखता है पर आपकी कुंजियों के बिना पढ़ा नहीं जा सकता। इसे पूर्ववत नहीं किया जा सकता।";
+"Handshake sent - send again" = "संचार अनुरोध भेजा गया - फिर भेजें";
+"Timed games count down only while the board is open on your turn." = "टाइमर वाले गेम की घड़ी तभी चलती है जब आपकी बारी में बोर्ड खुला हो।";
+"Fund your chatting address to start chatting" = "चैट शुरू करने के लिए अपने चैट पते में फंड डालें";
+"Copy chatting address" = "चैट पता कॉपी करें";
+"Chess game invite sent" = "शतरंज गेम का आमंत्रण भेजा गया";
+"Invited you to a game of chess" = "शतरंज खेलने का आमंत्रण";
+"Handshake completed" = "संचार अनुरोध पूरा हुआ";
+"%@ sent a photo" = "%@ ने एक फ़ोटो भेजी";
+"It shows 10 minutes after you have both sent a message." = "यह तब दिखता है जब आप दोनों संदेश भेज चुके हों, उसके 10 मिनट बाद।";
+"Voice message unavailable" = "वॉइस संदेश उपलब्ध नहीं";
+"Tap to retry" = "फिर कोशिश करने के लिए टैप करें";
+"Loading…" = "लोड हो रहा है…";
+"Where are your 12 or 24 words from?" = "आपके 12 या 24 शब्द कहाँ से हैं?";
+"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "अलग-अलग वॉलेट आपका Kaspa अलग-अलग पता पाथ पर रखते हैं। चुनें कि ये शब्द कहाँ से आए हैं, ताकि KaChat आपके फंड और डोमेन ढूंढ सके।";
+"Restore from NFC Card" = "NFC कार्ड से बहाल करें";
+"NFC Card Backup" = "NFC कार्ड बैकअप";
+"Erase the backup on this card?" = "इस कार्ड का बैकअप मिटाएं?";
+"Replace the backup on this card?" = "इस कार्ड का बैकअप बदलें?";
+"Backup saved" = "बैकअप सहेजा गया";
+"It was read back from the card and checked. To restore it, choose Import Existing Account, then Restore from NFC Card, and enter your PIN and passphrase. Your passphrase isn't on the card, so keep it and your written 12 or 24 words safe." = "इसे कार्ड से वापस पढ़कर जांचा गया। इसे बहाल करने के लिए, मौजूदा खाता आयात करें चुनें, फिर NFC कार्ड से बहाल करें चुनें, और अपना PIN और पासफ़्रेज़ दर्ज करें। आपका पासफ़्रेज़ कार्ड पर नहीं है, इसलिए उसे और अपने लिखे हुए 12 या 24 शब्दों को सुरक्षित रखें।";
+"Backup erased" = "बैकअप मिटा दिया गया";
+"The backup and PIN are gone from this card. The next backup on it will ask you to set a new PIN." = "बैकअप और PIN इस कार्ड से हट गए हैं। इस पर अगला बैकअप नया PIN सेट करने को कहेगा।";
+"The backup is gone from this card. Its PIN stays the same." = "बैकअप इस कार्ड से हट गया है। इसका PIN वही रहता है।";
+"Erase Backup" = "बैकअप मिटाएं";
+"This can't be undone." = "इसे पूर्ववत नहीं किया जा सकता।";
+"Replace Backup" = "बैकअप बदलें";
+"The old backup is removed once the new one is confirmed." = "नए बैकअप की पुष्टि होने के बाद पुराना बैकअप हटा दिया जाता है।";
+"Back up to an NFC card" = "NFC कार्ड पर बैकअप लें";
+"Saves this account's 12 or 24 words on your card, behind a 6-digit PIN." = "इस खाते के 12 या 24 शब्द 6 अंकों के PIN के पीछे आपके कार्ड में सहेजता है।";
+"Your passphrase is never saved to the card. You'll enter it when you restore, and it's what keeps this account safe if someone gets past the PIN." = "आपका पासफ़्रेज़ कभी कार्ड पर सहेजा नहीं जाता। बहाल करते समय आप इसे दर्ज करेंगे, और अगर कोई PIN पार कर ले तो यही इस खाते को सुरक्षित रखता है।";
+"This isn't cold storage. The card only holds a copy and never creates keys, so keep your 12 or 24 words and passphrase written down too." = "यह कोल्ड स्टोरेज नहीं है। कार्ड सिर्फ़ एक कॉपी रखता है और कभी की नहीं बनाता, इसलिए अपने 12 या 24 शब्द और पासफ़्रेज़ भी लिखकर रखें।";
+"Your card needs the KaChat-NFC software first. Load it from the NFC Card page in Kaspa Quick Start." = "आपके कार्ड को पहले KaChat-NFC सॉफ़्टवेयर चाहिए। इसे Kaspa Quick Start में NFC कार्ड पेज से लोड करें।";
+"Erase a Backup on a Card" = "कार्ड से बैकअप मिटाएं";
+"%lld PIN tries left on this card." = "इस कार्ड पर PIN के %lld प्रयास बचे हैं।";
+"Pick one you'll remember. After 5 wrong tries the PIN is blocked, and the only fix is reloading the card in Kaspa Quick Start, which erases it." = "कोई ऐसा चुनें जो आपको याद रहे। 5 गलत प्रयासों के बाद PIN ब्लॉक हो जाता है, और एकमात्र उपाय Kaspa Quick Start में कार्ड को दोबारा लोड करना है, जिससे वह मिट जाता है।";
+"This card already holds a backup. Saving replaces it once the new one is confirmed." = "इस कार्ड पर पहले से बैकअप है। नए की पुष्टि होने पर सहेजने से वह बदल जाएगा।";
+"New 6-digit PIN" = "नया 6 अंकों का PIN";
+"Save to Card" = "कार्ड में सहेजें";
+"Erase a backup" = "बैकअप मिटाएं";
+"Enter the card's PIN, then tap the card to erase the backup on it." = "कार्ड का PIN दर्ज करें, फिर उस पर मौजूद बैकअप मिटाने के लिए कार्ड को फ़ोन से छुआएं।";
+"Create group" = "समूह बनाएं";
+"Create" = "बनाएं";
+"Create \"%@\" and invite %lld member%@?%@" = "“%@” बनाएं और %lld सदस्य%@ को आमंत्रित करें?%@";
+"Add\nPhoto" = "फ़ोटो\nजोड़ें";
+"Add to Group" = "समूह में जोड़ें";
+"Remove from group" = "समूह से हटाएं";
+"Already added to this group" = "पहले से इस समूह में जोड़ा जा चुका है";
+"Could not derive addresses from these words. Please try again." = "इन शब्दों से पते नहीं निकाले जा सके। कृपया फिर कोशिश करें।";
+"Choose Your Chatting Address" = "अपना चैट पता चुनें";
+"Scanning addresses %lld to %lld..." = "पते %lld से %lld तक स्कैन हो रहे हैं...";
+"Checking this wallet's address..." = "इस वॉलेट का पता जांचा जा रहा है...";
+"Scanned the first %lld addresses." = "पहले %lld पते स्कैन किए गए।";
+"This wallet type has a single address, so there is nothing further to scan." = "इस वॉलेट प्रकार में एक ही पता होता है, इसलिए आगे स्कैन करने के लिए कुछ नहीं है।";
+"Scan Further" = "आगे स्कैन करें";
+"Current" = "वर्तमान";
+"Switch Chatting Address?" = "चैट पता बदलें?";
+"Copied to clipboard" = "क्लिपबोर्ड पर कॉपी किया गया";
+"Tap the address to copy it" = "पता कॉपी करने के लिए उस पर टैप करें";
+"Current Chatting Address" = "वर्तमान चैट पता";
+"Set as Chatting Address" = "चैट पते के रूप में सेट करें";
+"Switch" = "बदलें";
+"These words already have conversations on the current chatting address. Switching starts fresh with the new address. Your existing conversations stay with the old address and are not deleted." = "इन शब्दों की मौजूदा चैट पते पर पहले से बातचीत है। बदलने पर नए पते के साथ नई शुरुआत होती है। आपकी मौजूदा बातचीत पुराने पते के साथ रहती है और हटाई नहीं जाती।";
+"Done editing" = "संपादन हो गया";
+"Enter account name" = "खाते का नाम दर्ज करें";
+"Confirm deleting this account" = "इस खाते को हटाने की पुष्टि करें";
+"Fee (KAS)" = "शुल्क (KAS)";
+"fee: %@ KAS" = "शुल्क: %@ KAS";
+"This permanently deletes every message in each selected chat from this device. This cannot be undone." = "यह चुनी गई हर चैट के सभी संदेश इस डिवाइस से हमेशा के लिए हटा देता है। इसे पूर्ववत नहीं किया जा सकता।";
+"Confirm sending Kaspa" = "Kaspa भेजने की पुष्टि करें";
+"From:" = "प्रेषक:";
+"Accepted your request to communicate" = "आपका संचार अनुरोध स्वीकार किया गया";
+"Sent you a message" = "आपको एक संदेश भेजा";
+"[Payment]" = "[भुगतान]";
+"My Account" = "मेरा खाता";
+"Re-sync %lld Chat%@" = "%lld चैट फिर से सिंक करें%@";
+"Re-synced %lld incoming message%@ across %lld chat%@." = "%lld आने वाले संदेश%@ और %lld चैट%@ फिर से सिंक किए गए।";
+"Group Invites" = "समूह आमंत्रण";
+"Group Invite" = "समूह आमंत्रण";
+"Invited by %@" = "%@ का आमंत्रण";
+"People and groups waiting for you" = "लोग और समूह आपका इंतज़ार कर रहे हैं";
+"You're not in this group unless you accept. Rejecting removes the invite." = "जब तक आप स्वीकार नहीं करते, आप इस समूह में नहीं हैं। अस्वीकार करने पर आमंत्रण हट जाता है।";
+"Invited" = "आमंत्रित";
+"Declined" = "अस्वीकार किया";
+"You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "जब तक आप स्वीकार नहीं करते, आप इस समूह में नहीं हैं। आपका जवाब एक छोटे एन्क्रिप्टेड लेनदेन के रूप में जाता है, ताकि समूह और आपके अन्य डिवाइस को पता चले।";

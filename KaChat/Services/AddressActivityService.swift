@@ -63,12 +63,6 @@ enum AddressActivityService {
         return unavailable ? nil : merged
     }
 
-    /// Just the set that has ever been used, for callers that do not need the timestamps.
-    static func activeAddresses(in addresses: [String]) async -> Set<String>? {
-        guard let map = await lastActivity(for: addresses) else { return nil }
-        return Set(map.keys)
-    }
-
     // MARK: - Wire
 
     private static func requestBatch(_ addresses: [String]) async -> [String: Int64]? {

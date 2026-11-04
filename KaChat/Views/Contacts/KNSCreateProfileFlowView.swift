@@ -561,7 +561,7 @@ struct KNSCreateProfileFlowView: View {
 
                 Text(foundDomains.isEmpty
                      ? "No domains on this address yet."
-                     : "\(foundDomains.count) domain\(foundDomains.count == 1 ? "" : "s") found on this address.")
+                     : "\(foundDomains.count) domain\(pluralS(foundDomains.count)) found on this address.")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
@@ -636,8 +636,7 @@ struct KNSCreateProfileFlowView: View {
 
 // MARK: - Step 1: Domain creation
 
-/// Mirrors `KNSDomainInscribeSheet`'s availability-check/fee/submit logic (ContactsView.swift),
-/// restyled as a full-screen wizard step instead of a form sheet.
+/// The availability check, fee and submit, as a full-screen wizard step.
 private struct KNSDomainCreationStepView: View {
     let walletAddress: String
     let existingDomain: String?

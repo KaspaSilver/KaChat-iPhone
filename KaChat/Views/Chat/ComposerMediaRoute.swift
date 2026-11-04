@@ -14,8 +14,8 @@ enum ComposerMediaKind: Equatable {
 }
 
 enum ComposerMediaLimits {
-    /// Ceiling for a voice note uploaded to Nextcloud, everywhere in the app (1:1, groups and
-    /// public chats). On-chain voice notes are payload-bound: ~25 s in 1:1, ~10 s elsewhere.
+    /// Ceiling for a voice note uploaded to Nextcloud, everywhere in the app (1:1 and groups).
+    /// On-chain voice notes are payload-bound: ~25 s in 1:1, ~10 s elsewhere.
     static let nextcloudVoiceSeconds: TimeInterval = 300
 }
 
@@ -24,7 +24,7 @@ enum ComposerMediaLimits {
 struct ComposerMediaRouteStep: View {
     let kind: ComposerMediaKind
     /// The on-chain voice cap of the chat that opened this: 25 s in 1:1 chats (binary media
-    /// frame), 10 s in groups and public chats, whose payloads are unchanged.
+    /// frame), 10 s in groups, whose payloads are unchanged.
     var onChainVoiceSeconds: Int = 10
     let onChoose: (_ viaNextcloud: Bool) -> Void
     let onBack: () -> Void

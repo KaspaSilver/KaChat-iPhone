@@ -26,11 +26,6 @@ struct SavedAccountSummary: Identifiable, Equatable, Codable {
         return "kaspa:\(publicAddress)"
     }
 
-    var shortPublicKey: String {
-        guard publicKey.count > 24 else { return publicKey }
-        return "\(publicKey.prefix(12))...\(publicKey.suffix(8))"
-    }
-
     init(wallet: Wallet) {
         self.alias = wallet.alias
         self.publicAddress = wallet.publicAddress
@@ -127,9 +122,6 @@ final class WalletManager: ObservableObject {
     @Published var currentWallet: Wallet?
     @Published var isLoading = true
     @Published var error: KasiaError?
-    /// Not @Published: nothing renders it, and each toggle published the whole WalletManager -
-    /// which every tab root, the chat list and its rows observe - twice per balance refresh.
-    var isBalanceRefreshing = false
     /// When `refreshBalance` last finished for which address, so the half-dozen callers that
     /// fire together on a tab switch share one network round trip.
     private var lastBalanceRefresh: (address: String, at: Date, total: UInt64)?
@@ -151,7 +143,7 @@ final class WalletManager: ObservableObject {
     /// written down my seed phrase...", and by `ImportWalletView` when importing an existing
     /// account - lets the main app show the Welcome Guide automatically after onboarding, whether
     /// the account was freshly created or imported. Deliberately NOT set by
-    /// `WalletManager.createWallet` itself, which returns well before the seed phrase has actually
+    /// wallet creation itself, which returns well before the seed phrase has actually
     /// been shown/acknowledged - setting it there would let the guide launch before the user has
     /// had a chance to write anything down. The onboarding views set it *before* the commit call
     /// (see `CreateWalletView`/`ImportWalletView`) so it's already true when `MainTabView` first
@@ -160,7 +152,7 @@ final class WalletManager: ObservableObject {
     /// guide, so this is a one-shot signal, not a flag.
     @Published var justCreatedNewWallet = false
 
-    /// True from the moment `createWallet` starts generating a brand-new wallet until
+    /// True from the moment creation starts generating a brand-new wallet until
     /// `CreateWalletView`'s "Continue to App" button clears it (after the user confirms they've
     /// written down the seed phrase) - `ContentView`/`LaunchRouter` treat this as "stay on
     /// onboarding" even though `currentWallet` is already non-nil by then, closing the race where
@@ -180,30 +172,6 @@ final class WalletManager: ObservableObject {
     /// in-memory only, like `justCreatedNewWallet` - an app kill mid-wizard loses it, which just
     /// hides the option on the resumed run.
     @Published var justImportedWallet = false
-
-    /// Per-wallet ("account") toggle for whether the "Setup Guide" re-entry points (the Profile
-    /// tab's "Welcome Guide" row and the "Edit KaChat Profile" screen's "Setup Guide" button) are
-    /// shown - scoped to `currentWallet?.publicAddress` rather than global `AppSettings`, mirroring
-    /// `spendingDefaultsKey` in `WalletManager+SpendingAddresses.swift`, so switching to a
-    /// different account on the same device doesn't carry the choice over. Defaults to `true`
-    /// (unset key) to match pre-existing behavior for anyone who had these guides visible before
-    /// this toggle existed.
-    var showSetupGuides: Bool {
-        get {
-            guard let key = showSetupGuidesDefaultsKey else { return true }
-            return UserDefaults.standard.object(forKey: key) as? Bool ?? true
-        }
-        set {
-            guard let key = showSetupGuidesDefaultsKey else { return }
-            UserDefaults.standard.set(newValue, forKey: key)
-            objectWillChange.send()
-        }
-    }
-
-    private var showSetupGuidesDefaultsKey: String? {
-        guard let address = currentWallet?.publicAddress else { return nil }
-        return "kachat_show_setup_guides_\(address)"
-    }
 
     private let keychainService = KeychainService.shared
     private let bip39 = BIP39.shared
@@ -283,7 +251,6 @@ final class WalletManager: ObservableObject {
                 if UserDefaults.standard.bool(forKey: logoutFlagKey), !force {
                     updateSavedAccounts(from: wallet)
                     currentWallet = nil
-                    isBalanceRefreshing = false
                     isLoggedOut = true
                     ContactsManager.shared.setActiveWalletAddress(nil)
                     await MessageStore.shared.setCurrentWallet(nil)
@@ -306,7 +273,6 @@ final class WalletManager: ObservableObject {
                     updateSavedAccounts(from: wallet)
                     walletNeedingKeyRecovery = wallet
                     currentWallet = nil
-                    isBalanceRefreshing = false
                     SharedDataManager.setPrivateKeyAvailable(false)
                     return
                 }
@@ -323,7 +289,6 @@ final class WalletManager: ObservableObject {
                 }
                 self.currentWallet = updated
                 migrateSpendingBoundsIfNeeded()
-                isBalanceRefreshing = true
                 ContactsManager.shared.setActiveWalletAddress(canonicalWallet.publicAddress)
                 ChatService.shared.loadChatListSnapshot(for: canonicalWallet.publicAddress)
                 SharedDataManager.syncWalletAddressForExtension()
@@ -351,7 +316,6 @@ final class WalletManager: ObservableObject {
             hasStoredWallet = !savedAccounts.isEmpty
             isLoggedOut = false
             currentWallet = nil
-            isBalanceRefreshing = false
             UserDefaults.standard.removeObject(forKey: logoutFlagKey)
             ContactsManager.shared.setActiveWalletAddress(nil)
             await MessageStore.shared.setCurrentWallet(nil)
@@ -423,15 +387,6 @@ final class WalletManager: ObservableObject {
         return "\(base) \(number)"
     }
 
-    /// Convenience one-shot create (generate + commit with no passphrase). Retained for callers
-    /// that don't run the interactive onboarding flow; the UI uses generate/commit separately so
-    /// it can insert the passphrase step in between.
-    func createWallet(alias: String = "My Account", wordCount: Int = 24) async throws -> (wallet: Wallet, seedPhrase: SeedPhrase) {
-        let seedPhrase = try await generateNewWalletSeedPhrase(wordCount: wordCount)
-        let wallet = try await commitCreatedWallet(seedPhrase: seedPhrase, passphrase: "", alias: alias)
-        return (wallet, seedPhrase)
-    }
-
     /// - Parameter chattingAddressIndex: derivation index on the identity chain
     ///   (m/44'/111111'/0'/0/<index>) the chatting address should live at. 0 (the default) is the
     ///   standard identity every fresh import/create starts from; a nonzero value is only ever
@@ -494,7 +449,6 @@ final class WalletManager: ObservableObject {
             updated.balanceSompi = cached
         }
         self.currentWallet = updated
-        isBalanceRefreshing = true
         updateSavedAccounts(from: wallet)
         isLoggedOut = false
         UserDefaults.standard.removeObject(forKey: logoutFlagKey)
@@ -621,7 +575,6 @@ final class WalletManager: ObservableObject {
         currentWallet = nil
         updateSavedAccounts(from: nil)
         isLoggedOut = false
-        isBalanceRefreshing = false
         UserDefaults.standard.removeObject(forKey: logoutFlagKey)
         if let walletAddressToDelete {
             ChatListSnapshotStore.clear(walletAddress: walletAddressToDelete)
@@ -650,7 +603,6 @@ final class WalletManager: ObservableObject {
         updateSavedAccounts(from: wallet)
         currentWallet = nil
         cachedPrivateKey = nil
-        isBalanceRefreshing = false
         isLoggedOut = true
         UserDefaults.standard.set(true, forKey: logoutFlagKey)
         ContactsManager.shared.setActiveWalletAddress(nil)
@@ -661,15 +613,6 @@ final class WalletManager: ObservableObject {
         SharedDataManager.syncWalletAddressForExtension()
         NotificationCenter.default.post(name: .settingsDidChange, object: nil)
         SharedDataManager.setPrivateKeyAvailable(false)
-    }
-
-    /// Signs back in using wallet data already stored on this device.
-    func signInToStoredWallet() async {
-        resetInMemoryChatStateForAccountSwitch()
-        await loadWallet(force: true)
-        if currentWallet != nil {
-            ChatService.shared.startPolling()
-        }
     }
 
     @discardableResult
@@ -746,11 +689,24 @@ final class WalletManager: ObservableObject {
                     try? keychainService.deleteAccountSnapshot(publicAddress: address)
                 }
                 for address in Self.accountAddressVariants(account.publicAddress) {
+                    // Its messages and groups too, but only from the sign-in screen, where no
+                    // account has these stores open: never pull them out from under a signed-in one.
+                    if currentWallet == nil {
+                        await MessageStore.shared.setCurrentWallet(address)
+                        MessageStore.shared.clearAll()
+                        await MessageStore.shared.destroyLocalStoreFiles()
+                        await GroupChatService.shared.wipeLocalData(forWallet: address)
+                    }
+                    ChatListSnapshotStore.clear(walletAddress: address)
                     ContactsManager.shared.deletePersistedContacts(forWalletAddress: address)
                     NextcloudService.shared.purgeStoredState(forWalletAddress: address)
                     await KachatNameReminders.removeAll(forWallet: address)
                     AddressBookManager.shared.removeAllData(forWalletAddress: address)
                     GlobalNotificationCenter.removeAllData(forWalletAddress: address)
+                }
+                if currentWallet == nil {
+                    await MessageStore.shared.setCurrentWallet(nil)
+                    GroupChatService.shared.setCurrentWallet(nil)
                 }
                 AccountBackupStatus.shared.forget(account.publicAddress)
                 removeSavedAccountFromStorage(account)
@@ -772,8 +728,8 @@ final class WalletManager: ObservableObject {
             await MessageStore.shared.setCurrentWallet(address)
             MessageStore.shared.clearAll()
             await MessageStore.shared.destroyLocalStoreFiles()
-            GroupChatService.shared.setCurrentWallet(address)
-            GroupChatService.shared.clearAllLocalData()
+            await GroupChatService.shared.wipeLocalData(forWallet: address)
+            ChatListSnapshotStore.clear(walletAddress: address)
             NextcloudService.shared.purgeStoredState(forWalletAddress: address)
             AddressBookManager.shared.removeAllData(forWalletAddress: address)
             GlobalNotificationCenter.removeAllData(forWalletAddress: address)
@@ -793,7 +749,6 @@ final class WalletManager: ObservableObject {
         AccountBackupStatus.shared.forget(account.publicAddress)
         removeSavedAccountFromStorage(account)
         currentWallet = nil
-        isBalanceRefreshing = false
         isLoggedOut = false
         UserDefaults.standard.removeObject(forKey: logoutFlagKey)
 
@@ -823,16 +778,6 @@ final class WalletManager: ObservableObject {
         updateSavedAccounts(from: wallet)
         guard let account = savedAccounts.first else { return }
         await removeSavedAccount(account)
-    }
-
-    func updateAlias(_ alias: String) async throws {
-        guard var wallet = currentWallet else {
-            throw KasiaError.walletNotFound
-        }
-        wallet.alias = alias
-        try await saveWalletOnly(wallet)
-        currentWallet = wallet
-        updateSavedAccounts(from: wallet)
     }
 
     func getSeedPhrase() throws -> SeedPhrase? {
@@ -1171,8 +1116,6 @@ final class WalletManager: ObservableObject {
            Date().timeIntervalSince(last.at) < 5 {
             return last.total
         }
-        isBalanceRefreshing = true
-        defer { isBalanceRefreshing = false }
         let utxos = try await nodePool.getUtxosByAddresses([wallet.publicAddress])
         let total = utxos.reduce(0) { $0 + $1.amount }
         await MainActor.run {
@@ -1197,7 +1140,6 @@ final class WalletManager: ObservableObject {
         updated.balanceSompi = total
         currentWallet = updated
         storeCachedBalance(total, for: address)
-        isBalanceRefreshing = false
     }
 
     private func balanceCacheKey(for address: String) -> String {
@@ -1732,8 +1674,7 @@ final class WalletManager: ObservableObject {
     /// private key (re-derived for the chosen index), `currentWallet`/`publicAddress`,
     /// `getPrivateKey()` (handshakes/ECIES encryption), ContactsManager scope, MessageStore's
     /// per-wallet SQLite (a fresh file keyed by the new address - the old address's store was
-    /// empty since no conversations existed), Public Chat/Group/ColdStorage/
-    /// Portfolio scopes, share-extension shared data, and ChatService polling + UTXO
+    /// empty since no conversations existed), the group scope, share-extension shared data, and ChatService polling + UTXO
     /// subscriptions (restarted for the new address; push registration always reads
     /// `currentWallet.publicAddress` live at register time).
     func setChattingAddress(index: Int) async throws {

@@ -813,37 +813,4 @@ final class UtxoSubscriptionManager: ObservableObject {
             AppLog.log("[UtxoSub] Resubscription after epoch change failed: %@", error.localizedDescription)
         }
     }
-
-    // MARK: - Manual Triggers
-
-    /// Force failover to standby (for testing)
-    func forceFailover() async {
-        await performFailover()
-    }
-
-    /// Force resync UTXO state
-    func forceResync() async {
-        await resyncUtxoState()
-    }
-
-    /// Get current status for UI
-    var statusDescription: String {
-        var parts: [String] = []
-        parts.append(String(describing: state))
-
-        if let primary = primaryEndpoint {
-            parts.append("primary: \(primary.host)")
-        }
-
-        if let standby = standbyEndpoint {
-            parts.append("standby: \(standby.host)")
-        }
-
-        if let lastNotif = lastNotificationAt {
-            let ago = Int(Date().timeIntervalSince(lastNotif))
-            parts.append("last notification: \(ago)s ago")
-        }
-
-        return parts.joined(separator: ", ")
-    }
 }

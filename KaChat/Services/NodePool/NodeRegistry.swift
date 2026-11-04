@@ -154,11 +154,6 @@ actor NodeRegistry {
         records[key]
     }
 
-    /// Get all endpoints
-    func allEndpoints() -> [Endpoint] {
-        records.values.map { $0.endpoint }
-    }
-
     /// Get all records
     func allRecords() -> [NodeRecord] {
         Array(records.values)
@@ -334,14 +329,6 @@ actor NodeRegistry {
             records[key]?.updateState()
         }
         AppLog.log("[NodeRegistry] Reset epoch stats for %d nodes (epoch: %d)", records.count, newEpochId)
-        scheduleSave()
-    }
-
-    /// Set node state directly
-    func setState(_ endpoint: Endpoint, state: NodeState) {
-        guard var record = records[endpoint.key] else { return }
-        record.state = state
-        records[endpoint.key] = record
         scheduleSave()
     }
 
@@ -693,16 +680,6 @@ actor NodeRegistry {
             }
         }
         return (failedKeys.count, succeeded, failedKeys)
-    }
-
-    /// Average latency of active nodes
-    func averageActiveLatency() -> Double? {
-        let activeLatencies = records.values
-            .filter { $0.state == .active }
-            .compactMap { $0.health.latencyMs.value ?? $0.health.globalLatencyMs.value }
-
-        guard !activeLatencies.isEmpty else { return nil }
-        return activeLatencies.reduce(0, +) / Double(activeLatencies.count)
     }
 
     // MARK: - Persistence

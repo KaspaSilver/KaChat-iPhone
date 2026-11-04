@@ -32,11 +32,6 @@
 "Chat Info" = "Info del chat";
 "Chat archived." = "Chat archivado.";
 "Chats" = "Chats";
-"Checking eligibility..." = "Verificando elegibilidad...";
-"Checking gift eligibility..." = "Verificando elegibilidad del regalo...";
-"Claim Gift" = "Reclamar regalo";
-"Claim some KAS to get started with your new account." = "Reclama algo de KAS para comenzar con tu nueva cuenta.";
-"Claiming gift..." = "Reclamando regalo...";
 "Clear" = "Borrar";
 "Clear Connection Pool" = "Vaciar pool de conexiones";
 "Clear Link" = "Borrar enlace";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "Error al vincular contacto del sistema.";
 "Failed to open archive: \(error.localizedDescription)" = "Error al abrir archivo: \(error.localizedDescription)";
 "Generate Account" = "Generar cuenta";
-"Gift" = "Regalo";
-"Gift already claimed" = "Regalo ya reclamado";
-"Gift claim reset. You can request it again." = "Reclamacion de regalo reiniciada. Puedes solicitarlo de nuevo.";
-"Gift claimed" = "Regalo reclamado";
-"Gift sent to your wallet!" = "¡Regalo enviado a tu billetera!";
-"Gift unavailable" = "Regalo no disponible";
 "Request to communicate" = "Solicitar comunicación";
 "Send audio" = "Enviar audio";
 "Send KAS" = "Enviar KAS";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "Ocultar chats de pago creados automaticamente";
 "High Transaction Traffic" = "Alto trafico de transacciones";
 "I have written down my seed phrase and stored it securely" = "He anotado mi seed phrase y la he almacenado de forma segura";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "Si el reclamo falla porque la billetera de donaciones se queda sin fondos temporalmente, inténtalo de nuevo más tarde.";
 "Import" = "Importar";
 "Import Account" = "Importar cuenta";
 "Import Chat History" = "Importar historial de chat";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "Grabando... \\(Int(recordingDuration))s";
 "Refresh Pool" = "Actualizar pool";
 "Refresh Pool Now" = "Actualizar pool ahora";
-"Registered" = "Registrado";
 "Remove Saved Account" = "Eliminar cuenta guardada";
 "Remove from Device" = "Eliminar del dispositivo";
 "Required for cross-device sync and backup of sent messages." = "Requerido para sincronizacion entre dispositivos y respaldo de mensajes enviados.";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "Esta cuenta sera eliminada de este dispositivo.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Este contacto sera vinculado despues de crearse. Aun necesitas ingresar una direccion Kaspa o dominio KNS.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "Esto elimina todos los datos locales y registros de mensajes de CloudKit. Esto no se puede deshacer.";
-"This device has already received the welcome gift." = "Este dispositivo ya recibió el regalo de bienvenida.";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "Esto elimina \(account.displayAlias) (\(account.shortPublicAddress)) y sus datos locales de este dispositivo.";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "Esto elimina \\(account.displayAlias) (\\(account.shortPublicAddress)) y sus datos locales de este dispositivo.";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "Esto elimina todos los mensajes entrantes localmente y en iCloud, luego los re-sincroniza desde la blockchain. Tu informacion de cuenta y mensajes enviados se preservan.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "Esto elimina los nodos descubiertos, desconecta las sesiones actuales y reinicia el descubrimiento.";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "Esto elimina los datos de cuenta locales y los mensajes. La sincronizacion de CloudKit se deshabilita durante el borrado y se reactiva despues.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "Esto cierra sesion en tu cuenta, pero mantiene los datos de billetera y mensajes en este dispositivo.";
-"This welcome gift is a community-funded initiative." = "Este regalo de bienvenida es una iniciativa financiada por la comunidad.";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "Esto eliminara permanentemente tu cuenta de este dispositivo. Asegurate de haber respaldado tu seed phrase.";
 "To receive notifications, please enable them in Settings." = "Para recibir notificaciones, habilitelas en Ajustes.";
 "Total" = "Total";
@@ -292,7 +277,6 @@
 "Voice message" = "Mensaje de voz";
 "Watching" = "Observando";
 "Website" = "Sitio web";
-"Welcome Gift" = "Regalo de bienvenida";
 "Welcome to KaChat!" = "¡Bienvenido a KaChat!";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "Cuando esta deshabilitado, los mensajes de este contacto se obtendran periodicamente en lugar de en tiempo real. Usa esto para contactos con alto volumen de transacciones para ahorrar bateria y uso de red.";
 "Wipe Account & Messages" = "Borrar cuenta y mensajes";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "Renuévalo pronto para conservarlo.";
 "Renew it soon or anyone can claim it." = "Renuévalo pronto o cualquiera podrá reclamarlo.";
-"%@ has lapsed" = "%@ ha caducado";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "Ahora cualquiera puede reclamarlo. Reclámalo tú para recuperar tu fianza.";
 "Offer on %@ declined" = "Oferta por %@ rechazada";
 "The owner declined it. The KAS is back with you." = "El dueño la rechazó. Los KAS volvieron a ti.";
 "Offer on %@ expired" = "Oferta por %@ vencida";
 "Nobody accepted it in time. The KAS is back with you." = "Nadie la aceptó a tiempo. Los KAS volvieron a ti.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "Ya no es tuyo y pasó a Reclamables en el mercado. Recupéralo tú para que te devuelvan tu fianza.";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ ya no es tuyo";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Te envió %@ KAS";
 "Sent you a payment" = "Te envió un pago";
+"Requested for payment" = "Pago solicitado";
+"You were invited to \"%@\"" = "Te han invitado a «%@»";

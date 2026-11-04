@@ -107,17 +107,6 @@ final class CallKitManager: NSObject {
         provider?.reportCall(with: uuid, updated: update)
     }
 
-    /// A VoIP push that did not turn into a ringing call (stale, calls off for that contact,
-    /// busy, unknown sender) must still be reported - iOS ends VoIP pushes for an app that
-    /// swallows one. Reported and ended in the same breath; Recents shows a missed call, which
-    /// is what it was.
-    func reportDroppedIncoming(uuid: UUID, displayName: String, handle: String, video: Bool, reason: CXCallEndedReason) {
-        reportIncoming(uuid: uuid, displayName: displayName, handle: handle, video: video) { [weak self] _ in
-            self?.provider?.reportCall(with: uuid, endedAt: Date(), reason: reason)
-            self?.knownCalls.remove(uuid)
-        }
-    }
-
     /// Registers an outgoing call. `completion(false)` = CallKit refused; the call goes on
     /// in-app only.
     func requestStart(uuid: UUID, displayName: String, handle: String, video: Bool, completion: @escaping (Bool) -> Void) {

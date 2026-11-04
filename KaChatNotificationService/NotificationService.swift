@@ -99,7 +99,7 @@ class NotificationService: UNNotificationServiceExtension {
               let senderAddress = userInfo["sender"] as? String,
               let messageType = userInfo["type"] as? String else {
             // Not a 1:1/group push. A public chat push whose thread-id is not the
-            // `public chat:<channel>` the spec asks for lands here, and its body is still the raw
+            // `broadcast:<channel>` the spec asks for lands here, and its body is still the raw
             // on-chain content - a reply/voice/photo envelope shows as JSON (or base64) on the
             // lock screen. Tidy any body that looks like one, whatever the thread-id says.
             if isEditEnvelope(content.body) {
@@ -112,6 +112,19 @@ class NotificationService: UNNotificationServiceExtension {
             } else if Self.looksLikeEnvelope(content.body) {
                 content.body = publicChatPreviewText(for: content.body)
             }
+            contentHandler(content)
+            return
+        }
+
+        // Signed out: the key stays on the device for signing back in, but this phone shows nothing
+        // until then. A failed unregister at logout can keep pushes coming.
+        guard getWalletAddress() != nil else {
+            content.title = ""
+            content.subtitle = ""
+            content.body = ""
+            content.sound = nil
+            content.badge = nil
+            content.interruptionLevel = .passive
             contentHandler(content)
             return
         }
@@ -239,8 +252,20 @@ class NotificationService: UNNotificationServiceExtension {
         // Set body based on message type
         switch messageType {
         case "contextual":
-            if let payloadHex,
-               let decrypted = decryptContextualMessage(payloadHex: payloadHex) {
+            let inlineRead = payloadHex.map(readContextualMessage) ?? .unreadable
+            // The indexer picks devices by who sent a message, not who it's for, so a contact's
+            // message to someone else can reach this phone: it isn't ours, so it says nothing
+            // and isn't queued. Being unable to read one (no key, no network) still rings.
+            if case .notForThisAccount = inlineRead {
+                content.title = ""
+                content.body = ""
+                content.sound = nil
+                content.badge = nil
+                content.interruptionLevel = .passive
+                contentHandler(content)
+                return
+            }
+            if case .message(let decrypted) = inlineRead {
                 // Only the txId and sender are kept for the app, which fetches and decrypts the
                 // message itself: the App Group plist is not encrypted at rest (and goes into
                 // unencrypted backups), so the plaintext never lands there (IOS-051).
@@ -274,10 +299,23 @@ class NotificationService: UNNotificationServiceExtension {
                 // good the preview sniffs below are. The message is on chain and this extension
                 // holds the key, so read it and say what it actually is.
                 content.body = NSLocalizedString("New message", comment: "Fallback body for contextual push notification")
-                fetchChainPreview(txId: txId) { [weak self] preview in
+                fetchChainPreview(txId: txId) { [weak self] read in
                     guard let self else { return }
-                    if let preview, !preview.isEmpty {
-                        content.body = preview
+                    switch read {
+                    case .notForThisAccount:
+                        content.title = ""
+                        content.body = ""
+                        content.sound = nil
+                        content.badge = nil
+                        content.interruptionLevel = .passive
+                        contentHandler(content)
+                        return
+                    case .message(let preview):
+                        if !preview.isEmpty {
+                            content.body = preview
+                        }
+                    case .unreadable:
+                        break
                     }
                     self.finishContextual(
                         content: content,
@@ -466,7 +504,7 @@ class NotificationService: UNNotificationServiceExtension {
             // targets MY message, use the 1:1 "to your message" wording instead of the neutral
             // "a message" fallback.
             // An edit changes an earlier bubble in place - nothing to announce.
-            if isEditEnvelope(match.plaintext) {
+            if isEditEnvelope(match.plaintext) || isMemberStatusEnvelope(match.plaintext) {
                 suppressGroupNotification(content)
                 return
             }
@@ -523,13 +561,19 @@ class NotificationService: UNNotificationServiceExtension {
                                      txId: txId, messageType: messageType)
                 return
             }
-            content.title = ""
-            let format = NSLocalizedString("You were added to \"%@\"", comment: "Push body for being added to a group")
+            // Being added is only a request, announced once: nothing for a group you're already in
+            // (a new root just rotates its keys), one already waiting, or one you rejected.
+            let handled = defaults?.stringArray(forKey: "handled_group_invites") ?? []
+            if handled.contains(control.groupId) || getSharedGroups().contains(where: { $0.groupId == control.groupId }) {
+                suppressGroupNotification(content)
+                addPendingMessage(txId: txId, sender: "group", type: messageType)
+                return
+            }
+            content.title = NSLocalizedString("New message request", comment: "Push title for the first message from someone new")
+            let format = NSLocalizedString("You were invited to \"%@\"", comment: "Push body for being invited to a group")
             content.body = String(format: format, control.name)
-            // Tag with the group id so tapping the notification routes to the group navigation path
-            // (KaChatApp's didReceive) - which now waits for catch-up to create the group and then
-            // opens it - instead of falling through to the 1:1 branch with a bogus "group" address.
-            content.threadIdentifier = "group:\(control.groupId)"
+            // Tapping opens Message Requests (KaChatApp's didReceive): there's no group to open yet.
+            content.threadIdentifier = "group_requests"
             content.sound = defaultSoundEnabled ? .default : nil
         }
 
@@ -1027,7 +1071,9 @@ class NotificationService: UNNotificationServiceExtension {
 
     private func unwrapReplyText(_ content: String) -> String {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.first == "{", let data = trimmed.data(using: .utf8) else { return content }
+        guard trimmed.first == "{", let data = trimmed.data(using: .utf8) else {
+            return paymentRequestPreviewText(for: content) ?? content
+        }
         guard let parsed = try? JSONDecoder().decode(PushReplyEnvelope.self, from: data),
               parsed.type == "reply" else {
             // Not a reply envelope - still worth a mime-type sniff, since a *direct* (non-reply)
@@ -1036,7 +1082,16 @@ class NotificationService: UNNotificationServiceExtension {
             // in the notification instead of "Sent a photo".
             return inlineAttachmentPreview(for: content)
         }
-        return inlineAttachmentPreview(for: parsed.text)
+        return paymentRequestPreviewText(for: parsed.text) ?? inlineAttachmentPreview(for: parsed.text)
+    }
+
+    /// A message holding a payment request link: the chat shows it as a card, so the banner says
+    /// what it is instead of printing the link. Both of `KaChatInternalLink`'s forms.
+    private func paymentRequestPreviewText(for text: String) -> String? {
+        let lowered = text.lowercased()
+        guard lowered.contains("kachat://pay/") || lowered.contains("kachat.app/pay/"),
+              lowered.contains("amount=") else { return nil }
+        return NSLocalizedString("Requested for payment", comment: "Push body for a message holding a payment request link")
     }
 
     /// True when `content` is a reply envelope (see `PushReplyEnvelope`) whose `replyToSender` is
@@ -1173,6 +1228,13 @@ class NotificationService: UNNotificationServiceExtension {
     /// An edit envelope (`{"type":"edit","targetTxId":...,"text":...}`, see MESSAGING.md
     /// "Message Edits") - the main app's `MessageEditCodec` counterpart. An edit is never
     /// announced: it changes an earlier bubble in place.
+    /// Someone answering a group invite: it updates the member list, and the app adds a line.
+    private func isMemberStatusEnvelope(_ content: String) -> Bool {
+        struct Envelope: Decodable { let type: String }
+        guard content.first == "{", let data = content.data(using: .utf8) else { return false }
+        return (try? JSONDecoder().decode(Envelope.self, from: data))?.type == "member_status"
+    }
+
     private func isEditEnvelope(_ content: String) -> Bool {
         struct PushEditEnvelope: Decodable { let type: String; let targetTxId: String }
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1247,7 +1309,7 @@ class NotificationService: UNNotificationServiceExtension {
     /// assembled from the same envelope mirrors the 1:1 path already uses. Order matches the main
     /// app's: reaction, then chess, then reply-unwrap (which itself falls through to the inline
     /// media sniff for direct photo/voice/video sends). The `{`-prefix guard keeps a plain text
-    /// public chat - the overwhelming majority - completely untouched.
+    /// message - the overwhelming majority - completely untouched.
     /// `inGroup: true` for the reaction wording: a public room's reaction almost never targets
     /// the reader's own message, and this target has no store to check against.
     /// Whether a push body is (probably) raw on-chain content rather than a plain preview: a
@@ -1364,9 +1426,9 @@ class NotificationService: UNNotificationServiceExtension {
     /// Deliberately tight: a notification extension has about thirty seconds and it is sharing
     /// them with everything else here, so a slow or unreachable API just leaves the generic body
     /// rather than holding the banner. 10-50KB is a small read even on a poor connection.
-    private func fetchChainPreview(txId: String, completion: @escaping (String?) -> Void) {
+    private func fetchChainPreview(txId: String, completion: @escaping (ContextualRead) -> Void) {
         guard let url = kaspaTransactionURL(txId: txId) else {
-            completion(nil)
+            completion(.unreadable)
             return
         }
         var request = URLRequest(url: url)
@@ -1377,9 +1439,13 @@ class NotificationService: UNNotificationServiceExtension {
                   let data,
                   let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let payloadHex = json["payload"] as? String, !payloadHex.isEmpty,
-                  let decrypted = self.decryptContextualMessage(payloadHex: payloadHex) else {
-                completion(nil)
+                  let payloadHex = json["payload"] as? String, !payloadHex.isEmpty else {
+                completion(.unreadable)
+                return
+            }
+            let read = self.readContextualMessage(payloadHex: payloadHex)
+            guard case .message(let decrypted) = read else {
+                completion(read)
                 return
             }
             // Same chain the payload-carrying path uses, so the wording matches exactly.
@@ -1388,7 +1454,7 @@ class NotificationService: UNNotificationServiceExtension {
                 ?? self.chessPreviewText(for: decrypted)
                 ?? self.callPreviewText(for: decrypted)
                 ?? self.unwrapReplyText(decrypted)
-            completion(preview)
+            completion(.message(preview))
         }.resume()
     }
 
@@ -1429,11 +1495,20 @@ class NotificationService: UNNotificationServiceExtension {
         return URL(string: base.hasSuffix("/") ? "\(base)transactions/\(txId)" : "\(base)/transactions/\(txId)")
     }
 
-    private func decryptContextualMessage(payloadHex: String) -> String? {
+    /// What reading a contextual payload came to.
+    private enum ContextualRead {
+        case message(String)
+        /// A well-formed message that this account's key can't open: sealed to someone else.
+        case notForThisAccount
+        /// No key, or a payload this extension can't parse - which says nothing about who it's for.
+        case unreadable
+    }
+
+    private func readContextualMessage(payloadHex: String) -> ContextualRead {
         guard let privateKey = loadPrivateKey() else {
             NSLog("[NotificationService] decrypt: private key missing")
             storeLastPushDecryptStatus("missing_private_key")
-            return nil
+            return .unreadable
         }
         let (message, error) = NotificationCipher.decryptContextualPayloadDebug(
             payloadHex,
@@ -1446,7 +1521,8 @@ class NotificationService: UNNotificationServiceExtension {
             NSLog("[NotificationService] decrypt: ok")
             storeLastPushDecryptStatus("ok")
         }
-        return message
+        if let message { return .message(message) }
+        return error == NotificationCipher.notForThisKey ? .notForThisAccount : .unreadable
     }
 
     private func loadPrivateKey() -> Data? {
@@ -1655,6 +1731,11 @@ private struct NotificationCipher {
         return "kchat:1:comm:" + rest[rest.index(after: colon)...]
     }
 
+    /// The status for a `kchat:1:comm:` / `ciph_msg:1:comm:` message whose seal this key failed to
+    /// open. Only that framing counts: the raw fallbacks below try bytes that may not be a
+    /// message at all, so a failure there proves nothing.
+    static let notForThisKey = "payload_not_for_this_key"
+
     static func decryptContextualPayloadDebug(_ payloadHex: String, privateKey: Data) -> (String?, String?) {
         var firstError: String?
 
@@ -1663,6 +1744,9 @@ private struct NotificationCipher {
             let (message, error) = decryptContextualProtocolPayload(payloadString, privateKey: privateKey)
             if let message {
                 return (message, nil)
+            }
+            if error == notForThisKey {
+                return (nil, notForThisKey)
             }
             firstError = error ?? "payload_protocol_decode_failed"
         }
@@ -1713,7 +1797,7 @@ private struct NotificationCipher {
             }
         }
 
-        return (nil, firstError ?? "payload_decode_failed")
+        return (nil, firstError == notForThisKey ? "payload_decrypt_failed" : firstError ?? "payload_decode_failed")
     }
 
     private static func decryptContextualProtocolPayload(
@@ -1753,6 +1837,9 @@ private struct NotificationCipher {
             let message = try decrypt(encrypted, privateKey: privateKey)
             return (message, nil)
         } catch {
+            if let cryptoError = error as? CryptoKit.CryptoKitError, case .authenticationFailure = cryptoError {
+                return (nil, notForThisKey)
+            }
             return (nil, "payload_decrypt_failed_len_\(encryptedData.count)")
         }
     }

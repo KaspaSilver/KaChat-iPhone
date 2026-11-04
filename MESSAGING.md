@@ -38,6 +38,17 @@ When a UTXO notification arrives, we know:
 
 **Payload format**: `kchat:1:comm:<alias>:<base64_encrypted_message>` (legacy root `ciph_msg:1:comm:` still accepted on read)
 
+**Reading back your own sends**: a contextual message or payment memo is sealed to the recipient,
+and the sender's seed can open it again. The sender makes the ECIES ephemeral private key
+`e = HKDF-SHA256(ikm = chatting private key, salt = the message's 12-byte nonce, info = "kachat-sent-message-v1", 32 bytes)`
+instead of random. On another device with the same seed: read the nonce from the message, work out
+`e`, check its public key equals the message's ephemeral public key (a mismatch means an older or
+another client's message, which can't be read), then ECDH `e` with the recipient's public key
+(`02 || x-only`, from their address) and open the sealed box as usual. Nothing on the wire changes
+and receivers do nothing different, so clients without this still read these messages; only their
+own sends stay unrecoverable until they adopt it. Sends from before this used a random key and
+can't be recovered.
+
 **First contact**: the sender's first message to someone who has never written to them is
 `kchat:1:dm:<inboxTag>:<alias>:<base64_encrypted_message>` instead - a `comm` message plus the
 recipient's inbox tag, so the recipient's app can find it (no handshake needed).
@@ -162,7 +173,7 @@ Get TX payload                         Get TX payload
               Display in conversation
 ```
 
-**Key insight**: For self-stash messages, we only need the **payload**, not the sender (we already know it from the subscription).
+**Key insight**: For self-stash messages, the mempool gives the **payload** first. The subscription only suggests the sender: anyone can seal a message under a contact's public alias and pay dust to the contact's address, so the message is shown only once the signatures on the transaction's inputs prove the contact sent it (`provenSender`, read from the REST API, a couple of seconds). Until then it falls back to the indexer, which files messages by the transaction's sender.
 
 ### For Payments/Handshakes (Requires REST)
 
@@ -505,6 +516,29 @@ the chat, not as the chat-list preview, not in search, never counted as unread, 
 record stays, so a later successful decrypt replaces it (real content wins the dedupe) and the
 message appears. The match is on the content itself (owner's decision on IOS-108: a contact
 typing exactly `[Encrypted message]` is hidden too, an accepted quirk).
+
+## Group invites
+
+Being sent a `gctl_root` for a group this wallet doesn't hold is only an invite: it waits in Message
+Requests until the user answers. A wallet's own groups (the root names it as admin) aren't invites.
+No server change: everything below travels as ordinary `gctl` and `gcomm` transactions. Each answer
+costs a network fee, and one that can't be sent yet is retried at the next catch-up.
+
+**Accept** sends two transactions:
+1. A self-addressed `gctl` signed by the wallet's key: `{"type":"gctl_invite_accept","v":1,"group_id","signing_pub","sig"}`,
+   where `sig` is Schnorr over `v || "gctl_invite_accept" || group_id`. Honoured only when `signing_pub`
+   is this wallet's own key. A device holding this joins the group with no further question, whether
+   the root arrives before or after it.
+2. A `gcomm` group message with the plaintext `{"type":"member_status","status":"joined"}`.
+
+**Reject** sends two transactions:
+1. The existing self-addressed `gctl_tombstone`, so the group is never offered again.
+2. The same `gcomm` with `"status":"declined"`, sent with the invite's root and a fresh device id.
+
+A `member_status` message is never a bubble and never notifies. It's sealed and signed like any group
+message, so only members can read it, its sender is proven and must be in the roster, and on chain it
+looks like any other group message. A client that doesn't handle this type must hide it: unknown
+group envelopes otherwise show as raw JSON. Any other message from a member also counts as joined.
 
 ## Transaction Payload Formats
 

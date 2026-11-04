@@ -247,8 +247,7 @@ final class ChatService: ObservableObject {
     /// showing again (`trimLeftConversationIfNeeded`).
     var lastLeftConversationAddress: String?
 
-    /// Whether the app posts its OWN banners for the messages, group traffic, public chats and
-    /// KaPosts activity it discovers itself - through the UTXO subscription, the sweep, the
+    /// Whether the app posts its OWN banners for the messages and group traffic it discovers itself - through the UTXO subscription, the sweep, the
     /// open-chat poll, background fetch, or a silent push.
     ///
     /// False: the remote alert push is the only banner source, exactly as when the app is fully
@@ -417,6 +416,8 @@ final class ChatService: ObservableObject {
     var syncObjectCursors: [String: SyncObjectCursor] = [:]
     var syncObjectCursorsDirty = false
     @Published var isSyncInProgress = false
+    /// How many syncs are running: see `beginSyncBlockTime`.
+    var syncDepth = 0
 
     // MARK: - Onboarding sync hold
 
@@ -738,8 +739,6 @@ final class ChatService: ObservableObject {
             }
     }
 
-    /// Observe RPC reconnection to sync after connection is restored
-    var rpcReconnectedObserver: NSObjectProtocol?
     let chatHistoryArchiveVersion = 1
 
     private func observeRpcReconnection() {
@@ -765,53 +764,6 @@ final class ChatService: ObservableObject {
                 // the chat.
                 await self?.maybeRunCatchUpSync(trigger: .rpcSubscriptionsRestored, force: true)
             }
-        }
-
-        // Listen for connection restoration (re-subscribe)
-        rpcReconnectedObserver = NotificationCenter.default.addObserver(
-            forName: .rpcReconnected,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            AppLog.log("[ChatService] RPC reconnected - re-subscribing to UTXOs...")
-            Task { @MainActor in
-                self?.isUtxoSubscribed = false  // Reset subscription state
-                await self?.setupUtxoSubscription()
-            }
-        }
-    }
-
-    /// Clear all chat data (called when clearing app data)
-    /// - Parameter skipStoreClear: If true, skips calling messageStore.clearAll() (use when store was already cleared)
-    func clearAllData(skipStoreClear: Bool = false) {
-        stopPolling()
-        resetForNewWallet(skipStoreClear: skipStoreClear)
-        contactsCancellable?.cancel()
-        contactsCancellable = nil
-        settingsCancellable?.cancel()
-        settingsCancellable = nil
-        pingLatencyCancellable?.cancel()
-        pingLatencyCancellable = nil
-        nodePoolSubscriptionStateCancellable?.cancel()
-        nodePoolSubscriptionStateCancellable = nil
-        nodePoolPrimaryEndpointCancellable?.cancel()
-        nodePoolPrimaryEndpointCancellable = nil
-        conversationCountCancellable?.cancel()
-        conversationCountCancellable = nil
-        pendingResubscriptionTask?.cancel()
-        pendingResubscriptionTask = nil
-        // Block-based observers are only released by removing their token - `removeObserver(self)`
-        // does not reach them - so every token `init` registered is dropped here, not just the
-        // first. `resetForNewWallet()` deliberately keeps them: it is a data reset on wallet
-        // switch/logout, nothing re-registers them afterwards, and the handlers self-gate on
-        // the current wallet.
-        if let observer = rpcReconnectObserver {
-            NotificationCenter.default.removeObserver(observer)
-            rpcReconnectObserver = nil
-        }
-        if let observer = rpcReconnectedObserver {
-            NotificationCenter.default.removeObserver(observer)
-            rpcReconnectedObserver = nil
         }
     }
 

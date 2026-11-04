@@ -2,28 +2,18 @@ import Foundation
 import P256K
 import Security
 
-/// `.kachat` names: the app side of the transaction core (`KachatNames.*`, pure and checked against
-/// the kachat-domains vectors). This service adds what needs the app: the testnet gate, loading and
-/// verifying the manifest, the node's DAG point, the wallet's and the registry's live UTXOs,
-/// Schnorr signing with the wallet key (P256K, SIGHASH_ALL over the version-1 sighash), the
-/// protowire conversion with the Toccata fields, and submission through `NodePoolService`.
+/// `.kachat` names: the app side of the pure code in `KachatNames.*`. This service adds what needs
+/// the app: the network gate, loading and verifying the manifest, and the address profile record.
 ///
 /// Names run on testnet-10 and, since the mainnet v1 launch on 2026-10-09, on mainnet: each network
 /// has its own bundled manifest (`Resources/kachat-names-<network>.json`), its own pinned templates
 /// and price tables (`KachatNames.Manifest`), and its own address prefix (`addressPrefix`). The
 /// manifest in use always matches the network the app runs on (`networkName`).
-///
-/// The flow every action follows (`KachatNamesActions`): `loadManifest()`, read the records it
-/// needs (`KachatNamesRegistry`: the indexer's `/names/...` or the chain walker), confirm them with
-/// `liveRegistryUtxo`, `environment(...)`, build with `builder()`, show the plan's
-/// fee, then `signAndSubmit`.
 @MainActor
 final class KachatNamesService: ObservableObject {
     static let shared = KachatNamesService()
 
     @Published private(set) var manifest: KachatNames.Manifest?
-    /// Where the manifest came from: "bundle" or the indexer URL.
-    @Published private(set) var manifestSource: String?
     /// The manifest describes an earlier registry: names wait for the v3 genesis manifest.
     /// The screens show "Setting up" instead of an error.
     @Published private(set) var registryUpgrading = false
@@ -142,14 +132,12 @@ final class KachatNamesService: ObservableObject {
         }
         registryUpgrading = false
         manifest = m
-        manifestSource = source
         return m
     }
 
     /// Forget the cached manifest (network switch, indexer change).
     func resetManifest() {
         manifest = nil
-        manifestSource = nil
         bundleFailure = nil
         registryUpgrading = false
     }
@@ -174,11 +162,6 @@ final class KachatNamesService: ObservableObject {
         return (data, url.absoluteString)
     }
 
-    /// The pure builders over the verified manifest.
-    func builder() async throws -> KachatNames.Builder {
-        try KachatNames.Builder(manifest: try await loadManifest())
-    }
-
     // MARK: - Environment
 
     /// The signer's x-only key for a wallet private key.
@@ -187,182 +170,13 @@ final class KachatNamesService: ObservableObject {
         return Data(key.xonly.bytes)
     }
 
-    /// Where the next transaction is judged: the virtual's DAA score and past median time from a
-    /// testnet-10 node, the wall clock, the signer's key.
-    func environment(privateKey: Data, feerate: Double = KachatNames.minFeerate) async throws -> KachatNames.Env {
-        try requireLaunched()
-        let dag = try await NodePoolService.shared.currentDagPoint()
-        guard dag.networkName.hasSuffix(Self.networkName) else {
-            throw ServiceError.wrongNodeNetwork(dag.networkName)
-        }
-        return KachatNames.Env(
-            me: try Self.xonlyKey(privateKey: privateKey),
-            blockDaa: dag.virtualDaaScore,
-            blockTimeMs: dag.pastMedianTimeMs,
-            wallMs: Int64(Date().timeIntervalSince1970 * 1000),
-            feerate: max(feerate, KachatNames.minFeerate),
-            // the v5 gap is bigger and costs more script units per spend
-            budgets: .recommended(forRegistryVersion: (try? await loadManifest())?.registryVersion ?? 4)
-        )
-    }
-
     // MARK: - UTXOs
-
-    /// The wallet's spendable funding UTXOs for the builders: the signer's own Schnorr P2PK
-    /// outputs only, mature, and never one carrying a covenant id (spending that would drag a
-    /// covenant into the transaction and change its storage mass).
-    nonisolated static func fundingUtxos(_ utxos: [UTXO], me: Data, virtualDaaScore: UInt64) -> [KachatNames.Utxo] {
-        let mine = KachatNames.Codec.p2pkScript(me)
-        // quotes, plans and submits all fund from here, so they see the same coins
-        return KasiaTransactionBuilder.spendableForBuild(utxos, virtualDaaScore: virtualDaaScore).compactMap { u in
-            guard u.covenantId == nil, u.scriptPublicKey == mine else { return nil }
-            return try? convert(u)
-        }
-    }
-
-    nonisolated static func convert(_ u: UTXO) throws -> KachatNames.Utxo {
-        KachatNames.Utxo(
-            outpoint: KachatNames.Outpoint(txid: try KachatNames.unhex32(u.outpoint.transactionId), index: u.outpoint.index),
-            entry: KachatNames.UtxoEntry(
-                amount: u.amount,
-                script: u.scriptPublicKey,
-                blockDaaScore: u.blockDaaScore,
-                isCoinbase: u.isCoinbase,
-                covenantId: try u.covenantId.map { try KachatNames.unhex32($0) }
-            )
-        )
-    }
 
     /// The P2SH address (this network's prefix) of a P2SH script (`OP_BLAKE2B <hash> OP_EQUAL`).
     nonisolated static func p2shAddress(script: Data) -> String? {
         let b = [UInt8](script)
         guard b.count == 35, b[0] == 0xaa, b[1] == 0x20, b[34] == 0x87 else { return nil }
         return KaspaAddress(hrp: addressPrefix, type: .scriptHash, payload: Data(b[2..<34])).address
-    }
-
-    /// The live UTXO at `outpoint` holding `script` (a gap, name or offer), read from a node with
-    /// its covenant id. A registry record from the indexer is trusted only once this confirms it:
-    /// the P2SH address commits to the whole state, and the covenant id to the registry lineage.
-    func liveUtxo(script: Data, outpoint: KachatNames.Outpoint) async throws -> KachatNames.Utxo {
-        try requireLaunched()
-        guard let address = Self.p2shAddress(script: script) else { throw ServiceError.notOnChain("a non-P2SH script") }
-        let utxos = try await NodePoolService.shared.getUtxosByAddresses([address])
-        let txidHex = KachatNames.hex(outpoint.txid)
-        guard let u = utxos.first(where: { $0.outpoint.transactionId.lowercased() == txidHex && $0.outpoint.index == outpoint.index }) else {
-            throw ServiceError.notOnChain("\(txidHex):\(outpoint.index)")
-        }
-        let live = try Self.convert(u)
-        guard live.entry.script == script else { throw ServiceError.notOnChain("\(txidHex):\(outpoint.index) with that state") }
-        return live
-    }
-
-    /// `liveUtxo` for a gap or name, which must also carry the registry covenant id.
-    func liveRegistryUtxo(script: Data, outpoint: KachatNames.Outpoint) async throws -> KachatNames.Utxo {
-        let m = try await loadManifest()
-        let u = try await liveUtxo(script: script, outpoint: outpoint)
-        guard u.entry.covenantId == m.registryCovenantId else { throw ServiceError.notOnChain("a registry UTXO") }
-        return u
-    }
-
-    // MARK: - Salts
-
-    /// A fresh 32-byte commit salt. Keep it (with the name) until the registration: without it
-    /// the commit cannot be registered.
-    nonisolated static func newSalt() throws -> Data {
-        var bytes = [UInt8](repeating: 0, count: 32)
-        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else {
-            throw KachatNames.Failure("no randomness for the salt")
-        }
-        return Data(bytes)
-    }
-
-    // MARK: - Signing
-
-    /// Signs every input that needs it with the wallet key: BIP-340 Schnorr over the version-1
-    /// SIGHASH_ALL sighash, each signature verified before it is used. `plan` must have been
-    /// built for this key (`Env.me`).
-    nonisolated static func sign(_ plan: KachatNames.Plan, privateKey: Data, me: Data) throws -> KachatNames.Tx {
-        let key = try P256K.Schnorr.PrivateKey(dataRepresentation: privateKey)
-        let xonly = Data(key.xonly.bytes)
-        guard xonly == me else { throw ServiceError.keyMismatch }
-        let verifier = P256K.Schnorr.XonlyKey(dataRepresentation: xonly)
-        return try plan.signed { sighash in
-            var message = [UInt8](sighash)
-            let signature = try key.signature(message: &message, auxiliaryRand: nil)
-            let ok = verifier.isValid(signature, for: &message)
-            for i in message.indices { message[i] = 0 }
-            guard ok else { throw KachatNames.Failure("signature did not verify") }
-            return Data(signature.bytes)
-        }
-    }
-
-    // MARK: - Protowire
-
-    /// The SubmitTransaction form of a version-1 transaction: `computeBudget` on every input
-    /// (`sigOpCount` must stay 0 for version 1), covenant bindings on outputs, the storage mass.
-    nonisolated static func rpcTransaction(_ tx: KachatNames.Tx) -> Protowire_RpcTransaction {
-        var r = Protowire_RpcTransaction()
-        r.version = UInt32(tx.version)
-        r.inputs = tx.inputs.map { i in
-            var input = Protowire_RpcTransactionInput()
-            var op = Protowire_RpcOutpoint()
-            op.transactionID = KachatNames.hex(i.outpoint.txid)
-            op.index = i.outpoint.index
-            input.previousOutpoint = op
-            input.signatureScript = KachatNames.hex(i.signatureScript)
-            input.sequence = i.sequence
-            input.sigOpCount = 0
-            input.computeBudget = UInt32(i.computeBudget)
-            return input
-        }
-        r.outputs = tx.outputs.map { o in
-            var output = Protowire_RpcTransactionOutput()
-            output.amount = o.value
-            var spk = Protowire_RpcScriptPublicKey()
-            spk.version = UInt32(o.scriptVersion)
-            spk.scriptPublicKey = KachatNames.hex(o.script)
-            output.scriptPublicKey = spk
-            if let c = o.covenant {
-                var binding = Protowire_RpcCovenantBinding()
-                binding.authorizingInput = UInt32(c.authorizingInput)
-                binding.covenantID = KachatNames.hex(c.covenantId)
-                output.covenant = binding
-            }
-            return output
-        }
-        r.lockTime = tx.lockTime
-        r.subnetworkID = KachatNames.hex(tx.subnetworkId)
-        r.gas = tx.gas
-        r.payload = KachatNames.hex(tx.payload)
-        r.storageMass = tx.storageMass
-        return r
-    }
-
-    // MARK: - Submit
-
-    /// Submits a signed version-1 transaction; returns its id. Register and renew carry the
-    /// price (35-8,000 TKAS) as fee on purpose - there is no high-fee guard on this path.
-    @discardableResult
-    func submit(_ tx: KachatNames.Tx) async throws -> String {
-        try requireLaunched()
-        let expected = tx.idHex
-        // a node can accept it while its answer is lost and a raced node rejects it: looked up
-        // by id before failing, so a retry never pays a price twice (IOS-014)
-        let (txId, endpoint) = try await NodePoolService.shared.submitRpcTransaction(Self.rpcTransaction(tx), expectedTxId: expected)
-        AppLog.log("[KachatNames] submitted %@ via %@", txId, endpoint)
-        guard txId.lowercased() == expected else { throw ServiceError.submitMismatch(expected: expected, got: txId) }
-        // A name transaction moves KAS to contracts (commit, bond, offers): keep it out of the
-        // chats from the moment it's sent, before any sync could read it as a payment.
-        ChatService.shared.registerSuppressedPaymentTxIds([txId], reason: "kachat-names")
-        return txId
-    }
-
-    /// Sign with the wallet key and submit.
-    @discardableResult
-    func signAndSubmit(_ plan: KachatNames.Plan, privateKey: Data, env: KachatNames.Env) async throws -> String {
-        try requireLaunched()
-        let tx = try Self.sign(plan, privateKey: privateKey, me: env.me)
-        return try await submit(tx)
     }
 
     // MARK: - Profile record

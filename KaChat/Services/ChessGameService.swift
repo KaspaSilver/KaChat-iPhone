@@ -346,18 +346,6 @@ enum ChessGameService {
         return (wins, losses)
     }
 
-    /// True if `message` is any chess envelope and no *later* message in `messages` shares its
-    /// `gameId` - i.e. this is the current/latest state for that game, which is the only one that
-    /// should render as the live status card (earlier moves render as a compact log line instead,
-    /// so a long game doesn't repeat a full board on every message).
-    static func isLatestChessMessage(_ message: ChatMessage, in messages: [ChatMessage]) -> Bool {
-        guard let envelope = ChessCodec.parseAny(MessageReplyCodec.unwrappedText(message.content)) else { return false }
-        return !messages.contains { other in
-            other.timestamp > message.timestamp
-                && ChessCodec.parseAny(MessageReplyCodec.unwrappedText(other.content))?.gameId == envelope.gameId
-        }
-    }
-
     // MARK: - Sending actions
 
     static func startGame(with contact: Contact, timeControl: ChessTimeControl? = nil) async throws {

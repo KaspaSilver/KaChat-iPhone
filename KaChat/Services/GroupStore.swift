@@ -38,7 +38,7 @@ final class GroupStore {
 
     /// The store opens off the main thread; `completion` runs on the main thread once it is
     /// usable (or has failed), which is when the caller may read from it. Not rebuilt on an
-    /// unusable file the way the public chat cache is: the groups themselves live here.
+    /// unusable file: the groups themselves live here.
     func setCurrentWallet(_ walletAddress: String?, completion: (() -> Void)? = nil) {
         guard walletAddress != currentWalletAddress else {
             completion?()
@@ -430,18 +430,7 @@ final class GroupStore {
         }
     }
 
-    /// All edits for `groupId`, keyed by the message they change.
-    func fetchGroupEdits(groupId: String) -> [String: MessageEditSnapshot] {
-        guard isLoaded else { return [:] }
-        var edits: [String: MessageEditSnapshot] = [:]
-        let context = viewContext
-        context.performAndWait {
-            edits = Self.editSnapshots(groupId: groupId, in: context)
-        }
-        return edits
-    }
-
-    /// `fetchGroupEdits` on a background context: opening a group read the whole group's edits
+    /// All edits for `groupId`, on a background context: opening a group read the whole group's edits
     /// and reactions synchronously on the main thread while the thread slid in.
     func fetchGroupEditsAsync(groupId: String) async -> [String: MessageEditSnapshot] {
         guard isLoaded else { return [:] }
@@ -485,18 +474,7 @@ final class GroupStore {
         }
     }
 
-    /// All reactions for `groupId`, grouped by the message they target.
-    func fetchGroupReactions(groupId: String) -> [String: [ReactionSnapshot]] {
-        guard isLoaded else { return [:] }
-        var grouped: [String: [ReactionSnapshot]] = [:]
-        let context = viewContext
-        context.performAndWait {
-            grouped = Self.reactionSnapshots(groupId: groupId, in: context)
-        }
-        return grouped
-    }
-
-    /// `fetchGroupReactions` on a background context - see `fetchGroupEditsAsync`.
+    /// All reactions for `groupId`, on a background context - see `fetchGroupEditsAsync`.
     func fetchGroupReactionsAsync(groupId: String) async -> [String: [ReactionSnapshot]] {
         guard isLoaded else { return [:] }
         return await withCheckedContinuation { continuation in

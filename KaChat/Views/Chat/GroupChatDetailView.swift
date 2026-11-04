@@ -65,6 +65,8 @@ struct GroupChatDetailView: View {
     /// (see `ChatDetailView.messageText`): `draft` setter redraws, typing doesn't.
     @State private var composerBox = ComposerTextBox()
     @State private var composerHasText = false
+    /// The payment request in the text being typed, previewed above the field.
+    @State private var composerPaymentRequest: PaymentRequest?
     @State private var composerRevision = 0
     @State private var composerHeight: CGFloat = 0
     private var draft: String {
@@ -72,6 +74,7 @@ struct GroupChatDetailView: View {
         nonmutating set {
             composerBox.text = newValue
             composerHasText = !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            syncComposerPaymentRequest(newValue)
             composerRevision &+= 1
         }
     }
@@ -82,8 +85,21 @@ struct GroupChatDetailView: View {
                 composerBox.text = newValue
                 let has = !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 if has != composerHasText { composerHasText = has }
+                syncComposerPaymentRequest(newValue)
             }
         )
+    }
+    /// Only when the request itself changes, like `composerHasText`, so typing stays cheap.
+    private func syncComposerPaymentRequest(_ text: String) {
+        let request = PaymentRequest.found(in: text)
+        if request != composerPaymentRequest { composerPaymentRequest = request }
+    }
+    private func removeComposerPaymentRequest() {
+        guard let link = KaChatInternalLink.match(in: draft)?.matchedText else { return }
+        let remaining = draft.replacingOccurrences(of: link, with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        draft = remaining
+        scheduleTextFeeEstimate(for: remaining)
     }
     @State private var reactiveReadMarkPending = false
     @State private var showInfo = false
@@ -101,7 +117,7 @@ struct GroupChatDetailView: View {
     @State private var toastStyle: ToastStyle = .success
     @State private var toastToken = UUID()
     // Plain @State (not @FocusState) - ComposerTextView takes a normal `Binding<Bool>` for focus
-    // itself (matching 1:1/public chat's identical `isMessageFocused`), it doesn't use the
+    // itself (matching 1:1's identical `isMessageFocused`), it doesn't use the
     // `.focused()` modifier that @FocusState's own binding type is specifically for.
     @State private var isComposerFocused = false
     @State private var scrollViewReference = ScrollViewReference()
@@ -119,7 +135,7 @@ struct GroupChatDetailView: View {
     @State private var emojiPickerTarget: IdentifiedTxId?
     @State private var highlightedMessageID: UUID?
 
-    /// Scroll-to-bottom floating button, matching 1:1/public chat's identical debounced-visibility
+    /// Scroll-to-bottom floating button, matching 1:1's identical debounced-visibility
     /// pattern - shown once the bottom of the thread scrolls out of view.
     @State private var isBottomAnchorVisible = true
     @State private var bottomAnchorVisibilityWorkItem: DispatchWorkItem?
@@ -217,7 +233,7 @@ struct GroupChatDetailView: View {
     /// ask for more width than they need.
     @State private var mentionListWidth: CGFloat?
 
-    // Live "fee: N KAS" preview above the composer - matches 1:1/public chat's identical bubble.
+    // Live "fee: N KAS" preview above the composer - matches 1:1's identical bubble.
     @State private var feeEstimateSompi: UInt64?
     @State private var isEstimatingFee = false
     @State private var feeEstimateLength: Int?
@@ -362,9 +378,7 @@ struct GroupChatDetailView: View {
     ///
     /// It used to call `Calendar.startOfDay` AND `isDate(_:inSameDayAs:)` for EVERY message,
     /// every time. Calendar arithmetic is not cheap (timezone and DST resolution per call), and
-    /// a few hundred messages meant a few hundred of them per frame while typing. Public Chat rooms
-    /// have no day separators at all, which is a good part of why they feel smoother with far
-    /// more messages on screen.
+    /// a few hundred messages meant a few hundred of them per frame while typing.
     ///
     /// Messages are in ascending order, so the day only has to be resolved when one falls outside
     /// the current day's half-open range: O(distinct days) Calendar calls instead of O(messages),
@@ -498,8 +512,7 @@ struct GroupChatDetailView: View {
                                 }
                             }
                         }
-                        // Debounced rather than setting `isBottomAnchorVisible` directly, matching
-                        // public chat rooms exactly - this 1pt marker can appear/disappear rapidly
+                        // Debounced rather than setting `isBottomAnchorVisible` directly: this 1pt marker can appear/disappear rapidly
                         // during a fast scroll/fling right at the lazy-loaded viewport edge.
                         Color.clear
                             .frame(height: 1)
@@ -943,6 +956,12 @@ struct GroupChatDetailView: View {
                     .padding(.top, 8)
             }
             mentionSuggestions
+            if let composerPaymentRequest, pendingPhotoImage == nil {
+                ComposerPaymentRequestPreview(request: composerPaymentRequest, onRemove: removeComposerPaymentRequest)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+                    .padding(.bottom, shouldShowFeeBubble ? 22 : 0)
+            }
             composeBar
         }
     }
@@ -1390,7 +1409,7 @@ struct GroupChatDetailView: View {
                 let _ = composerRevision
                 let _ = composerHeight
                 // ComposerTextView (not a plain TextField) so Cmd+V image paste works on macOS,
-                // matching 1:1/public chat - a plain TextField only ever intercepts text paste.
+                // matching 1:1 - a plain TextField only ever intercepts text paste.
                 ComposerTextView(
                     text: composerTextBinding,
                     isFocused: $isComposerFocused,
@@ -2073,7 +2092,7 @@ struct GroupChatDetailView: View {
         }
     }
 
-    /// Resolves a member's name the same way 1:1/public chat do (contact alias, then KNS domain,
+    /// Resolves a member's name the same way 1:1 does (contact alias, then KNS domain,
     /// then a generated fallback) - NOT `group.members[].displayName`, which is only a one-time
     /// snapshot taken when the roster was built/received (via `createGroup`'s local
     /// `contactsManager` lookup, or `applyRootPayload`'s wire payload, which carries no display
@@ -2464,7 +2483,7 @@ private struct GroupMessageBubbleRow: View {
     let group: GroupChat
     let avatarURLString: String?
     /// Resolved by `GroupChatDetailView` (which has live `contactsManager`/`knsService` access,
-    /// and knows the wallet's own address for "You") - matches 1:1/public chat's identical
+    /// and knows the wallet's own address for "You") - matches 1:1's identical
     /// pattern of resolving names in the parent rather than this row re-deriving them from the
     /// group roster's frozen `displayName` snapshot.
     let senderDisplayName: String
@@ -2760,7 +2779,7 @@ private struct GroupMessageBubbleRow: View {
                                         }
                                         // Through the router: in-app for KaChat links, and only
                                         // web/email outside it.
-                                        KaChatLinkRouter.openAnywhere(url)
+                                        KaChatLinkRouter.openAnywhere(url, fromChat: true)
                                         return .handled
                                     })
                             } else if MessageTextRenderPlan.prefersUIKitTextView(displayContent) {
@@ -2809,7 +2828,7 @@ private struct GroupMessageBubbleRow: View {
                         .sheet(item: Binding(get: { linkMenuURL.map(IdentifiedURL.init) }, set: { if $0 == nil { linkMenuURL = nil } })) { wrapper in
                             LinkActionsSheet(
                                 url: wrapper.url,
-                                onOpen: { KaChatLinkRouter.openAnywhere(wrapper.url) },
+                                onOpen: { KaChatLinkRouter.openAnywhere(wrapper.url, fromChat: true) },
                                 onCopy: {
                                     onCopy(wrapper.url.absoluteString, .success)
                                     UIPasteboard.general.string = wrapper.url.absoluteString
@@ -2938,7 +2957,6 @@ struct GroupChatInfoView: View {
     @State private var showRename = false
     @State private var renameText = ""
     @State private var renameError: String?
-    @State private var isRenaming = false
     @State private var resendMessage: String?
     @State private var showAddMembers = false
     // Members list is a collapsed-by-default dropdown; per-member actions confirm first.
@@ -2984,7 +3002,7 @@ struct GroupChatInfoView: View {
     }
     var onDeleted: (() -> Void)?
 
-    /// Re-public chat the current group root to a single member (or all when address is nil), then
+    /// Re-broadcast the current group root to a single member (or all when address is nil), then
     /// surface the result in an alert. Admin-only (guarded again in the service).
     private func resendInvites(to address: String?) {
         Task {
@@ -3031,7 +3049,7 @@ struct GroupChatInfoView: View {
         return "\n\nEstimated network fee ≈ \(kas) \(KaspaUnit.symbol) across \(n) transaction\(plural)."
     }
 
-    /// Same resolution 1:1/public chat/the message list use (contact alias, then KNS domain, then
+    /// Same resolution 1:1 and the message list use (contact alias, then KNS domain, then
     /// a generated fallback) - not `member.displayName`, which is only a one-time snapshot from
     /// when the roster was built/received and never updated afterward (see `GroupChatDetailView.
     /// displayName(for:)`'s identical doc comment). Applied uniformly to every member, including
@@ -3084,7 +3102,7 @@ struct GroupChatInfoView: View {
         Binding(get: { groupPhotoError != nil }, set: { if !$0 { groupPhotoError = nil } })
     }
 
-    /// Admin picked a new group photo: shrink to a ~10 KB JPEG and public chat it via gctl_photo.
+    /// Admin picked a new group photo: shrink to a ~10 KB JPEG and broadcast it via gctl_photo.
     private func handleGroupPhotoSelection(_ newItem: PhotosPickerItem?) {
         guard let newItem else { return }
         Task {
@@ -3208,6 +3226,18 @@ struct GroupChatInfoView: View {
                 Text("Admin")
                     .font(.caption)
                     .foregroundColor(.secondary)
+            }
+            switch GroupChatService.shared.inviteStatus(of: member.address, in: group.id) {
+            case "invited":
+                Text("Invited")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            case "declined":
+                Text("Declined")
+                    .font(.caption)
+                    .foregroundColor(.red)
+            default:
+                EmptyView()
             }
             // Admin-only per-member actions (visible buttons, each confirmed first),
             // matching Android/desktop. .borderless so each taps independently of the row.
@@ -3394,22 +3424,18 @@ struct GroupChatInfoView: View {
     private func saveRename() {
         let trimmed = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        isRenaming = true
         Task {
             do {
                 try await groupChatService.renameGroup(group.id, to: trimmed)
             } catch {
                 renameError = UserFacingError.message(for: error)
             }
-            isRenaming = false
         }
     }
 }
 
 /// Eye-toggle screen for a group's hidden members - lists everyone currently hidden (see
-/// `GroupChatService.groupHiddenMembers`) with a one-tap unhide, matching public chat rooms' own
-/// hidden-senders management screen in spirit (there isn't a literal shared one to reuse, since
-/// public chat's hiding is global across channels while this is scoped to one group).
+/// `GroupChatService.groupHiddenMembers`) with a one-tap unhide, scoped to one group.
 private struct HiddenGroupMembersView: View {
     let group: GroupChat
     @EnvironmentObject var groupChatService: GroupChatService
@@ -3693,7 +3719,7 @@ private struct AddGroupMembersView: View {
             Button("Add") { addSelected() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Add \(selectedAddresses.count) member\(selectedAddresses.count == 1 ? "" : "s") to the group?\(addFeeSuffix())")
+            Text("Add \(selectedAddresses.count) member\(pluralS(selectedAddresses.count)) to the group?\(addFeeSuffix())")
         }
         .alert("Add Members", isPresented: Binding(get: { resultMessage != nil }, set: { if !$0 { resultMessage = nil } })) {
             Button("OK", role: .cancel) { resultMessage = nil }
@@ -3753,7 +3779,7 @@ private struct GroupRefreshProgressModal: View {
                     Text("Refresh complete")
                         .font(.headline)
                     Text(recovered > 0
-                         ? "Recovered \(recovered) message\(recovered == 1 ? "" : "s") this device had not been able to read."
+                         ? "Recovered \(recovered) message\(pluralS(recovered)) this device had not been able to read."
                          : "No new messages were recovered.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -3763,7 +3789,7 @@ private struct GroupRefreshProgressModal: View {
                     if !rejections.isEmpty {
                         VStack(alignment: .leading, spacing: 3) {
                             if rejections.noRootForEpoch > 0 {
-                                Text("\(rejections.noRootForEpoch) message\(rejections.noRootForEpoch == 1 ? "" : "s") from an epoch this device holds no key for")
+                                Text("\(rejections.noRootForEpoch) message\(pluralS(rejections.noRootForEpoch)) from an epoch this device holds no key for")
                             }
                             if rejections.senderNotInRoster > 0 {
                                 Text("\(rejections.senderNotInRoster) from someone no longer in the group")
@@ -3772,7 +3798,7 @@ private struct GroupRefreshProgressModal: View {
                                 Text("\(rejections.decryptFailed) that failed to decrypt")
                             }
                             if rejections.epochRootsArchived > 0 {
-                                Text("Recovered \(rejections.epochRootsArchived) older epoch key\(rejections.epochRootsArchived == 1 ? "" : "s")")
+                                Text("Recovered \(rejections.epochRootsArchived) older epoch key\(pluralS(rejections.epochRootsArchived))")
                             }
                         }
                         .font(.caption2)
@@ -3792,7 +3818,7 @@ private struct GroupRefreshProgressModal: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
-                    Text("Re-reading the whole group from the chain, the same way importing your seed phrase does. Leaving now would stop it partway.")
+                    Text("Re-reading the whole group from the chain, the same way importing your 12 or 24 words does. Leaving now would stop it partway.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

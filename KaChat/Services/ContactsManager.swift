@@ -149,7 +149,7 @@ final class ContactsManager: ObservableObject {
     /// Fetch KNS domains for all contacts.
     ///
     /// Guarded twice, because this walks EVERY contact through two KNS passes and is called from
-    /// screens that open often - the chat list, and both KaPosts composers.
+    /// screens that open often - the chat list.
     ///
     /// `isFetchingKNS` was being set and never read, so two callers (opening the composer while
     /// the chat list had one running, or the two composer views together) each started their own
@@ -157,7 +157,7 @@ final class ContactsManager: ObservableObject {
     /// every composer open started another walk: with a large contact list that is hundreds of
     /// requests, and hundreds of profile-cache publishes into an `@ObservedObject` the composer
     /// is watching, which is a re-render of the editor per landing profile. Reported as the app
-    /// freezing on opening the KaPosts composer, with a burst of KNS profile calls before it.
+    /// freezing on opening a screen, with a burst of KNS profile calls before it.
     ///
     /// `force` is for the pull-to-refresh paths, where the user has explicitly asked.
     func fetchKNSDomainsForAllContacts(network: NetworkType = .mainnet, force: Bool = false) async {
@@ -207,25 +207,9 @@ final class ContactsManager: ObservableObject {
         knsService.identityInfo(for: contact.address)
     }
 
-    /// Get KNS domains for a contact
-    func getKNSDomains(for contact: Contact) -> [KNSDomain] {
-        knsService.identityInfo(for: contact.address)?.allDomains ?? []
-    }
-
     /// Get selected KNS profile for a contact address (primary domain if available).
     func getKNSProfile(for contact: Contact) -> KNSAddressProfileInfo? {
         knsService.profileCache[contact.address]
-    }
-
-    /// Fetch KNS info for a specific contact
-    func fetchKNSInfo(for contact: Contact, network: NetworkType = .mainnet) async -> KNSAddressInfo? {
-        guard KNSService.showsDomainNamesAsIdentity else { return nil }
-        return await knsService.fetchInfo(for: contact.address, network: network)
-    }
-
-    /// Fetch selected KNS profile for a specific contact.
-    func fetchKNSProfile(for contact: Contact, network: NetworkType = .mainnet) async -> KNSAddressProfileInfo? {
-        await knsService.fetchProfile(for: contact.address, network: network)
     }
 
     func balanceSompi(for address: String) -> UInt64? {
@@ -420,8 +404,8 @@ final class ContactsManager: ObservableObject {
         }
 
         // Never the account itself - there is no one to talk to. Another of the user's OWN
-        // accounts is refused only for the auto-add paths: tipping or opening a KaPost written
-        // from your second account would otherwise add its author silently, which is how a
+        // accounts is refused only for the auto-add paths: a message from your second
+        // account would otherwise add it silently, which is how a
         // blank account turned up among the contacts of a real one, reading as a stranger.
         // A deliberate add is different: chatting between your own accounts is a real thing
         // to do (moving funds, trying the app from a fresh account), and the person typing the

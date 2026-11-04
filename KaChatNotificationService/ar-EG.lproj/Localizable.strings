@@ -32,11 +32,6 @@
 "Chat Info" = "معلومات المحادثة";
 "Chat archived." = "تم أرشفة المحادثة.";
 "Chats" = "المحادثات";
-"Checking eligibility..." = "جاري التحقق من الأهلية...";
-"Checking gift eligibility..." = "جاري التحقق من أهلية الهدية...";
-"Claim Gift" = "استلم الهدية";
-"Claim some KAS to get started with your new account." = "اطلب شوية KAS علشان تبدأ بحسابك الجديد.";
-"Claiming gift..." = "جاري استلام الهدية...";
 "Clear" = "مسح";
 "Clear Connection Pool" = "مسح مجموعة الاتصالات";
 "Clear Link" = "مسح الربط";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "فشل ربط جهة اتصال النظام.";
 "Failed to open archive: \(error.localizedDescription)" = "فشل فتح الأرشيف: \(error.localizedDescription)";
 "Generate Account" = "إنشاء حساب";
-"Gift" = "هدية";
-"Gift already claimed" = "الهدية متاخدة قبل كده";
-"Gift claim reset. You can request it again." = "تم إعادة تعيين طلب الهدية. يمكنك طلبها مرة أخرى.";
-"Gift claimed" = "تم استلام الهدية";
-"Gift sent to your wallet!" = "الهدية اتبعتت لمحفظتك!";
-"Gift unavailable" = "الهدية غير متاحة";
 "Request to communicate" = "طلب التواصل";
 "Send audio" = "إرسال صوت";
 "Send KAS" = "إرسال KAS";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "إخفاء محادثات الدفع المنشأة تلقائياً";
 "High Transaction Traffic" = "حركة معاملات عالية";
 "I have written down my seed phrase and stored it securely" = "لقد كتبت seed phrase الخاصة بي وخزنتها بأمان";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "لو الاستلام فشل عشان محفظة التبرعات مافيهاش رصيد مؤقتا، جرب تاني بعد شوية.";
 "Import" = "استيراد";
 "Import Account" = "استيراد حساب";
 "Import Chat History" = "استيراد سجل المحادثات";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "جاري التسجيل… \\(Int(recordingDuration)) ث";
 "Refresh Pool" = "تحديث المجموعة";
 "Refresh Pool Now" = "تحديث المجموعة الآن";
-"Registered" = "مسجل";
 "Remove Saved Account" = "إزالة الحساب المحفوظ";
 "Remove from Device" = "إزالة من الجهاز";
 "Required for cross-device sync and backup of sent messages." = "مطلوب لمزامنة الأجهزة المتعددة ونسخ الرسائل المرسلة احتياطياً.";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "سيتم إزالة هذا الحساب من هذا الجهاز.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "سيتم ربط جهة الاتصال هذه بعد إنشائها. لا تزال بحاجة إلى إدخال عنوان Kaspa أو نطاق KNS.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "يؤدي هذا إلى حذف جميع البيانات المحلية وسجلات رسائل CloudKit. لا يمكن التراجع عن هذا.";
-"This device has already received the welcome gift." = "الجهاز ده استلم هدية الترحيب قبل كده.";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "يؤدي هذا إلى إزالة \(account.displayAlias) (\(account.shortPublicAddress)) وبياناته المحلية من هذا الجهاز.";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "يؤدي هذا إلى إزالة \\(account.displayAlias) (\\(account.shortPublicAddress)) وبياناته المحلية من هذا الجهاز.";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "يؤدي هذا إلى إزالة جميع الرسائل الواردة محلياً وفي iCloud، ثم إعادة مزامنتها من البلوكتشين. يتم الحفاظ على معلومات حسابك ورسائلك المرسلة.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "يؤدي هذا إلى إزالة العقد المكتشفة وفصل الجلسات الحالية وإعادة بدء الاكتشاف.";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "يؤدي هذا إلى إزالة بيانات الحساب والرسائل المحلية. يتم تعطيل مزامنة CloudKit أثناء المسح وإعادة تفعيلها بعد ذلك.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "يؤدي هذا إلى تسجيل الخروج من حسابك، لكنه يحتفظ ببيانات المحفظة والرسائل المحلية على هذا الجهاز.";
-"This welcome gift is a community-funded initiative." = "هدية الترحيب دي مبادرة ممولة من المجتمع.";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "سيؤدي هذا إلى حذف حسابك نهائياً من هذا الجهاز. تأكد من أنك قمت بنسخ seed phrase احتياطياً.";
 "To receive notifications, please enable them in Settings." = "لاستقبال الإشعارات، يرجى تفعيلها في الإعدادات.";
 "Total" = "الإجمالي";
@@ -292,7 +277,6 @@
 "Voice message" = "رسالة صوتية";
 "Watching" = "مراقبة";
 "Website" = "الموقع الإلكتروني";
-"Welcome Gift" = "هدية الترحيب";
 "Welcome to KaChat!" = "اهلا بيك في KaChat!";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "عند التعطيل، سيتم جلب الرسائل من جهة الاتصال هذه دورياً بدلاً من الوقت الفعلي. استخدم هذا لجهات الاتصال ذات حجم المعاملات العالي لتوفير البطارية واستخدام الشبكة.";
 "Wipe Account & Messages" = "مسح الحساب والرسائل";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "جدّده قريبًا للاحتفاظ به.";
 "Renew it soon or anyone can claim it." = "جدّده قريبًا وإلا يمكن لأي شخص المطالبة به.";
-"%@ has lapsed" = "انقضى %@";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "يمكن لأي شخص المطالبة به الآن. استرده بنفسك لتستعيد التأمين.";
 "Offer on %@ declined" = "رُفض العرض على %@";
 "The owner declined it. The KAS is back with you." = "رفضه المالك. عادت KAS إليك.";
 "Offer on %@ expired" = "انتهى العرض على %@";
 "Nobody accepted it in time. The KAS is back with you." = "لم يقبله أحد في الوقت المحدد. عادت KAS إليك.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "لم يعد ملكك وانتقل إلى «قابلة للاسترداد» في السوق. استرده بنفسك لتستعيد ضمانك.";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ لم يعد ملكك";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "أرسل لك %@ KAS";
 "Sent you a payment" = "أرسل لك دفعة";
+"Requested for payment" = "طلب دفعة";
+"You were invited to \"%@\"" = "اتدعيت لـ «%@»";

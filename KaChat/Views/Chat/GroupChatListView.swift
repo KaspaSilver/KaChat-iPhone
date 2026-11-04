@@ -122,7 +122,7 @@ struct GroupChatRow: View {
                             .foregroundColor(.secondary)
                             .lineLimit(1)
                     } else {
-                        Text("\(group.members.count) member\(group.members.count == 1 ? "" : "s")")
+                        Text("\(group.members.count) member\(pluralS(group.members.count))")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .italic()

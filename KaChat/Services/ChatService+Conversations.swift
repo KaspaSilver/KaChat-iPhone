@@ -608,9 +608,9 @@ extension ChatService {
         } else if !isLoading {
             isLoading = true
         }
-        beginSyncBlockTime()
-        if !isSyncInProgress { isSyncInProgress = true }  // Enable batching for Core Data writes
+        beginSyncBlockTime()  // Enables batching for Core Data writes
         var syncSucceeded = false
+        let isFullFetch = activeAddress == nil
         let shouldSuppressNotifications = activeAddress == nil && lastPollTime == 0
         let previousSuppress = suppressNotificationsUntilSynced
         if shouldSuppressNotifications {
@@ -620,7 +620,6 @@ extension ChatService {
             if shouldSuppressNotifications {
                 suppressNotificationsUntilSynced = previousSuppress
             }
-            if isSyncInProgress { isSyncInProgress = false }  // Disable batching before final save
             if let active = activeAddress {
                 setChatFetchState(activeFetchSucceeded ? nil : .failed, for: active)
             }
@@ -628,10 +627,10 @@ extension ChatService {
             if isLoading { isLoading = false }
             // Check if resubscription was deferred during sync
             executeResubscriptionIfNeeded()
-            endSyncBlockTime(success: syncSucceeded)  // This handles batched save
+            // Only a full fetch has read every chat, so only it moves the global fallback.
+            endSyncBlockTime(success: syncSucceeded && isFullFetch)  // This handles batched save
         }
 
-        let isFullFetch = activeAddress == nil
         AppLog.log("%@", "[ChatService] Fetching messages for: \(wallet.publicAddress.suffix(10)), fullFetch=\(isFullFetch), lastPollTime=\(lastPollTime)")
 
         // Fetch handshakes first (they establish aliases) with per-object cursors.
@@ -1241,7 +1240,7 @@ extension ChatService {
             amount: amountSompi,
             recipientScriptPubKey: recipientScriptPubKey,
             senderScriptPubKey: senderScriptPubKey
-        )) ?? KasiaTransactionBuilder.estimateSendAllFee(
+        ))?.networkFee ?? KasiaTransactionBuilder.estimateSendAllFee(
             utxos: spendable,
             payload: paymentPayload,
             recipientScriptPubKey: recipientScriptPubKey,
@@ -1602,8 +1601,7 @@ extension ChatService {
                 deliveryStatus: .pending
             )
             // Animated publish: the outgoing bubble flows into the list (layout change +
-            // the detail view's animated scroll ride the same transaction) - matching the
-            // public chat room's send feel.
+            // the detail view's animated scroll ride the same transaction).
             withAnimation(.easeOut(duration: 0.25)) {
                 addMessageToConversation(pendingMessage, contactAddress: contact.address)
             }
@@ -2363,7 +2361,7 @@ extension ChatService {
     }
 
     /// Returns the submitted transaction id, or nil when the send was DEFERRED rather than
-    /// public chat (no confirmed inputs yet - it is retried on a timer). Discardable, since most
+    /// broadcast (no confirmed inputs yet - it is retried on a timer). Discardable, since most
     /// callers only care that it did not throw; the ones that show a sent confirmation use it.
     @discardableResult
     func sendPayment(
@@ -2760,7 +2758,7 @@ extension ChatService {
     /// Estimates the total fee (base + optional priority tip) for a withdrawal, without
     /// requiring a gRPC connection (uses the same REST-fallback UTXO fetch as other fee
     /// previews, since this only needs read access for the estimate).
-    func estimateWithdrawalFee(toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> UInt64 {
+    func estimateWithdrawalFee(toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> SendFeeEstimate {
         guard amountSompi > 0 else { throw KasiaError.networkError("Amount is zero") }
         guard let wallet = WalletManager.shared.currentWallet else { throw KasiaError.walletNotFound }
         guard let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: wallet.publicAddress),
@@ -3020,7 +3018,7 @@ extension ChatService {
     /// Estimates the total fee for a spending-address withdrawal. Calls NodePoolService
     /// directly rather than fetchUtxosWithFallback, whose single-address UTXO cache would
     /// return the wrong address's data when estimating for anything but the identity address.
-    func estimateSpendingAddressWithdrawalFee(index: Int, toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0, availableUtxos: [UTXO] = [], virtualDaaScore: UInt64? = nil) async throws -> UInt64 {
+    func estimateSpendingAddressWithdrawalFee(index: Int, toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0, availableUtxos: [UTXO] = [], virtualDaaScore: UInt64? = nil) async throws -> SendFeeEstimate {
         guard amountSompi > 0 else { throw KasiaError.networkError("Amount is zero") }
         guard let fromAddress = WalletManager.shared.spendingAddress(at: index) else {
             throw KasiaError.keychainError("Could not derive this spending address")
@@ -3125,9 +3123,6 @@ extension ChatService {
     /// Session-only memory of CONFIRMED-unused probe results. In-memory by design: it must
     /// die with the process so a stale "unused" can never survive into a later launch.
     private static var sessionUnusedAddresses: Set<String> = []
-    func hasSpendingAddressBeenUsed(_ address: String) async -> Bool {
-        await spendingAddressUsedState(address) ?? false
-    }
 
     /// Cache-only, synchronous view of used-ness: `true` = persistently confirmed used,
     /// `false` = confirmed unused earlier THIS session, `nil` = no cached answer (a network
@@ -3150,7 +3145,7 @@ extension ChatService {
         UserDefaults.standard.set(updated, forKey: Self.usedAddressCacheKey)
     }
 
-    /// Tri-state variant of `hasSpendingAddressBeenUsed`: `true` = confirmed used (cached or a
+    /// Whether a spending address has been used: `true` = confirmed used (cached or a
     /// successful count lookup found history), `false` = CONFIRMED unused (the REST probe
     /// succeeded and the count is genuinely zero), `nil` = the probe FAILED (network error,
     /// non-2xx, decode failure) so used-ness is unknown right now. Callers that make
@@ -3346,7 +3341,7 @@ extension ChatService {
     }
 
     /// The base (Normal) fee; a Fast / Priority / custom extra goes on top (see the Send KAS sheet).
-    func estimatePaymentFee(to contact: Contact, amountSompi: UInt64, note: String = "", sourceSpendingIndex: Int? = nil, manualUtxos: [UTXO]? = nil) async throws -> UInt64 {
+    func estimatePaymentFee(to contact: Contact, amountSompi: UInt64, note: String = "", sourceSpendingIndex: Int? = nil, manualUtxos: [UTXO]? = nil) async throws -> SendFeeEstimate {
         guard amountSompi > 0 else { throw KasiaError.networkError("Amount is zero") }
         // Must source from whatever `sendPaymentInternal` will actually spend from - the
         // spending chain with Chats Payment Privacy ON, the chatting address with it OFF (see
@@ -3637,18 +3632,6 @@ extension ChatService {
         }
         return conversation.messages.contains {
             $0.messageType == .handshake && !$0.isOutgoing && $0.deliveryStatus != .failed
-        }
-    }
-
-    func respondToHandshake(for contact: Contact, accept: Bool) async throws {
-        if accept {
-            try await sendHandshake(to: contact, isResponse: true)
-            clearDeclined(contact.address)
-            // Everything they sent us before we accepted has to become readable now - see
-            // recoverPreRelationshipHistory for why the ordinary sync would never ask for it.
-            await recoverPreRelationshipHistory(for: contact.address)
-        } else {
-            declineContact(contact.address)
         }
     }
 
@@ -3976,14 +3959,6 @@ extension ChatService {
             addresses.insert(candidate.lowercased())
         }
         return Array(addresses)
-    }
-
-    func hasOurAlias(for address: String) -> Bool {
-        routingStates[address] != nil || !(ourAliases[address]?.isEmpty ?? true)
-    }
-
-    func hasTheirAlias(for address: String) -> Bool {
-        routingStates[address] != nil || !(conversationAliases[address]?.isEmpty ?? true)
     }
 
     /// Generate a random alias for a new conversation
@@ -4606,45 +4581,6 @@ extension ChatService {
         guard didUpdate, let oldPendingTxId else { return false }
         removePendingOutgoing(contactAddress: contactAddress, pendingTxId: oldPendingTxId)
         return true
-    }
-
-    func updateMostRecentPendingOutgoingMessage(
-        contactAddress: String,
-        newTxId: String,
-        messageType: ChatMessage.MessageType
-    ) -> Bool {
-        guard let convIndex = conversations.firstIndex(where: { $0.contact.address == contactAddress }) else {
-            return false
-        }
-
-        var didUpdate = false
-        updateConversation(at: convIndex) { conversation in
-            let candidates = conversation.messages
-                .filter { $0.isOutgoing && $0.deliveryStatus != .sent && $0.messageType == messageType }
-                .sorted(by: Self.isMessageOrderedBefore)
-
-            guard let candidate = candidates.first,
-                  let msgIndex = conversation.messages.firstIndex(where: { $0.id == candidate.id }) else { return }
-
-            conversation.messages.removeAll(where: { $0.txId == newTxId })
-            let newMessage = ChatMessage(
-                id: candidate.id,
-                txId: newTxId,
-                senderAddress: candidate.senderAddress,
-                receiverAddress: candidate.receiverAddress,
-                content: candidate.content,
-                timestamp: candidate.timestamp,
-                blockTime: candidate.blockTime,
-                acceptingBlock: candidate.acceptingBlock ?? "mempool",
-                isOutgoing: candidate.isOutgoing,
-                messageType: candidate.messageType,
-                deliveryStatus: .sent
-            )
-            conversation.messages[msgIndex] = newMessage
-            didUpdate = true
-        }
-
-        return didUpdate
     }
 
     func markConversationAsRead(_ conversation: Conversation) async {

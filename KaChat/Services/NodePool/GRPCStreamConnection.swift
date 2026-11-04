@@ -18,23 +18,6 @@ enum KaspaRequestType: Hashable {
     case getCurrentNetwork
     case getMempoolEntry
     case getFeeEstimate
-
-    /// The expected response type for this request
-    var responseCase: String {
-        switch self {
-        case .getInfo: return "getInfoResponse"
-        case .getUtxosByAddresses: return "getUtxosByAddressesResponse"
-        case .submitTransaction: return "submitTransactionResponse"
-        case .notifyUtxosChanged: return "notifyUtxosChangedResponse"
-        case .notifyBlockAdded: return "notifyBlockAddedResponse"
-        case .getPeerAddresses: return "getPeerAddressesResponse"
-        case .getConnectedPeerInfo: return "getConnectedPeerInfoResponse"
-        case .getBlockDagInfo: return "getBlockDagInfoResponse"
-        case .getCurrentNetwork: return "getCurrentNetworkResponse"
-        case .getMempoolEntry: return "getMempoolEntryResponse"
-        case .getFeeEstimate: return "getFeeEstimateResponse"
-        }
-    }
 }
 
 // MARK: - Pending Request
@@ -50,10 +33,6 @@ struct PendingRequest {
     let sentAt: Date
     let timeout: TimeInterval
     let timeoutTask: Task<Void, Never>
-
-    var isExpired: Bool {
-        Date().timeIntervalSince(sentAt) > timeout
-    }
 }
 
 // MARK: - Connection State
@@ -64,10 +43,6 @@ enum ConnectionState: Equatable {
     case connecting
     case connected
     case reconnecting
-
-    var isUsable: Bool {
-        self == .connected
-    }
 }
 
 // MARK: - Circuit Breaker
@@ -143,8 +118,8 @@ struct ScannedBlock: Sendable {
         /// Hex, as the node sends it.
         let payloadHex: String
         /// Hex of the first output's script public key - the address a payload with no sender
-        /// field claims (public chats, group control). Only trustworthy once input 0 is shown to
-        /// spend from that same address (XP-012, `PublicChatService.verifiedAuthors`).
+        /// field claims (group control). Only trustworthy once input 0 is shown to
+        /// spend from that same address (XP-012).
         let firstOutputScriptHex: String
         /// Input 0's previous outpoint: the coin that was spent, whose address is the real sender.
         let firstInputTxId: String
@@ -353,15 +328,6 @@ actor GRPCStreamConnection {
 
     var isConnected: Bool {
         state == .connected
-    }
-
-    var connectionDuration: TimeInterval? {
-        guard let connected = connectedAt else { return nil }
-        return Date().timeIntervalSince(connected)
-    }
-
-    var averageLatencyMs: Double? {
-        latencyEwma.value
     }
 
     var isCircuitOpen: Bool {
@@ -582,11 +548,6 @@ actor GRPCStreamConnection {
         reconnectAttempts = 0
 
         AppLog.log("[GRPCStream] Disconnected from %@", endpoint.key)
-    }
-
-    /// Check if connection should be attempted (circuit breaker)
-    func shouldAttempt() -> Bool {
-        circuitBreaker.checkState()
     }
 
     // MARK: - Request/Response
@@ -953,26 +914,9 @@ actor GRPCStreamConnection {
 
     // MARK: - Health Metrics
 
-    /// Get current health metrics
-    func getHealthMetrics() -> (latencyMs: Double?, consecutiveSuccesses: Int, consecutiveFailures: Int) {
-        (latencyEwma.value, consecutiveSuccesses, consecutiveFailures)
-    }
-
-    /// Reset health metrics (e.g., on epoch change)
-    func resetHealthMetrics() {
-        latencyEwma.reset()
-        consecutiveSuccesses = 0
-        consecutiveFailures = 0
-    }
-
     /// Reset the circuit breaker (call after confirmed successful communication)
     func resetCircuitBreaker() {
         circuitBreaker.reset()
-    }
-
-    /// Check circuit breaker state without mutating
-    var circuitBreakerState: CircuitBreaker.State {
-        circuitBreaker.state
     }
 }
 
@@ -1059,20 +1003,9 @@ actor GRPCConnectionPool {
         connections.removeAll()
     }
 
-    /// Get all active connections
-    func allConnections() -> [GRPCStreamConnection] {
-        Array(connections.values)
-    }
-
     /// Get current connection count
     func connectionCount() -> Int {
         connections.count
-    }
-
-    /// Check if endpoint has an established connection
-    func hasActiveConnection(for endpoint: Endpoint) async -> Bool {
-        guard let conn = connections[endpoint.key] else { return false }
-        return await conn.isConnected
     }
 
     /// Get endpoints with active connections

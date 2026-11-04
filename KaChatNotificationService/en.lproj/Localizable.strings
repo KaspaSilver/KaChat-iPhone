@@ -32,11 +32,6 @@
 "Chat Info" = "Chat Info";
 "Chat archived." = "Chat archived.";
 "Chats" = "Chats";
-"Checking eligibility..." = "Checking eligibility...";
-"Checking gift eligibility..." = "Checking gift eligibility...";
-"Claim Gift" = "Claim Gift";
-"Claim some KAS to get started with your new account." = "Claim some KAS to get started with your new account.";
-"Claiming gift..." = "Claiming gift...";
 "Clear" = "Clear";
 "Clear Connection Pool" = "Clear Connection Pool";
 "Clear Link" = "Clear Link";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "Failed to link system contact.";
 "Failed to open archive: \(error.localizedDescription)" = "Failed to open archive: \(error.localizedDescription)";
 "Generate Account" = "Generate Account";
-"Gift" = "Gift";
-"Gift already claimed" = "Gift already claimed";
-"Gift claim reset. You can request it again." = "Gift claim reset. You can request it again.";
-"Gift claimed" = "Gift claimed";
-"Gift sent to your wallet!" = "Gift sent to your wallet!";
-"Gift unavailable" = "Gift unavailable";
 "Request to communicate" = "Request to communicate";
 "Send audio" = "Send audio";
 "Send KAS" = "Send KAS";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "Hide auto-created payment chats";
 "High Transaction Traffic" = "High Transaction Traffic";
 "I have written down my seed phrase and stored it securely" = "I have written down my seed phrase and stored it securely";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "If claiming fails because the donation wallet is temporarily out of funds, please try again later.";
 "Import" = "Import";
 "Import Account" = "Import Account";
 "Import Chat History" = "Import Chat History";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "Recording… \\(Int(recordingDuration))s";
 "Refresh Pool" = "Refresh Pool";
 "Refresh Pool Now" = "Refresh Pool Now";
-"Registered" = "Registered";
 "Remove Saved Account" = "Remove Saved Account";
 "Remove from Device" = "Remove from Device";
 "Required for cross-device sync and backup of sent messages." = "Required for cross-device sync and backup of sent messages.";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "This account will be removed from this device.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "This deletes all local data and CloudKit message records. This cannot be undone.";
-"This device has already received the welcome gift." = "This device has already received the welcome gift.";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device.";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device.";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "This removes discovered nodes, disconnects current sessions, and restarts discovery.";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "This signs out of your account, but keeps local wallet and message data on this device.";
-"This welcome gift is a community-funded initiative." = "This welcome gift is a community-funded initiative.";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "This will permanently delete your account from this device. Make sure you have backed up your seed phrase.";
 "To receive notifications, please enable them in Settings." = "To receive notifications, please enable them in Settings.";
 "Total" = "Total";
@@ -292,7 +277,6 @@
 "Voice message" = "Voice message";
 "Watching" = "Watching";
 "Website" = "Website";
-"Welcome Gift" = "Welcome Gift";
 "Welcome to KaChat!" = "Welcome to KaChat!";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage.";
 "Wipe Account & Messages" = "Wipe Account & Messages";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "Renew it soon to keep it.";
 "Renew it soon or anyone can claim it." = "Renew it soon or anyone can claim it.";
-"%@ has lapsed" = "%@ has lapsed";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "Anyone can claim it now. Reclaim it yourself to get your bond back.";
 "Offer on %@ declined" = "Offer on %@ declined";
 "The owner declined it. The KAS is back with you." = "The owner declined it. The KAS is back with you.";
 "Offer on %@ expired" = "Offer on %@ expired";
 "Nobody accepted it in time. The KAS is back with you." = "Nobody accepted it in time. The KAS is back with you.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back.";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ is no longer yours";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Sent you %@ KAS";
 "Sent you a payment" = "Sent you a payment";
+"Requested for payment" = "Requested for payment";
+"You were invited to \"%@\"" = "You were invited to \"%@\"";

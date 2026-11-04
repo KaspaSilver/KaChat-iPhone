@@ -32,11 +32,6 @@
 "Chat Info" = "채팅 정보";
 "Chat archived." = "채팅이 보관되었습니다.";
 "Chats" = "채팅";
-"Checking eligibility..." = "자격 확인 중...";
-"Checking gift eligibility..." = "선물 수령 자격 확인 중...";
-"Claim Gift" = "선물 받기";
-"Claim some KAS to get started with your new account." = "새 계정을 시작할 수 있도록 KAS를 받아 보세요.";
-"Claiming gift..." = "선물 수령 중...";
 "Clear" = "지우기";
 "Clear Connection Pool" = "연결 풀 초기화";
 "Clear Link" = "링크 해제";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "시스템 연락처 연결에 실패했습니다.";
 "Failed to open archive: \(error.localizedDescription)" = "아카이브를 열 수 없습니다: \(error.localizedDescription)";
 "Generate Account" = "계정 생성";
-"Gift" = "선물";
-"Gift already claimed" = "선물을 이미 받았습니다";
-"Gift claim reset. You can request it again." = "선물 수령이 초기화되었습니다. 다시 요청할 수 있습니다.";
-"Gift claimed" = "선물 수령 완료";
-"Gift sent to your wallet!" = "지갑으로 선물이 전송되었습니다!";
-"Gift unavailable" = "선물을 이용할 수 없습니다";
 "Request to communicate" = "통신 요청";
 "Send audio" = "오디오 보내기";
 "Send KAS" = "KAS 보내기";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "자동 생성된 결제 채팅 숨기기";
 "High Transaction Traffic" = "높은 트랜잭션 트래픽";
 "I have written down my seed phrase and stored it securely" = "seed phrase를 적어서 안전하게 보관했습니다";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "기부 지갑의 잔액이 일시적으로 부족해 수령에 실패하면 나중에 다시 시도해 주세요.";
 "Import" = "가져오기";
 "Import Account" = "계정 가져오기";
 "Import Chat History" = "채팅 기록 가져오기";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "녹음 중… \\(Int(recordingDuration))초";
 "Refresh Pool" = "풀 새로고침";
 "Refresh Pool Now" = "지금 풀 새로고침";
-"Registered" = "등록됨";
 "Remove Saved Account" = "저장된 계정 제거";
 "Remove from Device" = "기기에서 제거";
 "Required for cross-device sync and backup of sent messages." = "기기 간 동기화 및 보낸 메시지 백업에 필요합니다.";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "이 계정은 이 기기에서 제거됩니다.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "이 연락처는 생성 후 연결됩니다. Kaspa 주소 또는 KNS 도메인을 입력해야 합니다.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "모든 로컬 데이터와 CloudKit 메시지 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.";
-"This device has already received the welcome gift." = "이 기기는 이미 환영 선물을 받았습니다.";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "이 기기에서 \(account.displayAlias)(\(account.shortPublicAddress))와 해당 로컬 데이터를 제거합니다.";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "이 기기에서 \\(account.displayAlias)(\\(account.shortPublicAddress))와 해당 로컬 데이터를 제거합니다.";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "로컬과 iCloud의 모든 수신 메시지를 삭제하고 블록체인에서 다시 동기화합니다. 계정 정보와 보낸 메시지는 보존됩니다.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "발견된 노드를 삭제하고, 현재 세션을 끊고, 탐색을 다시 시작합니다.";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "로컬 계정 데이터와 메시지를 삭제합니다. 삭제 중 CloudKit 동기화가 비활성화되고 완료 후 다시 활성화됩니다.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "계정에서 로그아웃하지만, 이 기기의 로컬 지갑과 메시지 데이터는 유지됩니다.";
-"This welcome gift is a community-funded initiative." = "이 환영 선물은 커뮤니티 후원으로 제공됩니다.";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "이 기기에서 계정이 영구적으로 삭제됩니다. seed phrase를 백업했는지 확인하세요.";
 "To receive notifications, please enable them in Settings." = "알림을 받으려면 설정에서 알림을 활성화하세요.";
 "Total" = "합계";
@@ -292,7 +277,6 @@
 "Voice message" = "음성 메시지";
 "Watching" = "감시 중";
 "Website" = "웹사이트";
-"Welcome Gift" = "환영 선물";
 "Welcome to KaChat!" = "KaChat에 오신 것을 환영합니다!";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "비활성화하면 이 연락처의 메시지가 실시간이 아닌 주기적으로 가져와집니다. 트랜잭션 양이 많은 연락처에 사용하여 배터리와 네트워크 사용량을 절약하세요.";
 "Wipe Account & Messages" = "계정 및 메시지 삭제";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "유지하려면 곧 갱신하세요.";
 "Renew it soon or anyone can claim it." = "곧 갱신하지 않으면 누구나 가져갈 수 있어요.";
-"%@ has lapsed" = "%@ 소멸됨";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "이제 누구나 가져갈 수 있어요. 직접 회수하면 보증금을 돌려받아요.";
 "Offer on %@ declined" = "%@에 대한 제안 거절됨";
 "The owner declined it. The KAS is back with you." = "소유자가 거절했어요. KAS가 돌아왔어요.";
 "Offer on %@ expired" = "%@에 대한 제안 만료됨";
 "Nobody accepted it in time. The KAS is back with you." = "제때 아무도 수락하지 않았어요. KAS가 돌아왔어요.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "더 이상 내 이름이 아니며 마켓플레이스의 회수 가능 탭으로 옮겨졌습니다. 직접 회수하면 보증금을 돌려받습니다.";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@은(는) 더 이상 내 것이 아닙니다";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "%@ KAS를 보냈습니다";
 "Sent you a payment" = "결제를 보냈습니다";
+"Requested for payment" = "결제를 요청했습니다";
+"You were invited to \"%@\"" = "\"%@\"에 초대되었습니다";

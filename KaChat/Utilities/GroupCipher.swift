@@ -353,6 +353,42 @@ enum GroupCipher {
         return verify(sig, message: signingPayload, xOnlyPublicKey: signingPub)
     }
 
+    // MARK: - gctl_invite_accept (you joined this group)
+    // Self-addressed and signed, like gctl_tombstone (which is what a rejection publishes): it's how
+    // your other devices and a restore of your words learn the answer. Older clients ignore it.
+    struct GroupInviteAcceptPayload: Codable {
+        var type = "gctl_invite_accept"
+        var v: UInt8 = 1
+        var groupId: String
+        var signingPub: String
+        var sig: String
+        enum CodingKeys: String, CodingKey {
+            case type, v
+            case groupId = "group_id"
+            case signingPub = "signing_pub"
+            case sig
+        }
+    }
+
+    static func buildInviteAcceptSigningPayload(v: UInt8, groupId: Data) -> Data {
+        var payload = Data([v])
+        payload.append(Data("gctl_invite_accept".utf8))
+        payload.append(groupId)
+        return payload
+    }
+
+    static func buildSignedInviteAcceptPayload(groupId: Data, signingPub: Data, privateKey: Data) throws -> GroupInviteAcceptPayload {
+        let sig = try sign(buildInviteAcceptSigningPayload(v: 1, groupId: groupId), privateKey: privateKey)
+        return GroupInviteAcceptPayload(groupId: groupId.hexString, signingPub: signingPub.hexString, sig: sig.hexString)
+    }
+
+    static func verifyInviteAcceptPayload(_ payload: GroupInviteAcceptPayload) -> Bool {
+        guard let groupId = Data(hexString: payload.groupId),
+              let signingPub = Data(hexString: payload.signingPub),
+              let sig = Data(hexString: payload.sig) else { return false }
+        return verify(sig, message: buildInviteAcceptSigningPayload(v: payload.v, groupId: groupId), xOnlyPublicKey: signingPub)
+    }
+
     // MARK: - gctl_photo (admin-set group photo)
     // A separate signed control type (like gctl_tombstone) so it never touches the gctl_root
     // signature - older clients ignore an unknown control type. `photo` is hex of a compressed

@@ -11,7 +11,7 @@ final class KNSService: NSObject, ObservableObject, URLSessionTaskDelegate {
     @Published private(set) var profileCache: [String: KNSAddressProfileInfo] = [:]
 
     /// In-flight fetches keyed by address, so concurrent callers for the same not-yet-cached
-    /// address (e.g. many KaPosts feed rows by the same poster mounting at once) await the SAME
+    /// address (e.g. many rows for the same address mounting at once) await the SAME
     /// network request instead of each firing their own - mirrors `LinkPreviewService.inFlight`.
     /// Crucially these are unstructured Tasks: a row's `.task` being cancelled on scroll-away no
     /// longer cancels the underlying fetch, so the result always lands in the cache.
@@ -58,8 +58,8 @@ final class KNSService: NSObject, ObservableObject, URLSessionTaskDelegate {
     private let failureCooldownBase: TimeInterval = 30
     private let failureCooldownMax: TimeInterval = 10 * 60
 
-    /// Persisted caches and attempt bookkeeping stay bounded - a KaPosts feed can surface
-    /// hundreds of unique poster addresses over time.
+    /// Persisted caches and attempt bookkeeping stay bounded - they can surface
+    /// hundreds of unique addresses over time.
     private let maxCacheEntries = 512
     private let maxAttemptEntries = 2_048
 
@@ -939,7 +939,7 @@ final class KNSService: NSObject, ObservableObject, URLSessionTaskDelegate {
 
     /// Does this address own at least one KNS domain?
     ///
-    /// Used by cold-storage discovery, which surfaces an address when it holds a balance OR owns a
+    /// Used by discovery, which surfaces an address when it holds a balance OR owns a
     /// domain. Deliberately reports "unknown" as false rather than throwing: a discovery scan that
     /// aborted on one flaky lookup would report far fewer addresses than exist.
     func ownsAnyDomain(_ address: String) async -> Bool {
@@ -999,7 +999,7 @@ final class KNSService: NSObject, ObservableObject, URLSessionTaskDelegate {
     static let loadsDomainProfiles = false
 
     /// Whether an ADDRESS is shown by its .kas name anywhere in the app - contacts, chat rows,
-    /// User Info, group and public chat senders, KaPosts authors, chess players, calls. Off since
+    /// User Info, group senders, chess players, calls. Off since
     /// 5.2: someone without a .kachat name is shown by their address (or the name you gave
     /// them). The profile lookups that carried the name (`fetchProfile`, `getProfile`,
     /// `refreshProfilesIfNeeded`) answer nil without asking KNS, and `identityInfo(for:)` is
@@ -1070,7 +1070,7 @@ final class KNSService: NSObject, ObservableObject, URLSessionTaskDelegate {
 
         // NEVER cache an errored lookup (rate limit, timeout, offline) as a real result. The
         // old fall-through cached it as a permanent "address has no KNS" entry - persisted to
-        // UserDefaults - which is exactly how some KaPosts avatars/names got stuck missing
+        // UserDefaults - which is exactly how some avatars/names got stuck missing
         // forever. Return what we have; the failure cooldown + refresh backoff handle retrying.
         if hadError {
             return (domainCache[address], true)
@@ -2329,14 +2329,6 @@ struct KNSDomainProfile: Equatable, Codable {
     let contactEmail: String?
     let bannerUrl: String?
     let github: String?
-
-    var hasAnyField: Bool {
-        [avatarUrl, redirectUrl, bio, x, website, telegram, discord, contactEmail, bannerUrl, github]
-            .contains { value in
-                guard let value else { return false }
-                return !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            }
-    }
 
     fileprivate func sanitized() -> KNSDomainProfile {
         KNSDomainProfile(

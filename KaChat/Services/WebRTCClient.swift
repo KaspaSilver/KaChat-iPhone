@@ -26,14 +26,11 @@ final class WebRTCClient: NSObject {
     var onConnectionState: ((RTCIceConnectionState) -> Void)?
     var onRemoteVideoTrack: ((RTCVideoTrack) -> Void)?
 
-    private(set) var wantsVideo: Bool
-
     struct SetupError: LocalizedError {
         var errorDescription: String? { "Could not start the call connection." }
     }
 
     init(iceServers: [NextcloudTalkClient.IceServer], video: Bool) throws {
-        wantsVideo = video
         let config = RTCConfiguration()
         config.iceServers = iceServers.map { server in
             if let username = server.username, let credential = server.credential {
@@ -77,7 +74,6 @@ final class WebRTCClient: NSObject {
         connection.add(track, streamIds: ["kachat"])
         localVideoTrack = track
         capturer = RTCCameraVideoCapturer(delegate: videoSource)
-        wantsVideo = true
         startCaptureIfNeeded()
         return track
     }

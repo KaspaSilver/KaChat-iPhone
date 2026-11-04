@@ -27,7 +27,7 @@ struct AccountBackupBanner: View {
                             .multilineTextAlignment(.leading)
                         Text(hasFunds
                              ? "You now have funds that aren't backed up."
-                             : "If you lose this phone, your seed phrase is the only way back.")
+                             : "If you lose this phone, your 12 or 24 words are the only way back.")
                             .font(.caption2)
                             .foregroundColor(hasFunds ? .red : .secondary)
                             .multilineTextAlignment(.leading)
@@ -66,7 +66,7 @@ struct AccountBackupView: View {
     /// Opens the steps behind the seed phrase's biometric gate, when enabled.
     static func unlock(_ show: @escaping () -> Void) {
         if AppSettings.load().biometricSeedPhraseEnabled {
-            DeviceAuth.authenticate(reason: "Unlock to view your seed phrase", onSuccess: show)
+            DeviceAuth.authenticate(reason: "Unlock to view your 12 or 24 words", onSuccess: show)
         } else {
             show()
         }
@@ -109,7 +109,7 @@ struct AccountBackupView: View {
                 if seedPhrase != nil {
                     stepContent
                 } else if loadFailed {
-                    Text("This account's seed phrase isn't available on this phone.")
+                    Text("This account's 12 or 24 words aren't available on this phone.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -140,7 +140,7 @@ struct AccountBackupView: View {
         .alert("Delete That Screenshot", isPresented: $showScreenshotWarning) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("A screenshot of your seed phrase can end up online. Delete it from your photos and write the words on paper instead.")
+            Text("A screenshot of your 12 or 24 words can end up online. Delete it from your photos and write the words on paper instead.")
         }
     }
 
@@ -236,7 +236,7 @@ struct AccountBackupView: View {
     private var whyStep: some View {
         screen(buttonTitle: "Start Backup", action: { go(to: .prepare) }) {
             heading("Protect your funds")
-            point("key.fill", "Your seed phrase is your account",
+            point("key.fill", "Your 12 or 24 words are your account",
                   "These secret words are created just for you. They are the master key to your funds.")
             point("iphone.slash", "Your phone can't be your only copy",
                   "If you lose, break or replace this phone, these words are the only way back to your account.")
@@ -245,7 +245,7 @@ struct AccountBackupView: View {
             NavigationLink {
                 SeedPhraseExplainerPage()
             } label: {
-                Label("What is a seed phrase?", systemImage: "questionmark.circle")
+                Label("What are my 12 or 24 words?", systemImage: "questionmark.circle")
                     .font(.subheadline.weight(.semibold))
             }
         }
@@ -255,7 +255,7 @@ struct AccountBackupView: View {
 
     private var prepareStep: some View {
         screen(
-            buttonTitle: "Show My Seed Phrase",
+            buttonTitle: "Show My 12 or 24 Words",
             buttonEnabled: hasPenAndPaper && isPrivate && noPhotos,
             action: { wordPage = 0; go(to: .words) }
         ) {
@@ -390,7 +390,7 @@ struct AccountBackupView: View {
     private var passphraseStep: some View {
         screen(buttonTitle: "I Wrote It Down", action: { passphraseAnswer = ""; passphraseWrong = false; go(to: .passphraseCheck) }) {
             heading("Write down your passphrase",
-                    "This account also needs its passphrase. Your seed phrase alone won't bring it back. Write it exactly, including capital letters and spaces.")
+                    "This account also needs its passphrase. Your 12 or 24 words alone won't bring it back. Write it exactly, including capital letters and spaces.")
             SecureView {
                 Text(verbatim: passphrase ?? "")
                     .font(.system(.title3, design: .monospaced).weight(.semibold))
@@ -458,10 +458,10 @@ struct AccountBackupView: View {
                   "Nobody needs your words. KaChat and real support will never ask for them. Anyone who asks is trying to take your funds.")
             if passphrase != nil {
                 point("square.split.2x1.fill", "Keep your passphrase apart",
-                      "Store it away from your seed phrase. You need both, and losing either one loses the account.")
+                      "Store it away from your 12 or 24 words. You need both, and losing either one loses the account.")
             }
             point("gearshape.fill", "You can see it again",
-                  "Your seed phrase stays available in Settings > Back Up Account.")
+                  "Your 12 or 24 words stay available in Settings > Back Up Account.")
         }
     }
 
@@ -596,7 +596,7 @@ struct BackupHygieneView: View {
             Text("Let's ensure your account is backed up in case you lose access to your phone.")
                 .font(.subheadline.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
-            Text("Enter these \(asked.count) words from your seed phrase. Each box shows the word's number.")
+            Text("Enter these \(asked.count) of your 12 or 24 words. Each box shows the word's number.")
                 .font(.footnote)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -627,7 +627,7 @@ struct BackupHygieneView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Now enter your passphrase")
                     .font(.subheadline.weight(.semibold))
-                Text("Your seed phrase alone won't bring this account back. Enter the passphrase from what you wrote down, exactly, including capital letters and spaces.")
+                Text("Your 12 or 24 words alone won't bring this account back. Enter the passphrase from what you wrote down, exactly, including capital letters and spaces.")
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

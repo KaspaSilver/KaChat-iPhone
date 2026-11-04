@@ -42,7 +42,7 @@ struct ManageAddressesView: View {
     @State private var quantumSpentAddresses: Set<String> = []
     /// The bulk show/hide checklist, reached from the Address Actions sheet - it is one of this
     /// account's address actions, so it lives with the others rather than as an unlabelled
-    /// checklist glyph in the toolbar. Same placement as Cold Storage.
+    /// checklist glyph in the toolbar.
     @State private var showVisibilityManager = false
     /// The "Address Actions" half sheet, and the per-row one behind each ellipsis.
     @State private var showAddressActions = false
@@ -64,10 +64,6 @@ struct ManageAddressesView: View {
     /// The spending rows shown: everything not hidden.
     private var visibleEntries: [SpendingAddressEntry] {
         entries.filter { !$0.hidden }
-    }
-
-    private var hiddenCount: Int {
-        entries.filter { $0.hidden }.count
     }
 
     /// The spending addresses under the Chatting Address: unused ones first, newest first - so a
@@ -213,7 +209,7 @@ struct ManageAddressesView: View {
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
 
-        // This account's own switch (cold-storage accounts have theirs in their menu): the
+        // This account's own switch: the
         // spending addresses' receives, not every address the wallet watches.
         Toggle(isOn: $activityNotifier.spendingReceiveNotificationsEnabled) {
             VStack(alignment: .leading, spacing: 2) {
@@ -985,7 +981,7 @@ struct ManageAddressesView: View {
 }
 
 /// Small teal-tinted capsule shown on address rows that own at least one KNS domain. Shared by
-/// ManageAddressesView's spending-address list and ColdStorageDetailView's address list. Same
+/// ManageAddressesView's spending-address list. Same
 /// capsule treatment as the app's other inline badges (e.g. KNSDomainCard's "Primary"), tinted
 /// with the accent color instead of drawn on a dark card.
 struct ContainsDomainTag: View {
@@ -1234,8 +1230,7 @@ struct SpendingAddressWithdrawView: View {
     let entry: SpendingAddressEntry
     /// Pre-fills the recipient with `entry.address` itself (a self-send) and auto-fills Max, for
     /// the "Compound UTXOs" entry point - merges every UTXO at this address into one. Locks the
-    /// recipient field instead of just pre-filling it, matching Cold Storage's identical
-    /// ColdSendFlowView behavior, since editing it away from `entry.address` would defeat the
+    /// recipient field instead of just pre-filling it, since editing it away from `entry.address` would defeat the
     /// point of a compound send.
     var isCompoundMode: Bool = false
     /// UTXOs already loaded for `entry.address` by the parent (the list the user is looking at).
@@ -1286,6 +1281,8 @@ struct SpendingAddressWithdrawView: View {
 
     @State private var feeTier: WithdrawFeeTier = .normal
     @State private var normalFeeSompi: UInt64?
+    /// Change too small to keep, which goes to the fee (`SendFeeEstimate`).
+    @State private var foldedChangeSompi: UInt64 = 0
     @State private var isEstimatingFee = false
     @State private var customExtraFeeSompi: UInt64?
     @State private var isEditingFee = false
@@ -1318,7 +1315,7 @@ struct SpendingAddressWithdrawView: View {
 
     private var totalFeeSompi: UInt64? {
         guard let normalFeeSompi else { return nil }
-        return normalFeeSompi + extraFeeSompi
+        return SendFeeEstimate(networkFee: normalFeeSompi, foldedChange: foldedChangeSompi).total(extra: extraFeeSompi)
     }
 
     private var feeEstimationKey: String {
@@ -1492,7 +1489,8 @@ struct SpendingAddressWithdrawView: View {
                 do {
                     let fee = try await chatService.estimateSpendingAddressWithdrawalFee(index: source.index, toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos, availableUtxos: isCompoundMode ? preloadedUtxos : [])
                     guard !Task.isCancelled else { return }
-                    normalFeeSompi = fee
+                    normalFeeSompi = fee.networkFee
+                    foldedChangeSompi = fee.foldedChange
                 } catch {
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = nil
@@ -2068,7 +2066,7 @@ struct SpendingAddressTransactionHistoryView: View {
             }
             .padding(.top, 12)
 
-            // The app's tab look (Chats / Group Chats / Public Chats), not a segmented control.
+            // The app's tab look, not a segmented control.
             UnderlineTabBar(
                 tabs: Tab.allCases.map { (tab: $0, title: tabLabel($0)) },
                 selection: $selectedTab
@@ -2472,7 +2470,7 @@ private struct SpendingAddressVisibilityView: View {
         }
     }
 
-    /// A Kaspa Hub style square: the chain, and how many of its addresses Manage Addresses shows.
+    /// A square: the chain, and how many of its addresses Manage Addresses shows.
     private func chainCard(quantum: Bool) -> some View {
         let chain = entries.filter { $0.isQuantum == quantum }
         // The Chatting Address is the legacy list's always-shown #0.

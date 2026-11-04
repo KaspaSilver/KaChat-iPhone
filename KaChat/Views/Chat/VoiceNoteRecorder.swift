@@ -111,7 +111,7 @@ final class VoiceNoteRecorder: NSObject, ObservableObject, AVAudioRecorderDelega
     /// BEFORE the payload-capped WebM encode - the encode truncates to ~13KB (≈9s), so callers
     /// that upload the recording elsewhere (group chat's "Send Media via Nextcloud") need the
     /// untouched original. The copy is the CALLER's to clean up; this class still deletes its own
-    /// working PCM as before. Defaulted so existing callers (public chat) are untouched.
+    /// working PCM as before. Defaulted so callers that keep no copy need not say so.
     func stopAndEncode(keepOriginalPCMAt keepURL: URL? = nil) async throws -> (data: Data, fileName: String, mimeType: String) {
         timer?.invalidate()
         timer = nil

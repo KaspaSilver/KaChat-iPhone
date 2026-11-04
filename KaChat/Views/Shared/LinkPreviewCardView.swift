@@ -30,8 +30,8 @@ struct LinkPreviewCardView: View {
     /// the sent/received bubble colours like an on-chain voice note); the cards are neutral.
     var isOutgoing: Bool = false
     /// Whether the preview fetch may start on render. True (the default) for accepted 1:1
-    /// contacts and for group chats (members chose each other); false for non-accepted senders
-    /// and for public chat rooms (anyone can post there), where the card renders as a
+    /// contacts and for group chats (members chose each other); false for non-accepted senders,
+    /// where the card renders as a
     /// "Tap to load preview" placeholder and only fetches - and therefore only touches the
     /// link's server - when the user explicitly taps it. A URL that already resolved this
     /// session shows its cached result either way, since no new fetch is involved.
@@ -342,8 +342,8 @@ struct LinkPreviewCardView: View {
             .messageActions(title: "Link", preview: url.absoluteString) { menuActions() }
     }
 
-    /// Shown instead of an automatic fetch when `autoFetch` is false (non-accepted 1:1 senders
-    /// and public chat rooms): a neutral card naming the link's host, fetched only on tap. The
+    /// Shown instead of an automatic fetch when `autoFetch` is false (non-accepted 1:1 senders):
+    /// a neutral card naming the link's host, fetched only on tap. The
     /// long-press menu still offers Copy Link / View in Explorer / Select, so the message stays
     /// fully usable without ever loading the preview.
     @ViewBuilder

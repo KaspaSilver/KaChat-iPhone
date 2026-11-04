@@ -66,21 +66,37 @@ struct KasiaCipher {
     // MARK: - Encryption
 
     /// Encrypt a message for a recipient using their public key
-    static func encrypt(_ plaintext: String, recipientPublicKey: Data) throws -> EncryptedMessage {
+    static func encrypt(_ plaintext: String, recipientPublicKey: Data, senderPrivateKey: Data? = nil) throws -> EncryptedMessage {
         guard let plaintextData = plaintext.data(using: .utf8) else {
             throw CipherError.invalidPlaintext
         }
-        return try encrypt(data: plaintextData, recipientPublicKey: recipientPublicKey)
+        return try encrypt(data: plaintextData, recipientPublicKey: recipientPublicKey, senderPrivateKey: senderPrivateKey)
     }
 
     /// Encrypt raw bytes - the binary media frame (`ContextualMediaFrame`) of a photo or voice
     /// note travels this way, without a base64 layer inside the encryption.
-    static func encrypt(data plaintextData: Data, recipientPublicKey: Data) throws -> EncryptedMessage {
+    ///
+    /// With `senderPrivateKey`, the ephemeral key is derived from it and the message's nonce
+    /// (`sentMessageKey`) instead of random, so the seed can read the message back
+    /// (`decryptSent`). To the recipient it's an ordinary message: the format doesn't change.
+    static func encrypt(data plaintextData: Data, recipientPublicKey: Data, senderPrivateKey: Data? = nil) throws -> EncryptedMessage {
 
-        // 1. Generate ephemeral key pair
+        // 1. Generate nonce and ephemeral key pair
+        var nonceBytes = [UInt8](repeating: 0, count: 12)
+        guard SecRandomCopyBytes(kSecRandomDefault, nonceBytes.count, &nonceBytes) == errSecSuccess else {
+            throw CipherError.encryptionFailed
+        }
+        let nonce = Data(nonceBytes)
+
         let ephemeralPrivateKey: P256K.KeyAgreement.PrivateKey
         do {
-            ephemeralPrivateKey = try P256K.KeyAgreement.PrivateKey()
+            if let senderPrivateKey {
+                ephemeralPrivateKey = try P256K.KeyAgreement.PrivateKey(
+                    dataRepresentation: sentMessageKey(senderPrivateKey: senderPrivateKey, nonce: nonce)
+                )
+            } else {
+                ephemeralPrivateKey = try P256K.KeyAgreement.PrivateKey()
+            }
         } catch {
             throw error
         }
@@ -126,13 +142,6 @@ struct KasiaCipher {
          let derivedKey = deriveKey(sharedSecret: xCoordinate)
          xCoordinate.zeroOut()
 
-        // 4. Generate random nonce
-        var nonceBytes = [UInt8](repeating: 0, count: 12)
-        guard SecRandomCopyBytes(kSecRandomDefault, nonceBytes.count, &nonceBytes) == errSecSuccess else {
-            throw CipherError.encryptionFailed
-        }
-        let nonce = Data(nonceBytes)
-
         // 5. Encrypt with ChaCha20-Poly1305
         let symmetricKey = SymmetricKey(data: derivedKey)
         let chachaNonce = try ChaChaPoly.Nonce(data: nonce)
@@ -168,7 +177,43 @@ struct KasiaCipher {
         let derivedKey = deriveKey(sharedSecret: sharedSecret)
         sharedSecret.zeroOut()
 
-        // 4. Decrypt with ChaCha20-Poly1305
+        return try open(encryptedMessage, derivedKey: derivedKey)
+    }
+
+    /// Reads back a message this wallet sent: the ephemeral key comes from the seed again and the
+    /// shared secret from its side of the exchange. A message sealed before this existed (or by a
+    /// client that doesn't do this) used a random key, which is gone: this fails on those.
+    static func decryptSent(_ encryptedMessage: EncryptedMessage, senderPrivateKey: Data, recipientPublicKey: Data) throws -> String {
+        let keyData = sentMessageKey(senderPrivateKey: senderPrivateKey, nonce: encryptedMessage.nonce)
+        guard let ephemeral = try? P256K.KeyAgreement.PrivateKey(dataRepresentation: keyData),
+              ephemeral.publicKey.dataRepresentation == encryptedMessage.ephemeralPublicKey else {
+            throw CipherError.decryptionFailed
+        }
+        var compressedRecipient = recipientPublicKey
+        if recipientPublicKey.count == 32 {
+            compressedRecipient = Data([0x02]) + recipientPublicKey
+        }
+        var sharedSecret = try performECDH(privateKey: keyData, ephemeralPublicKey: compressedRecipient)
+        let derivedKey = deriveKey(sharedSecret: sharedSecret)
+        sharedSecret.zeroOut()
+        return try open(encryptedMessage, derivedKey: derivedKey)
+    }
+
+    /// The ephemeral private key of a message this wallet sends. The nonce is random and travels
+    /// in the message, so no two messages share a key and nothing extra goes on chain; only
+    /// someone holding the seed can work this out.
+    private static func sentMessageKey(senderPrivateKey: Data, nonce: Data) -> Data {
+        let key = HKDF<CryptoKit.SHA256>.deriveKey(
+            inputKeyMaterial: SymmetricKey(data: senderPrivateKey),
+            salt: nonce,
+            info: Data("kachat-sent-message-v1".utf8),
+            outputByteCount: 32
+        )
+        return key.withUnsafeBytes { Data(Array($0)) }
+    }
+
+    /// ChaCha20-Poly1305, and what the plaintext turns out to be.
+    private static func open(_ encryptedMessage: EncryptedMessage, derivedKey: Data) throws -> String {
         guard encryptedMessage.ciphertext.count >= 16 else {
             throw CipherError.invalidEncryptedMessage
         }

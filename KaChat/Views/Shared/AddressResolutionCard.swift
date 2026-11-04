@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Who is behind the address a screen has resolved - the card the create-chat screen shows,
 /// for every other place an address or a domain goes in (withdrawals, sends from an address,
-/// the portfolio, a group invite). The SCREEN does the resolving (.kachat first, see
+/// a group invite). The SCREEN does the resolving (.kachat first, see
 /// `NameServicesClient.resolveEverywhere`); this card takes the outcome and shows the face and
 /// the name: the domain that was typed, else the address's own .kachat name. Nil address, no card - a half-typed
 /// address gets nothing rather than a card flickering through wrong faces.

@@ -370,16 +370,8 @@ private struct PaymentRequestShareSheet: UIViewControllerRepresentable {
 
 // MARK: - Paying one
 
-/// A text view where pasting someone's payment request opens Send Kaspa (the KaPosts composer;
-/// the chat composers' `ComposerUITextView` does the same).
-final class PaymentRequestAwareTextView: UITextView {
-    override func paste(_ sender: Any?) {
-        if PaymentRequestPaste.openIfRequest(UIPasteboard.general.string) { return }
-        super.paste(sender)
-    }
-}
-
-/// Payment requests are paid in KaPay, KaChat's wallet app: someone else's request opens there
+/// Payment requests from outside a chat are paid in KaPay, KaChat's wallet app (one tapped in a
+/// chat stays here - `KaChatLinkRouter.openPaymentRequest`): someone else's request opens there
 /// on Send, filled in, through KaPay's own scheme (`kapay://pay/...`, the same tail as
 /// `kachat://pay/`). Two stay here: your own (nothing to pay - `OwnPaymentRequestView`), and one
 /// asking for a chat payment (`toChattingAddress`, made from a 1:1 chat), which KaChat pays as an
@@ -391,15 +383,6 @@ enum KaPayHandoff {
     /// Store search for it; swap in its page (`https://apps.apple.com/app/id<KaPay's id>`) once
     /// it is.
     static let appStoreURL = URL(string: "https://apps.apple.com/search?term=KaPay")!
-
-    /// The .kachat marketplace in KaPay, or the App Store to get KaPay.
-    @MainActor
-    static func openNamesMarket() {
-        guard let url = URL(string: "\(scheme)://market") else { return }
-        UIApplication.shared.open(url) { opened in
-            if !opened { UIApplication.shared.open(appStoreURL) }
-        }
-    }
 
     @MainActor
     static func pay(_ request: PaymentRequest, inApp: @escaping () -> Void) {
@@ -475,6 +458,64 @@ struct PaymentRequestSummary: View {
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(.regularMaterial)
+        )
+    }
+}
+
+/// A payment request link in a chat's composer, shown above the field before sending: the same
+/// details the bubble's card (`KaChatInternalLinkCardView`) will show. The X takes the link out
+/// of the message.
+struct ComposerPaymentRequestPreview: View {
+    let request: PaymentRequest
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.accentColor.opacity(0.18))
+                Image(systemName: "arrow.up.circle")
+                    .font(.scaled(size: 18, weight: .semibold))
+                    .foregroundColor(.accentColor)
+            }
+            .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Payment Request")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(.accentColor)
+                    .textCase(.uppercase)
+                Text(verbatim: "\(request.amountText) \(KaspaUnit.symbol)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                if !request.memo.isEmpty {
+                    Text(verbatim: request.memo)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.scaled(size: 20))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Remove"))
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.regularMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
+                )
         )
     }
 }

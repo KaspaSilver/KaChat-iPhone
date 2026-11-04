@@ -112,7 +112,9 @@ struct SettingsView: View {
                                 notBackedUp: backupStatus.isPending(walletManager.currentWallet?.publicAddress),
                                 onBackUp: { AccountBackupView.unlock { showBackupOverDeleteWarning = true } }
                             ) {
-                                Task { await walletManager.deleteCurrentAccount() }
+                                DeviceAuth.authenticate(reason: AppLocalization.string("Confirm deleting this account")) {
+                                    Task { await walletManager.deleteCurrentAccount() }
+                                }
                             }
                             .sheet(isPresented: $showSeedPhraseOverDeleteWarning) {
                                 SeedPhraseView()
@@ -412,7 +414,7 @@ struct SettingsView: View {
                     unlockSeedPhrase { showSeedPhrase = true }
                 } label: {
                     Label {
-                        Text("View Seed Phrase")
+                        Text("View 12 or 24 Words")
                             .foregroundColor(.primary)
                     } icon: {
                         Image(systemName: "key")
@@ -504,7 +506,7 @@ struct SettingsView: View {
     /// The seed phrase, behind the biometric gate when enabled.
     private func unlockSeedPhrase(_ show: @escaping () -> Void) {
         if settingsViewModel.settings.biometricSeedPhraseEnabled {
-            DeviceAuth.authenticate(reason: "Unlock to view your seed phrase", onSuccess: show)
+            DeviceAuth.authenticate(reason: "Unlock to view your 12 or 24 words", onSuccess: show)
         } else {
             show()
         }
@@ -669,20 +671,10 @@ private struct AccountNamePage: View {
 private struct AccountAboutPage: View {
     @EnvironmentObject private var walletManager: WalletManager
 
-    /// Donate: the Send screen, addressed to KaChat's donation address
-    @State private var showDonateSheet = false
     @State private var showOpenSourceLicenses = false
 
-    private static let donateName = "kachat.kachat"
-    /// The address Donate pays, pinned (IOS-067): a name is first-come, so resolving
-    /// `kachat.kachat` would pay whoever registered it. This is the address `kachat.kas` has
-    /// always paid; on testnet the same key's `kaspatest:` form. The Send screen shows the
-    /// address's own .kachat name once the project registers `kachat` to it.
-    private static let donationAddressMainnet = "kaspa:qzy7da4589avjwmmnqfvkhp5p8p268gc7rvr9lg2xxpuhj75sy8kgdqmpd2fu"
-    private static var donationAddress: String {
-        KaspaAddress.onActiveNetwork(donationAddressMainnet) ?? donationAddressMainnet
-    }
     private static let websiteURL = URL(string: "https://home.kachat.app")!
+    private static let privacyPolicyURL = URL(string: "https://home.kachat.app/privacy/")!
     private static let supportEmailURL = URL(string: "mailto:kaspasilver@gmail.com")!
 
     var body: some View {
@@ -720,14 +712,13 @@ private struct AccountAboutPage: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                Button {
-                    showDonateSheet = true
-                } label: {
+                Link(destination: Self.privacyPolicyURL) {
                     HStack {
-                        Text("Donate")
+                        Text("Privacy Policy")
                             .foregroundColor(.primary)
                         Spacer()
-                        Text(verbatim: Self.donateName)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -747,14 +738,6 @@ private struct AccountAboutPage: View {
         }
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
-        // Donate goes straight to Send with KaChat's pinned donation address filled in - an
-        // address, not a name anyone could register (IOS-067) - no chat opened
-        .sheet(isPresented: $showDonateSheet) {
-            if let wallet = walletManager.currentWallet {
-                WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi,
-                                  prefillAddress: Self.donationAddress)
-            }
-        }
         .sheet(isPresented: $showOpenSourceLicenses) {
             OpenSourceLicensesView()
         }
@@ -825,8 +808,8 @@ struct SecuritySettingsPage: View {
         Form {
             Section("Security") {
                 biometricToggle(
-                    "Biometrics for Seed Phrase",
-                    reason: "Unlock to change the seed phrase biometric lock",
+                    "Biometrics for 12 or 24 Words",
+                    reason: "Unlock to change the 12 or 24 words biometric lock",
                     isOn: $settingsViewModel.settings.biometricSeedPhraseEnabled
                 )
                 biometricToggle(
@@ -1455,10 +1438,6 @@ struct WalletNotificationSettingsView: View {
 struct NotificationsSettingsView: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
 
-    @State private var toastMessage: String?
-    @State private var toastToken = UUID()
-    @State private var toastStyle: ToastStyle = .success
-
     var body: some View {
         Form {
             Section {
@@ -1475,25 +1454,8 @@ struct NotificationsSettingsView: View {
                 Text("Sound & Vibration")
             }
         }
-        .toast(message: toastMessage, style: toastStyle)
         .navigationTitle("Chats")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func showToast(_ message: String, style: ToastStyle = .success) {
-        let token = UUID()
-        toastToken = token
-        toastStyle = style
-        withAnimation(.easeOut(duration: 0.2)) {
-            toastMessage = message
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-            if toastToken == token {
-                withAnimation(.easeIn(duration: 0.2)) {
-                    toastMessage = nil
-                }
-            }
-        }
     }
 }
 
@@ -1735,11 +1697,11 @@ struct SeedPhraseView: View {
                         .font(.headline)
                         .foregroundColor(.orange)
 
-                    Text("Anyone with your seed phrase can access your account. Never share it with anyone.")
+                    Text("Anyone with your 12 or 24 words can access your account. Never share them with anyone.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                    Text("Best practice is to write your seed phrase down to back it up, and never store it online.")
+                    Text("Best practice is to write your 12 or 24 words down to back them up, and never store it online.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -1808,9 +1770,9 @@ struct SeedPhraseView: View {
                             Button {
                                 copySensitiveToClipboard(seedPhrase.words.joined(separator: " "))
                                 Haptics.success()
-                                showToast("Seed phrase copied. Clipboard will clear in 30s.")
+                                showToast("Words copied. Clipboard will clear in 30s.")
                             } label: {
-                                Label("Copy Seed Phrase", systemImage: "doc.on.doc")
+                                Label("Copy 12 or 24 Words", systemImage: "doc.on.doc")
                             }
                             Button {
                                 guard let privateKey = walletManager.getPrivateKey() else {
@@ -1839,7 +1801,7 @@ struct SeedPhraseView: View {
                             VStack(spacing: 12) {
                                 Image(systemName: "eye.slash.fill")
                                     .font(.largeTitle)
-                                Text("Tap to reveal seed phrase")
+                                Text("Tap to reveal your 12 or 24 words")
                                     .font(.subheadline)
                             }
                             .frame(maxWidth: .infinity)
@@ -1859,7 +1821,7 @@ struct SeedPhraseView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Seed Phrase")
+            .navigationTitle("12 or 24 Words")
             .navigationBarTitleDisplayMode(.inline)
             .toast(message: toastMessage, style: toastStyle)
             .toolbar {
@@ -2671,6 +2633,15 @@ struct ConnectionStatusDetailView: View {
                 }
             }
 
+            if let latency = nodeInfo.currentNodeLatencyMs {
+                HStack {
+                    Text("Latency")
+                    Spacer()
+                    Text("\(latency) ms")
+                        .foregroundColor(latencyColor(latency))
+                }
+            }
+
             HStack {
                 Text("Protocol")
                 Spacer()
@@ -2710,15 +2681,6 @@ struct ConnectionStatusDetailView: View {
                         .font(.system(.caption, design: .monospaced))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
-                }
-            }
-
-            if let latency = nodeInfo.currentNodeLatencyMs {
-                HStack {
-                    Text("Latency")
-                    Spacer()
-                    Text("\(latency) ms")
-                        .foregroundColor(latencyColor(latency))
                 }
             }
 
@@ -2836,7 +2798,7 @@ struct ConnectionStatusDetailView: View {
         }
     }
 
-    /// Refresh Pool, Clear Pool, Reconnect.
+    /// Refresh Pool, Clear Pool, Reconnect, and the way into Connection Settings.
     @ViewBuilder
     private var actionsSection: some View {
         // Actions Section (pool refresh/clear only apply in automatic mode;
@@ -2880,6 +2842,12 @@ struct ConnectionStatusDetailView: View {
                 }
             }
             .disabled(nodePool.isRefreshing || isReconnecting)
+
+            NavigationLink {
+                ConnectionSettingsView()
+            } label: {
+                Text("Connection Settings")
+            }
         } header: {
             Text("Actions")
         } footer: {
@@ -4038,7 +4006,7 @@ struct IncomingResyncProgressModal: View {
         Text("Re-sync Complete")
             .font(.title3.weight(.semibold))
 
-        Text("Re-synced \(messages) incoming \(messages == 1 ? "message" : "messages") across \(chats) \(chats == 1 ? "chat" : "chats").")
+        Text("Re-synced \(messages) incoming message\(pluralS(messages)) across \(chats) chat\(pluralS(chats)).")
             .font(.subheadline)
             .foregroundColor(.secondary)
             .multilineTextAlignment(.center)
@@ -4153,7 +4121,7 @@ struct ResyncChatPickerView: View {
                         onConfirm(picked)
                         dismiss()
                     } label: {
-                        Text("Re-sync \(selected.count) \(selected.count == 1 ? "Chat" : "Chats")")
+                        Text("Re-sync \(selected.count) Chat\(pluralS(selected.count))")
                             .fontWeight(.semibold)
                             .frame(maxWidth: .infinity)
                     }

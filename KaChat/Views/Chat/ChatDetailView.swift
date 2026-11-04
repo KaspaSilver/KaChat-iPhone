@@ -85,8 +85,8 @@ struct ChatDetailView: View {
     }
 
     /// True only when the chatting-address balance is a CONFIRMED zero - see
-    /// `WalletManager.hasConfirmedZeroChattingBalance` (shared with group chats, public chat
-    /// channels, and KaPosts). An unknown/still-loading balance never triggers the gate; it
+    /// `WalletManager.hasConfirmedZeroChattingBalance` (shared with group chats).
+    /// An unknown/still-loading balance never triggers the gate; it
     /// tears down reactively the moment any refresh/UTXO push reports funds.
     private var isChattingBalanceZero: Bool {
         walletManager.hasConfirmedZeroChattingBalance
@@ -104,6 +104,7 @@ struct ChatDetailView: View {
         nonmutating set {
             composerBox.text = newValue
             composerHasText = Self.hasContent(newValue)
+            syncComposerPaymentRequest(newValue)
             composerRevision &+= 1
         }
     }
@@ -121,8 +122,26 @@ struct ChatDetailView: View {
                 composerBox.text = newValue
                 let has = Self.hasContent(newValue)
                 if has != composerHasText { composerHasText = has }
+                syncComposerPaymentRequest(newValue)
             }
         )
+    }
+
+    /// Only when the request itself changes, like `composerHasText`, so typing stays cheap.
+    private func syncComposerPaymentRequest(_ text: String) {
+        let request = PaymentRequest.found(in: text)
+        if request != composerPaymentRequest { composerPaymentRequest = request }
+    }
+
+    private func removeComposerPaymentRequest() {
+        guard let link = KaChatInternalLink.match(in: messageText)?.matchedText else { return }
+        let remaining = messageText.replacingOccurrences(of: link, with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        messageText = remaining
+        scheduleFeeEstimate(for: remaining)
+        if inputMode == .message {
+            chatService.setDraft(remaining, for: contact.address)
+        }
     }
 
     /// The composer's text lives in a box, not in `@State`: a keystroke then redraws only what
@@ -131,6 +150,8 @@ struct ChatDetailView: View {
     /// the text goes through `messageText`, which redraws so the text view picks it up.
     @State private var composerBox = ComposerTextBox()
     @State private var composerHasText = false
+    /// The payment request in the text being typed, previewed above the field.
+    @State private var composerPaymentRequest: PaymentRequest?
     @State private var composerRevision = 0
     @State private var composerHeight: CGFloat = 0
     @State private var isSending = false
@@ -274,8 +295,8 @@ struct ChatDetailView: View {
     @State private var feeOverrideSompi: UInt64?
     @State private var showFeeEditor = false
     @State private var feeEditorText = ""
-    /// Tap-a-reply-quote-to-jump-to-original - mirrors `GroupChatDetailView`/
-    /// `PublicChatChannelView`'s identical pair. `pendingJumpToTxId` is set from inside a message
+    /// Tap-a-reply-quote-to-jump-to-original - mirrors `GroupChatDetailView`'s
+    /// identical pair. `pendingJumpToTxId` is set from inside a message
     /// row (no `ScrollViewProxy` in scope there) and consumed by an `.onChange` inside the
     /// `ScrollViewReader` closure, which does have the proxy.
     @State private var pendingJumpToTxId: String?
@@ -300,6 +321,8 @@ struct ChatDetailView: View {
     /// The payment's memo, encrypted to the recipient with the payment (shown in its bubble).
     @State private var paymentNote = ""
     @State private var paymentFeeSompi: UInt64?
+    /// Change too small to keep, which goes to the fee (`SendFeeEstimate`).
+    @State private var paymentFoldedChangeSompi: UInt64 = 0
     @State private var isEstimatingPaymentFee = false
     @State private var paymentFeeTask: Task<Void, Never>?
     @State private var paymentError: String?
@@ -948,7 +971,7 @@ struct ChatDetailView: View {
                         if tail.isOutgoing && tail.txId.hasPrefix("pending_") {
                             // A send initiated on THIS device: every local send path (message,
                             // audio, payment, handshake) inserts its optimistic row with a
-                            // provisional "pending_" txId before public chat, and provisional ids
+                            // provisional "pending_" txId before broadcast, and provisional ids
                             // never travel through sync or the shared archive (phantom scrub) -
                             // so this is exactly "you just hit send here", and sending implies
                             // returning to now. An own message mirrored in from another device
@@ -1268,7 +1291,7 @@ struct ChatDetailView: View {
             }
         }
         .task(id: myAddress) {
-            // Matches public chat rooms' room-level own-avatar fetch - resolves regardless of who's
+            // Resolves regardless of who's
             // messaged, since it's always needed for our own outgoing bubbles.
             guard let myAddress, knsService.profileCache[myAddress] == nil else { return }
             _ = await knsService.fetchProfile(for: myAddress)
@@ -1677,29 +1700,6 @@ struct ChatDetailView: View {
         }
     }
 
-    private func preserveViewport(using proxy: ScrollViewProxy, anchorMessageId: UUID?) {
-        guard let anchorMessageId else { return }
-        DispatchQueue.main.async {
-            // Same drag-safety split as the snapshot restore: on iOS 17+ never fight any active
-            // gesture (the armed bottom anchor held position); on iOS 16 only skip while the
-            // finger is down.
-            if let scrollView = scrollViewReference.scrollView {
-                if #available(iOS 17.0, *) {
-                    if scrollView.isTracking || scrollView.isDragging || scrollView.isDecelerating {
-                        return
-                    }
-                } else if scrollView.isTracking || scrollView.isDragging {
-                    return
-                }
-            }
-            var transaction = Transaction()
-            transaction.animation = nil
-            withTransaction(transaction) {
-                proxy.scrollTo(anchorMessageId, anchor: .top)
-            }
-        }
-    }
-
     @discardableResult
     private func loadMoreMessagesPage(using proxy: ScrollViewProxy) -> Bool {
         let viewportAnchorMessageId = topVisibleMessageId ?? displayedMessages.first?.id
@@ -1934,6 +1934,10 @@ struct ChatDetailView: View {
                 editBanner(for: editing)
             } else if let reply = chatService.replyingTo {
                 replyBanner(for: reply)
+            }
+            if let composerPaymentRequest {
+                ComposerPaymentRequestPreview(request: composerPaymentRequest, onRemove: removeComposerPaymentRequest)
+                    .padding(.bottom, shouldShowComposerHelperRow ? 22 : 4)
             }
             ZStack(alignment: .topLeading) {
                 HStack(spacing: 12) {
@@ -3103,8 +3107,9 @@ struct ChatDetailView: View {
         .task(id: paymentFrom) {
             paymentFromBalanceSompi = nil
             guard let address = paymentFrom.address else { return }
-            let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
-            guard !Task.isCancelled else { return }
+            // A failed read says nothing about the balance: left unknown, not shown as 0.
+            let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address])
+            guard !Task.isCancelled, let utxos else { return }
             paymentFromBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
         }
         .onChange(of: paymentFeeTier) { _ in
@@ -3423,7 +3428,9 @@ struct ChatDetailView: View {
     }
 
     private var paymentTotalFeeSompi: UInt64? {
-        paymentFeeSompi.map { $0 + paymentExtraFeeSompi }
+        paymentFeeSompi.map {
+            SendFeeEstimate(networkFee: $0, foldedChange: paymentFoldedChangeSompi).total(extra: paymentExtraFeeSompi)
+        }
     }
 
     /// A typed total fee below the base is raised to it (a transaction can't go out under it).
@@ -3459,7 +3466,7 @@ struct ChatDetailView: View {
                     let base = try await chatService.estimatePaymentFee(
                         to: contact, amountSompi: provisional, note: note, sourceSpendingIndex: source, manualUtxos: manual
                     )
-                    extra = base * (multiplier - 1)
+                    extra = base.networkFee * (multiplier - 1)
                 }
                 let maxSompi = try await chatService.estimateMaxPaymentAmount(
                     to: contact,
@@ -3514,8 +3521,7 @@ struct ChatDetailView: View {
     /// shows the address itself (QR + copy) so the user can fund it
     /// from anywhere. Disappears automatically once `balanceSompi` goes positive (reactive via
     /// `walletManager.currentWallet`). The card body lives in the shared
-    /// `ZeroBalanceFundingCardView` (bottom of this file), reused by group chats, public chat
-    /// channels, and KaPosts.
+    /// `ZeroBalanceFundingCardView` (bottom of this file), reused by group chats.
     private var zeroBalanceGateCard: some View {
         ZeroBalanceFundingCardView(
             address: myAddress,
@@ -3994,8 +4000,8 @@ struct ChatDetailView: View {
         }
     }
 
-    /// "You" for our own address, else the contact's alias - matches public chat rooms'
-    /// `displayName(for:)`, simplified since a 1:1 chat only ever has two possible senders.
+    /// "You" for our own address, else the contact's alias: a 1:1 chat only ever has two
+    /// possible senders.
     private func replyDisplayName(for address: String) -> String {
         if address == walletManager.currentWallet?.publicAddress {
             return "You"
@@ -4243,7 +4249,8 @@ struct ChatDetailView: View {
             let estimate = try? await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual)
             if Task.isCancelled { return }
             await MainActor.run {
-                paymentFeeSompi = estimate
+                paymentFeeSompi = estimate?.networkFee
+                paymentFoldedChangeSompi = estimate?.foldedChange ?? 0
                 isEstimatingPaymentFee = false
             }
         }
@@ -4925,12 +4932,6 @@ struct ChatDetailView: View {
     private func localizedFeeText(_ feeSompi: UInt64) -> String {
         let template = KaspaUnit.label(AppLocalization.string("fee: %@ KAS"))
         return String(format: template, locale: AppLocalization.locale, formatKaspaExact(feeSompi))
-    }
-
-    private func localizedAvailableBalanceText(_ balanceSompi: UInt64?) -> String {
-        let template = KaspaUnit.label(AppLocalization.string("available: %@ KAS"))
-        let value = balanceSompi.map(formatKaspaExact) ?? "--"
-        return String(format: template, locale: AppLocalization.locale, value)
     }
 
     private func parseAmountSompi(_ text: String) -> UInt64 {
@@ -5668,8 +5669,8 @@ private final class AudioRecorderDelegate: NSObject, AVAudioRecorderDelegate {
 
 /// The zero-balance funding card - "fund your chatting address" title, QR of the chatting
 /// address, and the address itself with a copy affordance. Shared by
-/// the 1:1 chat gate (this file), `GroupChatDetailView`, `PublicChatChannelView`, and KaPosts'
-/// compose/reply interception (`ZeroBalanceFundingSheetView` below). Lives in this file rather
+/// the 1:1 chat gate (this file), `GroupChatDetailView`, and the sheet host
+/// (`ZeroBalanceFundingSheetView` below). Lives in this file rather
 /// than its own to avoid pbxproj churn - see the repo's dangling-reference history.
 struct ZeroBalanceFundingCardView: View {
     let address: String?
@@ -5771,7 +5772,7 @@ struct ZeroBalanceFundingCardView: View {
 }
 
 /// Sheet host for the funding card - used where the zero-balance gate intercepts an action
-/// (KaPosts' new-post and reply entry points) instead of locking an always-visible composer.
+/// instead of locking an always-visible composer.
 /// Auto-dismisses the moment the chatting balance reaches `dismissAtSompi` (any KAS by default).
 /// Also the "not enough funds" popup of a profile save.
 struct ZeroBalanceFundingSheetView: View {

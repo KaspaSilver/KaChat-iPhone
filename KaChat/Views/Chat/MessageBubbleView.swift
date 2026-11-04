@@ -555,9 +555,9 @@ struct MessageBubbleView: View {
                         // Internal KaChat links open the target screen in-app - see the same
                         // branch in `LinkifiedMessageTextView.Coordinator.handleTap`.
                         if let internalLink = KaChatInternalLink.parse(wrapper.url) {
-                            KaChatLinkRouter.open(internalLink)
+                            KaChatLinkRouter.open(internalLink, fromChat: true)
                         } else {
-                            KaChatLinkRouter.openAnywhere(wrapper.url)
+                            KaChatLinkRouter.openAnywhere(wrapper.url, fromChat: true)
                         }
                     },
                     onCopy: { handleCopy(wrapper.url.absoluteString, toast: "Link copied to clipboard.") },
@@ -1278,14 +1278,14 @@ struct KaChatInternalLinkCardView: View {
         // Listed first so a double-tap is claimed here instead of also firing the single tap -
         // matches LinkPreviewCardView's identical pairing.
         .onTapGesture(count: 2) { onDoubleTap?() }
-        .onTapGesture { KaChatLinkRouter.open(match.link) }
+        .onTapGesture { KaChatLinkRouter.open(match.link, fromChat: true) }
         .messageActions(title: "KaChat Link", preview: match.url.absoluteString) { linkActions }
     }
 
     private var linkActions: [MessageAction] {
         var actions: [MessageAction] = [
             MessageAction(title: "Open in KaChat", subtitle: "Opens it right here in the app.", systemImage: "arrow.up.forward.app") {
-                KaChatLinkRouter.open(match.link)
+                KaChatLinkRouter.open(match.link, fromChat: true)
             },
             .copyLink { UIPasteboard.general.string = match.url.absoluteString }
         ]
@@ -1522,7 +1522,7 @@ struct LinkifiedMessageTextView: UIViewRepresentable {
             // to `UIApplication.shared.open` would bounce the user out to Safari instead - iOS
             // deliberately does not re-enter the app that opened it.
             // `openAnywhere` also keeps any non-web scheme from running on a tap.
-            KaChatLinkRouter.openAnywhere(url)
+            KaChatLinkRouter.openAnywhere(url, fromChat: true)
         }
 
         @objc
@@ -2821,50 +2821,6 @@ private struct OggOpusDecoder {
         let duration: TimeInterval
     }
 
-    /// Get duration from Ogg file by parsing granule position without full decode
-    static func getDuration(data: Data) throws -> TimeInterval {
-        // Find the last Ogg page and read its granule position
-        var lastGranulePosition: UInt64 = 0
-        var sampleRate: Double = 48_000
-        var preSkip: Int = 0
-        var offset = 0
-
-        while offset + 27 <= data.count {
-            guard data[offset..<(offset + 4)] == Data([0x4f, 0x67, 0x67, 0x53]) else {
-                break
-            }
-
-            // Read granule position (bytes 6-13, little endian)
-            let granule = readUInt64LE(data, offset: offset + 6)
-            lastGranulePosition = granule
-
-            let pageSegments = Int(data[offset + 26])
-            let headerSize = 27 + pageSegments
-            guard offset + headerSize <= data.count else { break }
-
-            let segmentTable = data[(offset + 27)..<(offset + 27 + pageSegments)]
-            let bodySize = segmentTable.reduce(0) { $0 + Int($1) }
-            let bodyStart = offset + headerSize
-
-            // Parse OpusHead from first page to get sample rate and pre-skip
-            if offset == 0 && bodySize >= 19 {
-                let headData = data[bodyStart..<(bodyStart + min(bodySize, 19))]
-                if headData.starts(with: Array("OpusHead".utf8)) {
-                    preSkip = Int(readUInt16LE(data, offset: bodyStart + 10))
-                    sampleRate = Double(readUInt32LE(data, offset: bodyStart + 12))
-                    if sampleRate == 0 { sampleRate = 48_000 }
-                }
-            }
-
-            offset = bodyStart + bodySize
-        }
-
-        // Opus always uses 48kHz internally for granule position
-        let totalSamples = Int64(lastGranulePosition) - Int64(preSkip)
-        let duration = max(0, Double(totalSamples) / 48_000.0)
-        return duration
-    }
-
     static func decodeToPCMFile(data: Data) throws -> DecodedAudio {
         let packets = try extractPackets(from: data)
         guard packets.count >= 2 else {
@@ -3017,17 +2973,6 @@ private struct OggOpusDecoder {
             | (UInt32(data[offset + 3]) << 24)
     }
 
-    private static func readUInt64LE(_ data: Data, offset: Int) -> UInt64 {
-        UInt64(data[offset])
-            | (UInt64(data[offset + 1]) << 8)
-            | (UInt64(data[offset + 2]) << 16)
-            | (UInt64(data[offset + 3]) << 24)
-            | (UInt64(data[offset + 4]) << 32)
-            | (UInt64(data[offset + 5]) << 40)
-            | (UInt64(data[offset + 6]) << 48)
-            | (UInt64(data[offset + 7]) << 56)
-    }
-
     private static func normalizedSampleRate(_ value: Double) -> Double {
         switch value {
         case 8_000, 12_000, 16_000, 24_000, 48_000:
@@ -3072,10 +3017,6 @@ private struct OggOpusDecoder {
     }
 
     static func decodeToPCMFile(data: Data) throws -> DecodedAudio {
-        throw OggOpusDecodeError.unsupportedPlatform
-    }
-
-    static func getDuration(data: Data) throws -> TimeInterval {
         throw OggOpusDecodeError.unsupportedPlatform
     }
 }

@@ -28,9 +28,6 @@ final class NetworkEpochMonitor: ObservableObject {
     // Callbacks for epoch changes
     private var epochChangeCallbacks: [(Int) -> Void] = []
 
-    // Grace period after network change (ignore transient errors)
-    private let gracePeriod: TimeInterval = 5.0
-
     // MARK: - Initialization
 
     private init() {}
@@ -176,68 +173,15 @@ final class NetworkEpochMonitor: ObservableObject {
         return max(base, NetworkQuality.excellent.hedgeDelayMs)
     }
 
-    /// Whether we're within the grace period after a network change
-    var isWithinGracePeriod: Bool {
-        guard let lastChange = lastPathChangeTime else { return false }
-        return Date().timeIntervalSince(lastChange) < gracePeriod
-    }
-
     /// Register a callback for epoch changes
     func onEpochChange(_ callback: @escaping (Int) -> Void) {
         epochChangeCallbacks.append(callback)
-    }
-
-    /// Get interface description for logging
-    var interfaceDescription: String {
-        guard let path = currentPath else { return "unknown" }
-
-        let types = path.availableInterfaces.map { interface -> String in
-            switch interface.type {
-            case .wifi: return "WiFi"
-            case .cellular: return "Cellular"
-            case .wiredEthernet: return "Ethernet"
-            case .loopback: return "Loopback"
-            case .other: return "Other"
-            @unknown default: return "Unknown"
-            }
-        }
-
-        return types.joined(separator: ", ")
-    }
-
-    /// Current path status for debugging
-    var statusDescription: String {
-        guard let path = currentPath else { return "No path" }
-
-        var parts: [String] = []
-        parts.append(path.status == .satisfied ? "Connected" : "Disconnected")
-        parts.append("via \(interfaceDescription)")
-        if path.isExpensive { parts.append("(expensive)") }
-        if path.isConstrained { parts.append("(constrained)") }
-        parts.append("epoch:\(epochId)")
-
-        return parts.joined(separator: " ")
     }
 }
 
 // MARK: - Combine Publisher
 
 extension NetworkEpochMonitor {
-    /// Publisher for epoch changes
-    var epochPublisher: AnyPublisher<Int, Never> {
-        $epochId.eraseToAnyPublisher()
-    }
-
-    /// Publisher for network quality changes
-    var qualityPublisher: AnyPublisher<NetworkQuality, Never> {
-        $networkQuality.eraseToAnyPublisher()
-    }
-
-    /// Publisher for online status changes
-    var onlinePublisher: AnyPublisher<Bool, Never> {
-        $isOnline.eraseToAnyPublisher()
-    }
-
     /// Publisher for expensive-path (metered/constrained) transitions - see `isExpensivePath`.
     /// Emits only on actual changes so subscribers can re-evaluate gating without churn.
     var expensivePathPublisher: AnyPublisher<Bool, Never> {

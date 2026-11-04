@@ -112,7 +112,7 @@ extension WalletManager {
     /// fix: seeds UserDefaults from the just-loaded Wallet's own (Keychain-persisted) fields the
     /// first time this address is seen with no UserDefaults value yet, so the value survives even
     /// if a later reconstruction path resets the Wallet's own fields before this address's next
-    /// genuine `setActiveSpendingAddress`/`generateNextSpendingAddress` call. No-op once
+    /// genuine `setActiveSpendingAddress` call. No-op once
     /// UserDefaults already has a value for this address (including a legitimately-0 one). Called
     /// from `loadWallet()` right after `currentWallet` is set to the freshly-loaded record.
     func migrateSpendingBoundsIfNeeded() {
@@ -196,9 +196,7 @@ extension WalletManager {
 
     // MARK: - Per-UTXO labels
 
-    /// Keyed by address + `"txId:index"` outpoint key, mirroring `ColdStorageManager`'s identical
-    /// per-UTXO label scheme (see that file's own copy of this pattern) - a spending address's
-    /// UTXOs deserve the same optional naming Cold Storage's already have.
+    /// Keyed by address + `"txId:index"` outpoint key.
     func setSpendingUtxoLabel(address: String, outpointKey: String, label: String?) {
         var labels = loadSpendingUtxoLabels(address: address)
         let trimmed = label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -281,10 +279,6 @@ extension WalletManager {
 
     func currentSpendingAddress() -> String? {
         spendingAddress(at: currentSpendingAddressIndex)
-    }
-
-    func currentSpendingPrivateKey() -> Data? {
-        spendingPrivateKey(at: currentSpendingAddressIndex)
     }
 
     /// Derives the shared "change" node (m/44'/111111'/1'/0) once, for reuse across every index
@@ -404,12 +398,6 @@ extension WalletManager {
         }
     }
 
-    /// Reveals a new, never-used spending address slot (extends `maxSpendingAddressIndex` by
-    /// one) without changing which address is currently primary.
-    func generateNextSpendingAddress() async {
-        await updateSpendingBounds(maxIndex: maxSpendingAddressIndex + 1)
-    }
-
     /// Reveals a brand-new quantum-safe slot (KIP-22) and returns its public index - what
     /// "Generate New Address" makes from now on. Always extends the chain: a never-spent-from
     /// address is the whole point, so nothing is ever recycled here.
@@ -479,36 +467,6 @@ extension WalletManager {
     /// False once `owner` is neither the active account nor a saved one (it was removed).
     private func accountStillSaved(_ owner: String) -> Bool {
         currentWallet?.publicAddress == owner || savedAccounts.contains { $0.publicAddress == owner }
-    }
-
-    /// "Generate New Spending Address" - a SEQUENCE, not a single answer: every press yields
-    /// the NEXT fresh address, forever. The chosen index is the lowest one that is truly
-    /// unused (zero balance, no on-chain history, not the primary, never offered to a contact
-    /// as a payment-pool reservation) AND currently hidden - i.e. not already sitting in the
-    /// Manage Addresses list. Recycling un-hides it. An index that is already visible is never
-    /// picked (that was the old stall: the lowest unused index, once revealed, satisfied every
-    /// check again on the next press, so Generate kept returning the same row and appeared to
-    /// stop working). When no hidden unused index remains, the chain extends by one past the
-    /// all-time max, which is always safe. A probe failure (used-ness unknown) skips that
-    /// index rather than recycling it. Returns the chosen index.
-    ///
-    /// Side-effect free: nothing is un-hidden or revealed here - the caller reveals the index
-    /// (`revealSpendingAddress(at:)`) only when the address is really handed out. Past the
-    /// revealed range it answers the next index without extending the chain.
-    func lowestUnusedSpendingAddress() async -> Int {
-        let entries = await getSpendingAddressList().sorted { $0.index < $1.index }
-        for entry in entries {
-            guard entry.hidden else { continue } // already visible - the user has it; move on
-            if entry.isCurrent { continue }
-            if entry.balanceSompi > 0 { continue }
-            // Recycle only on a CONFIRMED-unused probe; nil (probe failed) skips the index -
-            // extending the chain below is always safe, recycling an unknown one is not.
-            let usedState = await ChatService.shared.spendingAddressUsedState(entry.address)
-            if usedState == false {
-                return entry.index
-            }
-        }
-        return maxSpendingAddressIndex + 1
     }
 
     /// Which index the Receive QR is currently handing out. Persisted per wallet, and entirely
@@ -582,7 +540,7 @@ extension WalletManager {
         return chosen.address
     }
 
-    /// `lowestUnusedSpendingAddress`, on the quantum chain: the lowest hidden quantum slot that
+    /// On the quantum chain: the lowest hidden quantum slot that
     /// is confirmed unused (recycling un-hides it), else one past the chain's end - which is
     /// always safe.
     func lowestUnusedQuantumAddress() async -> Int {
@@ -780,14 +738,6 @@ extension WalletManager {
         return result
     }
 
-    /// True if `address` is one of this wallet's own revealed spending-chain addresses
-    /// (0...maxSpendingAddressIndex) - used to reject a received pool that tries to feed our own
-    /// addresses back to us. One seed decrypt + one derivation per revealed index; call off the
-    /// hot path.
-    func isOwnSpendingAddress(_ address: String) -> Bool {
-        allSpendingAddresses().contains(address)
-    }
-
     /// Every revealed spending-chain address (0...maxSpendingAddressIndex), derived with a
     /// single seed decrypt via the shared change-node key - for callers that need the whole
     /// set WITHOUT balances (e.g. AddressActivityNotifier's own-address watch set), unlike
@@ -916,7 +866,7 @@ extension WalletManager {
 
     /// Live-derived list of every revealed spending address (0...maxSpendingAddressIndex),
     /// with current balances. `everUsed` is left at its default (false) - callers that need it
-    /// check history separately (`ChatService.hasSpendingAddressBeenUsed`), same as before.
+    /// check history separately (`ChatService.spendingAddressUsedState`).
     func getSpendingAddressList() async -> [SpendingAddressEntry] {
         let maxIndex = maxSpendingAddressIndex
         let activeIndex = currentSpendingAddressIndex
@@ -962,7 +912,7 @@ extension WalletManager {
     }
 
     /// Where a discovery scan currently is, so a UI can count up instead of showing an unmoving
-    /// spinner for the half-minute a gap-limit walk takes. Mirrors `ColdStorageManager`'s.
+    /// spinner for the half-minute a gap-limit walk takes.
     struct SpendingDiscoveryProgress: Equatable {
         let checkingIndex: Int
         let foundCount: Int

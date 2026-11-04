@@ -32,11 +32,6 @@
 "Chat Info" = "チャット情報";
 "Chat archived." = "チャットをアーカイブしました。";
 "Chats" = "チャット";
-"Checking eligibility..." = "受け取り資格を確認中...";
-"Checking gift eligibility..." = "ギフトの受け取り資格を確認中...";
-"Claim Gift" = "ギフトを受け取る";
-"Claim some KAS to get started with your new account." = "新しいアカウントを始めるためにKASを受け取りましょう。";
-"Claiming gift..." = "ギフトを受け取り中...";
 "Clear" = "クリア";
 "Clear Connection Pool" = "接続プールをクリア";
 "Clear Link" = "リンクを解除";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "システム連絡先のリンクに失敗しました。";
 "Failed to open archive: \(error.localizedDescription)" = "アーカイブを開けませんでした: \(error.localizedDescription)";
 "Generate Account" = "アカウントを生成";
-"Gift" = "ギフト";
-"Gift already claimed" = "すでにギフトを受け取り済みです";
-"Gift claim reset. You can request it again." = "ギフトの受け取りがリセットされました。再度リクエストできます。";
-"Gift claimed" = "ギフトを受け取りました";
-"Gift sent to your wallet!" = "ギフトがあなたのウォレットに送信されました！";
-"Gift unavailable" = "ギフトを利用できません";
 "Request to communicate" = "通信リクエスト";
 "Send audio" = "音声を送信";
 "Send KAS" = "KASを送信";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "自動作成された支払いチャットを非表示";
 "High Transaction Traffic" = "トランザクション量が多い";
 "I have written down my seed phrase and stored it securely" = "seed phraseを書き留めて安全に保管しました";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "寄付ウォレットの残高不足で受け取りに失敗した場合は、後でもう一度お試しください。";
 "Import" = "インポート";
 "Import Account" = "アカウントをインポート";
 "Import Chat History" = "チャット履歴をインポート";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "録音中… \\(Int(recordingDuration))秒";
 "Refresh Pool" = "プールを更新";
 "Refresh Pool Now" = "今すぐプールを更新";
-"Registered" = "登録済み";
 "Remove Saved Account" = "保存済みアカウントを削除";
 "Remove from Device" = "デバイスから削除";
 "Required for cross-device sync and backup of sent messages." = "デバイス間の同期と送信メッセージのバックアップに必要です。";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "このアカウントはこのデバイスから削除されます。";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "この連絡先は作成後にリンクされます。KaspaアドレスまたはKNSドメインの入力が必要です。";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "すべてのローカルデータとCloudKitのメッセージ記録が削除されます。この操作は元に戻せません。";
-"This device has already received the welcome gift." = "このデバイスはすでにウェルカムギフトを受け取っています。";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "このデバイスから \(account.displayAlias)（\(account.shortPublicAddress)）とそのローカルデータを削除します。";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "このデバイスから \\(account.displayAlias)（\\(account.shortPublicAddress)）とそのローカルデータを削除します。";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "ローカルとiCloudのすべての受信メッセージを削除し、ブロックチェーンから再同期します。アカウント情報と送信メッセージは保持されます。";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "検出されたノードを削除し、現在のセッションを切断して、探索を再開します。";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "ローカルのアカウントデータとメッセージを削除します。消去中はCloudKit同期が無効になり、完了後に再度有効になります。";
 "This signs out of your account, but keeps local wallet and message data on this device." = "アカウントからサインアウトしますが、ローカルのウォレットとメッセージデータはこのデバイスに残ります。";
-"This welcome gift is a community-funded initiative." = "このウェルカムギフトはコミュニティ資金による取り組みです。";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "このデバイスからアカウントが完全に削除されます。seed phraseをバックアップ済みであることを確認してください。";
 "To receive notifications, please enable them in Settings." = "通知を受け取るには、設定で通知を有効にしてください。";
 "Total" = "合計";
@@ -292,7 +277,6 @@
 "Voice message" = "音声メッセージ";
 "Watching" = "監視中";
 "Website" = "ウェブサイト";
-"Welcome Gift" = "ウェルカムギフト";
 "Welcome to KaChat!" = "KaChatへようこそ！";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "無効にすると、この連絡先からのメッセージはリアルタイムではなく定期的に取得されます。トランザクション量が多い連絡先に使用して、バッテリーとネットワーク使用量を節約できます。";
 "Wipe Account & Messages" = "アカウントとメッセージを消去";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "保持するには早めに更新してください。";
 "Renew it soon or anyone can claim it." = "早めに更新しないと誰でも取得できるようになります。";
-"%@ has lapsed" = "%@ が失効しました";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "今は誰でも取得できます。自分で回収すればボンドが戻ります。";
 "Offer on %@ declined" = "%@ へのオファーが辞退されました";
 "The owner declined it. The KAS is back with you." = "所有者が辞退しました。KAS は返金されました。";
 "Offer on %@ expired" = "%@ へのオファーが期限切れ";
 "Nobody accepted it in time. The KAS is back with you." = "期限内に承諾されませんでした。KAS は返金されました。";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "この名前はもうあなたのものではなく、マーケットプレイスの「回収可能」に移りました。自分で取り戻すと保証金が返ってきます。";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ はあなたのものではなくなりました";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "%@ KAS を送ってきました";
 "Sent you a payment" = "支払いを送ってきました";
+"Requested for payment" = "支払いをリクエストしました";
+"You were invited to \"%@\"" = "「%@」に招待されました";

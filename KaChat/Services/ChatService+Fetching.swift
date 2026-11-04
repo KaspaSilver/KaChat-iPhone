@@ -1198,14 +1198,6 @@ extension ChatService {
         registerSuppressedPaymentTxIds(txIds, reason: "contract-address-chat")
     }
 
-    @discardableResult
-    func suppressKNSPaymentTxIfNeeded(_ transaction: KaspaFullTransactionResponse, source: String) -> Bool {
-        let suppressed = suppressedKNSPaymentTxIds(from: [transaction])
-        guard !suppressed.isEmpty else { return false }
-        registerSuppressedPaymentTxIds(Array(suppressed), reason: source)
-        return suppressed.contains(transaction.transactionId.lowercased())
-    }
-
     func decodeKNSRevealOperationJSON(signatureScriptHex: String) -> [String: Any]? {
         let lowered = signatureScriptHex.lowercased()
         guard let startRange = lowered.range(of: "7b22") else { return nil } // {"...
@@ -2366,8 +2358,14 @@ extension ChatService {
                           String(contextMsg.txId.prefix(12)), ourAlias, String(contactAddress.suffix(10)))
                     continue
                 }
-                let content = existingMessage?.content ?? ChatMessage.sentViaOtherDevicePlaceholder
-                let msgType = existingMessage?.messageType ?? messageType(for: content)
+                // Held here with its text, or read back with the seed (`decryptSentMessage`). What
+                // can't be either way, a send from before that existed, stays a hidden placeholder.
+                let held = existingMessage.flatMap { $0.isHiddenPlaceholder ? nil : $0 }
+                let recovered = held == nil
+                    ? await decryptSentMessage(contextMsg.messagePayload, contactAddress: contactAddress, privateKey: privateKey)
+                    : nil
+                let content = held?.content ?? recovered ?? ChatMessage.sentViaOtherDevicePlaceholder
+                let msgType = held?.messageType ?? messageType(for: content)
 
                 let message = ChatMessage(
                     txId: contextMsg.txId,
@@ -2576,7 +2574,12 @@ extension ChatService {
                               String(contextMsg.txId.prefix(12)), ourAlias, String(contactAddress.suffix(10)))
                         continue
                     }
-                    let content = existingMessage?.content ?? ChatMessage.sentViaOtherDevicePlaceholder
+                    // Same as the sibling loop in `fetchOutgoingContextualMessages`.
+                    let held = existingMessage.flatMap { $0.isHiddenPlaceholder ? nil : $0 }
+                    let recovered = held == nil
+                        ? await decryptSentMessage(contextMsg.messagePayload, contactAddress: contactAddress, privateKey: privateKey)
+                        : nil
+                    let content = held?.content ?? recovered ?? ChatMessage.sentViaOtherDevicePlaceholder
 
                     let message = ChatMessage(
                         txId: contextMsg.txId,
@@ -2587,7 +2590,7 @@ extension ChatService {
                         blockTime: contextMsg.blockTime ?? 0,
                         acceptingBlock: contextMsg.acceptingBlock,
                         isOutgoing: true,
-                        messageType: .contextual
+                        messageType: held?.messageType ?? messageType(for: content)
                     )
 
                     addMessageToConversation(message, contactAddress: contactAddress)
@@ -2929,6 +2932,30 @@ extension ChatService {
 
             // Decode payment message
             var content = paymentContent(payment, isOutgoing: isOutgoing)
+            // A payment sent from another device: its memo is sealed to the recipient, and the
+            // seed reads it back.
+            if isOutgoing, Self.isPaymentRawPayload(payment.messagePayload ?? ""),
+               let sent = await decryptSentPayment(
+                   payment.messagePayload,
+                   contactAddress: payment.receiver,
+                   privateKey: privateKey ?? WalletManager.shared.getPrivateKey()
+               ),
+               let json = try? JSONEncoder().encode(sent) {
+                content = paymentContent(
+                    PaymentResponse(
+                        txId: payment.txId,
+                        sender: payment.sender,
+                        receiver: payment.receiver,
+                        amount: payment.amount,
+                        message: payment.message,
+                        blockTime: payment.blockTime,
+                        acceptingBlock: payment.acceptingBlock,
+                        acceptingDaaScore: payment.acceptingDaaScore,
+                        messagePayload: json.hexString
+                    ),
+                    isOutgoing: true
+                )
+            }
 
             // Moving your own money between your own addresses is not a conversation, in
             // either direction. Sending from the chatting address to one of your own spending
@@ -3108,7 +3135,12 @@ extension ChatService {
             return false
         }
 
-        guard let decrypted = await decryptContextualMessageFromRawPayload(rawPayload, privateKey: privateKey) else {
+        // Sealed to the contact, so the seed reads it back; a note to yourself opens the usual way.
+        var sentContent = await decryptSentMessage(rawPayload, contactAddress: contactAddress, privateKey: privateKey)
+        if sentContent == nil {
+            sentContent = await decryptContextualMessageFromRawPayload(rawPayload, privateKey: privateKey)
+        }
+        guard let decrypted = sentContent else {
             AppLog.log("[ChatService] Outgoing push: decrypt failed for %@ - content arrives with the next archive restore", txId)
             // Create placeholder message - the archive restore delivers the actual content
             let placeholderMessage = ChatMessage(
@@ -3704,6 +3736,12 @@ extension ChatService {
         // Unwrap a reply envelope first, so a reply's own text (or its attachment, below) is
         // what's notified rather than the raw `{"type":"reply",...}` JSON.
         let unwrapped = MessageReplyCodec.unwrappedText(content)
+
+        // A payment request link is a card in the chat, never a link to read out. Wording matches
+        // the NSE's paymentRequestPreviewText.
+        if PaymentRequest.found(in: unwrapped) != nil {
+            return NSLocalizedString("Requested for payment", comment: "Push body for a message holding a payment request link")
+        }
 
         // Chess envelopes are JSON in the message content; without this they banner as raw
         // JSON on the local (foreground) path while the push extension shows friendly text.

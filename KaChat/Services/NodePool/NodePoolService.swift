@@ -31,7 +31,6 @@ final class NodePoolService: ObservableObject {
     // Connection status (for UI)
     @Published private(set) var lastPingLatencyMs: Int?
     @Published private(set) var isRefreshing = false
-    @Published private(set) var lastRefreshDate: Date?
     @Published private(set) var connectionError: String?
 
     /// True when the pattern of failures says gRPC node connections are blocked wholesale on
@@ -95,8 +94,6 @@ final class NodePoolService: ObservableObject {
         // Reset per-node health stats (latency EWMA, error rates) on a network path change
         // (WiFi<->cellular, VPN toggle) - a node's observed latency/error history from the old
         // path is meaningless on the new one and would otherwise bias selection with stale data.
-        // The only other place this was wired up (KaspaRPCRouter) is dead code that's never
-        // instantiated, so this was never actually happening.
         epochMonitor.onEpochChange { [weak self] newEpochId in
             Task {
                 guard let self else { return }
@@ -597,26 +594,6 @@ final class NodePoolService: ObservableObject {
         }
     }
 
-    /// The node's own fee estimate (sompi per gram, and how many seconds it expects a transaction
-    /// paying that to wait): the priority bucket, and the first normal bucket. Read from a node, so
-    /// a fee picture never depends on a third-party API.
-    func feeEstimate() async throws -> (priority: (feerate: Double, seconds: Double), normal: (feerate: Double, seconds: Double)) {
-        try await executeHedged(op: .getUtxosByAddress) { conn in
-            var msg = Protowire_KaspadMessage()
-            msg.getFeeEstimateRequest = Protowire_GetFeeEstimateRequestMessage()
-            let response = try await conn.sendRequest(msg, type: .getFeeEstimate, timeout: 10.0)
-            guard case .getFeeEstimateResponse(let r) = response.payload else {
-                throw KasiaError.networkError("Unexpected response")
-            }
-            if r.hasError && !r.error.message.isEmpty {
-                throw KasiaError.networkError(r.error.message)
-            }
-            let priority = r.estimate.priorityBucket
-            let normal = r.estimate.normalBuckets.first ?? priority
-            return ((priority.feerate, priority.estimatedSeconds), (normal.feerate, normal.estimatedSeconds))
-        }
-    }
-
     /// Submit transaction (broadcast to multiple nodes)
     ///
     /// A failed submit is not always a failed send: node A can accept the transaction while its
@@ -913,7 +890,7 @@ final class NodePoolService: ObservableObject {
     }
 
     /// Subscribe to block-added notifications (piggybacks on the primary UTXO connection).
-    /// Tracked per client token: GroupChatService and PublicChatService gate their block scans
+    /// Tracked per client token: GroupChatService gates its block scans
     /// independently (group count, open rooms, expensive-path state), and the underlying
     /// wanted-flag is a single bool - without the token set, one client unsubscribing would
     /// silently stop re-registration for the other on the next reconnect.
@@ -951,10 +928,6 @@ final class NodePoolService: ObservableObject {
     /// the scanners take the block to their own serial queues.
     func addBlockHandler(_ handler: @escaping BlockScanRegistry.Handler) -> UUID {
         BlockScanRegistry.shared.add(handler)
-    }
-
-    func removeBlockHandler(_ id: UUID) {
-        BlockScanRegistry.shared.remove(id)
     }
 
     /// Remove notification handler
@@ -1321,7 +1294,6 @@ final class NodePoolService: ObservableObject {
         await profiler?.forceDiscovery()
         await updatePoolStats()
 
-        lastRefreshDate = Date()
         isRefreshing = false
         AppLog.log("[NodePool] Pool refresh complete")
     }
@@ -1433,83 +1405,6 @@ final class NodePoolService: ObservableObject {
     func nodeStateCounts() async -> [NodeState: Int] {
         await registry.stateCounts()
     }
-
-    /// Force probe all nodes
-    func forceProbeAll() async {
-        await profiler?.forceProbeAll()
-        await updatePoolStats()
-    }
-
-    /// Force discovery
-    func forceDiscovery() async {
-        await profiler?.forceDiscovery()
-        await updatePoolStats()
-    }
-
-    /// Add endpoint manually
-    /// Probes immediately and promotes to active if eligible (isSynced + isUtxoIndexed)
-    func addEndpoint(_ endpoint: Endpoint) async {
-        await registry.upsert(endpoint: endpoint, origin: .userAdded)
-
-        AppLog.log("[NodePool] Probing user-added endpoint: %@", endpoint.key)
-
-        // First probe - gets node to verified state
-        await profiler?.profileEndpoint(endpoint)
-
-        // Check if node is eligible for active status
-        guard let record = await registry.get(endpoint) else {
-            AppLog.log("[NodePool] Failed to probe user-added endpoint: %@", endpoint.key)
-            await updatePoolStats()
-            return
-        }
-
-        // If node is synced and has UTXO index, probe again to promote to active
-        if record.profile.isSynced == true && record.profile.isUtxoIndexed == true {
-            AppLog.log("[NodePool] User-added endpoint %@ is eligible, probing again to promote to active", endpoint.key)
-            await profiler?.profileEndpoint(endpoint)
-
-            // Verify promotion
-            if let updatedRecord = await registry.get(endpoint) {
-                AppLog.log("[NodePool] User-added endpoint %@ state: %@ (consecutiveSuccesses: %d)",
-                      endpoint.key, updatedRecord.state.displayName, updatedRecord.health.consecutiveSuccesses)
-            }
-        } else {
-            AppLog.log("[NodePool] User-added endpoint %@ not eligible: isSynced=%@, isUtxoIndexed=%@",
-                  endpoint.key,
-                  record.profile.isSynced == true ? "true" : "false",
-                  record.profile.isUtxoIndexed == true ? "true" : "false")
-        }
-
-        _ = await registry.rebalanceActivePool(
-            minActive: 8,
-            maxActive: 12,
-            maxReplacementsPerCycle: 1,
-            minImprovementRatio: 0.15
-        )
-
-        await updatePoolStats()
-    }
-
-    /// Remove endpoint
-    func removeEndpoint(_ endpoint: Endpoint) async {
-        await registry.remove(endpoint)
-        await connectionPool.removeConnection(for: endpoint)
-        await updatePoolStats()
-    }
-
-    /// Network status description
-    var networkStatusDescription: String {
-        var parts: [String] = []
-        parts.append("Health: \(poolHealth)")
-        parts.append("Active: \(activeNodeCount)")
-        parts.append("Network: \(networkQuality)")
-
-        if let primary = primaryEndpoint {
-            parts.append("Primary: \(primary.host)")
-        }
-
-        return parts.joined(separator: " | ")
-    }
 }
 
 // MARK: - Compatibility Layer
@@ -1537,37 +1432,9 @@ extension NodePoolService {
         return "plaintext"
     }
 
-    /// Check if subscribed to UTXOs
-    var isSubscribedToUtxos: Bool {
-        subscriptionState == .subscribed
-    }
-
     /// Total node count
     var totalNodeCount: Int {
         activeCount + verifiedCount + profiledCount + candidateCount + suspectCount + quarantinedCount
-    }
-
-    /// Average latency of active nodes
-    func averageActiveLatency() async -> Int? {
-        guard let avg = await registry.averageActiveLatency() else { return nil }
-        return Int(avg)
-    }
-
-    /// Get nodes by state for UI display
-    func nodesByState(_ state: NodeState) async -> [NodeRecord] {
-        await registry.records(inState: state)
-    }
-
-    /// Add endpoint by URL string (for UI)
-    func addEndpoint(url: String) async {
-        guard let endpoint = Endpoint(url: url) else { return }
-        await addEndpoint(endpoint)
-    }
-
-    /// Remove endpoint by URL string (for UI)
-    func removeEndpoint(url: String) async {
-        guard let endpoint = Endpoint(url: url) else { return }
-        await removeEndpoint(endpoint)
     }
 
     /// Pin the pool to exactly one node (Kaspium-style fixed-node mode), or clear the pin

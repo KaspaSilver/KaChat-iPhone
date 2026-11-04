@@ -4,10 +4,6 @@ import CryptoKit
 struct CryptoUtils {
     // MARK: - Hex Encoding/Decoding
 
-    static func dataToHex(_ data: Data) -> String {
-        return data.map { String(format: "%02x", $0) }.joined()
-    }
-
     static func hexToData(_ hex: String) -> Data? {
         var data = Data()
         var temp = ""
@@ -68,8 +64,6 @@ struct CryptoUtils {
         let sealedBox = try AES.GCM.SealedBox(combined: data)
         return try AES.GCM.open(sealedBox, using: key)
     }
-
-    // MARK: - Address Generation
 
     // MARK: - Validation
 

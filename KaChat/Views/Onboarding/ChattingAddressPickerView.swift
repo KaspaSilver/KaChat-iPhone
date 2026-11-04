@@ -58,7 +58,7 @@ struct ChattingAddressPickerView: View {
                     Text("Choose Your Chatting Address")
                         .font(.title3.weight(.bold))
                         .multilineTextAlignment(.center)
-                    Text("If this seed already holds your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown.")
+                    Text("If these words already hold your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown.")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -72,7 +72,7 @@ struct ChattingAddressPickerView: View {
                 }
 
                 if scanFailed {
-                    Text("Could not derive addresses from this seed. Please try again.")
+                    Text("Could not derive addresses from these words. Please try again.")
                         .font(.caption)
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
@@ -358,7 +358,7 @@ struct ChattingAddressDetailView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This seed already has conversations on the current chatting address. Switching starts fresh with the new address. Your existing conversations stay with the old address and are not deleted.")
+                Text("These words already have conversations on the current chatting address. Switching starts fresh with the new address. Your existing conversations stay with the old address and are not deleted.")
             }
         }
     }

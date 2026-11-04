@@ -928,12 +928,6 @@ extension ChatService {
         return stored
     }
 
-    func clearSyncObjectCursors() {
-        syncObjectCursors = [:]
-        syncObjectCursorsDirty = false
-        userDefaults.removeObject(forKey: syncCursorsKey)
-    }
-
     /// Drops only the INCOMING-direction cursors for the given contacts, so the next fetch for
     /// those objects starts from the caller-supplied fallback instead of the stored block time.
     /// Incoming contextual keys are "ctx|in|<contactAddress>|<alias>[|<contactAddress>]" - the
@@ -1159,8 +1153,9 @@ extension ChatService {
             }
             return
         }
-        lastPollTime = blockTime
-        userDefaults.set(Int(blockTime), forKey: lastPollTimeKey)
+        // Outside a sync, nothing moves it: a message arriving proves only that its own chat is
+        // current. `lastPollTime` is where a chat with no cursor of its own starts reading, so
+        // moving it here skipped whatever that chat had waiting, for good.
     }
 
     func scheduleBadgeUpdate() {
@@ -1181,7 +1176,7 @@ extension ChatService {
         }
     }
 
-    /// The app icon's count, and the Chats and Groups dock badges (`AppTabBadge`).
+    /// The app icon's count, and the dock badges (`AppTabBadge`).
     func updateAppBadge() {
         AppTabBadge.syncDockBadges(dockTabs: AppTab.dock)
         let totalUnread = chatListUnreadCount + GroupChatService.shared.totalGroupUnreadCount
@@ -1193,22 +1188,27 @@ extension ChatService {
         }
     }
 
+    /// Syncs can overlap (an open chat's fetch during a full one), so these count: only the last
+    /// to finish ends the batching, or the full sync's later messages would write straight through.
     func beginSyncBlockTime() {
+        syncDepth += 1
         if !isSyncInProgress { isSyncInProgress = true }
-        syncMaxBlockTime = lastPollTime
+        if syncMaxBlockTime == nil { syncMaxBlockTime = lastPollTime }
     }
 
     func endSyncBlockTime(success: Bool) {
+        syncDepth = max(0, syncDepth - 1)
+        // Off before the final save below, which batching would otherwise put off again.
+        if syncDepth == 0, isSyncInProgress { isSyncInProgress = false }
         defer {
-            if isSyncInProgress { isSyncInProgress = false }
-            syncMaxBlockTime = nil
+            if syncDepth == 0 { syncMaxBlockTime = nil }
         }
 
         if success, let candidate = syncMaxBlockTime, candidate > lastPollTime {
             lastPollTime = candidate
             userDefaults.set(Int(candidate), forKey: lastPollTimeKey)
         }
-        if needsMessageStoreSyncAfterBatch {
+        if syncDepth == 0, needsMessageStoreSyncAfterBatch {
             needsMessageStoreSyncAfterBatch = false
             saveMessages()
         }
@@ -1325,20 +1325,6 @@ extension ChatService {
                 pendingOutgoingQueue[contactAddress] = filtered
             }
         }
-    }
-
-    func popPendingOutgoing(contactAddress: String, messageType: ChatMessage.MessageType) -> String? {
-        guard var queue = pendingOutgoingQueue[contactAddress] else { return nil }
-        if let index = queue.firstIndex(where: { $0.messageType == messageType }) {
-            let ref = queue.remove(at: index)
-            if queue.isEmpty {
-                pendingOutgoingQueue.removeValue(forKey: contactAddress)
-            } else {
-                pendingOutgoingQueue[contactAddress] = queue
-            }
-            return ref.txId
-        }
-        return nil
     }
 
     func updatePendingFromQueue(contactAddress: String, newTxId: String, messageType: ChatMessage.MessageType) -> Bool {
@@ -1738,11 +1724,6 @@ extension ChatService {
         }
     }
 
-    /// Check if a routing state exists for a contact
-    func hasRoutingState(for address: String) -> Bool {
-        routingStates[address] != nil
-    }
-
     func decodeAliasSetMap(from data: Data) -> [String: Set<String>]? {
         if let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) {
             return decoded.mapValues { Set($0) }
@@ -1810,11 +1791,6 @@ extension ChatService {
         let list = Array(declinedContacts)
         guard let data = try? JSONEncoder().encode(list) else { return }
         userDefaults.set(data, forKey: declinedContactsKey)
-    }
-
-    func declineContact(_ address: String) {
-        declinedContacts.insert(address)
-        saveDeclinedContacts()
     }
 
     func clearDeclined(_ address: String) {

@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Diagonal shimmer swept across a fee bubble while a fee estimate is loading - shared by 1:1
-/// chat and public chat rooms' compose bars so both fee bubbles look and animate identically.
+/// Diagonal shimmer swept across a fee bubble while a fee estimate is loading - shared by the 1:1
+/// and group compose bars so both fee bubbles look and animate identically.
 struct FeeShimmerOverlay: View {
     let phase: CGFloat
 

@@ -102,6 +102,31 @@ extension ChatService {
         }
     }
 
+    /// Reads back a message this wallet sent, from either form the chain's payload reaches us in:
+    /// the indexer's hex(base64(encrypted)) or a raw `kchat:1:comm:ALIAS:BASE64` transaction payload.
+    /// Nil for what can't be read this way: anything sent before sends were recoverable.
+    func decryptSentMessage(_ payload: String?, contactAddress: String, privateKey: Data?) async -> String? {
+        guard let payload, let privateKey, let recipientKey = KaspaAddress.publicKey(from: contactAddress) else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            Self.decryptSentMessageSync(payload, privateKey: privateKey, recipientPublicKey: recipientKey)
+        }.value
+    }
+
+    nonisolated static func decryptSentMessageSync(_ payload: String, privateKey: Data, recipientPublicKey: Data) -> String? {
+        guard let data = hexStringToData(payload), let text = String(data: data, encoding: .utf8) else { return nil }
+        let normalized = ContextualPayloadFormat.normalized(text)
+        let base64: String
+        if normalized.hasPrefix("kchat:1:comm:") || normalized.hasPrefix("ciph_msg:1:comm:") {
+            guard let last = normalized.split(separator: ":", omittingEmptySubsequences: false).last else { return nil }
+            base64 = String(last)
+        } else {
+            base64 = normalized
+        }
+        guard let bytes = Data(base64Encoded: base64),
+              let encrypted = KasiaCipher.EncryptedMessage(fromBytes: bytes) else { return nil }
+        return try? KasiaCipher.decryptSent(encrypted, senderPrivateKey: privateKey, recipientPublicKey: recipientPublicKey)
+    }
+
     /// Decrypt contextual message from raw TX payload on background thread
     /// Raw TX payload format: "kchat:1:comm:ALIAS:BASE64_ENCRYPTED" (as returned by REST API;
     /// the legacy "ciph_msg:1:comm:" root is read too, never written)
@@ -208,14 +233,8 @@ extension ChatService {
         return nil
     }
 
-    func decryptPaymentPayloadFromRawPayload(_ payload: String?, privateKey: Data) async -> PaymentPayload? {
-        guard let payload = payload else { return nil }
-        return await Task.detached(priority: .userInitiated) {
-            Self.decryptPaymentPayloadFromRawPayloadSync(payload, privateKey: privateKey)
-        }.value
-    }
-
-    nonisolated static func decryptPaymentPayloadFromRawPayloadSync(_ payload: String, privateKey: Data) -> PaymentPayload? {
+    /// The sealed record inside a raw payment payload.
+    private nonisolated static func rawPaymentSealedBytes(_ payload: String) -> Data? {
         guard let payloadData = hexStringToData(payload) else {
             AppLog.log("[ChatService] Raw payload: failed to decode hex for payment")
             return nil
@@ -239,6 +258,31 @@ extension ChatService {
         } else {
             return nil
         }
+        return encryptedBytes
+    }
+
+    /// A payment this wallet sent, read back with the seed: its memo isn't otherwise readable here.
+    func decryptSentPayment(_ payload: String?, contactAddress: String, privateKey: Data?) async -> PaymentPayload? {
+        guard let payload, let privateKey, let recipientKey = KaspaAddress.publicKey(from: contactAddress) else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            guard let bytes = Self.rawPaymentSealedBytes(payload),
+                  let encrypted = KasiaCipher.EncryptedMessage(fromBytes: bytes),
+                  let text = try? KasiaCipher.decryptSent(encrypted, senderPrivateKey: privateKey, recipientPublicKey: recipientKey) else {
+                return nil
+            }
+            return try? JSONDecoder().decode(PaymentPayload.self, from: Data(text.utf8))
+        }.value
+    }
+
+    func decryptPaymentPayloadFromRawPayload(_ payload: String?, privateKey: Data) async -> PaymentPayload? {
+        guard let payload = payload else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            Self.decryptPaymentPayloadFromRawPayloadSync(payload, privateKey: privateKey)
+        }.value
+    }
+
+    nonisolated static func decryptPaymentPayloadFromRawPayloadSync(_ payload: String, privateKey: Data) -> PaymentPayload? {
+        guard let encryptedBytes = rawPaymentSealedBytes(payload) else { return nil }
 
         guard let encryptedMessage = KasiaCipher.EncryptedMessage(fromBytes: encryptedBytes) else {
             return nil

@@ -50,11 +50,6 @@ struct AddContactView: View {
     @State private var isCreatingGroup = false
     @State private var showCreateGroupConfirm = false
     @State private var scanningGroupRowID: UUID?
-    /// The one member "card" currently expanded for editing (text field + Import/Paste/Scan +
-    /// Add Address) - every other entry shows collapsed (name/address + a remove button only).
-    /// Tapping a collapsed entry re-expands it; committing the expanded one via "Add Address"
-    /// collapses it and expands a fresh blank entry in its place.
-    @State private var editingGroupEntryID: UUID?
     private static let maxGroupMembers = 50
 
     /// One row in the group-member address list - supports both a raw Kaspa address and a domain
@@ -284,7 +279,7 @@ struct AddContactView: View {
                 let feeText = groupChatService.estimateGroupActionFeeKas(groupId: "", controlTx: txCount, photoTx: 0)
                     .map { "\n\nEstimated network fee ≈ \($0) \(KaspaUnit.symbol) across \(txCount) transactions." }
                     ?? "\n\n(\(txCount) network transactions.)"
-                Text("Create \"\(groupName.trimmingCharacters(in: .whitespacesAndNewlines))\" and invite \(k) member\(k == 1 ? "" : "s")?\(feeText)")
+                Text("Create \"\(groupName.trimmingCharacters(in: .whitespacesAndNewlines))\" and invite \(k) member\(pluralS(k))?\(feeText)")
             }
             .onChange(of: groupPhotoPickerItem) { newItem in
                 handleGroupPhotoSelection(newItem)
@@ -699,47 +694,6 @@ struct AddContactView: View {
             }
         }
         return duplicates
-    }
-
-    /// Commits the given entry (must already resolve to a valid address) and opens the next
-    /// blank slot for editing, or collapses everything if the member cap is reached.
-    private func commitGroupEntry(_ id: UUID) {
-        guard let entry = groupAddressEntries.first(where: { $0.id == id }), isValidGroupEntry(entry) else { return }
-        if groupAddressEntries.count < Self.maxGroupMembers {
-            let newEntry = GroupAddressEntry()
-            groupAddressEntries.append(newEntry)
-            editingGroupEntryID = newEntry.id
-        } else {
-            editingGroupEntryID = nil
-        }
-    }
-
-    /// Switches which entry is expanded - drops the previously-expanded one first if the user
-    /// never typed anything into it, rather than leaving a blank collapsed row behind.
-    private func setEditingGroupEntry(_ id: UUID) {
-        if let currentID = editingGroupEntryID,
-           currentID != id,
-           let current = groupAddressEntries.first(where: { $0.id == currentID }),
-           current.trimmedText.isEmpty,
-           groupAddressEntries.count > 1 {
-            groupAddressEntries.removeAll { $0.id == currentID }
-        }
-        editingGroupEntryID = id
-    }
-
-    /// Removes an entry outright, always leaving exactly one blank entry available to edit
-    /// afterward (unless the member cap is still reached by what remains).
-    private func removeGroupEntry(_ id: UUID) {
-        let wasEditing = editingGroupEntryID == id
-        groupAddressEntries.removeAll { $0.id == id }
-        if wasEditing {
-            editingGroupEntryID = nil
-        }
-        if groupAddressEntries.isEmpty || (editingGroupEntryID == nil && groupAddressEntries.count < Self.maxGroupMembers) {
-            let newEntry = GroupAddressEntry()
-            groupAddressEntries.append(newEntry)
-            editingGroupEntryID = newEntry.id
-        }
     }
 
     @ViewBuilder

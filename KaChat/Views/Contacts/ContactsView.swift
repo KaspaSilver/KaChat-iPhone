@@ -22,7 +22,6 @@ struct ProfileView: View {
     @State private var editedAlias = ""
     /// When `onAppear` last ran its balance / receive-address requests (at most every 30 s).
     @State private var appearRefreshedAt: Date?
-    @State private var aliasSaveTask: Task<Void, Never>?
     @State private var qrImage: UIImage?
     @State private var toastMessage: String?
     @State private var toastToken = UUID()
@@ -49,19 +48,10 @@ struct ProfileView: View {
     /// lists (in grace included, lapsed not). 0 where the registry isn't launched.
     @State private var kachatOwnedCount = 0
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
-    @State private var showMoreProfileInfo = false
-    @State private var spendingAddressBalanceSompi: UInt64?
-    @State private var isLoadingSpendingBalance = false
-    /// Every revealed spending address together, not just the primary. The row above shows what
-    /// the address you are about to spend FROM holds, which is not the same question as how much
-    /// this account has - and after a few payments those two numbers diverge a long way.
-    @State private var spendingTotalSompi: UInt64?
     /// The pending coalesced refresh - see `scheduleBalanceRefresh`.
     @State private var balanceRefreshTask: Task<Void, Never>?
     @State private var showAvatarPreview = false
     @State private var showKNSEditor = false
-    @ObservedObject private var backupStatus = AccountBackupStatus.shared
-    @State private var showBackupHygiene = false
     @State private var showCreateKNSProfileFlow = false
     @State private var settingPrimaryDomainId: String?
     /// Result of the last "Set as Primary" tap, shown by the editor sheet itself.
@@ -71,80 +61,11 @@ struct ProfileView: View {
     @State private var failedKNSUpdates: [KNSProfileFieldKey: String] = [:]
     @State private var showNotifCenter = false
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared
-    /// The floating up/down-arrow button's half sheet: Send Kaspa, Receive Kaspa, Request Payment.
-    @State private var showWalletActions = false
-    /// The tile tapped in that sheet, opened once the sheet is down (a sheet can't present while
-    /// another is still going down).
-    @State private var pendingWalletAction: WalletAction?
-    @State private var walletAction: WalletAction?
-    private enum WalletAction: String, Identifiable {
-        case send, receive, request
-        var id: String { rawValue }
-    }
     @State private var showLogoutConfirmation = false
     @State private var showWelcomeGuideReplay = false
 
     static func preloadQRCode(for address: String) {
         ProfileQRCodeCache.preload(address: address, completion: nil)
-    }
-
-    /// The floating glass up/down arrow in the bottom-right corner (KaChat Wallet's Wallet tab
-    /// has the up-arrow form), opening Send Kaspa, Receive Kaspa and Request Payment - which
-    /// left the Chats + menu for it.
-    private var sendKaspaButton: some View {
-        Button {
-            Haptics.impact(.light)
-            showWalletActions = true
-        } label: {
-            Image(systemName: "arrow.up.arrow.down")
-                .font(.scaled(size: 22, weight: .semibold))
-                .foregroundColor(.accentColor)
-                .frame(width: 56, height: 56)
-                .background(
-                    Circle()
-                        .fill(.regularMaterial)
-                        .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
-                        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 5)
-                )
-        }
-        .padding(.trailing, 20)
-        .padding(.bottom, 16)
-        .accessibilityLabel(Text("Send and Receive"))
-    }
-
-    /// The floating button's half sheet: the three wallet actions as tiles, like the Chats New
-    /// sheet.
-    private var walletActionsSheet: some View {
-        let columns = Array(repeating: GridItem(.fixed(ChatListView.createTileSize), spacing: 14), count: 3)
-        return VStack(spacing: 16) {
-            Text("Send and Receive")
-                .font(.headline)
-                .padding(.top, 20)
-
-            LazyVGrid(columns: columns, spacing: 14) {
-                CreateTile(title: "Send Kaspa", hint: "Send Kaspa from any of your addresses.", systemImage: "arrow.up.circle") {
-                    closeWalletActions(then: .send)
-                }
-                CreateTile(title: "Receive Kaspa", hint: "Show a fresh address to get paid.", systemImage: "arrow.down.circle") {
-                    closeWalletActions(then: .receive)
-                }
-                CreateTile(title: "Request Payment", hint: "A link asking for an exact amount, with what it's for.", systemImage: "doc.text") {
-                    closeWalletActions(then: .request)
-                }
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .presentationDetents([ChatListView.createSheetHeight])
-        .presentationDragIndicator(.visible)
-    }
-
-    private func closeWalletActions(then action: WalletAction) {
-        pendingWalletAction = action
-        showWalletActions = false
     }
 
     var body: some View {
@@ -156,14 +77,11 @@ struct ProfileView: View {
                             .task(id: "\(wallet.publicAddress)-\(kachatRegistry.revision)") {
                                 await loadKachatLabel(wallet.publicAddress)
                             }
-                        accountBackupSection(wallet)
-                        addressDropdownsSection(wallet)
                         yourDomainsSection
                         notificationsSection
+                        chattingAddressSection(wallet)
                         shareProfileSection
                         logOutSection
-                        // room to scroll the last row out from under the floating send button
-                        Color.clear.frame(height: 56)
                     } else {
                         Text("No active account")
                             .foregroundColor(.secondary)
@@ -173,7 +91,6 @@ struct ProfileView: View {
             }
             .refreshable {
                 _ = try? await walletManager.refreshBalance(force: true)
-                await loadSpendingAddressBalance()
             }
             // Pinned large-title header: the system .large title scrolls away with the content,
             // so the title lives here as fixed chrome instead - same font/weight/leading inset
@@ -285,48 +202,6 @@ struct ProfileView: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isSavingKNSProfile)
-            // Quick send: the floating glass button in the bottom-right corner (the same button
-            // Addresses uses for +). Out of the way while the KNS save banner is up.
-            .overlay(alignment: .bottomTrailing) {
-                if walletManager.currentWallet != nil, !isSavingKNSProfile, failedKNSUpdates.isEmpty {
-                    sendKaspaButton
-                }
-            }
-            .sheet(isPresented: $showWalletActions, onDismiss: {
-                walletAction = pendingWalletAction
-                pendingWalletAction = nil
-            }) {
-                walletActionsSheet
-            }
-            .sheet(item: $walletAction) { action in
-                switch action {
-                case .send:
-                    if let wallet = walletManager.currentWallet {
-                        WithdrawKaspaView(fromAddress: wallet.publicAddress, availableBalanceSompi: wallet.balanceSompi)
-                    }
-                case .receive:
-                    NavigationStack {
-                        ReceiveKaspaQRView()
-                            .navigationTitle("Receive Kaspa")
-                            .navigationBarTitleDisplayMode(.inline)
-                            .toolbar {
-                                ToolbarItem(placement: .confirmationAction) {
-                                    Button("Done") { walletAction = nil }
-                                }
-                            }
-                    }
-                case .request:
-                    CreatePaymentRequestView()
-                }
-            }
-            // Posted from elsewhere in the app to open the editor this screen's state already
-            // drives, rather than rebuilding it.
-            .onReceive(NotificationCenter.default.publisher(for: .openKNSProfileEditor)) { _ in
-                showKNSEditor = true
-            }
-            .sheet(isPresented: $showBackupHygiene) {
-                BackupHygieneView()
-            }
             // "Edit KaChat Profile": the address profile editor, on both networks (see
             // `KaChatProfileEditorSheet`).
             .sheet(isPresented: $showKNSEditor) {
@@ -407,25 +282,16 @@ struct ProfileView: View {
                         self.qrImage = image
                     }
                 }
-                if let spendingAddress = walletManager.currentSpendingAddress() {
-                    ProfileQRCodeCache.preload(address: spendingAddress, completion: nil)
-                }
                 // The network part at most every 30 s: switching tabs back and forth started four
                 // requests each time. Arriving funds still refresh at once (`ownAddressUtxoActivity`
                 // below), and pull to refresh is always there.
                 if let at = appearRefreshedAt, Date().timeIntervalSince(at) < 30 { return }
                 appearRefreshedAt = Date()
                 Task { _ = try? await walletManager.refreshBalance() }
-                Task { await loadSpendingAddressBalance() }
-                // Resolve the Receive QR's address NOW, not when the button is tapped. The
-                // freshness check is a network round trip, so doing it on tap meant a spinner
-                // between pressing Receive Kaspa and seeing a code. Warmed here it is almost
-                // always already decided by the time anyone taps.
-                Task { await warmReceiveAddress() }
             }
             // Funds landing used to show up here only on the next appear or pull-to-refresh -
             // the screen that shows your balance was the one screen not listening for it.
-            // ManageAddresses and Cold Storage already reload on these.
+            // ManageAddresses already reloads on these.
             .onReceive(NotificationCenter.default.publisher(for: .ownAddressUtxoActivity)) { _ in
                 scheduleBalanceRefresh()
             }
@@ -457,10 +323,6 @@ struct ProfileView: View {
                 isLoadingKNS = false
             }
             .onChange(of: walletManager.currentWallet?.publicAddress) { newValue in
-                // The spending balances belong to the account they were read for: cleared on a
-                // switch (a dash until the new account's land), never carried over.
-                spendingAddressBalanceSompi = nil
-                spendingTotalSompi = nil
                 guard let newValue else {
                     qrImage = nil
                     knsDomains = []
@@ -605,6 +467,26 @@ struct ProfileView: View {
         .background(glassBackground(cornerRadius: 18))
     }
 
+    /// The chatting address's QR code, and only that: the balance is Wallet's.
+    private func chattingAddressSection(_ wallet: Wallet) -> some View {
+        NavigationLink {
+            ChattingAddressQRView(address: wallet.publicAddress, balanceSompi: nil, showsBalance: false)
+        } label: {
+            HStack {
+                Label("Chatting Address", systemImage: "qrcode")
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(glassBackground(cornerRadius: 18))
+    }
+
     /// Profile hero: KNS banner (gradient fallback), overlapping avatar, display name and
     /// bio. The name is what other people see you as: your domain name, else your short address
     /// ("kaspa:xxxx....xxxx") - never the account name, which is only your own label for it.
@@ -730,16 +612,6 @@ struct ProfileView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    /// Single source of truth for "does this wallet have a KNS profile at all?" - a registered
-    /// domain is what the editor needs (see `showKNSEditor`'s `assetId != nil` guard), so the same
-    /// predicate decides both the destination (editor vs. guided creation flow) and the wording of
-    /// every affordance that offers it. Reads `knsProfileInfo` (@State, refreshed by
-    /// `refreshKNSData`) so the label flips from "Create" to "Edit" as soon as a profile is
-    /// created - no app restart required.
-    private var hasKNSProfile: Bool {
-        !(knsProfileInfo?.domainName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
     private func setPrimaryDomain(_ domain: KNSDomain) async {
         guard settingPrimaryDomainId == nil else { return }
         guard let walletAddress = walletManager.currentWallet?.publicAddress else {
@@ -860,224 +732,6 @@ struct ProfileView: View {
         }
     }
 
-    @ViewBuilder
-    private var knsProfileSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            sectionHeader("KNS Profile")
-            if isLoadingKNS && knsProfileInfo == nil {
-                HStack {
-                    ProgressView().scaleEffect(0.8)
-                    Text("Loading profile...")
-                        .foregroundColor(.secondary)
-                }
-            } else if let profileInfo = knsProfileInfo {
-                knsProfileCard(profileInfo)
-            }
-        }
-    }
-
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.footnote)
-            .fontWeight(.medium)
-            .foregroundColor(.secondary)
-            .padding(.horizontal, 4)
-    }
-
-    private func knsProfileCard(_ profileInfo: KNSAddressProfileInfo) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if KNSProfileLinkBuilder.websiteURL(from: profileInfo.profile?.bannerUrl) != nil {
-                KNSBannerImageView(
-                    bannerURLString: profileInfo.profile?.bannerUrl,
-                    height: 140,
-                    cornerRadius: 0,
-                    fitsWidth: true
-                )
-            }
-
-            knsProfileHeaderRow(profileInfo)
-
-            if isSavingKNSProfile, let progress = knsSaveProgressText {
-                HStack(spacing: 10) {
-                    ProgressView().scaleEffect(0.8)
-                    Text(progress)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
-            }
-
-            if let assetId = profileInfo.assetId,
-               !assetId.isEmpty,
-               !failedKNSUpdates.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Failed updates")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    ForEach(failedKNSUpdates.keys.sorted(by: { $0.displayName < $1.displayName }), id: \.self) { key in
-                        let value = failedKNSUpdates[key] ?? ""
-                        Button {
-                            Task {
-                                await retryFailedKNSField(
-                                    key: key,
-                                    value: value,
-                                    assetId: assetId,
-                                    domainName: profileInfo.domainName
-                                )
-                            }
-                        } label: {
-                            HStack {
-                                Text(localizedFormat("Retry %@", key.displayName))
-                                Spacer()
-                                Image(systemName: "arrow.clockwise")
-                                    .foregroundColor(.accentColor)
-                            }
-                        }
-                        .disabled(isSavingKNSProfile)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
-            }
-
-            if hasMoreProfileInfo(profileInfo) {
-                Divider()
-                    .padding(.leading, 16)
-
-                DisclosureGroup(isExpanded: $showMoreProfileInfo) {
-                    moreInfoRows(profileInfo)
-                        .padding(.top, 8)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 14)
-                } label: {
-                    Text("More Info")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(.accentColor)
-                }
-                .tint(.accentColor)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-            }
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.regularMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
-                )
-        )
-        // Clip after background (not before) so the banner's square image corners are
-        // trimmed to match the card's rounded top corners, then apply the shadow last so
-        // it isn't clipped away along with the banner overflow.
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 5)
-    }
-
-    private func knsProfileHeaderRow(_ profileInfo: KNSAddressProfileInfo) -> some View {
-        // Same predicate as `hasKNSProfile` (this variant is passed the profile explicitly).
-        let hasDomain = !(profileInfo.domainName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        return Button {
-            if hasDomain {
-                showKNSEditor = true
-            } else {
-                showCreateKNSProfileFlow = true
-            }
-        } label: {
-            if hasDomain {
-                HStack(spacing: 12) {
-                    KNSAvatarView(
-                        avatarURLString: profileInfo.avatarURL,
-                        fallbackText: editedAlias,
-                        size: 44
-                    )
-                    VStack(alignment: .leading, spacing: 2) {
-                        if let domainName = profileInfo.domainName, !domainName.isEmpty {
-                            Text(domainName)
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                        }
-                        if let bio = profileInfo.profile?.bio, !bio.isEmpty {
-                            Text(bio)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .lineLimit(5)
-                        }
-                    }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(16)
-                .contentShape(Rectangle())
-            } else {
-                // No domain yet - nothing to show an avatar/chevron-row for (there's no
-                // profile data at all), so this collapses to a single centered call-to-action
-                // that opens the guided creation wizard instead of the editor built for
-                // *existing* profiles (which would silently show nothing - see showKNSEditor's
-                // `profileInfo.assetId != nil` guard).
-                Text("Create KNS Profile")
-                    .font(.headline)
-                    .foregroundColor(.accentColor)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(16)
-                    .contentShape(Rectangle())
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// Narrow gate for the collapsible "More Info" section — deliberately excludes
-    /// avatarUrl/bannerUrl since those are already shown elsewhere in the card.
-    private func hasMoreProfileInfo(_ profileInfo: KNSAddressProfileInfo) -> Bool {
-        guard let profile = profileInfo.profile else { return false }
-        return [profile.x, profile.website, profile.telegram, profile.discord, profile.contactEmail, profile.github, profile.redirectUrl]
-            .contains { !($0 ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-    }
-
-    @ViewBuilder
-    private func moreInfoRows(_ profileInfo: KNSAddressProfileInfo) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let x = profileInfo.profile?.x, !x.isEmpty {
-                LabeledContent("X") {
-                    profileLinkView(text: x, url: KNSProfileLinkBuilder.xURL(from: x), fieldName: "X")
-                }
-            }
-            if let website = profileInfo.profile?.website, !website.isEmpty {
-                LabeledContent("Website") {
-                    profileLinkView(text: website, url: KNSProfileLinkBuilder.websiteURL(from: website), fieldName: "Website")
-                }
-            }
-            if let telegram = profileInfo.profile?.telegram, !telegram.isEmpty {
-                LabeledContent("Telegram") {
-                    profileLinkView(text: telegram, url: KNSProfileLinkBuilder.telegramURL(from: telegram), fieldName: "Telegram")
-                }
-            }
-            if let discord = profileInfo.profile?.discord, !discord.isEmpty {
-                LabeledContent("Discord") {
-                    profileLinkView(text: discord, url: KNSProfileLinkBuilder.discordURL(from: discord), fieldName: "Discord")
-                }
-            }
-            if let contactEmail = profileInfo.profile?.contactEmail, !contactEmail.isEmpty {
-                LabeledContent("Email") {
-                    profileLinkView(text: contactEmail, url: KNSProfileLinkBuilder.emailURL(from: contactEmail), fieldName: "Email")
-                }
-            }
-            if let github = profileInfo.profile?.github, !github.isEmpty {
-                LabeledContent("GitHub") {
-                    profileLinkView(text: github, url: KNSProfileLinkBuilder.githubURL(from: github), fieldName: "GitHub")
-                }
-            }
-            if let redirectUrl = profileInfo.profile?.redirectUrl, !redirectUrl.isEmpty {
-                LabeledContent("Redirect") {
-                    profileLinkView(text: redirectUrl, url: KNSProfileLinkBuilder.websiteURL(from: redirectUrl), fieldName: "Redirect")
-                }
-            }
-        }
-    }
-
     // MARK: - QR buttons row (Accept Kaspa / Chatting Address)
 
     /// Resolves a fresh receive address before drawing the QR, so the code on screen is never
@@ -1086,7 +740,7 @@ struct ProfileView: View {
     /// A view of its own rather than resolving in the NavigationLink's destination builder: that
     /// builder is evaluated eagerly while the row is merely on screen, so any work in it would
     /// run whether or not the user ever taps, and it cannot await.
-    /// Opened from Profile's send / receive button ("Receive Kaspa"). Never substitutes the
+    /// Opened from Wallet's Receive button. Never substitutes the
     /// CHATTING address for the spending role; if nothing can be derived this instant (locked
     /// keychain) it says so rather than showing the wrong address.
     struct ReceiveKaspaQRView: View {
@@ -1116,10 +770,10 @@ struct ProfileView: View {
             }
             .task {
                 guard address == nil else { return }
-                // Warmed on Profile's appear - when it is there this screen draws immediately,
+                // Warmed on Wallet's appear - when it is there this screen draws immediately,
                 // and the check below is a no-op re-confirmation rather than something the user
                 // waits behind.
-                if let warmed = ReceiveAddressWarmCache.address {
+                if let warmed = ReceiveAddressWarmCache.address(for: walletManager.currentWallet?.publicAddress) {
                     address = warmed
                     resolving = false
                 }
@@ -1129,117 +783,10 @@ struct ProfileView: View {
                 // scanned the instant it appears, so it must not change under a pointed camera
                 // for any lesser reason.
                 if resolved != address { address = resolved }
-                ReceiveAddressWarmCache.address = resolved
+                ReceiveAddressWarmCache.store(resolved, for: walletManager.currentWallet?.publicAddress)
                 resolving = false
             }
         }
-    }
-
-    // MARK: - Backup card
-
-    /// Until this account's backup steps are finished, red once it holds funds. After that, Backup
-    /// Hygiene every six months.
-    @ViewBuilder
-    private func accountBackupSection(_ wallet: Wallet) -> some View {
-        if backupStatus.isHygieneDue(wallet.publicAddress) {
-            BackupHygieneCard { showBackupHygiene = true }
-        }
-    }
-
-    // MARK: - Manage Addresses card
-
-    /// One card for every address of this account - it opens Manage Addresses, which lists them
-    /// all, the chatting address first. Which address a send comes from is picked on the send
-    /// screen (From), so Profile no longer splits Chatting from Spending or has a "primary".
-    private func addressDropdownsSection(_ wallet: Wallet) -> some View {
-        VStack(spacing: 20) {
-            // Testnet only: free TN10 coins for the chatting address, from the official faucet.
-            if AppSettings.load().networkType == .testnet {
-                TestnetFaucetClaimButton(address: wallet.publicAddress)
-            }
-            HStack(spacing: 14) {
-                NavigationLink {
-                    ManageAddressesView()
-                } label: {
-                    addressSquare(icon: "list.bullet.rectangle", title: "Manage Addresses") {
-                        if let total = accountTotalSompi(wallet) {
-                            Text(verbatim: "\(formatKaspaExact(total)) \(KaspaUnit.symbol)")
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(.accentColor)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.7)
-                        } else {
-                            ProgressView()
-                                .scaleEffect(0.6)
-                                .frame(height: 14)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-
-                NavigationLink {
-                    ChattingAddressQRView(address: wallet.publicAddress, balanceSompi: wallet.balanceSompi)
-                } label: {
-                    addressSquare(icon: "qrcode", title: "Chatting Address") { EmptyView() }
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    /// One of the two square cards: its icon in a circle, its title, and a line under that.
-    private func addressSquare<Detail: View>(
-        icon: String,
-        title: LocalizedStringKey,
-        @ViewBuilder detail: () -> Detail
-    ) -> some View {
-        Color.clear
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: .infinity)
-            .overlay {
-                VStack(spacing: 8) {
-                    Image(systemName: icon)
-                        .font(.scaled(size: 22, weight: .medium))
-                        .foregroundColor(.accentColor)
-                        .frame(width: 48, height: 48)
-                        .background(Circle().fill(.regularMaterial))
-                    Text(title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
-                    detail()
-                }
-                .padding(.horizontal, 10)
-            }
-            .background(glassBackground(cornerRadius: 18))
-            .contentShape(RoundedRectangle(cornerRadius: 18))
-    }
-
-    /// Everything this account holds: the chatting address and every spending address.
-    private func accountTotalSompi(_ wallet: Wallet) -> UInt64? {
-        guard let spending = spendingTotalSompi else { return nil }
-        return (wallet.balanceSompi ?? 0) + spending
-    }
-
-    private func addressRowIconButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            addressRowIconLabel(icon: icon, label: label)
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// A large icon-only circle, no caption - the caption text became the accessibility label.
-    private func addressRowIconLabel(icon: String, label: String) -> some View {
-        Image(systemName: icon)
-            .font(.scaled(size: 22, weight: .medium))
-            .foregroundColor(.accentColor)
-            .frame(width: 54, height: 54)
-            .background(Circle().fill(.regularMaterial))
-            .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 0.8))
-            .contentShape(Circle())
-            .accessibilityLabel(Text(label))
     }
 
     /// Coalesces balance refreshes triggered by own-address activity.
@@ -1256,52 +803,6 @@ struct ProfileView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             guard !Task.isCancelled else { return }
             _ = try? await walletManager.refreshBalance(force: true)
-            guard !Task.isCancelled else { return }
-            await loadSpendingAddressBalance()
-        }
-    }
-
-    /// Decides the Receive QR's address ahead of the tap and hands it to the shared cache, so
-    /// opening the sheet is a read rather than a round trip.
-    private func warmReceiveAddress() async {
-        guard let address = await walletManager.freshReceiveAddress() else { return }
-        ReceiveAddressWarmCache.address = address
-        ProfileQRCodeCache.preload(address: address, completion: nil)
-    }
-
-    private func loadSpendingAddressBalance() async {
-        // A read that finishes after an account switch belongs to the old account: dropped.
-        let account = walletManager.currentWallet?.publicAddress
-        func stillSameAccount() -> Bool { walletManager.currentWallet?.publicAddress == account }
-        guard let address = walletManager.currentSpendingAddress() else {
-            // Unresolvable this instant — show "—" rather than leaving a stale number on screen.
-            spendingAddressBalanceSompi = nil
-            isLoadingSpendingBalance = false
-            return
-        }
-        isLoadingSpendingBalance = true
-        // A failed lookup keeps the last known figure (or the dash) rather than printing 0 KAS.
-        if let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address]) {
-            guard stillSameAccount() else { return }
-            spendingAddressBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
-        } else {
-            AppLog.log("%@", "[Contacts] Spending balance refresh failed; keeping the last known figure")
-        }
-        isLoadingSpendingBalance = false
-
-        // The whole set, in ONE call - a per-address loop would be dozens of requests on a wallet
-        // that has been used, and the node takes the list.
-        let all = walletManager.allSpendingAddresses()
-        guard !all.isEmpty else {
-            spendingTotalSompi = nil
-            return
-        }
-        // A failure leaves the previous total in place rather than clearing it. A line that
-        // vanishes because one request timed out reads as the feature being broken; a total a
-        // few seconds stale does not.
-        if let allUtxos = try? await NodePoolService.shared.getUtxosByAddresses(all) {
-            guard stillSameAccount() else { return }
-            spendingTotalSompi = allUtxos.reduce(UInt64(0)) { $0 + $1.amount }
         }
     }
 
@@ -1374,22 +875,6 @@ struct ProfileView: View {
         }
     }
 
-    private func scheduleAliasSave(_ rawAlias: String, previousAlias: String) {
-        aliasSaveTask?.cancel()
-        let trimmed = rawAlias.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, trimmed != previousAlias else { return }
-
-        aliasSaveTask = Task {
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            guard !Task.isCancelled else { return }
-            guard walletManager.currentWallet?.alias != trimmed else { return }
-            try? await walletManager.updateAlias(trimmed)
-            await MainActor.run {
-                showToast("Name updated.")
-            }
-        }
-    }
-
     private func showToast(_ message: String, style: ToastStyle = .success) {
         let token = UUID()
         toastToken = token
@@ -1417,51 +902,6 @@ struct ProfileView: View {
     private func formatKaspaExact(_ sompi: UInt64) -> String {
         let kas = Double(sompi) / 100_000_000.0
         return String(format: "%.8f", kas)
-    }
-
-    /// Set by the hold that copies a link's value: the hold's own touch-up still fires the
-    /// row's tap (simultaneousGesture), which used to open Safari right after the copy.
-    /// Consumed by that tap; cleared on its own shortly after, so a hold whose finger slid
-    /// away doesn't swallow a later, deliberate tap.
-    @State private var suppressNextLinkOpen = false
-
-    @ViewBuilder
-    private func profileLinkView(text: String, url: URL?, fieldName: String) -> some View {
-        if let url {
-            Button {
-                guard !suppressNextLinkOpen else {
-                    suppressNextLinkOpen = false
-                    return
-                }
-                UIApplication.shared.open(url)
-            } label: {
-                Text(text)
-                    .foregroundColor(.accentColor)
-            }
-            .buttonStyle(.plain)
-            .simultaneousGesture(
-                LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                    copyProfileFieldValue(text, fieldName: fieldName)
-                    suppressNextLinkOpen = true
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 2_500_000_000)
-                        suppressNextLinkOpen = false
-                    }
-                }
-            )
-        } else {
-            Text(text)
-                .foregroundColor(.secondary)
-                .onLongPressGesture(minimumDuration: 0.45) {
-                    copyProfileFieldValue(text, fieldName: fieldName)
-                }
-        }
-    }
-
-    private func copyProfileFieldValue(_ value: String, fieldName: String) {
-        UIPasteboard.general.string = value
-        Haptics.success()
-        showToast(localizedFormat("%@ copied to clipboard.", fieldName))
     }
 
     private func logKNSWrite(_ message: String) {
@@ -1991,7 +1431,18 @@ struct ProfileView: View {
 /// before its first frame. Process-lifetime only - it is a head start, never a source of truth,
 /// and `freshReceiveAddress` re-confirms it on every open.
 enum ReceiveAddressWarmCache {
-    @MainActor static var address: String?
+    /// Kept with the account it was worked out for: another account, or the other network, must
+    /// never open on this address.
+    @MainActor private static var entry: (account: String, address: String)?
+
+    @MainActor static func address(for account: String?) -> String? {
+        guard let entry, entry.account == account else { return nil }
+        return entry.address
+    }
+
+    @MainActor static func store(_ address: String?, for account: String?) {
+        entry = address.flatMap { address in account.map { (account: $0, address: address) } }
+    }
 }
 
 private struct KNSProfileEditorSubmission {
@@ -2393,7 +1844,7 @@ private struct KNSProfileEditorSheet: View {
                             Text("Confirm Changes")
                                 .font(.headline)
                                 .fontWeight(.bold)
-                            Text("\(pendingChanges.count) change\(pendingChanges.count == 1 ? "" : "s"). Each is submitted as its own on-chain transaction from your chatting address:")
+                            Text("\(pendingChanges.count) change\(pluralS(pendingChanges.count)). Each is submitted as its own on-chain transaction from your chatting address:")
                                 .font(.subheadline)
                             VStack(alignment: .leading, spacing: 4) {
                                 ForEach(pendingChanges, id: \.self) { change in
@@ -2674,8 +2125,7 @@ private struct KNSDomainsListView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    /// A Kaspa Hub style square: the name ending big in the brand style, who runs it under it.
-    /// Same material, radius and hairline as the hub tiles.
+    /// A square: the name ending big in the brand style, who runs it under it.
     private func serviceCard(_ tld: NameServiceTLD) -> some View {
         Color.clear
             .aspectRatio(1, contentMode: .fit)
@@ -2890,254 +2340,6 @@ struct DomainNameCardView: View {
                     .padding(.bottom, 10)
             }
         }
-    }
-}
-
-private struct KNSDomainInscribeSheet: View {
-    let walletAddress: String
-    let onComplete: (KNSDomainInscribeResult) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var domainInput = ""
-    @State private var feeTiers: [Int: Decimal] = [:]
-    @State private var availability: KNSDomainAvailability?
-    @State private var isCheckingAvailability = false
-    @State private var isSubmitting = false
-    @State private var feeError: String?
-    @State private var checkError: String?
-    @State private var submitError: String?
-    @State private var checkTask: Task<Void, Never>?
-
-    private var normalizedLabel: String? {
-        KNSService.shared.normalizeDomainLabel(domainInput)
-    }
-
-    private var fullDomain: String? {
-        guard let normalizedLabel else { return nil }
-        return "\(normalizedLabel).kas"
-    }
-
-    private var currentServiceFeeKas: Decimal? {
-        guard let label = normalizedLabel else { return nil }
-        guard !feeTiers.isEmpty else { return nil }
-        if availability?.isReservedDomain == true {
-            return 0
-        }
-        let tier = min(max(label.count, 1), 5)
-        return feeTiers[tier] ?? feeTiers[5]
-    }
-
-    private var canSubmit: Bool {
-        guard !isSubmitting, !isCheckingAvailability else { return false }
-        guard normalizedLabel != nil else { return false }
-        guard availability?.available == true else { return false }
-        return currentServiceFeeKas != nil
-    }
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Domain") {
-                    TextField("name", text: $domainInput)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    if let fullDomain {
-                        Text(fullDomain)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text("Use lowercase letters, numbers, and hyphen.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    if isCheckingAvailability {
-                        HStack(spacing: 8) {
-                            ProgressView().scaleEffect(0.8)
-                            Text("Checking availability...")
-                                .foregroundColor(.secondary)
-                        }
-                    } else if let checkError, !checkError.isEmpty {
-                        Text(checkError)
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    } else if let availability {
-                        Text(
-                            availability.available
-                            ? localizedFormat("%@ can be inscribed.", availability.domain)
-                            : String(localized: "This domain is not available.")
-                        )
-                        .font(.footnote)
-                        .foregroundColor(availability.available ? .green : .red)
-                    }
-                }
-
-                Section("Fee") {
-                    if let fee = currentServiceFeeKas {
-                        HStack {
-                            Text("Service fee")
-                            Spacer()
-                            Text(verbatim: "\(formatKas(fee)) \(KaspaUnit.symbol)")
-                                .foregroundColor(.secondary)
-                        }
-                        if availability?.isReservedDomain == true {
-                            Text("Reserved domain: no revenue payment is required.")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    } else {
-                        Text("Fee unavailable")
-                            .foregroundColor(.secondary)
-                    }
-
-                    if let feeError, !feeError.isEmpty {
-                        Text(feeError)
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    }
-                }
-
-                if isSubmitting {
-                    Section {
-                        HStack(spacing: 8) {
-                            ProgressView().scaleEffect(0.8)
-                            Text("Submitting inscription...")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
-
-                if let submitError, !submitError.isEmpty {
-                    Section {
-                        Text(submitError)
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    }
-                }
-            }
-            .navigationTitle("Inscribe Domain")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Inscribe") {
-                        submitInscribe()
-                    }
-                    .disabled(!canSubmit)
-                }
-            }
-            .task {
-                await loadFeeTiers()
-            }
-            .onChange(of: domainInput) { _ in
-                scheduleAvailabilityCheck()
-            }
-            .onDisappear {
-                checkTask?.cancel()
-            }
-        }
-    }
-
-    private func loadFeeTiers() async {
-        do {
-            let tiers = try await KNSService.shared.fetchInscribeFeeTiers()
-            await MainActor.run {
-                feeTiers = tiers
-                feeError = nil
-            }
-        } catch {
-            await MainActor.run {
-                feeError = UserFacingError.message(for: error)
-            }
-        }
-    }
-
-    private func scheduleAvailabilityCheck() {
-        checkTask?.cancel()
-        submitError = nil
-        availability = nil
-
-        let raw = domainInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else {
-            checkError = nil
-            isCheckingAvailability = false
-            return
-        }
-        guard let label = normalizedLabel else {
-            checkError = String(localized: "Use lowercase letters, numbers, and hyphen.")
-            isCheckingAvailability = false
-            return
-        }
-
-        checkError = nil
-        isCheckingAvailability = true
-        let full = "\(label).kas"
-        checkTask = Task {
-            try? await Task.sleep(nanoseconds: 350_000_000)
-            guard !Task.isCancelled else { return }
-            do {
-                let result = try await KNSService.shared.checkDomainAvailability(
-                    address: walletAddress,
-                    domainName: full
-                )
-                guard !Task.isCancelled else { return }
-                await MainActor.run {
-                    availability = result
-                    isCheckingAvailability = false
-                    checkError = nil
-                }
-            } catch {
-                guard !Task.isCancelled else { return }
-                await MainActor.run {
-                    availability = nil
-                    isCheckingAvailability = false
-                    checkError = UserFacingError.message(for: error)
-                }
-            }
-        }
-    }
-
-    private func submitInscribe() {
-        guard let label = normalizedLabel else {
-            submitError = String(localized: "Invalid domain label")
-            return
-        }
-        isSubmitting = true
-        submitError = nil
-        Task {
-            do {
-                let result = try await KNSDomainInscribeService.shared.inscribeDomain(label: label)
-                await MainActor.run {
-                    isSubmitting = false
-                    onComplete(result)
-                    dismiss()
-                }
-            } catch {
-                await MainActor.run {
-                    isSubmitting = false
-                    submitError = UserFacingError.message(for: error)
-                    Haptics.impact(.medium)
-                }
-            }
-        }
-    }
-
-    private func formatKas(_ value: Decimal) -> String {
-        let number = NSDecimalNumber(decimal: value)
-        let double = number.doubleValue
-        if abs(double.rounded() - double) < 0.0000001 {
-            return String(format: "%.0f", double)
-        }
-        return number.stringValue
-    }
-
-    private func localizedFormat(_ key: String, _ args: CVarArg...) -> String {
-        String(format: AppLocalization.string(key), locale: AppLocalization.locale, arguments: args)
     }
 }
 
@@ -4577,7 +3779,7 @@ struct WithdrawKaspaView: View {
     @State private var activeRequest: PaymentRequest?
     /// Where the Kaspa leaves from (the From section): the chatting address by default.
     @State private var source: SendSource = .chatting
-    /// The From address's balance, loaded by `SendFromSection`.
+    /// The From address's balance, loaded by the From step.
     @State private var sourceBalanceSompi: UInt64?
 
     @EnvironmentObject var chatService: ChatService
@@ -4606,6 +3808,8 @@ struct WithdrawKaspaView: View {
 
     @State private var feeTier: WithdrawFeeTier = .normal
     @State private var normalFeeSompi: UInt64?
+    /// Change too small to keep, which goes to the fee (`SendFeeEstimate`).
+    @State private var foldedChangeSompi: UInt64 = 0
     @State private var isEstimatingFee = false
     @State private var isEstimatingMax = false
     @State private var customExtraFeeSompi: UInt64?
@@ -4662,7 +3866,7 @@ struct WithdrawKaspaView: View {
 
     private var totalFeeSompi: UInt64? {
         guard let normalFeeSompi else { return nil }
-        return normalFeeSompi + extraFeeSompi
+        return SendFeeEstimate(networkFee: normalFeeSompi, foldedChange: foldedChangeSompi).total(extra: extraFeeSompi)
     }
 
     /// Debounce/cancellation key: only re-estimate when the resolved address or amount
@@ -4770,8 +3974,9 @@ struct WithdrawKaspaView: View {
             .task(id: source) {
                 sourceBalanceSompi = nil
                 guard let address = source.address else { return }
-                let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
-                guard !Task.isCancelled else { return }
+                // A failed read says nothing about the balance: left unknown, not shown as 0.
+                let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address])
+                guard !Task.isCancelled, let utxos else { return }
                 sourceBalanceSompi = utxos.reduce(UInt64(0)) { $0 + $1.amount }
             }
             .onChange(of: feeTier) { _ in
@@ -4804,14 +4009,15 @@ struct WithdrawKaspaView: View {
                 try? await Task.sleep(nanoseconds: 400_000_000)
                 guard !Task.isCancelled else { return }
                 do {
-                    let fee: UInt64
+                    let fee: SendFeeEstimate
                     if let index = source.spendingIndex {
                         fee = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos)
                     } else {
                         fee = try await chatService.estimateWithdrawalFee(toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos)
                     }
                     guard !Task.isCancelled else { return }
-                    normalFeeSompi = fee
+                    normalFeeSompi = fee.networkFee
+                    foldedChangeSompi = fee.foldedChange
                     feeError = nil
                 } catch {
                     guard !Task.isCancelled else { return }
@@ -5333,10 +4539,21 @@ struct WithdrawKaspaView: View {
                     ?? contactsManager.getContact(byAddress: recipient) {
                     // A chatting address: a chat payment, the memo encrypted to them inside it -
                     // it lands in your chat with them like any payment from the chat.
-                    txId = try await chatService.sendPayment(
+                    let paid = try await chatService.sendPayment(
                         to: contact, amountSompi: amountSompi, note: request.memo,
                         extraFeeSompi: tipSompi, sourceSpendingIndex: spendingIndex, manualUtxos: manualUtxos
-                    ) ?? ""
+                    )
+                    // nil means deferred (no confirmed inputs yet): the retry timer owns it and
+                    // the bubble is already in the chat, but nothing has been sent to confirm.
+                    guard let paid, !paid.isEmpty else {
+                        await MainActor.run {
+                            isSending = false
+                            dismiss()
+                            onComplete?()
+                        }
+                        return
+                    }
+                    txId = paid
                 } else if let spendingIndex {
                     txId = try await chatService.sendFromSpendingAddress(index: spendingIndex, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                 } else {
@@ -5368,7 +4585,7 @@ struct WithdrawKaspaView: View {
     }
 }
 
-private enum ProfileQRCodeCache {
+enum ProfileQRCodeCache {
     static let context = CIContext()
     static let imageCache = NSCache<NSString, UIImage>()
     static let renderQueue = DispatchQueue(label: "kasia.profile.qr.render", qos: .utility)
@@ -5787,7 +5004,7 @@ struct KaChatProfileEditorSheet: View {
                             .foregroundColor(.secondary)
                     }
                 } header: {
-                    KachatNameSectionHeader()
+                    Text(".kachat Name")
                 }
             }
             .navigationTitle("Edit KaChat Profile")

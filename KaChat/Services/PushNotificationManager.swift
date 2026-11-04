@@ -18,12 +18,6 @@ final class PushNotificationManager: ObservableObject {
     @Published private(set) var permissionStatus: UNAuthorizationStatus = .notDetermined
     @Published private(set) var lastError: String?
 
-    /// Number of addresses being watched for push notifications
-    var watchedAddressesCount: Int? {
-        guard isRegistered else { return nil }
-        return collectWatchedAddresses().count
-    }
-
     // MARK: - Private State
 
     private let tokenDefaultsKey = "push_device_token"
@@ -117,28 +111,6 @@ final class PushNotificationManager: ObservableObject {
     }
 
     // MARK: - Public API
-
-    /// Request notification permission and register with APNs
-    func requestPermissionAndRegister() async throws {
-        let center = UNUserNotificationCenter.current()
-
-        // Request permission
-        let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-
-        await MainActor.run {
-            permissionStatus = granted ? .authorized : .denied
-        }
-
-        guard granted else {
-            throw PushError.permissionDenied
-        }
-
-        // Register with APNs - this will trigger didRegisterForRemoteNotifications
-        pendingRegistration = true
-        UIApplication.shared.registerForRemoteNotifications()
-
-        AppLog.log("[Push] Requested APNs registration")
-    }
 
     /// Request permission, register with APNs, and wait for indexer registration.
     func requestPermissionAndRegisterAndWaitForIndexer() async throws {

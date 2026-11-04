@@ -8,7 +8,7 @@ struct AddressBookTombstone: Codable, Equatable, Hashable {
     var deletedAt: Date
 }
 
-/// The Address Book (Kaspa Hub > Address Book): saved Kaspa addresses with a name and a note.
+/// The Address Book (the Contacts tab): saved Kaspa addresses with a name and a note.
 ///
 /// It replaces syncing with the phone's Contacts (removed 2026-10-08). That linked Kaspa addresses
 /// to phone numbers in people's address books, which sync to iCloud/Google and which any app with
@@ -22,7 +22,8 @@ struct AddressBookTombstone: Codable, Equatable, Hashable {
 /// yourself (`ContactsManager.displayName`).
 ///
 /// An entry's picture is either a photo you assign to it, or else exactly the avatar that address
-/// set on its own profile (`AddressBookAvatar`). Assigned photos are your data, not cache: they live
+/// set on its own profile (`AddressBookAvatar`). An assigned photo is also that address's picture
+/// everywhere else in the app, chats included (`KNSAvatarView`). Assigned photos are your data, not cache: they live
 /// in Application Support/AddressBookPhotos/<wallet>/ (never purged by the system), travel in the
 /// backup as `photo`, and Settings > Storage shows the space they take and can remove them.
 @MainActor
@@ -44,6 +45,9 @@ final class AddressBookManager: ObservableObject {
     private static let migratedKeyPrefix = "kachat_address_book_migrated_v1_wallet_"
 
     private let photoCache = NSCache<NSString, UIImage>()
+    /// Addresses known to have no photo. Every avatar in the app asks on every redraw, chat bubbles
+    /// too, and most addresses have none, so that answer mustn't cost a hash and a file read.
+    private var photolessAddresses = Set<String>()
 
     private init() {
         photoCache.countLimit = 200
@@ -71,6 +75,7 @@ final class AddressBookManager: ObservableObject {
         entries = Self.sorted(stored)
         rebuildIndex()
         photoCache.removeAllObjects()
+        photolessAddresses.removeAll()
         photoVersion &+= 1
         migrateLinkedNames(from: ContactsManager.shared.contacts)
     }
@@ -199,10 +204,15 @@ final class AddressBookManager: ObservableObject {
 
     /// The photo you assigned to `address`, if any.
     func photo(for address: String?) -> UIImage? {
-        guard let address, let url = photoURL(for: Self.normalize(address)) else { return nil }
+        guard let address else { return nil }
+        let normalized = Self.normalize(address)
+        guard !photolessAddresses.contains(normalized), let url = photoURL(for: normalized) else { return nil }
         let key = url.path as NSString
         if let cached = photoCache.object(forKey: key) { return cached }
-        guard let image = UIImage(contentsOfFile: url.path) else { return nil }
+        guard let image = UIImage(contentsOfFile: url.path) else {
+            photolessAddresses.insert(normalized)
+            return nil
+        }
         photoCache.setObject(image, forKey: key)
         return image
     }
@@ -268,6 +278,7 @@ final class AddressBookManager: ObservableObject {
         }
         if let root = Self.photosRoot { try? FileManager.default.removeItem(at: root) }
         photoCache.removeAllObjects()
+        photolessAddresses.removeAll()
         photoVersion &+= 1
         if walletAddress != nil { NextcloudService.shared.noteMessageActivity() }
     }
@@ -300,6 +311,7 @@ final class AddressBookManager: ObservableObject {
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         try? data.write(to: url, options: .atomic)
         photoCache.removeObject(forKey: url.path as NSString)
+        photolessAddresses.remove(normalizedAddress)
         photoVersion &+= 1
     }
 
@@ -307,6 +319,7 @@ final class AddressBookManager: ObservableObject {
         guard let url = photoURL(for: normalizedAddress), FileManager.default.fileExists(atPath: url.path) else { return }
         try? FileManager.default.removeItem(at: url)
         photoCache.removeObject(forKey: url.path as NSString)
+        photolessAddresses.remove(normalizedAddress)
         photoVersion &+= 1
     }
 

@@ -128,50 +128,6 @@ final class GlobalNotificationCenter: ObservableObject {
     /// mentions no longer go through the bell. Kept as a no-op for the call site; rows an
     /// older build recorded are dropped on load (see `reload`).
     func recordGroupMentionIfNeeded(groupId: String, groupName: String, senderAddress: String, text: String, txId: String?, timestampMs: Int64) {}
-
-    // MARK: - Helpers
-
-    private func displayName(for address: String) -> String {
-        if let assigned = ContactsManager.shared.getContact(byAddress: address)?.assignedName {
-            return KasNameText.display(assigned)
-        }
-        if let domain = KNSService.shared.identityInfo(for: address)?.primaryDomain,
-           !domain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return KasNameText.display(domain)
-        }
-        return String(address.suffix(10))
-    }
-
-    /// The current wallet's own KNS domains, bare (no .kas), lowercased.
-    private static func bareDomains(for address: String) -> Set<String> {
-        guard let info = KNSService.shared.identityInfo(for: address) else { return [] }
-        var out = Set<String>()
-        if let primary = info.primaryDomain { out.insert(bare(primary)) }
-        for domain in info.allDomains { out.insert(bare(domain.fullName)) }
-        out.remove("")
-        return out
-    }
-
-    private static func bare(_ domain: String) -> String {
-        var value = domain.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        if value.hasSuffix(".kas") { value = String(value.dropLast(4)) }
-        return value
-    }
-
-    /// @domain tokens in `text` (bare, lowercased) - same regex as `KasNameText.mentionDomains`.
-    private static func mentionedDomains(in text: String) -> [String] {
-        guard let regex = try? NSRegularExpression(
-            pattern: "(^|[\\s(\\[{<\"'])@([a-z0-9-]+(?:\\.[a-z0-9-]+)*)",
-            options: [.caseInsensitive]
-        ) else { return [] }
-        let ns = text as NSString
-        var out: [String] = []
-        regex.enumerateMatches(in: text, options: [], range: NSRange(location: 0, length: ns.length)) { match, _, _ in
-            guard let match = match, match.numberOfRanges >= 3 else { return }
-            out.append(bare(ns.substring(with: match.range(at: 2))))
-        }
-        return out
-    }
 }
 
 /// The bell's sheet: newest-first feed of all sources, source-tagged rows, Clear all.
@@ -269,7 +225,7 @@ struct GlobalNotificationListView: View {
         case .wallet:
             // A receipt opens the history of the address that got the Kaspa (chatting or
             // spending - MainTabView works out which), as a tapped banner does. Entries recorded
-            // before receipts carried their address fall back to Profile.
+            // before receipts carried their address fall back to Wallet.
             dismiss()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                 if !target.isEmpty {

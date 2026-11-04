@@ -36,6 +36,15 @@ final class GroupChatService: ObservableObject {
     static let shared = GroupChatService()
 
     @Published private(set) var groups: [GroupChat] = []
+    /// Groups you were added to and haven't answered: never in `groups` until accepted.
+    @Published private(set) var groupInvites: [PendingGroupInvite] = []
+    /// A tapped invite notification, waiting for the Chats tab to open Message Requests.
+    @Published var pendingMessageRequestsOpen = false
+    /// Group id -> member address -> "invited", "joined" or "declined" (`GroupMemberStatusCodec`).
+    /// A member with no entry has no invite on record: groups from before invites were answered.
+    @Published private(set) var groupMemberStatuses: [String: [String: String]] = [:]
+    /// Only one pass of sending answers at a time: each is a transaction.
+    private var isPublishingGroupAnswers = false
     @Published var groupMessages: [String: [GroupMessage]] = [:]
     /// Mirrors `ChatService.replyingTo` - set via a message's
     /// "Reply" action, consumed (wrapped into the outgoing payload, then cleared) by
@@ -51,13 +60,13 @@ final class GroupChatService: ObservableObject {
     /// The newest edit per message txId, per group - see `MessageEditCodec`.
     @Published var editsByGroupId: [String: [String: MessageEditSnapshot]] = [:]
 
-    /// Set when a group-chat push notification is tapped before `GroupChatListView` exists yet
+    /// Set when a group-chat push notification is tapped before `ChatListView` exists yet
     /// (cold start) - consumed and cleared by `ChatListView.checkPendingGroupNavigation()`.
     @Published var pendingGroupNavigation: String?
 
     /// Set when a group notification that names no group is tapped - the undecryptable-push
     /// fallback (thread id "group", see `NotificationService.deliverGroupFallback`). There's no
-    /// room to open, so the chat list is the destination; consumed by `GroupChatListView`.
+    /// room to open, so the chat list is the destination; consumed by `ChatListView`.
     @Published var pendingGroupListNavigation = false
 
     /// The group currently on-screen, if any - mirrors `ChatService.activeConversationAddress`.
@@ -233,6 +242,8 @@ final class GroupChatService: ObservableObject {
     /// group id from push registration - see `PushNotificationManager.collectWatchedGroupIds`).
     @Published private(set) var groupMutedMembers: [String: Set<String>] = [:]
     private let groupMutedMembersKey = "kachat_group_muted_members"
+    private let groupMemberStatusesKey = "kachat_group_member_statuses"
+    private let groupInviteAnswersKey = "kachat_group_invite_answers"
 
     /// Groups where "Only notify if I am mentioned" is on - enforced in the Notification Service
     /// Extension (`NotificationService.handleGroupPush`), which decrypts the payload anyway to
@@ -269,8 +280,6 @@ final class GroupChatService: ObservableObject {
         if let hex, !hex.isEmpty { groupPhotos[groupId] = hex } else { groupPhotos.removeValue(forKey: groupId) }
         persistGroupPhotos()
     }
-    /// Hex of the current photo for a group, or nil.
-    func groupPhotoHex(for groupId: String) -> String? { groupPhotos[groupId] }
 
     // Block time of the last gctl_photo we applied per group. The by-sender catch-up returns one
     // control per member (M+ copies per action) and a cursor reset (e.g. after reimport) re-scans
@@ -949,6 +958,8 @@ final class GroupChatService: ObservableObject {
         groupMessages.removeAll()
         unreadCache.removeAll()
         replyingTo = nil
+        loadGroupInvites()
+        groupMemberStatuses = loadScoped(groupMemberStatusesKey) ?? [:]
         updateScanningStateIfNeeded()
         // The store opens off the main thread now; the groups are read once it says so.
         let targetWallet = walletAddress
@@ -991,6 +1002,17 @@ final class GroupChatService: ObservableObject {
 
     /// Clears all local group data for the current wallet (Core Data + Keychain bags).
     /// Call from the same wallet-reset paths that call `MessageStore` clearAll.
+    /// Everything of one account's groups, for Delete Account. Waits for its store to open first:
+    /// `setCurrentWallet` alone returns before the groups are readable, and `clearAllLocalData`
+    /// would then find none, leaving their keys and messages behind.
+    func wipeLocalData(forWallet address: String) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            store.setCurrentWallet(address) { continuation.resume() }
+        }
+        setCurrentWallet(address)
+        clearAllLocalData()
+    }
+
     func clearAllLocalData() {
         for group in groups {
             try? keychain.deleteGroupBag(groupId: group.id)
@@ -998,6 +1020,9 @@ final class GroupChatService: ObservableObject {
         store.clearAll()
         handledGroupTxIds.removeAll()
         groups = []
+        groupInvites = []
+        saveGroupInvites()
+        groupMemberStatuses = [:]
         groupMessages.removeAll()
         groupCatchUpCursors = [:]
         groupLastReadAt = [:]
@@ -1007,7 +1032,7 @@ final class GroupChatService: ObservableObject {
         groupDeepBackfilled = []
         // The two one-shots go too: left behind, restoring this account would skip marking its
         // groups read and stop their history walk at the first page.
-        for baseKey in [groupCatchUpCursorsKey, groupLastReadAtKey, groupHiddenMembersKey, groupMutedMembersKey, groupMentionsOnlyNotificationsKey, groupSilentNotificationsKey, groupImportReadSeededKey, groupDeepBackfilledKey] {
+        for baseKey in [groupMemberStatusesKey, groupInviteAnswersKey, groupCatchUpCursorsKey, groupLastReadAtKey, groupHiddenMembersKey, groupMutedMembersKey, groupMentionsOnlyNotificationsKey, groupSilentNotificationsKey, groupImportReadSeededKey, groupDeepBackfilledKey] {
             if let key = scopedDefaultsKey(baseKey) {
                 UserDefaults.standard.removeObject(forKey: key)
             }
@@ -1191,6 +1216,9 @@ final class GroupChatService: ObservableObject {
         groups = store.allGroups()
         SharedDataManager.syncGroupsForExtension()
         groupMessages[group.id] = []
+        for member in roster where !member.isAdmin {
+            setMemberStatus(GroupMemberStatusCodec.Status.invited.rawValue, address: member.address, groupId: group.id)
+        }
         updateScanningStateIfNeeded()
 
         // Distribute gctl_root to each initial member directly - they must already be 1:1
@@ -1280,7 +1308,7 @@ final class GroupChatService: ObservableObject {
         }
     }
 
-    /// Re-public chat the CURRENT root to every member (admin) — retries invites that failed to
+    /// Re-broadcast the CURRENT root to every member (admin) — retries invites that failed to
     /// send, without rotating the epoch. Throws if any member still can't be reached.
     func resendInvites(_ groupId: String) async throws {
         guard let group = store.group(id: groupId), group.isAdmin else {
@@ -1302,7 +1330,7 @@ final class GroupChatService: ObservableObject {
         }
     }
 
-    /// Re-public chat the current root to ONE member (admin) — a targeted retry of a single invite.
+    /// Re-broadcast the current root to ONE member (admin) — a targeted retry of a single invite.
     func resendInvite(to address: String, groupId: String) async throws {
         guard let group = store.group(id: groupId), group.isAdmin else {
             throw KasiaError.networkError("Only the group admin can resend invites.")
@@ -1343,7 +1371,7 @@ final class GroupChatService: ObservableObject {
     }
 
     /// Deletes a group locally: its message history, Keychain-held secrets (root/seed/blinding
-    /// key), and roster. Local-only, like leaving/deleting a public chat channel - there's no
+    /// key), and roster. Local-only - there's no
     /// server-side group record to delete, and other members aren't notified (the trust model
     /// is single-admin push, not a shared membership ledger, so this device simply stops
     /// tracking the group and can no longer decrypt or send to it).
@@ -1385,6 +1413,9 @@ final class GroupChatService: ObservableObject {
         if !state.deleted.contains(groupId) { state.deleted.append(groupId) }
         if published, !state.published.contains(groupId) { state.published.append(groupId) }
         saveTombstoneState(state)
+        // A deleted group's invite goes with it, unless it's only waiting to say you declined.
+        groupInvites.removeAll { $0.groupId == groupId && $0.rejected != true }
+        saveGroupInvites()
     }
     private func markTombstonePublished(_ groupId: String) {
         var state = loadTombstoneState()
@@ -1467,11 +1498,13 @@ final class GroupChatService: ObservableObject {
         let newAddrs = Set(newMembers.map { $0.address })
         var t = Int64(Date().timeIntervalSince1970 * 1000)
         for m in newMembers where !oldAddrs.contains(m.address) {
+            setMemberStatus(GroupMemberStatusCodec.Status.invited.rawValue, address: m.address, groupId: groupId)
             let label = groupMemberLabel(m.address, fallback: m.displayName)
-            store.insertImportedPlaintextMessage(txId: "sys_\(groupId.prefix(8))_\(t)_add", groupId: groupId, senderAddress: Self.systemSender, senderIdHex: "", msgIdHex: "", content: "\(label) was added to the group chat", blockTime: t, isOutgoing: false)
+            store.insertImportedPlaintextMessage(txId: "sys_\(groupId.prefix(8))_\(t)_add", groupId: groupId, senderAddress: Self.systemSender, senderIdHex: "", msgIdHex: "", content: "\(label) was invited to the group chat", blockTime: t, isOutgoing: false)
             t += 1
         }
         for m in oldMembers where !newAddrs.contains(m.address) {
+            setMemberStatus(nil, address: m.address, groupId: groupId)
             let label = groupMemberLabel(m.address, fallback: m.displayName)
             store.insertImportedPlaintextMessage(txId: "sys_\(groupId.prefix(8))_\(t)_rem", groupId: groupId, senderAddress: Self.systemSender, senderIdHex: "", msgIdHex: "", content: "\(label) was removed from the group chat", blockTime: t, isOutgoing: false)
             t += 1
@@ -1844,7 +1877,7 @@ final class GroupChatService: ObservableObject {
     /// Reacts to `targetTxId` with `emoji` ("add"), or removes this wallet's existing reaction on
     /// it ("remove"). Unlike `sendGroupMessage`, this never creates a visible pending bubble - the
     /// reaction is applied to the local reactions store immediately (optimistic UI) and the
-    /// actual send reuses the exact same single self-stash public chat `sendGroupMessage` uses,
+    /// actual send reuses the exact same single self-stash broadcast `sendGroupMessage` uses,
     /// which already reaches every member via the shared group root key - no per-member fan-out
     /// needed.
     func sendGroupReaction(targetTxId: String, groupId: String, emoji: String, action: String) async throws {
@@ -1975,7 +2008,7 @@ final class GroupChatService: ObservableObject {
     /// Shared self-stash send primitive for gcomm/gctl payloads - mirrors
     /// the original public-room sender's UTXO fetch/reserve/submit sequence exactly,
     /// reusing `ChatService`'s shared UTXO reservation state so group sends can't race with
-    /// 1:1/public chat sends for the same UTXOs.
+    /// 1:1 sends for the same UTXOs.
     private func sendSelfStashPayload(_ payloadString: String, from address: String, privateKey: Data, feeOverride: UInt64? = nil) async throws -> String {
         let chatService = ChatService.shared
         let freshUtxos = try await NodePoolService.shared.getUtxosByAddresses([address])
@@ -2416,6 +2449,17 @@ final class GroupChatService: ObservableObject {
                 return
             }
 
+            // Someone answering their invite: updates the member list, never a bubble.
+            if let status = GroupMemberStatusCodec.parse(plaintext) {
+                applyMemberStatus(status, address: senderAddress, groupId: group.id, txId: txId, blockTime: UInt64(max(0, blockTime)))
+                markGroupTxHandled(txId)
+                return
+            }
+            // Anything else they send means they're in, whether or not their answer got here.
+            if groupMemberStatuses[group.id]?[senderAddress] != nil {
+                setMemberStatus(GroupMemberStatusCodec.Status.joined.rawValue, address: senderAddress, groupId: group.id)
+            }
+
             // Reactions are never shown as their own chat bubble - just attached to the message
             // they target - so intercept and route to the reactions store before this ever
             // becomes a GroupMessage. Our own outgoing reactions already apply their local update
@@ -2556,6 +2600,19 @@ final class GroupChatService: ObservableObject {
             }
             return
         }
+        // You accepted this group on another device, or before restoring these words.
+        if let accept = try? JSONDecoder().decode(GroupCipher.GroupInviteAcceptPayload.self, from: jsonData), accept.type == "gctl_invite_accept" {
+            let myPub = (try? schnorrXOnlyPublicKey(from: privateKey))?.hexString
+            guard accept.signingPub == myPub, GroupCipher.verifyInviteAcceptPayload(accept) else { return }
+            var answers = loadInviteAnswers()
+            if !answers.accepted.contains(accept.groupId) { answers.accepted.append(accept.groupId) }
+            if !answers.published.contains(accept.groupId) { answers.published.append(accept.groupId) }
+            saveInviteAnswers(answers)
+            if let invite = groupInvites.first(where: { $0.groupId == accept.groupId }) {
+                joinGroupInvite(invite)
+            }
+            return
+        }
         // An admin-set group photo — apply ONLY if signed by THIS group's known admin.
         if let photo = try? JSONDecoder().decode(GroupCipher.GroupPhotoPayload.self, from: jsonData), photo.type == "gctl_photo" {
             guard let group = store.group(id: photo.groupId) else { return }
@@ -2581,12 +2638,243 @@ final class GroupChatService: ObservableObject {
             if isSelfSent && rootPayload.groupSeed == nil { return } // our own member-copy echo — ignore
             guard GroupCipher.verifyRootPayload(rootPayload) else { return }
             let isNewGroup = store.group(id: rootPayload.groupId) == nil
+            // Nobody joins a group by being added to it: a group this device doesn't hold waits in
+            // Message Requests. Your own (the admin's recovery copy) just comes back.
+            let myPub = (try? schnorrXOnlyPublicKey(from: privateKey))?.hexString.lowercased()
+            if isNewGroup, rootPayload.adminSigningPub.lowercased() != myPub,
+               !loadInviteAnswers().accepted.contains(rootPayload.groupId) {
+                holdGroupInvite(rootPayload, blockTime: blockTime)
+                return
+            }
             completeJoin(from: rootPayload)
             if isNewGroup { seedImportReadMarker(forRediscovered: rootPayload.groupId, inviteBlockTime: blockTime) }
         }
         // gctl_epoch is an advance-notice heads-up only (spec: state updates on gctl_root
         // arrival, not on gctl_epoch) - no local state change needed here in the data layer;
         // Phase 3 UI may surface it as a transient "membership changing..." hint.
+    }
+
+    // MARK: - Group invites (Message Requests)
+
+    /// Invites waiting for an answer, newest first, leaving out any group this device has since
+    /// come to hold (a Nextcloud restore brings joined groups back on its own).
+    var pendingGroupInvites: [PendingGroupInvite] {
+        groupInvites
+            .filter { invite in invite.rejected != true && !groups.contains { $0.id == invite.groupId } }
+            .sorted { $0.invitedAt > $1.invitedAt }
+    }
+
+    private func holdGroupInvite(_ payload: GroupCipher.GroupRootPayload, blockTime: UInt64) {
+        guard !isGroupTombstoned(payload.groupId),
+              let me = WalletManager.shared.currentWallet?.publicAddress.lowercased() else { return }
+        let includesMe = payload.members.contains { $0.lowercased() == me }
+        if let index = groupInvites.firstIndex(where: { $0.groupId == payload.groupId }) {
+            // Later roots of the same invite, from the same admin: the group's history if you
+            // join. One that leaves you out takes the invite back.
+            guard groupInvites[index].adminSigningPub.lowercased() == payload.adminSigningPub.lowercased() else { return }
+            let isNewest = payload.epoch >= groupInvites[index].latest.epoch
+            if isNewest, !includesMe {
+                groupInvites.remove(at: index)
+            } else {
+                groupInvites[index].roots.removeAll { $0.epoch == payload.epoch }
+                groupInvites[index].roots.append(payload)
+                groupInvites[index].roots.sort { $0.epoch < $1.epoch }
+                groupInvites[index].invitedAt = max(groupInvites[index].invitedAt, blockTime)
+            }
+        } else {
+            let hrp = AppSettings.load().networkType == .mainnet ? "kaspa" : "kaspatest"
+            let adminAddress = KaspaAddress(hrp: hrp, type: .pubKey, payload: Data(hexString: payload.adminSigningPub) ?? Data()).address
+            // Someone you rejected stays ignored, in groups too.
+            guard includesMe, !adminAddress.isEmpty, !ChatService.shared.isChatBlocked(adminAddress) else { return }
+            groupInvites.append(PendingGroupInvite(adminAddress: adminAddress, invitedAt: blockTime, roots: [payload]))
+        }
+        saveGroupInvites()
+    }
+
+    /// Accept: the group is joined now and its history comes in with the next catch-up. The answer
+    /// goes on chain, encrypted: to your own devices, and to the group as a status message.
+    func acceptGroupInvite(_ invite: PendingGroupInvite) {
+        joinGroupInvite(invite)
+        var answers = loadInviteAnswers()
+        if !answers.accepted.contains(invite.groupId) { answers.accepted.append(invite.groupId) }
+        if !answers.statusOutbox.contains(invite.groupId) { answers.statusOutbox.append(invite.groupId) }
+        saveInviteAnswers(answers)
+        Task {
+            await publishGroupAnswers()
+            await performCatchUpSync()
+            await PushNotificationManager.shared.updateWatchedAddresses()
+        }
+    }
+
+    /// Newest root first, so the older ones only fill in history and nothing reads as a
+    /// membership change.
+    private func joinGroupInvite(_ invite: PendingGroupInvite) {
+        groupInvites.removeAll { $0.groupId == invite.groupId }
+        saveGroupInvites()
+        for root in invite.roots.sorted(by: { $0.epoch > $1.epoch }) {
+            completeJoin(from: root)
+        }
+        seedImportReadMarker(forRediscovered: invite.groupId, inviteBlockTime: invite.invitedAt)
+    }
+
+    /// Reject: this group is never offered again, here or after a restore (the same on-chain delete
+    /// marker a deleted group publishes), and its members see you declined. The invite's keys stay
+    /// only until that message has gone out, since they're what it's sent with.
+    func rejectGroupInvite(_ invite: PendingGroupInvite) {
+        guard let index = groupInvites.firstIndex(where: { $0.groupId == invite.groupId }) else { return }
+        groupInvites[index].rejected = true
+        saveGroupInvites()
+        recordGroupTombstone(invite.groupId, published: false)
+        Task {
+            try? await publishGroupTombstone(invite.groupId)
+            await publishGroupAnswers()
+        }
+    }
+
+    /// Sends every answer still owed. Each is a transaction, so one that can't go yet (no funds, no
+    /// connection) waits for the next catch-up, like a delete marker.
+    private func publishGroupAnswers() async {
+        guard !isPublishingGroupAnswers else { return }
+        isPublishingGroupAnswers = true
+        defer { isPublishingGroupAnswers = false }
+        guard let wallet = WalletManager.shared.currentWallet,
+              let privateKey = WalletManager.shared.getPrivateKey(),
+              let selfPub = KaspaAddress.publicKey(from: wallet.publicAddress),
+              let signingPub = try? schnorrXOnlyPublicKey(from: privateKey) else { return }
+
+        for groupId in loadInviteAnswers().accepted where !loadInviteAnswers().published.contains(groupId) {
+            guard let gid = Data(hexString: groupId),
+                  let payload = try? GroupCipher.buildSignedInviteAcceptPayload(groupId: gid, signingPub: signingPub, privateKey: privateKey),
+                  let json = try? JSONEncoder().encode(payload) else { continue }
+            guard (try? await sendControlPayload(json, to: selfPub, from: wallet.publicAddress, privateKey: privateKey)) != nil else { continue }
+            var answers = loadInviteAnswers()
+            answers.published.append(groupId)
+            saveInviteAnswers(answers)
+        }
+        for groupId in loadInviteAnswers().statusOutbox {
+            if var bag = try? keychain.loadGroupBag(groupId: groupId), let deviceId = Data(hexString: bag.deviceId) {
+                bag.msgCounter += 1
+                guard (try? keychain.saveGroupBag(bag)) != nil else { continue }
+                let sent = try? await sendMemberStatus(
+                    .joined, groupId: groupId, rootHex: bag.groupRootEpoch, blindingKeyHex: bag.blindingKey, epoch: bag.currentEpoch,
+                    msgId: GroupCipher.buildMsgId(deviceId: deviceId, counter: bag.msgCounter)
+                )
+                guard sent != nil else { continue }
+            }
+            var answers = loadInviteAnswers()
+            answers.statusOutbox.removeAll { $0 == groupId }
+            saveInviteAnswers(answers)
+        }
+        for invite in groupInvites where invite.rejected == true {
+            let root = invite.latest
+            let sent = try? await sendMemberStatus(
+                .declined, groupId: invite.groupId, rootHex: root.groupRootEpoch, blindingKeyHex: root.blindingKey, epoch: root.epoch,
+                msgId: GroupCipher.buildMsgId(deviceId: GroupCipher.generateDeviceId(), counter: 1)
+            )
+            guard sent != nil else { continue }
+            groupInvites.removeAll { $0.groupId == invite.groupId }
+            saveGroupInvites()
+        }
+    }
+
+    /// One group message saying you joined or declined. Encrypted to the group like any message, and
+    /// signed by you, so only members can read it and nobody can say it for you.
+    private func sendMemberStatus(
+        _ status: GroupMemberStatusCodec.Status,
+        groupId: String,
+        rootHex: String,
+        blindingKeyHex: String,
+        epoch: UInt64,
+        msgId: Data
+    ) async throws {
+        guard let gid = Data(hexString: groupId),
+              let groupRootEpoch = Data(hexString: rootHex),
+              let blindingKey = Data(hexString: blindingKeyHex),
+              let wallet = WalletManager.shared.currentWallet,
+              let privateKey = WalletManager.shared.getPrivateKey() else {
+            throw KasiaError.networkError("Missing group secrets")
+        }
+        let senderXOnlyPub = try schnorrXOnlyPublicKey(from: privateKey)
+        let senderId = GroupCipher.deriveSenderId(senderAddress: wallet.publicAddress)
+        let ciphertext = try GroupCipher.encryptMessage(
+            plaintext: GroupMemberStatusCodec.encode(status), groupRootEpoch: groupRootEpoch, groupId: gid, epoch: epoch, senderId: senderId, msgId: msgId
+        )
+        let aad = GroupCipher.buildMessageAAD(groupId: gid, epoch: epoch, senderId: senderId, msgId: msgId)
+        let signature = try GroupCipher.sign(
+            GroupCipher.buildMessageSigningPayload(aad: aad, ciphertextWithTag: ciphertext), privateKey: privateKey
+        )
+        let blindedGroupId = GroupCipher.deriveBlindedGroupId(blindingKey: blindingKey, memberXOnlyPubKey: senderXOnlyPub)
+        let payloadString = GroupCipher.buildGroupMessagePayload(
+            blindedGroupId: blindedGroupId, epoch: epoch, senderId: senderId, senderPubKey: senderXOnlyPub,
+            msgId: msgId, ciphertext: ciphertext, signature: signature
+        )
+        _ = try await ChatService.shared.enqueueOutgoingTxOperation { [weak self] in
+            try await self?.sendSelfStashPayload(payloadString, from: wallet.publicAddress, privateKey: privateKey)
+        }
+    }
+
+    /// Where this member stands on their invite, when there's something to say: "invited" or
+    /// "declined". Someone who joined is just a member.
+    func inviteStatus(of address: String, in groupId: String) -> String? {
+        let status = groupMemberStatuses[groupId]?[address]
+        return status == GroupMemberStatusCodec.Status.joined.rawValue ? nil : status
+    }
+
+    private func setMemberStatus(_ status: String?, address: String, groupId: String) {
+        guard groupMemberStatuses[groupId]?[address] != status else { return }
+        groupMemberStatuses[groupId, default: [:]][address] = status
+        saveScoped(groupMemberStatusesKey, groupMemberStatuses)
+    }
+
+    /// A status message from `address`. "X joined" only reads as news while it's recent: history
+    /// loaded by joining later updates the list and adds no lines.
+    private func applyMemberStatus(_ status: GroupMemberStatusCodec.Status, address: String, groupId: String, txId: String, blockTime: UInt64) {
+        let changed = groupMemberStatuses[groupId]?[address] != status.rawValue
+        setMemberStatus(status.rawValue, address: address, groupId: groupId)
+        let isRecent = blockTime > 0 && Date().timeIntervalSince1970 * 1000 - Double(blockTime) < Self.systemMessageLifetime * 1000
+        guard changed, isRecent, address != WalletManager.shared.currentWallet?.publicAddress else { return }
+        let label = groupMemberLabel(address, fallback: nil)
+        insertGroupSystemLine(groupId, status == .joined ? "\(label) joined the group" : "\(label) declined the invite", stableKey: "status_\(txId.prefix(12))")
+    }
+
+    /// What answers this wallet has given, and which are on chain yet.
+    private struct GroupInviteAnswers: Codable {
+        var accepted: [String] = []
+        var published: [String] = []
+        var statusOutbox: [String] = []
+    }
+
+    private func loadInviteAnswers() -> GroupInviteAnswers {
+        loadScoped(groupInviteAnswersKey) ?? GroupInviteAnswers()
+    }
+
+    private func saveInviteAnswers(_ answers: GroupInviteAnswers) {
+        saveScoped(groupInviteAnswersKey, answers)
+    }
+
+    private func loadGroupInvites() {
+        groupInvites = []
+        if let address = currentWalletAddress,
+           let data = try? keychain.loadGroupInvites(walletAddress: address),
+           let decoded = try? JSONDecoder().decode([PendingGroupInvite].self, from: data) {
+            groupInvites = decoded
+        }
+        syncAnsweredGroupInvitesForExtension()
+    }
+
+    private func saveGroupInvites() {
+        syncAnsweredGroupInvitesForExtension()
+        guard let address = currentWalletAddress else { return }
+        if groupInvites.isEmpty {
+            try? keychain.deleteGroupInvites(walletAddress: address)
+        } else if let data = try? JSONEncoder().encode(groupInvites) {
+            try? keychain.saveGroupInvites(data, walletAddress: address)
+        }
+    }
+
+    /// Groups the push extension shouldn't announce as a new invite: already waiting, or rejected.
+    private func syncAnsweredGroupInvitesForExtension() {
+        SharedDataManager.setHandledGroupInvites(groupInvites.map(\.groupId) + loadTombstoneState().deleted)
     }
 
     /// Applies a verified `gctl_root` payload: creates or updates the local GroupBag + roster.
@@ -2608,6 +2896,14 @@ final class GroupChatService: ObservableObject {
         // A tombstoned group must never be re-added — this makes a delete survive a seedless
         // re-import against the recovery invite.
         if isGroupTombstoned(payload.groupId) { return }
+        // The signature only proves the payload agrees with itself (see `verifyRootPayload`):
+        // anyone who knows a group id can sign a root naming themselves admin. A group this device
+        // holds keeps the admin it has, or a removed member could take it over with a higher epoch.
+        if let knownAdmin = store.group(id: payload.groupId)?.adminXOnlyPubKeyHex, !knownAdmin.isEmpty,
+           knownAdmin.lowercased() != payload.adminSigningPub.lowercased() {
+            AppLog.log("[GroupChatService] Refused a root for %@ signed by a different admin", String(payload.groupId.prefix(12)))
+            return
+        }
         // Refuse to downgrade to an older epoch than what's already stored locally (replay
         // protection); otherwise apply (covers both "brand new group" and "legitimate advance").
         if let existingBag = try? keychain.loadGroupBag(groupId: payload.groupId),
@@ -2761,6 +3057,7 @@ final class GroupChatService: ObservableObject {
         for groupId in tombState.deleted where !tombState.published.contains(groupId) {
             try? await publishGroupTombstone(groupId)
         }
+        await publishGroupAnswers()
 
         await catchUpGroupControlByRecipient(recipientAddress: wallet.publicAddress)
 
@@ -3159,5 +3456,48 @@ final class GroupChatService: ObservableObject {
     private func schnorrXOnlyPublicKey(from privateKey: Data) throws -> Data {
         let key = try P256K.Schnorr.PrivateKey(dataRepresentation: privateKey)
         return Data(key.xonly.bytes)
+    }
+}
+
+/// A group you were added to and haven't answered. It holds every root received so far, in the
+/// Keychain: those are the group's keys, and accepting turns them into a joined group.
+struct PendingGroupInvite: Codable, Identifiable {
+    let adminAddress: String
+    var invitedAt: UInt64
+    /// Oldest first; never empty.
+    var roots: [GroupCipher.GroupRootPayload]
+    /// Rejected, and still waiting to tell the group. Gone from Message Requests already.
+    var rejected: Bool? = nil
+
+    var latest: GroupCipher.GroupRootPayload { roots[roots.count - 1] }
+    var id: String { groupId }
+    var groupId: String { latest.groupId }
+    var name: String { latest.name }
+    var members: [String] { latest.members }
+    var adminSigningPub: String { latest.adminSigningPub }
+}
+
+/// The group message a member sends to answer their invite (MESSAGING.md, "Group invites"). It reads
+/// like any encrypted group message on chain.
+enum GroupMemberStatusCodec {
+    enum Status: String { case invited, joined, declined }
+
+    private struct Envelope: Codable {
+        var type = "member_status"
+        let status: String
+    }
+
+    static func encode(_ status: Status) -> String {
+        guard let data = try? JSONEncoder().encode(Envelope(status: status.rawValue)) else { return "" }
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+
+    /// Only an answer: nobody can send themselves back to "invited".
+    static func parse(_ text: String) -> Status? {
+        guard text.first == "{", let data = text.data(using: .utf8),
+              let envelope = try? JSONDecoder().decode(Envelope.self, from: data),
+              envelope.type == "member_status",
+              let status = Status(rawValue: envelope.status), status != .invited else { return nil }
+        return status
     }
 }

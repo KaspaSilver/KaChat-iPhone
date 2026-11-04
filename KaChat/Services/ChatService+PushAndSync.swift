@@ -202,6 +202,12 @@ extension ChatService {
         guard let key = messageEncryptionKey() else {
             throw ChatHistoryArchiveError.encryptionKeyUnavailable
         }
+        // A switch of account mid-import must not land this archive in the next account's chats:
+        // the decode and the reads below take seconds, and nothing else stops the import.
+        let importOwner = WalletManager.shared.currentWallet?.publicAddress
+        func ensureSameAccount() throws {
+            guard WalletManager.shared.currentWallet?.publicAddress == importOwner else { throw CancellationError() }
+        }
 
         progress?(.validating)
 
@@ -220,6 +226,7 @@ extension ChatService {
         guard archive.schemaVersion == chatHistoryArchiveVersion else {
             throw ChatHistoryArchiveError.unsupportedVersion(archive.schemaVersion)
         }
+        try ensureSameAccount()
 
         // The Address Book is per wallet: only this wallet's archive (or an unstamped one) fills it.
         let archiveWallet = (archive.walletAddress ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -250,6 +257,7 @@ extension ChatService {
         }
 
         let existingBefore = await messageStore.fetchAllMessages(decryptionKey: key)
+        try ensureSameAccount()
         let existingOutgoingPlaceholderTxIds = Set(
             existingBefore.compactMap { stored -> String? in
                 guard stored.message.isOutgoing, Self.isPlaceholderContent(stored.message.content) else { return nil }
@@ -342,6 +350,7 @@ extension ChatService {
                 }
             }
         }
+        try ensureSameAccount()
         let didWrite = await messageStore.syncFromConversations(
             importedConversations,
             encryptionKey: key,
@@ -657,7 +666,7 @@ extension ChatService {
             AppLog.log("[ChatService] setupUtxoSubscription: RPC connected=%@", nodePool.isConnected ? "true" : "false")
 
             // Collect all addresses to subscribe: our wallet + active contacts + our own spending
-            // and cold-storage addresses.
+            // addresses.
             var addressesToSubscribe = Set<String>()
             addressesToSubscribe.insert(wallet.publicAddress)
 
@@ -667,7 +676,7 @@ extension ChatService {
                 addressesToSubscribe.insert(contact.address)
             }
             // Own-address receive notifications: also watch every revealed spending-chain
-            // address and all cold-storage (watch-only) addresses. These
+            // address. These
             // fall through the classifier's chat cases - AddressActivityNotifier turns their
             // receives into wallet notifications, never chat bubbles (and their appearance
             // among `removed` entries is the self-send fast path).

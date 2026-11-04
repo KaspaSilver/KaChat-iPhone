@@ -101,6 +101,7 @@ struct GetKaChatContactsIntent: AppIntent {
     static var title: LocalizedStringResource = "Get KaChat Contacts"
     static var description = IntentDescription("Return KaChat contacts as JSON strings.")
     static var openAppWhenRun: Bool = false
+    static var authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
     @Parameter(title: "Search")
     var searchText: String?
@@ -148,6 +149,7 @@ struct GetKaChatMessagesIntent: AppIntent {
     static var title: LocalizedStringResource = "Get KaChat Messages"
     static var description = IntentDescription("Return recent KaChat messages as JSON strings.")
     static var openAppWhenRun: Bool = false
+    static var authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
     @Parameter(title: "Contact")
     var contact: KaChatContactEntity?

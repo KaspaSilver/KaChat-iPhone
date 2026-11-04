@@ -3,7 +3,7 @@ import SwiftUI
 /// Emoji you have actually reacted with, most recent first.
 ///
 /// Local and shared across every chat type: a reaction is a reaction whether it lands on a 1:1
-/// message, a group message or a public chat, so recents built in one place should be there in the
+/// message or a group message, so recents built in one place should be there in the
 /// others too.
 @MainActor
 final class EmojiRecentsStore: ObservableObject {

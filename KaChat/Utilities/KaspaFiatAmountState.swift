@@ -7,7 +7,7 @@ import SwiftUI
 /// typing in (`isFiatMode`), this object owns only the field's own display text and mode.
 ///
 /// `priceInCurrency` (1 KAS's price in the wallet's selected fiat currency - see
-/// `PortfolioViewModel.currentPriceUsd`) and `currency` are passed into each call fresh rather
+/// `KasPriceModel`) and `currency` are passed into each call fresh rather
 /// than captured once, since both can change live while this field is on screen (a price refresh
 /// landing async, a currency switched in Settings). Mirrors the Android `KaspaFiatAmountState`.
 @MainActor

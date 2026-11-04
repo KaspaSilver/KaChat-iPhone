@@ -32,11 +32,6 @@
 "Chat Info" = "Sohbet Bilgisi";
 "Chat archived." = "Sohbet arşivlendi.";
 "Chats" = "Sohbetler";
-"Checking eligibility..." = "Uygunluk kontrol ediliyor...";
-"Checking gift eligibility..." = "Hediye uygunluğu kontrol ediliyor...";
-"Claim Gift" = "Hediyeyi Al";
-"Claim some KAS to get started with your new account." = "Yeni hesabına başlamak için biraz KAS talep et.";
-"Claiming gift..." = "Hediye alınıyor...";
 "Clear" = "Temizle";
 "Clear Connection Pool" = "Bağlantı Havuzunu Temizle";
 "Clear Link" = "Bağlantıyı Kaldır";
@@ -94,12 +89,6 @@
 "Failed to link system contact." = "Sistem kişisi bağlanamadı.";
 "Failed to open archive: \(error.localizedDescription)" = "Arşiv açılamadı: \(error.localizedDescription)";
 "Generate Account" = "Hesap Oluştur";
-"Gift" = "Hediye";
-"Gift already claimed" = "Hediye zaten alındı";
-"Gift claim reset. You can request it again." = "Hediye talebi sıfırlandı. Tekrar talep edebilirsiniz.";
-"Gift claimed" = "Hediye alındı";
-"Gift sent to your wallet!" = "Hediye cüzdanına gönderildi!";
-"Gift unavailable" = "Hediye kullanılamıyor";
 "Request to communicate" = "İletişim talebi";
 "Send audio" = "Ses gönder";
 "Send KAS" = "KAS gönder";
@@ -107,7 +96,6 @@
 "Hide auto-created payment chats" = "Otomatik oluşturulan ödeme sohbetlerini gizle";
 "High Transaction Traffic" = "Yüksek İşlem Trafiği";
 "I have written down my seed phrase and stored it securely" = "Seed phrase'imi yazdım ve güvenli bir yerde sakladım";
-"If claiming fails because the donation wallet is temporarily out of funds, please try again later." = "Bağış cüzdanında geçici olarak bakiye kalmadığı için talep başarısız olursa, daha sonra tekrar dene.";
 "Import" = "İçe Aktar";
 "Import Account" = "Hesabı İçe Aktar";
 "Import Chat History" = "Sohbet Geçmişini İçe Aktar";
@@ -213,7 +201,6 @@
 "Recording… \\(Int(recordingDuration))s" = "Kaydediliyor… \\(Int(recordingDuration))sn";
 "Refresh Pool" = "Havuzu Yenile";
 "Refresh Pool Now" = "Havuzu Şimdi Yenile";
-"Registered" = "Kayıtlı";
 "Remove Saved Account" = "Kayıtlı Hesabı Kaldır";
 "Remove from Device" = "Cihazdan Kaldır";
 "Required for cross-device sync and backup of sent messages." = "Cihazlar arası senkronizasyon ve gönderilen mesajların yedeği için gereklidir.";
@@ -267,14 +254,12 @@
 "This account will be removed from this device." = "Bu hesap bu cihazdan kaldırılacak.";
 "This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Bu kişi oluşturulduktan sonra bağlanacak. Hâlâ bir Kaspa adresi veya KNS alan adı girmeniz gerekiyor.";
 "This deletes all local data and CloudKit message records. This cannot be undone." = "Bu, tüm yerel verileri ve CloudKit mesaj kayıtlarını siler. Bu işlem geri alınamaz.";
-"This device has already received the welcome gift." = "Bu cihaz hoş geldin hediyesini zaten aldı.";
 "This removes \(account.displayAlias) (\(account.shortPublicAddress)) and its local data from this device." = "Bu, \(account.displayAlias) (\(account.shortPublicAddress)) hesabını ve yerel verilerini bu cihazdan kaldırır.";
 "This removes \\(account.displayAlias) (\\(account.shortPublicAddress)) and its local data from this device." = "Bu, \\(account.displayAlias) (\\(account.shortPublicAddress)) hesabını ve yerel verilerini bu cihazdan kaldırır.";
 "This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "Bu, tüm gelen mesajları yerel olarak ve iCloud'dan kaldırır, ardından blockchain'den yeniden senkronize eder. Hesap bilgileriniz ve gönderilen mesajlar korunur.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "Bu, keşfedilen düğümleri kaldırır, mevcut oturumları keser ve keşfi yeniden başlatır.";
 "This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "Bu, yerel hesap verilerini ve mesajları kaldırır. Silme sırasında CloudKit senkronizasyonu devre dışı bırakılır ve ardından yeniden etkinleştirilir.";
 "This signs out of your account, but keeps local wallet and message data on this device." = "Bu, hesabınızdan çıkış yapar, ancak yerel cüzdan ve mesaj verilerini bu cihazda tutar.";
-"This welcome gift is a community-funded initiative." = "Bu hoş geldin hediyesi topluluk tarafından finanse edilen bir girişimdir.";
 "This will permanently delete your account from this device. Make sure you have backed up your seed phrase." = "Bu, hesabınızı bu cihazdan kalıcı olarak silecek. Seed phrase'inizi yedeklediğinizden emin olun.";
 "To receive notifications, please enable them in Settings." = "Bildirim almak için lütfen Ayarlar'dan etkinleştirin.";
 "Total" = "Toplam";
@@ -292,7 +277,6 @@
 "Voice message" = "Sesli mesaj";
 "Watching" = "İzleniyor";
 "Website" = "Web Sitesi";
-"Welcome Gift" = "Hoş Geldin Hediyesi";
 "Welcome to KaChat!" = "KaChat'e hoş geldin!";
 "When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "Devre dışı bırakıldığında, bu kişiden gelen mesajlar gerçek zamanlı yerine periyodik olarak alınır. Pil ve ağ kullanımından tasarruf etmek için yüksek işlem hacmine sahip kişiler için kullanın.";
 "Wipe Account & Messages" = "Hesabı ve Mesajları Sil";
@@ -346,15 +330,12 @@
 /* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
 "Renew it soon to keep it." = "Korumak için yakında yenileyin.";
 "Renew it soon or anyone can claim it." = "Yakında yenileyin, yoksa herkes alabilir.";
-"%@ has lapsed" = "%@ düştü";
-"Anyone can claim it now. Reclaim it yourself to get your bond back." = "Artık herkes alabilir. Teminatınızı geri almak için kendiniz geri alın.";
 "Offer on %@ declined" = "%@ için teklif reddedildi";
 "The owner declined it. The KAS is back with you." = "Sahibi reddetti. KAS size geri döndü.";
 "Offer on %@ expired" = "%@ için teklifin süresi doldu";
 "Nobody accepted it in time. The KAS is back with you." = "Kimse zamanında kabul etmedi. KAS size geri döndü.";
 
 /* .kachat name lapsed: moved to Reclaimable */
-"It's no longer yours and has moved to Reclaimable in the marketplace. Reclaim it yourself to get your bond back." = "Artık sizin değil ve pazar yerinde Geri alınabilir bölümüne taşındı. Teminatınızı geri almak için kendiniz geri alın.";
 
 /* .kachat: name past grace is available to anyone */
 "%@ is no longer yours" = "%@ artık sizin değil";
@@ -363,3 +344,5 @@
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Size %@ KAS gönderdi";
 "Sent you a payment" = "Size bir ödeme gönderdi";
+"Requested for payment" = "Ödeme istendi";
+"You were invited to \"%@\"" = "\"%@\" grubuna davet edildin";

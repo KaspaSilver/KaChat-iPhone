@@ -25,8 +25,6 @@ struct MainTabView: View {
     /// Debounces the off-chat-tab discovery pause/resume so rapid tab-flipping can't thrash it.
     @State private var tabWorkTask: Task<Void, Never>?
     @State private var showWelcomeGuide = false
-    /// 4.0 "what's new" wizard: shown on every entry into the app until the user taps
-    /// Don't Show Again (persisted per device).
     /// Blocking progress while the post-onboarding sync runs.
     @State private var showInitialSyncProgress = false
     /// The call screen (ringing in, ringing out, connected) sits over the whole app, whichever
@@ -51,7 +49,7 @@ struct MainTabView: View {
     @ObservedObject private var nextcloudService = NextcloudService.shared
 
     /// The dock's TabView on its own, so `body` stays small enough for the type checker. The
-    /// dock is the fixed `AppTab.dock`: Contacts, Chats, Profile, Settings.
+    /// dock is the fixed `AppTab.dock`: Contacts, Wallet, Chats, Profile, Settings.
     private var dockTabView: some View {
         TabView(selection: tabSelection) {
             ForEach(AppTab.dock) { tab in
@@ -149,13 +147,10 @@ struct MainTabView: View {
             PendingTabRoute.pending = nil
             handleTabSelectionChange(AppTab.chats.tag)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .openKNSProfileEditor)) { _ in
-            handleTabSelectionChange(AppTab.profile.tag)
-        }
         .onReceive(NotificationCenter.default.publisher(for: .openProfile)) { _ in
-            // Spending-address receipts: Profile, which shows the wallet's addresses and balances.
+            // Spending-address receipts: Wallet, which shows the addresses and balances.
             PendingTabRoute.pending = nil
-            handleTabSelectionChange(AppTab.profile.tag)
+            handleTabSelectionChange(AppTab.wallet.tag)
         }
         // Its own modifier: added to this chain inline, it pushed the body past what the type
         // checker can solve in reasonable time.
@@ -195,6 +190,8 @@ struct MainTabView: View {
             ChatListView()
         case .addressBook:
             AddressBookView()
+        case .wallet:
+            WalletView()
         case .profile:
             ProfileView()
         case .settings:
@@ -280,10 +277,6 @@ struct MainTabView: View {
         .environmentObject(ChatService.shared)
         .environmentObject(SettingsViewModel())
 }
-
-
-// MARK: - 4.0 dock wizard (what's new popup)
-
 
 
 // MARK: - Initial sync progress
@@ -447,7 +440,7 @@ private struct OwnAddressSheetPresenter: ViewModifier {
 }
 
 /// Keeps the dock badges in step (`AppTabBadge.syncDockBadges`): Profile's dot when the bell's
-/// feed changes (new messages sync them from `ChatService.updateAppBadge`), the tab changes, the dock is rearranged, and on appear - set after the render that
+/// feed changes (new messages sync them from `ChatService.updateAppBadge`), the tab changes, and on appear - set after the render that
 /// triggered it, so it lands on the bar SwiftUI just updated.
 private struct DockBadgeSync: ViewModifier {
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared

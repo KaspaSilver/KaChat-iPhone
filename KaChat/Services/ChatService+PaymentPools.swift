@@ -242,7 +242,7 @@ extension ChatService {
 
     /// Every address this phone knows as the person's own, lowercased: the chatting address,
     /// every revealed spending address, every saved account's chatting and (cached) spending
-    /// addresses and every Cold Storage receive address. A transfer from any of them is the person moving their own
+    /// addresses. A transfer from any of them is the person moving their own
     /// money, which no contact's notice may ever claim (IOS-083).
     private func ownAddressesForNotices(walletAddress: String) -> Set<String> {
         var own = Set(WalletManager.shared.allSpendingAddresses().map { $0.lowercased() })

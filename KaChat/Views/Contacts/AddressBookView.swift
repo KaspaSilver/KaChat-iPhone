@@ -3,10 +3,10 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-// The Address Book (Kaspa Hub > Address Book): saved Kaspa addresses with a name and a note, per
+// The Address Book (the Contacts tab): saved Kaspa addresses with a name and a note, per
 // wallet. It replaced syncing with the phone's Contacts - see `AddressBookManager`.
 
-/// Kaspa Hub > Address Book (also a dock tab, if placed there).
+/// The Contacts tab.
 struct AddressBookView: View {
     @ObservedObject private var book = AddressBookManager.shared
     @ObservedObject private var nextcloud = NextcloudService.shared
@@ -476,7 +476,7 @@ struct AddressBookEntryDetail: View {
     /// before IOS-063, or restored from a backup).
     private var otherNetwork: String? { KaspaAddress.otherNetworkReason(address) }
 
-    /// The same path KaPosts takes to open a chat from anywhere in the app.
+    /// Opens a chat from anywhere in the app.
     private func openChat(with address: String) {
         guard KaspaAddress.isValidOnActiveNetwork(address) else { return }
         let contact = ContactsManager.shared.getOrCreateContact(address: address)

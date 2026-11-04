@@ -24,6 +24,8 @@ final class KeychainService {
         case wallet = "kachat_wallet"
         case privateKey = "kachat_private_key"
         case groupBag = "kachat_group_bag"
+        /// Group invites waiting for an answer: they hold the group's keys until then.
+        case groupInvites = "kachat_group_invites"
         case nextcloudCredentials = "kachat_nextcloud_credentials"
         /// RETIRED with Simple Mode (2026-10-24): only ever deleted.
         case childModePassword = "kachat_child_mode_password"
@@ -116,21 +118,24 @@ final class KeychainService {
         try deleteSensitiveData(baseKey: .seedPhrase)
     }
 
-    /// Check if seed phrase exists for current device
-    func hasSeedPhrase() -> Bool {
-        do {
-            return try loadSeedPhrase() != nil
-        } catch {
-            return false
-        }
-    }
-
     // MARK: - Nextcloud (server + app-password credentials, see NextcloudService)
     //
     // Scoped per wallet account: the key name carries the same SHA256(walletAddress).prefix(8)
     // hex suffix MessageStore uses for its store files, so every account
     // keeps its own Nextcloud login. Entries are device-local (never iCloud-keychain synced),
     // matching the rest of the app's per-account storage.
+
+    func saveGroupInvites(_ data: Data, walletAddress: String) throws {
+        try saveSensitiveDataForAccount(data, baseKey: .groupInvites, publicAddress: walletAddress)
+    }
+
+    func loadGroupInvites(walletAddress: String) throws -> Data? {
+        try loadSensitiveDataForAccount(baseKey: .groupInvites, publicAddress: walletAddress)
+    }
+
+    func deleteGroupInvites(walletAddress: String) throws {
+        try deleteSensitiveDataForAccount(baseKey: .groupInvites, publicAddress: walletAddress)
+    }
 
     func saveNextcloudCredentials(_ data: Data, walletAddress: String) throws {
         try saveSensitiveDataRaw(data, keyName: Self.nextcloudKeyName(walletAddress: walletAddress))
@@ -203,22 +208,6 @@ final class KeychainService {
     // name before the registration reveals it. Device-only, per wallet, one entry per pending
     // registration (`id` is the registration's UUID).
 
-    func saveKachatCommitSalt(_ salt: Data, id: String, walletAddress: String) throws {
-        try saveSensitiveDataRaw(salt, keyName: Self.kachatSaltKeyName(id: id, walletAddress: walletAddress))
-    }
-
-    func loadKachatCommitSalt(id: String, walletAddress: String) throws -> Data? {
-        try loadSensitiveDataRaw(keyName: Self.kachatSaltKeyName(id: id, walletAddress: walletAddress))
-    }
-
-    func deleteKachatCommitSalt(id: String, walletAddress: String) throws {
-        try deleteSensitiveDataRaw(keyName: Self.kachatSaltKeyName(id: id, walletAddress: walletAddress))
-    }
-
-    private static func kachatSaltKeyName(id: String, walletAddress: String) -> String {
-        "kachat_names_commit_salt_\(walletHashSuffix(walletAddress.lowercased()))_\(id)"
-    }
-
     // MARK: - Retired Simple Mode password record
     //
     // Simple Mode left the app on 2026-10-24. Its salted-hash password record is only ever
@@ -264,15 +253,6 @@ final class KeychainService {
 
     func deletePrivateKey() throws {
         try deleteSensitiveData(baseKey: .privateKey)
-    }
-
-    /// Check if private key exists for current device
-    func hasPrivateKey() -> Bool {
-        do {
-            return try loadPrivateKey() != nil
-        } catch {
-            return false
-        }
     }
 
     /// Whether this device holds signing material for the stored wallet. `missing` means both

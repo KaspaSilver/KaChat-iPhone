@@ -5,22 +5,23 @@ import SwiftUI
 import UIKit
 
 /// The one avatar view in the app. Resolution order, applied here so no call site ever
-/// re-implements it: KNS / `.kachat` avatar -> the photo carried in the chat backup -> person
-/// glyph. (KaChat no longer reads the phone's Contacts, so there is no Contacts-app photo.)
+/// re-implements it: the photo you assigned in Contacts -> KNS / `.kachat` avatar -> the photo
+/// carried in the chat backup -> person glyph. (KaChat no longer reads the phone's Contacts, so there is no Contacts-app photo.)
 ///
 /// Pass `contactAddress` wherever the avatar stands for a person with a Kaspa address (chat
-/// rows, chat header, chat info, message bubbles, group member lists, pickers, share targets,
-/// KaPosts authors).
+/// rows, chat header, chat info, message bubbles, group member lists, pickers, share targets).
 struct KNSAvatarView: View {
     let avatarURLString: String?
     let fallbackText: String
     var size: CGFloat = 44
     /// Caller-resolved image that wins over everything else (rare).
     var overrideImage: UIImage? = nil
-    /// Kaspa address this avatar represents: its `.kachat` avatar and its backup photo.
+    /// Kaspa address this avatar represents: your Contacts photo, its `.kachat` avatar and its
+    /// backup photo.
     var contactAddress: String? = nil
-    /// False shows only what the address set as its own avatar (the Address Book), never a photo
-    /// carried in the chat backup for the chat contact.
+    /// False shows only what the address set as its own avatar (`AddressBookAvatar`, which works
+    /// out the Contacts photo itself and passes it in), never a photo carried in the chat backup
+    /// for the chat contact.
     var includeBackupPhoto: Bool = true
 
     @State private var loadedImage: UIImage?
@@ -30,6 +31,7 @@ struct KNSAvatarView: View {
     /// link on this device); the KNS URL the caller passes is not used for an address there.
     @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
+    @ObservedObject private var addressBook = AddressBookManager.shared
 
     /// The URL this avatar shows: the caller's, except for an address on testnet, where it is
     /// the `.kachat` profile's avatar (or none).
@@ -37,6 +39,12 @@ struct KNSAvatarView: View {
         guard KachatNamesService.isEnabled, let contactAddress else { return avatarURLString }
         let link = kachatRegistry.cachedIdentity(for: contactAddress)?.profile?.avatar
         return socialImages.profile(for: link)?.avatar
+    }
+    /// The photo you assigned to this address in Contacts. Your own choice, so it wins over the
+    /// avatar the address set for itself, as it does on the Contacts screen.
+    private var assignedPhoto: UIImage? {
+        guard includeBackupPhoto, overrideImage == nil else { return nil }
+        return addressBook.photo(for: contactAddress)
     }
     /// Decoded cache so a base64 backup photo is turned into a UIImage once, not on every
     /// body pass while scrolling. Keyed by CONTACT ADDRESS, not the base64 itself: the old
@@ -70,6 +78,10 @@ struct KNSAvatarView: View {
         Group {
             if let resolved = overrideImage {
                 Image(uiImage: resolved)
+                    .resizable()
+                    .scaledToFill()
+            } else if let assigned = assignedPhoto {
+                Image(uiImage: assigned)
                     .resizable()
                     .scaledToFill()
             } else if let shown = memoryImage ?? loadedImage {
@@ -372,6 +384,13 @@ struct KNSAvatarFullscreenView: View {
 
     @MainActor
     private func loadRemoteAvatarIfNeeded() async {
+        // The same picture the small avatar was showing: your Contacts photo comes first.
+        if let assigned = AddressBookManager.shared.photo(for: contactAddress) {
+            loadedImage = assigned
+            lastLoadedIdentity = nil
+            isLoading = false
+            return
+        }
         guard let descriptor = KNSProfileImageDescriptor.from(raw: avatarURLString) else {
             loadedImage = nil
             lastLoadedIdentity = nil

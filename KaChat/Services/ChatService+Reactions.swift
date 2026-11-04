@@ -44,13 +44,15 @@ extension ChatService {
 
     /// An edit envelope that arrived as a message (the contact's, or our own echoed back). It
     /// counts only if the editor sent the message it names: the contact may edit the contact's
-    /// messages, this wallet its own - never the other way round.
+    /// messages, this wallet its own - never the other way round, and never someone else's. A
+    /// transaction id is public, so naming a message proves nothing about who sent it.
     func applyIncomingEdit(_ edit: MessageEditContent, editorAddress: String, contactAddress: String, editTxId: String, blockTime: Int64) {
         guard let key = messageEncryptionKey() else { return }
         let editorIsMe = editorAddress == WalletManager.shared.currentWallet?.publicAddress
         Task { @MainActor in
             guard let target = await messageStore.fetchMessage(txId: edit.targetTxId, decryptionKey: key),
                   target.isOutgoing == editorIsMe,
+                  editorIsMe || target.senderAddress.lowercased() == editorAddress.lowercased(),
                   MessageEditCodec.isEditable(target.content) else { return }
             let snapshot = MessageEditSnapshot(targetTxId: edit.targetTxId, text: edit.text, editTxId: editTxId, blockTime: blockTime, deliveryStatus: .sent)
             applyLocalEdit(snapshot)

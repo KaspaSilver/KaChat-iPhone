@@ -347,7 +347,7 @@ final class NextcloudService: ObservableObject {
 
     /// Points the service at `walletAddress`'s stored Nextcloud state, or clears everything for
     /// nil. Called by WalletManager on every wallet load, account switch, logout and delete -
-    /// the same hook MessageStore/PublicChatService/etc. use. Cancels any in-flight automatic
+    /// the same hook MessageStore and others use. Cancels any in-flight automatic
     /// backup first, and drops the thumbnail cache so the picker never shows a previous
     /// account's server content.
     /// True when the app is running on testnet. Nextcloud is a mainnet-only feature: the backup
@@ -976,15 +976,6 @@ final class NextcloudService: ObservableObject {
         }
         if currentWalletAddress == walletAddress {
             lastKnownBackupETag = etag
-        }
-    }
-
-    private func showSyncToast(_ message: String) {
-        withAnimation { syncStatusToast = message }
-        Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            guard let self, self.syncStatusToast == message else { return }
-            withAnimation { self.syncStatusToast = nil }
         }
     }
 

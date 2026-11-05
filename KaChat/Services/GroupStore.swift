@@ -276,6 +276,63 @@ final class GroupStore {
         }
     }
 
+    /// What `GroupChatService` does with a send left pending by a run that ended: a row whose
+    /// delivered copy is already here (same msg_id) goes, and the others are marked failed.
+    func settlePendingMessages(sentBeforeMs cutoff: Int64) -> (failed: [(groupId: String, txId: String)], removed: [(groupId: String, txId: String)]) {
+        var failed: [(groupId: String, txId: String)] = []
+        var removed: [(groupId: String, txId: String)] = []
+        guard isLoaded else { return (failed, removed) }
+        let context = viewContext
+        context.performAndWait {
+            let request = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
+            request.predicate = NSPredicate(
+                format: "txId BEGINSWITH %@ AND isOutgoing == YES AND deliveryStatus == %@ AND blockTime < %lld",
+                "pending_", ChatMessage.DeliveryStatus.pending.rawValue, cutoff
+            )
+            for message in (try? context.fetch(request)) ?? [] {
+                if hasDeliveredCopy(of: message, in: context) {
+                    removed.append((message.groupId, message.txId))
+                    context.delete(message)
+                } else {
+                    failed.append((message.groupId, message.txId))
+                    message.deliveryStatus = ChatMessage.DeliveryStatus.failed.rawValue
+                }
+            }
+            if !failed.isEmpty || !removed.isEmpty { save(context) }
+        }
+        return (failed, removed)
+    }
+
+    /// A delivered message's failed row, if a send that was marked failed did go out after all.
+    /// Returns its pending id.
+    func removeFailedCopy(groupId: String, msgIdHex: String) -> String? {
+        var removedId: String?
+        let context = viewContext
+        context.performAndWait {
+            let request = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
+            request.predicate = NSPredicate(
+                format: "groupId == %@ AND msgIdHex == %@ AND txId BEGINSWITH %@ AND deliveryStatus == %@",
+                groupId, msgIdHex, "pending_", ChatMessage.DeliveryStatus.failed.rawValue
+            )
+            request.fetchLimit = 1
+            guard let message = (try? context.fetch(request))?.first else { return }
+            removedId = message.txId
+            context.delete(message)
+            save(context)
+        }
+        return removedId
+    }
+
+    private func hasDeliveredCopy(of message: CDGroupMessage, in context: NSManagedObjectContext) -> Bool {
+        let request = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
+        request.predicate = NSPredicate(
+            format: "groupId == %@ AND msgIdHex == %@ AND NOT (txId BEGINSWITH %@)",
+            message.groupId, message.msgIdHex, "pending_"
+        )
+        request.fetchLimit = 1
+        return ((try? context.count(for: request)) ?? 0) > 0
+    }
+
     func markMessageFailed(pendingId: String) {
         let context = viewContext
         context.performAndWait {

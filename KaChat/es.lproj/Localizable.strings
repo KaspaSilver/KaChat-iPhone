@@ -1305,7 +1305,6 @@
 "Sending" = "Enviando";
 "Failed" = "Fallido";
 "Broadcasting to the Kaspa BlockDAG..." = "Transmitiendo al BlockDAG de Kaspa...";
-"Let go past halfway to send." = "Suelta pasada la mitad para enviar.";
 "The send didn't go out." = "El envío no salió.";
 "Compound UTXOs" = "Consolidar UTXOs";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "Copia de contactos realizada.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Aquí solo se hace copia de tus contactos, cifrada. Tus mensajes y chats de grupo vuelven con tu frase semilla.";
 "Confirm sending this domain" = "Confirmar el envío de este dominio";
+"Not confirmed" = "Sin confirmar";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Puede que se haya enviado, pero la red no lo ha confirmado. Comprueba tu saldo antes de volver a enviar.";
+"Swipe up, then let go to send." = "Desliza hacia arriba y suelta para enviar.";

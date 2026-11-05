@@ -3085,7 +3085,7 @@ struct ChatDetailView: View {
     }
 
     /// "Send KAS": the swipe-up send screen Send Kaspa uses (from KaChat Wallet), in steps - swipe
-    /// the review's bar up past halfway to send, so a payment can't go out on a stray touch. The
+    /// the review's bar up about a third of the way to send, so a payment can't go out on a stray touch. The
     /// screen then runs the BlockDAG while it goes out and shows Sent, or Failed with Try Again.
     private var paymentSheet: some View {
         ZStack {

@@ -1305,7 +1305,6 @@
 "Sending" = "در حال ارسال";
 "Failed" = "ناموفق";
 "Broadcasting to the Kaspa BlockDAG..." = "در حال پخش در BlockDAG کاسپا...";
-"Let go past halfway to send." = "پس از نیمه رها کنید تا ارسال شود.";
 "The send didn't go out." = "ارسال انجام نشد.";
 "Compound UTXOs" = "ادغام UTXOها";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "از مخاطبان پشتیبان گرفته شد.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "اینجا فقط از مخاطبان شما به‌صورت رمزگذاری‌شده پشتیبان گرفته می‌شود. پیام‌ها و گفتگوهای گروهی شما با عبارت بازیابی برمی‌گردند.";
 "Confirm sending this domain" = "تأیید ارسال این دامنه";
+"Not confirmed" = "تأیید نشد";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "ممکن است انجام شده باشد، اما شبکه آن را تأیید نکرد. پیش از ارسال دوباره، موجودی خود را بررسی کنید.";
+"Swipe up, then let go to send." = "به بالا بکشید و برای ارسال رها کنید.";

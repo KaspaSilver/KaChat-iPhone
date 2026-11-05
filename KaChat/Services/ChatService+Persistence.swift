@@ -488,6 +488,25 @@ extension ChatService {
         return Array((sticky + recent).sorted(by: isMessageOrderedBefore))
     }
 
+    /// A send still pending from before this run started stays on Sending for good with nothing left
+    /// working on it. Once per account, after its first full sync has brought in any copy that did
+    /// get delivered, what's left is marked failed so Retry appears. A copy delivered later still
+    /// replaces it (`updateOldestPendingOutgoingMessage` matches failed rows too).
+    func failPendingSendsFromBeforeThisRun(walletAddress: String) {
+        guard leftoverPendingSendsCheckedWallets.insert(walletAddress).inserted else { return }
+        let leftovers = conversations.flatMap { conversation in
+            conversation.messages
+                .filter { $0.isOutgoing && $0.deliveryStatus == .pending && $0.txId.hasPrefix("pending_") && $0.timestamp < runStartedAt }
+                .map { (txId: $0.txId, contactAddress: conversation.contact.address) }
+        }
+        guard !leftovers.isEmpty else { return }
+        AppLog.log("[ChatService] Marking %d send(s) left over from the last run as failed", leftovers.count)
+        for leftover in leftovers {
+            markPendingMessageFailed(leftover.txId, contactAddress: leftover.contactAddress)
+        }
+        saveMessages()
+    }
+
     func rebuildPendingOutgoingQueue() {
         pendingOutgoingQueue.removeAll()
         for conversation in conversations {

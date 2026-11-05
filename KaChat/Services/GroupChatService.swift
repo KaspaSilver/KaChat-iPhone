@@ -352,6 +352,10 @@ final class GroupChatService: ObservableObject {
     /// key, which is how logging out, creating a second account, then logging back into the first
     /// could reset every group back to "unread."
     private var currentWalletAddress: String?
+    /// A send older than this has no task left: it died with the last run.
+    private let runStartedAtMs = Int64(Date().timeIntervalSince1970 * 1000)
+    /// The accounts `settlePendingSendsFromBeforeThisRun` has been through in this run.
+    private var leftoverPendingSendsCheckedWallets: Set<String> = []
     /// See `prepareToRestoreMissingGroupKeys`.
     private var groupKeyRestoreAttempts: Set<String> = []
 
@@ -2542,6 +2546,9 @@ final class GroupChatService: ObservableObject {
             // Stored now, or already stored: either way this tx never needs handling again.
             markGroupTxHandled(txId)
             guard inserted else { return }
+            if let failedCopy = store.removeFailedCopy(groupId: group.id, msgIdHex: parsed.msgId.hexString) {
+                groupMessages[group.id]?.removeAll { $0.txId == failedCopy }
+            }
 
             let message = GroupMessage(
                 id: UUID(), groupId: group.id, txId: txId, senderAddress: senderAddress, senderIdHex: parsed.senderId.hexString,
@@ -3181,10 +3188,27 @@ final class GroupChatService: ObservableObject {
         // Groups and their history are both in hand now, so a seed re-import's rediscovered
         // groups can be marked read in one pass.
         seedImportReadMarkersIfNeeded()
+        settlePendingSendsFromBeforeThisRun(walletAddress: wallet.publicAddress)
 
         // A restored group went off the push watch list while its keys were missing.
         if restoringKeys.contains(where: { !isGroupKeyMissing($0) }) {
             await PushNotificationManager.shared.updateWatchedAddresses()
+        }
+    }
+
+    /// A send still pending from before this run started stays on Sending for good with nothing left
+    /// working on it. Once per account, after its first catch-up has brought in any copy that did get
+    /// delivered: that copy replaces it, and anything else is marked failed so Retry appears.
+    private func settlePendingSendsFromBeforeThisRun(walletAddress: String) {
+        guard leftoverPendingSendsCheckedWallets.insert(walletAddress).inserted else { return }
+        let settled = store.settlePendingMessages(sentBeforeMs: runStartedAtMs)
+        for row in settled.failed {
+            if let index = groupMessages[row.groupId]?.firstIndex(where: { $0.txId == row.txId }) {
+                groupMessages[row.groupId]?[index].deliveryStatus = .failed
+            }
+        }
+        for row in settled.removed {
+            groupMessages[row.groupId]?.removeAll { $0.txId == row.txId }
         }
     }
 

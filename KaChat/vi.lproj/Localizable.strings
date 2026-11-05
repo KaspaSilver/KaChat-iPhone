@@ -1305,7 +1305,6 @@
 "Sending" = "Đang gửi";
 "Failed" = "Thất bại";
 "Broadcasting to the Kaspa BlockDAG..." = "Đang phát lên BlockDAG của Kaspa...";
-"Let go past halfway to send." = "Thả sau nửa đường để gửi.";
 "The send didn't go out." = "Giao dịch chưa được gửi đi.";
 "Compound UTXOs" = "Hợp nhất UTXO";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "Đã sao lưu danh bạ.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Tại đây chỉ sao lưu danh bạ của bạn, được mã hóa. Tin nhắn và cuộc trò chuyện nhóm của bạn sẽ trở lại nhờ cụm từ khôi phục.";
 "Confirm sending this domain" = "Xác nhận gửi tên miền này";
+"Not confirmed" = "Chưa xác nhận";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Giao dịch có thể đã được gửi, nhưng mạng chưa xác nhận. Hãy kiểm tra số dư trước khi gửi lại.";
+"Swipe up, then let go to send." = "Vuốt lên rồi thả để gửi.";

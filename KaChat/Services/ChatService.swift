@@ -266,6 +266,10 @@ final class ChatService: ObservableObject {
         let timestamp: Date
     }
     var pendingOutgoingQueue: [String: [PendingOutgoingRef]] = [:]
+    /// A send older than this has no task or retry timer left: they died with the last run.
+    let runStartedAt = Date()
+    /// The accounts `failPendingSendsFromBeforeThisRun` has been through in this run.
+    var leftoverPendingSendsCheckedWallets: Set<String> = []
     var olderHistoryPageTasks: [String: Task<Int, Never>] = [:]
     var olderHistoryExhaustedContacts: Set<String> = []
     var needsMessageStoreSyncAfterBatch = false

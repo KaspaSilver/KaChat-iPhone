@@ -2709,6 +2709,17 @@ enum KasiaError: LocalizedError {
 /// failed, "Keychain error: -25300". The app's own errors carry sentences already written for
 /// the user, so those pass through with their developer prefixes stripped; system and library
 /// errors are translated; the raw text still goes to the log for diagnostics.
+/// A send a node may have received without ever answering, which the network doesn't have yet. It
+/// may still land, so nothing should offer to send it again. The send screen shows "Not confirmed"
+/// with this message and only Done (`SendProgressScreen`).
+struct SendOutcomeUnknownError: LocalizedError {
+    let txId: String
+    static var message: String {
+        AppLocalization.string("This may have gone through, but the network didn't confirm it. Check your balance before sending again.")
+    }
+    var errorDescription: String? { Self.message }
+}
+
 enum UserFacingError {
     static func message(for error: Error) -> String {
         if error is CancellationError { return "Cancelled." }

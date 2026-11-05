@@ -1305,7 +1305,6 @@
 "Sending" = "Отправка";
 "Failed" = "Ошибка";
 "Broadcasting to the Kaspa BlockDAG..." = "Передача в BlockDAG Kaspa...";
-"Let go past halfway to send." = "Отпустите выше середины, чтобы отправить.";
 "The send didn't go out." = "Отправка не состоялась.";
 "Compound UTXOs" = "Объединить UTXO";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "Копия контактов создана.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Здесь в зашифрованном виде сохраняются только ваши контакты. Сообщения и групповые чаты восстанавливаются с помощью сид-фразы.";
 "Confirm sending this domain" = "Подтвердите отправку этого домена";
+"Not confirmed" = "Не подтверждено";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Возможно, отправка прошла, но сеть её не подтвердила. Проверьте баланс, прежде чем отправлять снова.";
+"Swipe up, then let go to send." = "Проведите вверх и отпустите, чтобы отправить.";

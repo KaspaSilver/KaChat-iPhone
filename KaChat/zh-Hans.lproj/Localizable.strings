@@ -1305,7 +1305,6 @@
 "Sending" = "正在发送";
 "Failed" = "失败";
 "Broadcasting to the Kaspa BlockDAG..." = "正在广播到 Kaspa BlockDAG...";
-"Let go past halfway to send." = "滑过一半后松开即可发送。";
 "The send didn't go out." = "发送未成功。";
 "Compound UTXOs" = "合并 UTXO";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "联系人已备份。";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "这里只加密备份你的联系人。你的消息和群聊可通过助记词恢复。";
 "Confirm sending this domain" = "确认发送此域名";
+"Not confirmed" = "未确认";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "这笔交易可能已发送，但网络未确认。再次发送前请先查看余额。";
+"Swipe up, then let go to send." = "向上滑动，然后松手发送。";

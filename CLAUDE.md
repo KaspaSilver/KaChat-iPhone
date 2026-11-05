@@ -517,7 +517,7 @@ first, then the spending addresses.
 | `SendFeeControls` | Network fee, the speed, and Coin Control. With `onEditFee` (the Review) the fee has an Edit pill that opens `SendFeeEditorScreen`; without it, tap the fee to type a custom one |
 | `SendInfoPill` | A small one-line pill (available balance, fee) |
 | `SendActionButton` | Slide the knob to the right end to send. `requiresSlide: false` makes it a tap, for a step that moves nothing by itself |
-| `SwipeUpToSendScrollView` | Wallet's Send Kaspa and a spending address's Send (as in KaChat Wallet): swipe the bottom bar up past halfway and the whole screen rises into a full-screen BlockDAG (`BlockDAGAnimationView`) while sending, then Sent with the transaction, or Failed with the error and Try Again. Draws its own header (`SendStepHeader`; with `onBack`, Back and Cancel - the Review step). Debug builds launched with `KACHAT_FAIL_SEND=1` fail every send (`SendFailureSimulation`). Also the chat's Send KAS sheet. `dismissSystemKeyboard()` puts any keyboard away |
+| `SwipeUpToSendScrollView` | Wallet's Send Kaspa and a spending address's Send (as in KaChat Wallet): swipe the bottom bar up about a third of the way and the whole screen rises into a full-screen BlockDAG (`BlockDAGAnimationView`) while sending, then Sent with the transaction, or Failed with the error and Try Again. Draws its own header (`SendStepHeader`; with `onBack`, Back and Cancel - the Review step). Debug builds launched with `KACHAT_FAIL_SEND=1` fail every send (`SendFailureSimulation`). Also the chat's Send KAS sheet. `dismissSystemKeyboard()` puts any keyboard away |
 
 Change these pieces rather than one screen, so the screens stay matched.
 

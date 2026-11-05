@@ -624,6 +624,7 @@ extension ChatService {
             if isLoading { isLoading = false }
             // Check if resubscription was deferred during sync
             executeResubscriptionIfNeeded()
+            if syncSucceeded && isFullFetch { failPendingSendsFromBeforeThisRun(walletAddress: wallet.publicAddress) }
             // Only a full fetch has read every chat, so only it moves the global fallback.
             endSyncBlockTime(success: syncSucceeded && isFullFetch)  // This handles batched save
         }
@@ -2653,6 +2654,16 @@ extension ChatService {
                 return acceptedTxId
             }
 
+            if error is SendOutcomeUnknownError {
+                // It may have landed: its change may be on the fresh address, and its key on chain.
+                if let freshChangeIndex {
+                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex, owner: wallet.publicAddress)
+                }
+                if !fromChattingAddress, let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
+                    WalletManager.shared.markQuantumAddressSpent(sourceAddress, owner: wallet.publicAddress)
+                }
+            }
+
             if isNoConfirmedInputsError(error) {
                 let delay = nextNoInputRetryDelay(for: activePendingTxId)
                 AppLog.log(
@@ -2927,7 +2938,20 @@ extension ChatService {
             )
 
             AppLog.log("[ChatService] Submitting spending-address withdrawal via RPC manager...")
-            let (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
+            let txId: String
+            let endpoint: String
+            do {
+                (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
+            } catch let unknown as SendOutcomeUnknownError {
+                // It may have landed: its change may be on the fresh address, and its key on chain.
+                if WalletManager.isQuantumIndex(index) {
+                    WalletManager.shared.markQuantumAddressSpent(fromAddress, owner: owner)
+                }
+                if let freshChangeIndex {
+                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex, owner: owner)
+                }
+                throw unknown
+            }
             AppLog.log("[ChatService] Spending-address withdrawal submitted: \(txId) via \(endpoint)")
             if WalletManager.isQuantumIndex(index) {
                 // the spend put this address's key on chain for good (self-sends included)

@@ -1305,7 +1305,6 @@
 "Sending" = "Gönderiliyor";
 "Failed" = "Başarısız";
 "Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG'e yayınlanıyor...";
-"Let go past halfway to send." = "Göndermek için yarıyı geçince bırak.";
 "The send didn't go out." = "Gönderim yapılamadı.";
 "Compound UTXOs" = "UTXO'ları Birleştir";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "Kişiler yedeklendi.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Burada yalnızca kişileriniz şifreli olarak yedeklenir. Mesajlarınız ve grup sohbetleriniz başlangıç ifadenizle geri gelir.";
 "Confirm sending this domain" = "Bu alan adının gönderilmesini onayla";
+"Not confirmed" = "Onaylanmadı";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Bu işlem gerçekleşmiş olabilir ancak ağ onaylamadı. Yeniden göndermeden önce bakiyenizi kontrol edin.";
+"Swipe up, then let go to send." = "Yukarı kaydırın, ardından göndermek için bırakın.";

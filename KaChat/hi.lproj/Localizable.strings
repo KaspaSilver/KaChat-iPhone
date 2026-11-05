@@ -1305,7 +1305,6 @@
 "Sending" = "भेजा जा रहा है";
 "Failed" = "विफल";
 "Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG पर प्रसारित हो रहा है...";
-"Let go past halfway to send." = "भेजने के लिए आधे से आगे छोड़ें।";
 "The send didn't go out." = "भेजना नहीं हो पाया।";
 "Compound UTXOs" = "UTXO समेकित करें";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "संपर्कों का बैकअप हो गया।";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "यहाँ केवल आपके संपर्कों का एन्क्रिप्टेड बैकअप लिया जाता है। आपके संदेश और ग्रुप चैट आपके सीड फ़्रेज़ से वापस आ जाते हैं।";
 "Confirm sending this domain" = "इस डोमेन को भेजने की पुष्टि करें";
+"Not confirmed" = "पुष्टि नहीं हुई";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "हो सकता है यह भेजा जा चुका हो, लेकिन नेटवर्क ने इसकी पुष्टि नहीं की। दोबारा भेजने से पहले अपना बैलेंस जाँच लें।";
+"Swipe up, then let go to send." = "ऊपर स्वाइप करें, फिर भेजने के लिए छोड़ दें।";

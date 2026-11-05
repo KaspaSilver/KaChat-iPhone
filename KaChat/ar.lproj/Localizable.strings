@@ -1305,7 +1305,6 @@
 "Sending" = "جارٍ الإرسال";
 "Failed" = "فشل";
 "Broadcasting to the Kaspa BlockDAG..." = "جارٍ البث إلى BlockDAG الخاص بـ Kaspa...";
-"Let go past halfway to send." = "أفلت بعد المنتصف للإرسال.";
 "The send didn't go out." = "لم يتم الإرسال.";
 "Compound UTXOs" = "دمج UTXOs";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "تم نسخ جهات الاتصال احتياطيًا.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "يتم هنا نسخ جهات اتصالك فقط احتياطيًا، بشكل مشفّر. تعود رسائلك ومحادثاتك الجماعية باستخدام عبارة الاسترداد الخاصة بك.";
 "Confirm sending this domain" = "تأكيد إرسال هذا النطاق";
+"Not confirmed" = "لم يتم التأكيد";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "ربما تمت العملية، لكن الشبكة لم تؤكدها. تحقق من رصيدك قبل الإرسال مرة أخرى.";
+"Swipe up, then let go to send." = "اسحب لأعلى ثم اترك للإرسال.";

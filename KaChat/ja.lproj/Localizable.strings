@@ -1305,7 +1305,6 @@
 "Sending" = "送信中";
 "Failed" = "失敗";
 "Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG にブロードキャスト中...";
-"Let go past halfway to send." = "半分を超えてから指を離すと送信します。";
 "The send didn't go out." = "送信できませんでした。";
 "Compound UTXOs" = "UTXO を統合";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "連絡先をバックアップしました。";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "ここでは連絡先のみを暗号化してバックアップします。メッセージとグループチャットはシードフレーズで復元されます。";
 "Confirm sending this domain" = "このドメインの送信を確認";
+"Not confirmed" = "未確認";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "送信された可能性がありますが、ネットワークで確認できませんでした。再度送信する前に残高を確認してください。";
+"Swipe up, then let go to send." = "上にスワイプしてから指を離すと送信します。";

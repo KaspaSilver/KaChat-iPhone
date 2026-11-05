@@ -1306,7 +1306,6 @@
 "Sending" = "Sending";
 "Failed" = "Failed";
 "Broadcasting to the Kaspa BlockDAG..." = "Broadcasting to the Kaspa BlockDAG...";
-"Let go past halfway to send." = "Let go past halfway to send.";
 "The send didn't go out." = "The send didn't go out.";
 "Compound UTXOs" = "Compound UTXOs";
 
@@ -1827,3 +1826,6 @@
 "Contacts backed up." = "Contacts backed up.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase.";
 "Confirm sending this domain" = "Confirm sending this domain";
+"Not confirmed" = "Not confirmed";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "This may have gone through, but the network didn't confirm it. Check your balance before sending again.";
+"Swipe up, then let go to send." = "Swipe up, then let go to send.";

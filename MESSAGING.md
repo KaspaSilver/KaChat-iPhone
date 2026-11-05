@@ -527,6 +527,21 @@ root rewrites the keys, still only from the admin on record, and the messages de
 group is left out of the push watch list, while a Keychain read error still holds the whole update
 back, so a passing failure can't drop a group from the server's list.
 
+## When a send's outcome isn't known
+
+A failed submit isn't always a failed send. If a node may have received the transaction and its answer
+never came (a timeout or a dropped stream, not a connection that never opened or a rejection), look its
+locally computed id up in the mempool and the REST API: first as for any failed submit, then 6 more
+times, 3 seconds apart. If it still isn't found, the outcome is unknown, not failed. The send screen
+says "Not confirmed" and "This may have gone through, but the network didn't confirm it. Check your
+balance before sending again.", and offers only Done. A chat payment's bubble still reads as failed
+until a delivered copy replaces it. A fresh change address is revealed anyway, since the change may be
+on it, and a quantum source counts as spent.
+
+A send still pending from before the app last started has nothing left working on it. After an account's
+first full sync of a run, its delivered copy replaces it, and anything left is marked failed so Retry
+appears. A delivered copy arriving later still replaces it.
+
 ## Signed rosters
 
 A `gctl_root`'s `sig` leaves out `members` and `name`, so a member could resend the admin's root with

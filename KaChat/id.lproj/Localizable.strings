@@ -1305,7 +1305,6 @@
 "Sending" = "Mengirim";
 "Failed" = "Gagal";
 "Broadcasting to the Kaspa BlockDAG..." = "Menyiarkan ke BlockDAG Kaspa...";
-"Let go past halfway to send." = "Lepaskan lewat setengah untuk mengirim.";
 "The send didn't go out." = "Pengiriman tidak terkirim.";
 "Compound UTXOs" = "Gabungkan UTXO";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "Kontak dicadangkan.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Hanya kontak Anda yang dicadangkan di sini, terenkripsi. Pesan dan obrolan grup Anda kembali dengan frasa benih Anda.";
 "Confirm sending this domain" = "Konfirmasi pengiriman domain ini";
+"Not confirmed" = "Belum dikonfirmasi";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Ini mungkin sudah terkirim, tetapi jaringan belum mengonfirmasinya. Periksa saldo Anda sebelum mengirim lagi.";
+"Swipe up, then let go to send." = "Geser ke atas, lalu lepaskan untuk mengirim.";

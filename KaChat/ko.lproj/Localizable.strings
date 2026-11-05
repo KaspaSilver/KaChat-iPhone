@@ -1305,7 +1305,6 @@
 "Sending" = "보내는 중";
 "Failed" = "실패";
 "Broadcasting to the Kaspa BlockDAG..." = "Kaspa BlockDAG에 전파하는 중...";
-"Let go past halfway to send." = "절반을 넘긴 뒤 손을 떼면 보냅니다.";
 "The send didn't go out." = "전송되지 않았습니다.";
 "Compound UTXOs" = "UTXO 통합";
 
@@ -1826,3 +1825,6 @@
 "Contacts backed up." = "연락처를 백업했습니다.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "여기에는 연락처만 암호화되어 백업됩니다. 메시지와 그룹 채팅은 시드 문구로 복원됩니다.";
 "Confirm sending this domain" = "이 도메인 보내기 확인";
+"Not confirmed" = "확인되지 않음";
+"This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "전송되었을 수 있지만 네트워크에서 확인되지 않았습니다. 다시 보내기 전에 잔액을 확인하세요.";
+"Swipe up, then let go to send." = "위로 밀고 손을 떼면 전송됩니다.";

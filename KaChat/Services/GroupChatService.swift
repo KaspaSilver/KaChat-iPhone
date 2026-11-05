@@ -1099,7 +1099,7 @@ final class GroupChatService: ObservableObject {
         var seededReadMarkers = false
         for g in archiveGroups {
             // Never resurrect a group you deleted (tombstoned) - same rule as the on-chain path.
-            if isGroupTombstoned(g.groupId) { continue }
+            if isGroupTombstoned(g.groupId, adminSigningPub: g.adminSigningPub) { continue }
             guard let groupRootEpoch = g.groupRootEpoch, let blindingKey = g.blindingKey else { continue }
             let existingBag = try? keychain.loadGroupBag(groupId: g.groupId)
             if let existingBag, existingBag.currentEpoch > g.currentEpoch { continue }
@@ -1376,6 +1376,7 @@ final class GroupChatService: ObservableObject {
     /// is single-admin push, not a shared membership ledger, so this device simply stops
     /// tracking the group and can no longer decrypt or send to it).
     func deleteGroup(_ groupId: String) {
+        let admin = store.group(id: groupId)?.adminXOnlyPubKeyHex
         try? keychain.deleteGroupBag(groupId: groupId)
         store.deleteGroup(id: groupId)
         // Its messages are gone from the store; a re-join must be able to store them again.
@@ -1387,8 +1388,9 @@ final class GroupChatService: ObservableObject {
         // Tombstone it so discovery/recovery never re-adds it, and publish an on-chain delete
         // marker (best-effort; the catch-up backfill retries) so the delete survives a seedless
         // re-import too. Local intent is recorded now; the chain write is async.
-        recordGroupTombstone(groupId, published: false)
-        Task { try? await publishGroupTombstone(groupId) }
+        let adminSigningPub = admin?.isEmpty == false ? admin : nil
+        recordGroupTombstone(groupId, adminSigningPub: adminSigningPub, published: false)
+        Task { try? await publishGroupTombstone(groupId, adminSigningPub: adminSigningPub) }
     }
 
     // MARK: - Group deletion tombstones (UserDefaults-backed, per wallet)
@@ -1397,6 +1399,8 @@ final class GroupChatService: ObservableObject {
         guard let addr = WalletManager.shared.currentWallet?.publicAddress else { return nil }
         return "kachat_group_tombstones_\(addr)"
     }
+    /// Entries are `PendingGroupInvite.key` (that admin's offer of the id), or a bare group id for
+    /// that id from any admin, which is what a v1 marker means.
     private struct GroupTombstoneState: Codable { var deleted: [String] = []; var published: [String] = [] }
     private func loadTombstoneState() -> GroupTombstoneState {
         guard let key = tombstonesDefaultsKey, let data = UserDefaults.standard.data(forKey: key),
@@ -1407,32 +1411,43 @@ final class GroupChatService: ObservableObject {
         guard let key = tombstonesDefaultsKey, let data = try? JSONEncoder().encode(state) else { return }
         UserDefaults.standard.set(data, forKey: key)
     }
-    func isGroupTombstoned(_ groupId: String) -> Bool { loadTombstoneState().deleted.contains(groupId) }
-    private func recordGroupTombstone(_ groupId: String, published: Bool) {
+    /// With no admin to go on (an older backup), any marker for this id counts.
+    func isGroupTombstoned(_ groupId: String, adminSigningPub: String?) -> Bool {
+        let deleted = loadTombstoneState().deleted
+        if deleted.contains(groupId) { return true }
+        guard let adminSigningPub else { return deleted.contains { $0.hasPrefix(groupId + ":") } }
+        return deleted.contains(PendingGroupInvite.key(groupId: groupId, adminSigningPub: adminSigningPub))
+    }
+    private func recordGroupTombstone(_ groupId: String, adminSigningPub: String?, published: Bool) {
+        let entry = adminSigningPub.map { PendingGroupInvite.key(groupId: groupId, adminSigningPub: $0) } ?? groupId
         var state = loadTombstoneState()
-        if !state.deleted.contains(groupId) { state.deleted.append(groupId) }
-        if published, !state.published.contains(groupId) { state.published.append(groupId) }
+        if !state.deleted.contains(entry) { state.deleted.append(entry) }
+        if published, !state.published.contains(entry) { state.published.append(entry) }
         saveTombstoneState(state)
         // A deleted group's invite goes with it, unless it's only waiting to say you declined.
-        groupInvites.removeAll { $0.groupId == groupId && $0.rejected != true }
+        groupInvites.removeAll {
+            $0.groupId == groupId && $0.rejected != true && (adminSigningPub == nil || $0.id == entry)
+        }
         saveGroupInvites()
     }
-    private func markTombstonePublished(_ groupId: String) {
+    private func markTombstonePublished(_ entry: String) {
         var state = loadTombstoneState()
-        if !state.published.contains(groupId) { state.published.append(groupId) }
+        if !state.published.contains(entry) { state.published.append(entry) }
         saveTombstoneState(state)
     }
     /// Self-addressed, self-signed delete marker — only our key can produce one, only our key
     /// can read it (see the signing_pub == self + verify check in handleIncomingControlMessage).
-    private func publishGroupTombstone(_ groupId: String) async throws {
+    private func publishGroupTombstone(_ groupId: String, adminSigningPub: String?) async throws {
         guard let gid = Data(hexString: groupId),
               let wallet = WalletManager.shared.currentWallet, let privateKey = WalletManager.shared.getPrivateKey(),
               let selfPub = KaspaAddress.publicKey(from: wallet.publicAddress) else { return }
         let signingPub = try schnorrXOnlyPublicKey(from: privateKey)
-        let payload = try GroupCipher.buildSignedTombstonePayload(groupId: gid, signingPub: signingPub, privateKey: privateKey)
+        let payload = try GroupCipher.buildSignedTombstonePayload(
+            groupId: gid, adminSigningPub: adminSigningPub.flatMap { Data(hexString: $0) }, signingPub: signingPub, privateKey: privateKey
+        )
         let json = try JSONEncoder().encode(payload)
         try await sendControlPayload(json, to: selfPub, from: wallet.publicAddress, privateKey: privateKey)
-        markTombstonePublished(groupId)
+        markTombstonePublished(adminSigningPub.map { PendingGroupInvite.key(groupId: groupId, adminSigningPub: $0) } ?? groupId)
     }
 
     /// Deletes the given messages from this device only - purely local (Core Data + in-memory),
@@ -2595,8 +2610,12 @@ final class GroupChatService: ObservableObject {
         if let tomb = try? JSONDecoder().decode(GroupCipher.GroupTombstonePayload.self, from: jsonData), tomb.type == "gctl_tombstone" {
             let myPub = WalletManager.shared.getPrivateKey().flatMap { try? schnorrXOnlyPublicKey(from: $0).hexString }
             if tomb.signingPub == myPub, GroupCipher.verifyTombstonePayload(tomb) {
-                recordGroupTombstone(tomb.groupId, published: true)
-                if store.group(id: tomb.groupId) != nil { deleteLocalGroupForTombstone(tomb.groupId) }
+                recordGroupTombstone(tomb.groupId, adminSigningPub: tomb.adminSigningPub, published: true)
+                // A marker about another admin's offer of this id says nothing about the group held here.
+                if let held = store.group(id: tomb.groupId),
+                   tomb.adminSigningPub == nil || tomb.adminSigningPub?.lowercased() == held.adminXOnlyPubKeyHex.lowercased() {
+                    deleteLocalGroupForTombstone(tomb.groupId)
+                }
             }
             return
         }
@@ -2604,11 +2623,12 @@ final class GroupChatService: ObservableObject {
         if let accept = try? JSONDecoder().decode(GroupCipher.GroupInviteAcceptPayload.self, from: jsonData), accept.type == "gctl_invite_accept" {
             let myPub = (try? schnorrXOnlyPublicKey(from: privateKey))?.hexString
             guard accept.signingPub == myPub, GroupCipher.verifyInviteAcceptPayload(accept) else { return }
+            let key = PendingGroupInvite.key(groupId: accept.groupId, adminSigningPub: accept.adminSigningPub)
             var answers = loadInviteAnswers()
-            if !answers.accepted.contains(accept.groupId) { answers.accepted.append(accept.groupId) }
-            if !answers.published.contains(accept.groupId) { answers.published.append(accept.groupId) }
+            if !answers.accepted.contains(key) { answers.accepted.append(key) }
+            if !answers.published.contains(key) { answers.published.append(key) }
             saveInviteAnswers(answers)
-            if let invite = groupInvites.first(where: { $0.groupId == accept.groupId }) {
+            if let invite = groupInvites.first(where: { $0.id == key }) {
                 joinGroupInvite(invite)
             }
             return
@@ -2634,15 +2654,21 @@ final class GroupChatService: ObservableObject {
             }
             return
         }
-        if let rootPayload = try? JSONDecoder().decode(GroupCipher.GroupRootPayload.self, from: jsonData), rootPayload.type == "gctl_root" {
+        if var rootPayload = try? JSONDecoder().decode(GroupCipher.GroupRootPayload.self, from: jsonData), rootPayload.type == "gctl_root" {
+            // The signature covers bytes, while everything remembered about a group is keyed by this
+            // text: an uppercase copy of an id would read as one you never answered or deleted.
+            rootPayload.groupId = rootPayload.groupId.lowercased()
+            rootPayload.adminSigningPub = rootPayload.adminSigningPub.lowercased()
             if isSelfSent && rootPayload.groupSeed == nil { return } // our own member-copy echo — ignore
             guard GroupCipher.verifyRootPayload(rootPayload) else { return }
             let isNewGroup = store.group(id: rootPayload.groupId) == nil
             // Nobody joins a group by being added to it: a group this device doesn't hold waits in
-            // Message Requests. Your own (the admin's recovery copy) just comes back.
+            // Message Requests. Your own (the admin's recovery copy) just comes back, and so does one
+            // you already said yes to: that admin's, not whoever else signs a root for this id.
             let myPub = (try? schnorrXOnlyPublicKey(from: privateKey))?.hexString.lowercased()
-            if isNewGroup, rootPayload.adminSigningPub.lowercased() != myPub,
-               !loadInviteAnswers().accepted.contains(rootPayload.groupId) {
+            let inviteKey = PendingGroupInvite.key(groupId: rootPayload.groupId, adminSigningPub: rootPayload.adminSigningPub)
+            if isNewGroup, rootPayload.adminSigningPub != myPub,
+               !loadInviteAnswers().accepted.contains(inviteKey) {
                 holdGroupInvite(rootPayload, blockTime: blockTime)
                 return
             }
@@ -2665,13 +2691,14 @@ final class GroupChatService: ObservableObject {
     }
 
     private func holdGroupInvite(_ payload: GroupCipher.GroupRootPayload, blockTime: UInt64) {
-        guard !isGroupTombstoned(payload.groupId),
+        guard !isGroupTombstoned(payload.groupId, adminSigningPub: payload.adminSigningPub),
               let me = WalletManager.shared.currentWallet?.publicAddress.lowercased() else { return }
         let includesMe = payload.members.contains { $0.lowercased() == me }
-        if let index = groupInvites.firstIndex(where: { $0.groupId == payload.groupId }) {
+        let key = PendingGroupInvite.key(groupId: payload.groupId, adminSigningPub: payload.adminSigningPub)
+        if let index = groupInvites.firstIndex(where: { $0.id == key }) {
             // Later roots of the same invite, from the same admin: the group's history if you
-            // join. One that leaves you out takes the invite back.
-            guard groupInvites[index].adminSigningPub.lowercased() == payload.adminSigningPub.lowercased() else { return }
+            // join. One that leaves you out takes the invite back. A different admin's root for
+            // this id is its own invite, so whoever got here first can't shut the real one out.
             let isNewest = payload.epoch >= groupInvites[index].latest.epoch
             if isNewest, !includesMe {
                 groupInvites.remove(at: index)
@@ -2696,7 +2723,7 @@ final class GroupChatService: ObservableObject {
     func acceptGroupInvite(_ invite: PendingGroupInvite) {
         joinGroupInvite(invite)
         var answers = loadInviteAnswers()
-        if !answers.accepted.contains(invite.groupId) { answers.accepted.append(invite.groupId) }
+        if !answers.accepted.contains(invite.id) { answers.accepted.append(invite.id) }
         if !answers.statusOutbox.contains(invite.groupId) { answers.statusOutbox.append(invite.groupId) }
         saveInviteAnswers(answers)
         Task {
@@ -2707,9 +2734,10 @@ final class GroupChatService: ObservableObject {
     }
 
     /// Newest root first, so the older ones only fill in history and nothing reads as a
-    /// membership change.
+    /// membership change. A device holds one group per id, so another admin's offer of it goes too,
+    /// unless it's only waiting to say you declined.
     private func joinGroupInvite(_ invite: PendingGroupInvite) {
-        groupInvites.removeAll { $0.groupId == invite.groupId }
+        groupInvites.removeAll { $0.groupId == invite.groupId && ($0.rejected != true || $0.id == invite.id) }
         saveGroupInvites()
         for root in invite.roots.sorted(by: { $0.epoch > $1.epoch }) {
             completeJoin(from: root)
@@ -2717,16 +2745,16 @@ final class GroupChatService: ObservableObject {
         seedImportReadMarker(forRediscovered: invite.groupId, inviteBlockTime: invite.invitedAt)
     }
 
-    /// Reject: this group is never offered again, here or after a restore (the same on-chain delete
-    /// marker a deleted group publishes), and its members see you declined. The invite's keys stay
-    /// only until that message has gone out, since they're what it's sent with.
+    /// Reject: this admin's offer is never made again, here or after a restore (the same on-chain
+    /// delete marker a deleted group publishes), and its members see you declined. The invite's keys
+    /// stay only until that message has gone out, since they're what it's sent with.
     func rejectGroupInvite(_ invite: PendingGroupInvite) {
-        guard let index = groupInvites.firstIndex(where: { $0.groupId == invite.groupId }) else { return }
+        guard let index = groupInvites.firstIndex(where: { $0.id == invite.id }) else { return }
         groupInvites[index].rejected = true
         saveGroupInvites()
-        recordGroupTombstone(invite.groupId, published: false)
+        recordGroupTombstone(invite.groupId, adminSigningPub: invite.adminSigningPub, published: false)
         Task {
-            try? await publishGroupTombstone(invite.groupId)
+            try? await publishGroupTombstone(invite.groupId, adminSigningPub: invite.adminSigningPub)
             await publishGroupAnswers()
         }
     }
@@ -2742,13 +2770,16 @@ final class GroupChatService: ObservableObject {
               let selfPub = KaspaAddress.publicKey(from: wallet.publicAddress),
               let signingPub = try? schnorrXOnlyPublicKey(from: privateKey) else { return }
 
-        for groupId in loadInviteAnswers().accepted where !loadInviteAnswers().published.contains(groupId) {
-            guard let gid = Data(hexString: groupId),
-                  let payload = try? GroupCipher.buildSignedInviteAcceptPayload(groupId: gid, signingPub: signingPub, privateKey: privateKey),
+        for key in loadInviteAnswers().accepted where !loadInviteAnswers().published.contains(key) {
+            let parts = key.split(separator: ":")
+            guard parts.count == 2,
+                  let gid = Data(hexString: String(parts[0])),
+                  let admin = Data(hexString: String(parts[1])),
+                  let payload = try? GroupCipher.buildSignedInviteAcceptPayload(groupId: gid, adminSigningPub: admin, signingPub: signingPub, privateKey: privateKey),
                   let json = try? JSONEncoder().encode(payload) else { continue }
             guard (try? await sendControlPayload(json, to: selfPub, from: wallet.publicAddress, privateKey: privateKey)) != nil else { continue }
             var answers = loadInviteAnswers()
-            answers.published.append(groupId)
+            answers.published.append(key)
             saveInviteAnswers(answers)
         }
         for groupId in loadInviteAnswers().statusOutbox {
@@ -2772,7 +2803,7 @@ final class GroupChatService: ObservableObject {
                 msgId: GroupCipher.buildMsgId(deviceId: GroupCipher.generateDeviceId(), counter: 1)
             )
             guard sent != nil else { continue }
-            groupInvites.removeAll { $0.groupId == invite.groupId }
+            groupInvites.removeAll { $0.id == invite.id }
             saveGroupInvites()
         }
     }
@@ -2837,7 +2868,9 @@ final class GroupChatService: ObservableObject {
         insertGroupSystemLine(groupId, status == .joined ? "\(label) joined the group" : "\(label) declined the invite", stableKey: "status_\(txId.prefix(12))")
     }
 
-    /// What answers this wallet has given, and which are on chain yet.
+    /// What answers this wallet has given, and which are on chain yet. `accepted` and `published`
+    /// hold `PendingGroupInvite.key`; a bare group id there is from the first invite build, whose
+    /// group is already pinned to its admin on that device and is offered again after a restore.
     private struct GroupInviteAnswers: Codable {
         var accepted: [String] = []
         var published: [String] = []
@@ -2874,7 +2907,7 @@ final class GroupChatService: ObservableObject {
 
     /// Groups the push extension shouldn't announce as a new invite: already waiting, or rejected.
     private func syncAnsweredGroupInvitesForExtension() {
-        SharedDataManager.setHandledGroupInvites(groupInvites.map(\.groupId) + loadTombstoneState().deleted)
+        SharedDataManager.setHandledGroupInvites(groupInvites.map(\.id) + loadTombstoneState().deleted)
     }
 
     /// Applies a verified `gctl_root` payload: creates or updates the local GroupBag + roster.
@@ -2895,7 +2928,7 @@ final class GroupChatService: ObservableObject {
     private func completeJoin(from payload: GroupCipher.GroupRootPayload) {
         // A tombstoned group must never be re-added — this makes a delete survive a seedless
         // re-import against the recovery invite.
-        if isGroupTombstoned(payload.groupId) { return }
+        if isGroupTombstoned(payload.groupId, adminSigningPub: payload.adminSigningPub) { return }
         // The signature only proves the payload agrees with itself (see `verifyRootPayload`):
         // anyone who knows a group id can sign a root naming themselves admin. A group this device
         // holds keeps the admin it has, or a removed member could take it over with a higher epoch.
@@ -3054,8 +3087,9 @@ final class GroupChatService: ObservableObject {
         }
         // Backfill delete markers for groups deleted while offline (or whose publish failed).
         let tombState = loadTombstoneState()
-        for groupId in tombState.deleted where !tombState.published.contains(groupId) {
-            try? await publishGroupTombstone(groupId)
+        for entry in tombState.deleted where !tombState.published.contains(entry) {
+            let parts = entry.split(separator: ":")
+            try? await publishGroupTombstone(String(parts[0]), adminSigningPub: parts.count == 2 ? String(parts[1]) : nil)
         }
         await publishGroupAnswers()
 
@@ -3461,6 +3495,8 @@ final class GroupChatService: ObservableObject {
 
 /// A group you were added to and haven't answered. It holds every root received so far, in the
 /// Keychain: those are the group's keys, and accepting turns them into a joined group.
+/// It's one admin's offer of a group id, not the group: nothing ties an id to its admin, and anyone
+/// who knows one can sign a root for it, so two admins' roots for an id are two invites.
 struct PendingGroupInvite: Codable, Identifiable {
     let adminAddress: String
     var invitedAt: UInt64
@@ -3470,11 +3506,15 @@ struct PendingGroupInvite: Codable, Identifiable {
     var rejected: Bool? = nil
 
     var latest: GroupCipher.GroupRootPayload { roots[roots.count - 1] }
-    var id: String { groupId }
+    var id: String { Self.key(groupId: groupId, adminSigningPub: adminSigningPub) }
     var groupId: String { latest.groupId }
     var name: String { latest.name }
     var members: [String] { latest.members }
     var adminSigningPub: String { latest.adminSigningPub }
+
+    static func key(groupId: String, adminSigningPub: String) -> String {
+        "\(groupId.lowercased()):\(adminSigningPub.lowercased())"
+    }
 }
 
 /// The group message a member sends to answer their invite (MESSAGING.md, "Group invites"). It reads

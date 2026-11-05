@@ -521,18 +521,33 @@ typing exactly `[Encrypted message]` is hidden too, an accepted quirk).
 
 Being sent a `gctl_root` for a group this wallet doesn't hold is only an invite: it waits in Message
 Requests until the user answers. A wallet's own groups (the root names it as admin) aren't invites.
+
+A group id isn't tied to its admin: `verifyRootPayload` only proves a root agrees with its own
+`admin_signing_pub`, and anyone who knows an id can sign a root for it. So an invite is one admin's
+offer of one id, keyed `{group_id}:{admin_signing_pub}` in lowercase hex. Two admins' roots for an id
+are two invites, each shown with who sent it, and neither can block the other. Accepting one drops
+the others, because a device holds one group per id. A group the device already holds keeps its admin,
+and roots for it signed by anyone else are refused. Lowercase a root's `group_id` and
+`admin_signing_pub` when it arrives, so an uppercase copy can't pass for a different group.
+
 No server change: everything below travels as ordinary `gctl` and `gcomm` transactions. Each answer
 costs a network fee, and one that can't be sent yet is retried at the next catch-up.
 
 **Accept** sends two transactions:
-1. A self-addressed `gctl` signed by the wallet's key: `{"type":"gctl_invite_accept","v":1,"group_id","signing_pub","sig"}`,
-   where `sig` is Schnorr over `v || "gctl_invite_accept" || group_id`. Honoured only when `signing_pub`
-   is this wallet's own key. A device holding this joins the group with no further question, whether
-   the root arrives before or after it.
+1. A self-addressed `gctl` signed by the wallet's key: `{"type":"gctl_invite_accept","v":2,"group_id","admin_signing_pub","signing_pub","sig"}`,
+   where `sig` is Schnorr over `v (1 byte) || "gctl_invite_accept" || group_id (raw bytes) || admin_signing_pub (32 raw bytes)`.
+   Honoured only when `signing_pub` is this wallet's own key. A device holding this joins the group
+   with no further question, whether the root arrives before or after it, but only from that admin.
+   A root from anyone else for the same id is an ordinary invite. v1 (no admin) is ignored.
 2. A `gcomm` group message with the plaintext `{"type":"member_status","status":"joined"}`.
 
 **Reject** sends two transactions:
-1. The existing self-addressed `gctl_tombstone`, so the group is never offered again.
+1. A self-addressed `gctl_tombstone` v2, so this admin's offer is never made again:
+   `{"type":"gctl_tombstone","v":2,"group_id","signing_pub","admin_signing_pub","sig"}`, where `sig` is
+   Schnorr over `v (1 byte) || "gctl_tombstone" || group_id (raw bytes) || admin_signing_pub (32 raw bytes)`.
+   Deleting a group publishes the same v2 marker for that group's admin. A v2 marker removes a held
+   group only if its admin matches. A v1 marker (no `admin_signing_pub`, signed without it) is still
+   honoured and covers that id from any admin, but new ones are only sent when the admin isn't known.
 2. The same `gcomm` with `"status":"declined"`, sent with the invite's root and a fresh device id.
 
 A `member_status` message is never a bubble and never notifies. It's sealed and signed like any group

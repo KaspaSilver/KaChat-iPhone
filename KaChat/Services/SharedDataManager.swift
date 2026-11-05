@@ -168,9 +168,10 @@ final class SharedDataManager {
 
     // MARK: - Group Sync
 
-    /// Groups the push extension shouldn't announce as a new invite (`GroupChatService`).
-    static func setHandledGroupInvites(_ groupIds: [String]) {
-        sharedDefaults?.set(groupIds, forKey: Keys.handledGroupInvites)
+    /// Invites the push extension shouldn't announce: `PendingGroupInvite.key`, or a bare group id
+    /// for that id from any admin (`GroupChatService`).
+    static func setHandledGroupInvites(_ entries: [String]) {
+        sharedDefaults?.set(entries, forKey: Keys.handledGroupInvites)
     }
 
     /// Sync group rosters to the shared container for the notification extension. The NSE has no

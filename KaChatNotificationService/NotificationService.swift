@@ -562,9 +562,10 @@ class NotificationService: UNNotificationServiceExtension {
                 return
             }
             // Being added is only a request, announced once: nothing for a group you're already in
-            // (a new root just rotates its keys), one already waiting, or one you rejected.
+            // (a new root just rotates its keys), one already waiting, or one you rejected. Waiting
+            // and rejected go by admin: someone else's offer of this id can't silence the real one.
             let handled = defaults?.stringArray(forKey: "handled_group_invites") ?? []
-            if handled.contains(control.groupId) || getSharedGroups().contains(where: { $0.groupId == control.groupId }) {
+            if handled.contains(control.groupId) || handled.contains("\(control.groupId):\(control.adminSigningPub)") || getSharedGroups().contains(where: { $0.groupId == control.groupId }) {
                 suppressGroupNotification(content)
                 addPendingMessage(txId: txId, sender: "group", type: messageType)
                 return
@@ -714,14 +715,14 @@ class NotificationService: UNNotificationServiceExtension {
     /// NOT persist the resulting group/roster locally (this target has no Core Data access) -
     /// the main app's catch-up sync re-fetches and applies the same `gctl_root` next time it
     /// runs, so this only needs to recover the group name for the notification body.
-    private func decryptGroupControlForName(payloadHex: String) -> (name: String, groupId: String)? {
+    private func decryptGroupControlForName(payloadHex: String) -> (name: String, groupId: String, adminSigningPub: String)? {
         guard let privateKey = loadPrivateKey() else { return nil }
         guard let plaintext = try? NotificationCipher.decryptHex(payloadHex, privateKey: privateKey),
               let jsonData = plaintext.data(using: .utf8) else { return nil }
         guard let rootPayload = try? JSONDecoder().decode(NotificationGroupCipher.GroupRootPayload.self, from: jsonData),
               rootPayload.type == "gctl_root",
               NotificationGroupCipher.verifyRootPayload(rootPayload) else { return nil }
-        return (rootPayload.name, rootPayload.groupId)
+        return (rootPayload.name, rootPayload.groupId.lowercased(), rootPayload.adminSigningPub.lowercased())
     }
 
     /// Mirrors `GroupChatService.rootEpoch`, including the `previousRoots` archive: a member who

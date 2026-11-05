@@ -289,6 +289,8 @@ enum GroupCipher {
     /// Verifies a received `gctl_root` payload's signature against the claimed admin key.
     /// Callers are responsible for separately checking `adminSigningPub` is the group's known
     /// trusted admin (this only proves internal consistency of the payload's own signature).
+    /// A group id isn't tied to its admin, so with no known admin nothing proves whose group this
+    /// is: an unknown group is one admin's offer of that id, never "the" group (`PendingGroupInvite`).
     static func verifyRootPayload(_ payload: GroupRootPayload) -> Bool {
         guard let groupId = Data(hexString: payload.groupId),
               let groupRootEpoch = Data(hexString: payload.groupRootEpoch),
@@ -317,76 +319,99 @@ enum GroupCipher {
 
     /// `gctl_tombstone` - a self-addressed "I deleted this group" marker so a delete survives a
     /// seedless re-import (the recovery invite would otherwise resurrect it). Signed by the
-    /// deleter, honored ONLY when signed by + addressed to the reader's own key.
+    /// deleter, honored ONLY when signed by + addressed to the reader's own key. v2 names the admin
+    /// it's about, so a stranger reusing a group id can't get the real group refused by being
+    /// rejected. v1 (no admin) covers that id from any admin.
     struct GroupTombstonePayload: Codable {
         var type = "gctl_tombstone"
         var v: UInt8 = 1
         var groupId: String
         var signingPub: String
+        var adminSigningPub: String?
         var sig: String
         enum CodingKeys: String, CodingKey {
             case type, v
             case groupId = "group_id"
             case signingPub = "signing_pub"
+            case adminSigningPub = "admin_signing_pub"
             case sig
         }
     }
 
-    static func buildTombstoneSigningPayload(v: UInt8, groupId: Data) -> Data {
+    static func buildTombstoneSigningPayload(v: UInt8, groupId: Data, adminSigningPub: Data? = nil) -> Data {
         var payload = Data([v])
         payload.append(Data("gctl_tombstone".utf8))
         payload.append(groupId)
+        if let adminSigningPub { payload.append(adminSigningPub) }
         return payload
     }
 
-    static func buildSignedTombstonePayload(groupId: Data, signingPub: Data, privateKey: Data) throws -> GroupTombstonePayload {
-        let signingPayload = buildTombstoneSigningPayload(v: 1, groupId: groupId)
+    static func buildSignedTombstonePayload(groupId: Data, adminSigningPub: Data?, signingPub: Data, privateKey: Data) throws -> GroupTombstonePayload {
+        let v: UInt8 = adminSigningPub == nil ? 1 : 2
+        let signingPayload = buildTombstoneSigningPayload(v: v, groupId: groupId, adminSigningPub: adminSigningPub)
         let sig = try sign(signingPayload, privateKey: privateKey)
-        return GroupTombstonePayload(groupId: groupId.hexString, signingPub: signingPub.hexString, sig: sig.hexString)
+        return GroupTombstonePayload(
+            v: v, groupId: groupId.hexString, signingPub: signingPub.hexString, adminSigningPub: adminSigningPub?.hexString, sig: sig.hexString
+        )
     }
 
     static func verifyTombstonePayload(_ payload: GroupTombstonePayload) -> Bool {
         guard let groupId = Data(hexString: payload.groupId),
               let signingPub = Data(hexString: payload.signingPub),
               let sig = Data(hexString: payload.sig) else { return false }
-        let signingPayload = buildTombstoneSigningPayload(v: payload.v, groupId: groupId)
+        var adminSigningPub: Data?
+        if let adminHex = payload.adminSigningPub {
+            guard let admin = Data(hexString: adminHex) else { return false }
+            adminSigningPub = admin
+        }
+        let signingPayload = buildTombstoneSigningPayload(v: payload.v, groupId: groupId, adminSigningPub: adminSigningPub)
         return verify(sig, message: signingPayload, xOnlyPublicKey: signingPub)
     }
 
     // MARK: - gctl_invite_accept (you joined this group)
     // Self-addressed and signed, like gctl_tombstone (which is what a rejection publishes): it's how
     // your other devices and a restore of your words learn the answer. Older clients ignore it.
+    // It names the admin you said yes to: another root for that group id is still a separate invite.
+    // v1 carried no admin and doesn't decode as this: that group is simply offered again.
     struct GroupInviteAcceptPayload: Codable {
         var type = "gctl_invite_accept"
-        var v: UInt8 = 1
+        var v: UInt8 = 2
         var groupId: String
+        var adminSigningPub: String
         var signingPub: String
         var sig: String
         enum CodingKeys: String, CodingKey {
             case type, v
             case groupId = "group_id"
+            case adminSigningPub = "admin_signing_pub"
             case signingPub = "signing_pub"
             case sig
         }
     }
 
-    static func buildInviteAcceptSigningPayload(v: UInt8, groupId: Data) -> Data {
+    static func buildInviteAcceptSigningPayload(v: UInt8, groupId: Data, adminSigningPub: Data) -> Data {
         var payload = Data([v])
         payload.append(Data("gctl_invite_accept".utf8))
         payload.append(groupId)
+        payload.append(adminSigningPub)
         return payload
     }
 
-    static func buildSignedInviteAcceptPayload(groupId: Data, signingPub: Data, privateKey: Data) throws -> GroupInviteAcceptPayload {
-        let sig = try sign(buildInviteAcceptSigningPayload(v: 1, groupId: groupId), privateKey: privateKey)
-        return GroupInviteAcceptPayload(groupId: groupId.hexString, signingPub: signingPub.hexString, sig: sig.hexString)
+    static func buildSignedInviteAcceptPayload(groupId: Data, adminSigningPub: Data, signingPub: Data, privateKey: Data) throws -> GroupInviteAcceptPayload {
+        let sig = try sign(buildInviteAcceptSigningPayload(v: 2, groupId: groupId, adminSigningPub: adminSigningPub), privateKey: privateKey)
+        return GroupInviteAcceptPayload(
+            groupId: groupId.hexString, adminSigningPub: adminSigningPub.hexString, signingPub: signingPub.hexString, sig: sig.hexString
+        )
     }
 
     static func verifyInviteAcceptPayload(_ payload: GroupInviteAcceptPayload) -> Bool {
         guard let groupId = Data(hexString: payload.groupId),
+              let adminSigningPub = Data(hexString: payload.adminSigningPub),
               let signingPub = Data(hexString: payload.signingPub),
               let sig = Data(hexString: payload.sig) else { return false }
-        return verify(sig, message: buildInviteAcceptSigningPayload(v: payload.v, groupId: groupId), xOnlyPublicKey: signingPub)
+        return verify(
+            sig, message: buildInviteAcceptSigningPayload(v: payload.v, groupId: groupId, adminSigningPub: adminSigningPub), xOnlyPublicKey: signingPub
+        )
     }
 
     // MARK: - gctl_photo (admin-set group photo)

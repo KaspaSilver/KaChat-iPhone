@@ -633,7 +633,6 @@
 "None yet" = "لا يوجد بعد";
 ".kachat Name" = "اسم .kachat";
 "Customize Profile" = "تخصيص الملف الشخصي";
-"Get a %@ domain at %@" = "احصل على نطاق %1$@ من %2$@";
 "No %@ names yet." = "لا توجد أسماء %@ بعد.";
 "Couldn't reach %@. Pull down to try again." = "تعذّر الوصول إلى %@. اسحب للأسفل لإعادة المحاولة.";
 "Settling" = "قيد التأكيد";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "قطع اتصال Nextcloud";
-"Restore from Backup" = "استعادة من نسخة احتياطية";
 "Connected Account" = "الحساب المتصل";
 "Server" = "الخادم";
 "Username" = "اسم المستخدم";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "مزامنة تلقائية";
 "Last synced" = "آخر مزامنة";
 "Backup Folder" = "مجلد النسخ الاحتياطي";
-"Back Up Messages Now" = "نسخ الرسائل احتياطيًا الآن";
 "Last backup" = "آخر نسخة احتياطية";
-"Message Backup" = "النسخ الاحتياطي للرسائل";
 "Disconnect" = "قطع الاتصال";
 "Use https. Unencrypted connections are not supported." = "استخدم https. الاتصالات غير المشفرة غير مدعومة.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "اتصال";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "تُزال كلمة مرور التطبيق من سلسلة المفاتيح (Keychain) في هذا الجهاز. يمكنك إعادة الاتصال في أي وقت.";
 "Restore" = "استعادة";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "تُدمج الرسائل من النسخة الاحتياطية على الخادم في سجل المحادثات على هذا الجهاز. لا يُحذف شيء.";
 "Restore Complete" = "اكتملت الاستعادة";
 "Restore Failed" = "فشلت الاستعادة";
 "Restoring Backup" = "جارٍ استعادة النسخة الاحتياطية";
@@ -1826,3 +1821,7 @@
 "Invited" = "مدعو";
 "Declined" = "رفض";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "لن تكون في هذه المجموعة ما لم تقبل. يُرسل ردك كمعاملة صغيرة مشفرة ليعرف به أعضاء المجموعة وأجهزتك الأخرى.";
+"Back Up Contacts Now" = "نسخ جهات الاتصال احتياطيًا الآن";
+"Contact Backup" = "نسخ جهات الاتصال احتياطيًا";
+"Contacts backed up." = "تم نسخ جهات الاتصال احتياطيًا.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "يتم هنا نسخ جهات اتصالك فقط احتياطيًا، بشكل مشفّر. تعود رسائلك ومحادثاتك الجماعية باستخدام عبارة الاسترداد الخاصة بك.";

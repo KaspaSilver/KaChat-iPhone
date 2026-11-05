@@ -22,9 +22,6 @@ extension ChatService {
             guard let self, self.activeConversationAddress == address else { return }
             await self.fetchNewMessages(forActiveOnly: address)
         }
-        // Nextcloud mirror runs on an adaptive cadence keyed off the open chat; wake its
-        // change watcher so this chat picks up other devices' uploads immediately.
-        NextcloudService.shared.noteChatOpened()
         loadReactions(for: address)
         // Keep the Share Extension's "Recent" list fresh: opening a chat counts as touching it.
         let alias = ContactsManager.shared.displayName(for: address)

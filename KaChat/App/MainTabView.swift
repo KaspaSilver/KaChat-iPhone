@@ -44,9 +44,6 @@ struct MainTabView: View {
     // Red dot on the Profile tab while the bell (which lives on the Profile screen)
     // holds unread notifications.
     @ObservedObject private var notifCenter = GlobalNotificationCenter.shared
-    // Surfaces the Nextcloud silent auto-restore's one-line result ("Restored N messages...")
-    // as a toast over whatever tab is showing - the automatic path has no modal by design.
-    @ObservedObject private var nextcloudService = NextcloudService.shared
 
     /// The dock's TabView on its own, so `body` stays small enough for the type checker. The
     /// dock is the fixed `AppTab.dock`: Contacts, Wallet, Chats, Profile, Settings.
@@ -71,7 +68,6 @@ struct MainTabView: View {
         // The dock badges (Profile's dot, the Chats count), from whichever tab is showing. Its
         // own modifier: inline, these pushed the body past what the type checker can solve.
         .modifier(DockBadgeSync(selectedTab: selectedTab, dockTabs: AppTab.dock))
-        .toast(message: nextcloudService.syncStatusToast)
         .onAppear {
             LaunchTrace.mark("main tabs on screen")
             // A hold with no guide to release it would strand the account: the branches below

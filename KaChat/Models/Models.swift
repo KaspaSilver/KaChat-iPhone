@@ -2350,8 +2350,10 @@ struct AppSettings: Codable {
             language: .system,
             currency: .usDollar,
             biometricSeedPhraseEnabled: true,
-            // Asked when signing back in to a saved account: on by default (owner's call, 2026-11-01).
-            biometricAccountLoginEnabled: true,
+            // Asked when signing back in to a saved account: off by default, so a phone with no
+            // passcode can still get in (owner's call, 2026-11-05). Users can turn it on. Seed words,
+            // private keys and sends still need the phone's lock.
+            biometricAccountLoginEnabled: false,
             biometricSpendingKeyEnabled: true,
             indexerURL: defaultIndexerURL,
             pushIndexerURL: defaultPushIndexerURL,
@@ -2429,7 +2431,7 @@ struct AppSettings: Codable {
         language: AppLanguage = .system,
         currency: AppCurrency = .usDollar,
         biometricSeedPhraseEnabled: Bool = true,
-        biometricAccountLoginEnabled: Bool = true,
+        biometricAccountLoginEnabled: Bool = false,
         biometricSpendingKeyEnabled: Bool = true,
         verboseAPILogging: Bool = false,
         indexerURL: String,
@@ -2523,7 +2525,7 @@ struct AppSettings: Codable {
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .system
         currency = try container.decodeIfPresent(AppCurrency.self, forKey: .currency) ?? .usDollar
         biometricSeedPhraseEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricSeedPhraseEnabled) ?? true
-        biometricAccountLoginEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricAccountLoginEnabled) ?? true
+        biometricAccountLoginEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricAccountLoginEnabled) ?? false
         biometricSpendingKeyEnabled = try container.decodeIfPresent(Bool.self, forKey: .biometricSpendingKeyEnabled) ?? true
         verboseAPILogging = try container.decodeIfPresent(Bool.self, forKey: .verboseAPILogging) ?? false
 

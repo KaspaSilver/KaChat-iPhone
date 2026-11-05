@@ -633,7 +633,6 @@
 "None yet" = "まだありません";
 ".kachat Name" = ".kachat 名";
 "Customize Profile" = "プロフィールをカスタマイズ";
-"Get a %@ domain at %@" = "%2$@ で %1$@ ドメインを取得";
 "No %@ names yet." = "%@ の名前はまだありません。";
 "Couldn't reach %@. Pull down to try again." = "%@ に接続できません。下に引いて再試行してください。";
 "Settling" = "確定待ち";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Nextcloudを切断";
-"Restore from Backup" = "バックアップから復元";
 "Connected Account" = "接続済みのアカウント";
 "Server" = "サーバー";
 "Username" = "ユーザー名";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "自動同期";
 "Last synced" = "最終同期";
 "Backup Folder" = "バックアップフォルダ";
-"Back Up Messages Now" = "今すぐメッセージをバックアップ";
 "Last backup" = "最終バックアップ";
-"Message Backup" = "メッセージのバックアップ";
 "Disconnect" = "切断";
 "Use https. Unencrypted connections are not supported." = "httpsを使ってください。暗号化されていない接続には対応していません。";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "接続";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "アプリのパスワードがこのデバイスのキーチェーンから削除されます。いつでも再接続できます。";
 "Restore" = "復元";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "サーバーのバックアップにあるメッセージは、この端末のチャット履歴に統合されます。何も削除されません。";
 "Restore Complete" = "復元完了";
 "Restore Failed" = "復元に失敗しました";
 "Restoring Backup" = "バックアップを復元中";
@@ -1826,3 +1821,7 @@
 "Invited" = "招待中";
 "Declined" = "辞退";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "承諾するまでこのグループには参加しません。回答は少額の暗号化トランザクションとして送信され、グループとあなたの他のデバイスに伝わります。";
+"Back Up Contacts Now" = "今すぐ連絡先をバックアップ";
+"Contact Backup" = "連絡先のバックアップ";
+"Contacts backed up." = "連絡先をバックアップしました。";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "ここでは連絡先のみを暗号化してバックアップします。メッセージとグループチャットはシードフレーズで復元されます。";

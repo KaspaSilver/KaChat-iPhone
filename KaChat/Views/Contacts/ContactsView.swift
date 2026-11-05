@@ -2164,28 +2164,6 @@ private struct KNSDomainsListView: View {
             .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
-    /// "Get a .kas domain at knsdomains.org" - the pinned button under each outside service's
-    /// tab, opening that service's own site. KaChat creates only its own `.kachat` names; the
-    /// other services' names are registered with them. Same glass capsule with a teal outline
-    /// the in-app Inscribe button had (not the accent fill: the cards above are accent-filled).
-    @ViewBuilder
-    private func getNameButton(_ tld: NameServiceTLD) -> some View {
-        if let url = tld.websiteURL, let site = tld.websiteName {
-            Link(destination: url) {
-                Text("Get a \(tld.suffix) domain at \(site)")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.accentColor)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(Capsule().fill(.regularMaterial))
-                    .overlay(Capsule().stroke(Color.accentColor, lineWidth: 1.5))
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 16)
-        }
-    }
-
     // MARK: .kas (KNS)
 
     private var knsDomainList: some View {
@@ -2221,9 +2199,6 @@ private struct KNSDomainsListView: View {
         }
         .refreshable {
             await onRefresh()
-        }
-        .safeAreaInset(edge: .bottom) {
-            getNameButton(.kas)
         }
     }
 
@@ -2262,9 +2237,6 @@ private struct KNSDomainsListView: View {
         }
         .refreshable {
             await nameServices.refresh(for: walletAddress)
-        }
-        .safeAreaInset(edge: .bottom) {
-            getNameButton(tld)
         }
     }
 

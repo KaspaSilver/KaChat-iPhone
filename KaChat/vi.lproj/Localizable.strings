@@ -633,7 +633,6 @@
 "None yet" = "Chưa có";
 ".kachat Name" = "Tên .kachat";
 "Customize Profile" = "Tùy chỉnh hồ sơ";
-"Get a %@ domain at %@" = "Nhận tên miền %1$@ tại %2$@";
 "No %@ names yet." = "Chưa có tên %@.";
 "Couldn't reach %@. Pull down to try again." = "Không thể kết nối %@. Kéo xuống để thử lại.";
 "Settling" = "Đang xác nhận";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Ngắt kết nối Nextcloud";
-"Restore from Backup" = "Khôi phục từ bản sao lưu";
 "Connected Account" = "Tài khoản đã kết nối";
 "Server" = "Máy chủ";
 "Username" = "Tên người dùng";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "Đồng bộ tự động";
 "Last synced" = "Đồng bộ gần nhất";
 "Backup Folder" = "Thư mục sao lưu";
-"Back Up Messages Now" = "Sao lưu tin nhắn ngay";
 "Last backup" = "Lần sao lưu gần nhất";
-"Message Backup" = "Sao lưu tin nhắn";
 "Disconnect" = "Ngắt kết nối";
 "Use https. Unencrypted connections are not supported." = "Hãy dùng https. Kết nối không mã hóa không được hỗ trợ.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "Kết nối";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "Mật khẩu ứng dụng sẽ bị xóa khỏi Chuỗi khóa của thiết bị này. Bạn có thể kết nối lại bất cứ lúc nào.";
 "Restore" = "Khôi phục";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Tin nhắn từ bản sao lưu trên máy chủ được gộp vào lịch sử trò chuyện của thiết bị này. Không có gì bị xóa.";
 "Restore Complete" = "Khôi phục hoàn tất";
 "Restore Failed" = "Khôi phục không thành công";
 "Restoring Backup" = "Đang khôi phục bản sao lưu";
@@ -1826,3 +1821,7 @@
 "Invited" = "Đã mời";
 "Declined" = "Đã từ chối";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Bạn không ở trong nhóm này trừ khi chấp nhận. Câu trả lời được gửi dưới dạng một giao dịch nhỏ đã mã hóa, để nhóm và các thiết bị khác của bạn biết.";
+"Back Up Contacts Now" = "Sao lưu danh bạ ngay";
+"Contact Backup" = "Sao lưu danh bạ";
+"Contacts backed up." = "Đã sao lưu danh bạ.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Tại đây chỉ sao lưu danh bạ của bạn, được mã hóa. Tin nhắn và cuộc trò chuyện nhóm của bạn sẽ trở lại nhờ cụm từ khôi phục.";

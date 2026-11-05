@@ -633,7 +633,6 @@
 "None yet" = "Henüz yok";
 ".kachat Name" = ".kachat adı";
 "Customize Profile" = "Profili özelleştir";
-"Get a %@ domain at %@" = "%2$@ üzerinden bir %1$@ alan adı al";
 "No %@ names yet." = "Henüz %@ adı yok.";
 "Couldn't reach %@. Pull down to try again." = "%@ ile bağlantı kurulamadı. Tekrar denemek için aşağı çek.";
 "Settling" = "Onaylanıyor";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Nextcloud Bağlantısını Kes";
-"Restore from Backup" = "Yedekten Geri Yükle";
 "Connected Account" = "Bağlı Hesap";
 "Server" = "Sunucu";
 "Username" = "Kullanıcı adı";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "Otomatik Senkronizasyon";
 "Last synced" = "Son senkronizasyon";
 "Backup Folder" = "Yedekleme Klasörü";
-"Back Up Messages Now" = "Mesajları Şimdi Yedekle";
 "Last backup" = "Son yedekleme";
-"Message Backup" = "Mesaj Yedeği";
 "Disconnect" = "Bağlantıyı Kes";
 "Use https. Unencrypted connections are not supported." = "https kullan. Şifrelenmemiş bağlantılar desteklenmez.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "Bağlan";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "Uygulama şifresi bu cihazın Anahtar Zinciri'nden kaldırılır. İstediğin zaman yeniden bağlanabilirsin.";
 "Restore" = "Geri Yükle";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Sunucu yedeğindeki mesajlar bu cihazın sohbet geçmişiyle birleştirilir. Hiçbir şey silinmez.";
 "Restore Complete" = "Geri Yükleme Tamamlandı";
 "Restore Failed" = "Geri Yükleme Başarısız";
 "Restoring Backup" = "Yedek Geri Yükleniyor";
@@ -1826,3 +1821,7 @@
 "Invited" = "Davet edildi";
 "Declined" = "Reddedildi";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Kabul etmedikçe bu grupta olmazsın. Yanıtın küçük, şifreli bir işlem olarak gönderilir; böylece grup ve diğer cihazların bunu öğrenir.";
+"Back Up Contacts Now" = "Kişileri Şimdi Yedekle";
+"Contact Backup" = "Kişi Yedeği";
+"Contacts backed up." = "Kişiler yedeklendi.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Burada yalnızca kişileriniz şifreli olarak yedeklenir. Mesajlarınız ve grup sohbetleriniz başlangıç ifadenizle geri gelir.";

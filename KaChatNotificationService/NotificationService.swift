@@ -751,12 +751,16 @@ class NotificationService: UNNotificationServiceExtension {
     }
 
     /// Loads a `GroupBag` from the Keychain access group shared with the main app, mirroring
-    /// `KeychainService.loadGroupBag`'s exact storage scheme (device-scoped key name, optional
-    /// Secure Enclave wrapping) so this target can read it independently.
+    /// `KeychainService.loadGroupBag`'s exact storage scheme (per-account key name, the old
+    /// per-device name as the fallback, optional Secure Enclave wrapping) so this target can read it
+    /// independently.
     private func loadGroupBag(groupId: String) -> SharedGroupBag? {
         guard let deviceId = deviceIdentifier() else { return nil }
-        let keyName = "kachat_group_bag.\(deviceId).\(groupId)"
-        guard let data = loadPrivateKeyWithAccount(account: keyName) else { return nil }
+        var stored: Data?
+        if let wallet = getWalletAddress()?.lowercased() {
+            stored = loadPrivateKeyWithAccount(account: "kachat_group_bag.\(deviceId).\(wallet).\(groupId)")
+        }
+        guard let data = stored ?? loadPrivateKeyWithAccount(account: "kachat_group_bag.\(deviceId).\(groupId)") else { return nil }
         return try? JSONDecoder().decode(SharedGroupBag.self, from: data)
     }
 

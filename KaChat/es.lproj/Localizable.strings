@@ -633,7 +633,6 @@
 "None yet" = "Ninguno aún";
 ".kachat Name" = "Nombre .kachat";
 "Customize Profile" = "Personalizar perfil";
-"Get a %@ domain at %@" = "Consigue un dominio %1$@ en %2$@";
 "No %@ names yet." = "Aún no hay nombres %@.";
 "Couldn't reach %@. Pull down to try again." = "No se pudo contactar con %@. Desliza hacia abajo para reintentar.";
 "Settling" = "Confirmándose";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Desconectar Nextcloud";
-"Restore from Backup" = "Restaurar desde respaldo";
 "Connected Account" = "Cuenta conectada";
 "Server" = "Servidor";
 "Username" = "Nombre de usuario";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "Sincronización automática";
 "Last synced" = "Última sincronización";
 "Backup Folder" = "Carpeta de respaldo";
-"Back Up Messages Now" = "Respaldar mensajes ahora";
 "Last backup" = "Último respaldo";
-"Message Backup" = "Respaldo de mensajes";
 "Disconnect" = "Desconectar";
 "Use https. Unencrypted connections are not supported." = "Usa https. No se admiten conexiones sin cifrar.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "Conectar";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "La contraseña de la app se elimina del Llavero de este dispositivo. Puedes volver a conectarte cuando quieras.";
 "Restore" = "Restaurar";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Los mensajes del respaldo del servidor se combinan con el historial de chats de este dispositivo. No se borra nada.";
 "Restore Complete" = "Restauración completada";
 "Restore Failed" = "Error al restaurar";
 "Restoring Backup" = "Restaurando respaldo";
@@ -1826,3 +1821,7 @@
 "Invited" = "Invitado";
 "Declined" = "Rechazado";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "No estarás en este grupo a menos que aceptes. Tu respuesta se envía como una pequeña transacción cifrada, para que el grupo y tus otros dispositivos lo sepan.";
+"Back Up Contacts Now" = "Hacer copia de contactos ahora";
+"Contact Backup" = "Copia de contactos";
+"Contacts backed up." = "Copia de contactos realizada.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Aquí solo se hace copia de tus contactos, cifrada. Tus mensajes y chats de grupo vuelven con tu frase semilla.";

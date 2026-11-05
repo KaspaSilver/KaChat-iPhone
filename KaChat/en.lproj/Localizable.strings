@@ -634,7 +634,6 @@
 "None yet" = "None yet";
 ".kachat Name" = ".kachat Name";
 "Customize Profile" = "Customize Profile";
-"Get a %@ domain at %@" = "Get a %@ domain at %@";
 "No %@ names yet." = "No %@ names yet.";
 "Couldn't reach %@. Pull down to try again." = "Couldn't reach %@. Pull down to try again.";
 "Settling" = "Settling";
@@ -1443,7 +1442,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Disconnect Nextcloud";
-"Restore from Backup" = "Restore from Backup";
 "Connected Account" = "Connected Account";
 "Server" = "Server";
 "Username" = "Username";
@@ -1452,9 +1450,7 @@
 "Automatic Sync" = "Automatic Sync";
 "Last synced" = "Last synced";
 "Backup Folder" = "Backup Folder";
-"Back Up Messages Now" = "Back Up Messages Now";
 "Last backup" = "Last backup";
-"Message Backup" = "Message Backup";
 "Disconnect" = "Disconnect";
 "Use https. Unencrypted connections are not supported." = "Use https. Unencrypted connections are not supported.";
 "cloud.example.com" = "cloud.example.com";
@@ -1462,7 +1458,6 @@
 "Connect" = "Connect";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "The app password is removed from this device's Keychain. You can reconnect any time.";
 "Restore" = "Restore";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Messages from the server backup are merged into this device's chat history. Nothing is deleted.";
 "Restore Complete" = "Restore Complete";
 "Restore Failed" = "Restore Failed";
 "Restoring Backup" = "Restoring Backup";
@@ -1827,3 +1822,7 @@
 "Invited" = "Invited";
 "Declined" = "Declined";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know.";
+"Back Up Contacts Now" = "Back Up Contacts Now";
+"Contact Backup" = "Contact Backup";
+"Contacts backed up." = "Contacts backed up.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase.";

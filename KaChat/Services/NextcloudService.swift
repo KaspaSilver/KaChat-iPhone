@@ -88,7 +88,7 @@ enum NextcloudError: LocalizedError {
     case noActiveWallet
     /// The app is running on testnet, where Nextcloud is off (see `isOffForTestnet`).
     case offOnTestnet
-    /// HTTP 423 on the archive after the retries: Nextcloud's lock on the file did not clear.
+    /// HTTP 423 on the file after the retries: Nextcloud's lock on the file did not clear.
     case backupLocked
     /// The upload finished but the server stored fewer bytes than were sent (a relay cut it).
     case uploadCutOff(sent: Int, stored: Int64)
@@ -150,12 +150,11 @@ final class NextcloudService: ObservableObject {
     /// capabilities on connect and on every wallet activation; false until known.
     @Published private(set) var talkCallsAvailable = false
 
-    /// "Automatic Sync" toggle (Settings > Storage > Nextcloud) - the upgraded form of the old
-    /// "Automatic Backup" switch (same stored key, so existing choices carry over; defaults ON
-    /// once connected). When on, the shared archive syncs near-live: a debounced merge upload
-    /// seconds after message activity settles, a foreground ETag watcher that pulls in other
-    /// devices' uploads, an hourly on-background catch-up, and a silent one-time restore when
-    /// a wallet activates. Per wallet account.
+    /// "Automatic Sync" toggle (Settings > Storage > Nextcloud), per wallet account. Nextcloud backs
+    /// up contacts and nothing else: messages and groups come back from the seed, off the chain.
+    /// When on, the contacts file syncs both ways: a debounced merge upload after a contact changes,
+    /// a foreground ETag watcher that pulls in other devices' changes, and an hourly on-background
+    /// catch-up. The old `kachat-backup.json` is never read or written. NEXTCLOUD_SYNC.md.
     /// Persistence is NOT in didSet: loads and programmatic defaults must never masquerade as
     /// a user choice (the pre-sync build's didSet did exactly that, stamping OFF on every
     /// wallet load - see `resolveAndMigrateAutoSyncEnabled`). The UI writes through
@@ -164,11 +163,9 @@ final class NextcloudService: ObservableObject {
         didSet {
             guard !isLoadingWalletState, oldValue != autoBackupEnabled else { return }
             if autoBackupEnabled {
-                // Turning sync on marks the archive dirty so the first upload happens promptly,
-                // gives this wallet its one-time silent restore if it never had one, and starts
-                // the foreground change watcher.
-                noteMessageActivity()
-                scheduleAutoRestoreIfNeeded()
+                // Turning sync on marks the contacts dirty so the first upload happens promptly,
+                // and starts the foreground change watcher.
+                noteContactActivity()
                 startChangeWatcherIfNeeded()
             } else {
                 syncDebounceTask?.cancel()
@@ -190,14 +187,9 @@ final class NextcloudService: ObservableObject {
         autoBackupEnabled = enabled
     }
 
-    /// When the active wallet's archive last uploaded automatically (nil = never). Mirrors the
+    /// When the active wallet's contacts last synced automatically (nil = never). Mirrors the
     /// persisted throttle stamp so Settings can show a live "Last synced" line.
     @Published private(set) var lastAutoSyncAt: Date?
-
-    /// Transient status line for the silent auto-restore ("Restored N messages from Nextcloud").
-    /// MainTabView renders it as a toast; nil hides it.
-    @Published var syncStatusToast: String?
-
 
     /// The active wallet's address - every credential/settings read and write is scoped to it.
     /// nil (signed out / no wallet yet) presents as disconnected and persists nothing.
@@ -207,36 +199,29 @@ final class NextcloudService: ObservableObject {
     private var currentWalletHashSuffix: String?
 
     /// The in-flight automatic backup, held so a wallet switch can cancel it - account A's
-    /// archive must never upload while account B is active.
+    /// contacts must never upload while account B is active.
     private var autoBackupTask: Task<Void, Never>?
     /// When the app last looked at the contacts file shared with KaPay.
     private var lastSharedContactsCheck: Date?
     /// One at a time: two `PUT`s at once get `423 Locked`.
     private var sharedContactsSyncInFlight = false
 
-    /// The quiet-time timer armed by `noteMessageActivity` - a rapid exchange coalesces into
+    /// The quiet-time timer armed by `noteContactActivity` - a rapid exchange coalesces into
     /// one merge upload after things settle. Cancelled by wallet switch, disconnect, toggle-off
     /// and backgrounding (the on-background flush takes over there).
     private var syncDebounceTask: Task<Void, Never>?
-    /// The silent one-time restore for a freshly activated wallet.
-    private var autoRestoreTask: Task<Void, Never>?
     /// The foreground ETag poll loop (see `startChangeWatcherIfNeeded`).
     private var changeWatcherTask: Task<Void, Never>?
     /// Bumped on every watcher start/stop so a superseded loop can never clear (or keep alive)
     /// its successor's `changeWatcherTask` slot.
     private var changeWatcherEpoch = 0
-    /// Bumped by `noteChatOpened` to break the watcher out of its current sleep for an
-    /// immediate poll. The sleep runs in short slices and checks this each slice - no
-    /// busy loop, and the watcher only runs while the app is foregrounded.
-    private var changeWatcherWakeToken = 0
-    /// The server ETag of the last backup content this device IMPORTED or WROTE, normalized
+    /// The server ETag of the last contacts file this device MERGED or WROTE, normalized
     /// (no weak prefix, no quotes). Persisted per wallet so a change that lands while the app
     /// is backgrounded is still caught by the first poll after foregrounding. nil = never seen.
     /// This is the feedback-loop guard: `runBackup` records the ETag of its own PUT, so a
     /// device never re-downloads its own write.
     private var lastKnownBackupETag: String?
-    /// In-memory mirror of the ACTIVE wallet's persisted dirty flag, so the per-message
-    /// activity hook doesn't hit UserDefaults on every insert during a big sync.
+    /// In-memory mirror of the ACTIVE wallet's persisted dirty flag.
     private var pendingSyncDirty = false
     /// Serializes automatic uploads and the silent restore so they never interleave; a skipped
     /// run leaves the dirty flag set and a later trigger retries.
@@ -251,13 +236,12 @@ final class NextcloudService: ObservableObject {
     private nonisolated static let autoBackupKey = "kachat_nextcloud_auto_backup"
     private nonisolated static let mediaSendKey = "kachat_nextcloud_media_send"
     private nonisolated static let lastAutoBackupKey = "kachat_nextcloud_last_auto_backup"
-    /// Persisted dirty flag: message activity happened after the last successful automatic
+    /// Persisted dirty flag: a contact changed after the last successful automatic
     /// upload. Survives a kill, so the app-active / on-background catch-up flushes what the
     /// debounce path missed.
     private nonisolated static let pendingSyncKey = "kachat_nextcloud_pending_sync"
-    /// Per-wallet marker: this wallet already had its one-time silent auto-restore. Set only
-    /// after a successful import; a missing server file leaves it unset so a backup appearing
-    /// later (first sync from another device) still bootstraps.
+    /// From when a new device restored the chat backup once. Nothing sets it now; it's only still
+    /// here to be cleared with the rest of a wallet's settings.
     private nonisolated static let autoRestoreDoneKey = "kachat_nextcloud_auto_restore_done"
     /// Marks that the stored `autoBackupKey` value is an EXPLICIT user choice (or a settled
     /// migration), not a leftover default - see `resolveAndMigrateAutoSyncEnabled`.
@@ -268,12 +252,8 @@ final class NextcloudService: ObservableObject {
     /// account can host a call - a VoIP push that starts the app cannot wait for the network.
     private nonisolated static let talkCallsKey = "kachat_nextcloud_talk_calls"
     nonisolated static let autoBackupMinInterval: TimeInterval = 3600
-    /// Quiet time after the last message before the automatic merge upload runs. Two tiers,
-    /// for battery: fast while a 1:1 or group chat is open on screen (a send from inside a
-    /// chat is the latency-sensitive case), relaxed elsewhere in the app. The tier is picked
-    /// each time the timer is armed, so further activity re-reads the open-chat state.
-    nonisolated static let inChatSyncDebounceInterval: TimeInterval = 5
-    nonisolated static let idleSyncDebounceInterval: TimeInterval = 15
+    /// Quiet time after the last contact change before the automatic merge upload runs.
+    nonisolated static let syncDebounceInterval: TimeInterval = 15
     /// Floor between AUTOMATIC merge uploads (the manual backup button calls `runBackup`
     /// directly and is unaffected). The debounce above decides WHEN a burst has settled; this
     /// decides how often settled bursts may actually upload. A debounce that fires earlier
@@ -282,19 +262,11 @@ final class NextcloudService: ObservableObject {
     /// coalesces into one upload per floor interval.
     nonisolated static let autoSyncMinInterval: TimeInterval = 90
     nonisolated static let autoSyncMinIntervalExpensive: TimeInterval = 300
-    /// Foreground change-watcher cadence: how often the shared file's ETag is polled while
-    /// the app is active (a tiny Depth-0 PROPFIND, no body). Same two tiers: the fast poll
-    /// runs only while a chat is actually open on screen; the rest of the app gets the
-    /// relaxed cadence. The watcher re-resolves the tier on every loop iteration, and
-    /// entering a chat wakes it for an immediate poll (see `noteChatOpened`).
-    nonisolated static let inChatChangeWatchInterval: TimeInterval = 5
-    nonisolated static let idleChangeWatchInterval: TimeInterval = 30
-    /// Relaxed watcher tiers for expensive (cellular/metered) paths - the Depth-0 PROPFIND is
-    /// tiny, but at 5s forever it still adds up on a metered plan, and a changed ETag triggers
-    /// a full archive download. Resolved per tick like the tier itself, so a WiFi/cellular
-    /// flip takes effect on the next loop iteration.
-    nonisolated static let inChatChangeWatchIntervalExpensive: TimeInterval = 30
-    nonisolated static let idleChangeWatchIntervalExpensive: TimeInterval = 60
+    /// Foreground change-watcher cadence: how often the contacts file's ETag is polled while the
+    /// app is active (a tiny Depth-0 PROPFIND, no body), relaxed on expensive paths. Resolved per
+    /// tick, so a WiFi/cellular flip takes effect on the next loop iteration.
+    nonisolated static let changeWatchInterval: TimeInterval = 30
+    nonisolated static let changeWatchIntervalExpensive: TimeInterval = 60
     /// Failed polls back off from the CURRENT tier's base (x3 per consecutive failure,
     /// interval capped here) and snap back to the tier cadence on the next success.
     private nonisolated static let changeWatchBackoffMax: TimeInterval = 60
@@ -367,8 +339,6 @@ final class NextcloudService: ObservableObject {
         autoBackupTask = nil
         syncDebounceTask?.cancel()
         syncDebounceTask = nil
-        autoRestoreTask?.cancel()
-        autoRestoreTask = nil
         stopChangeWatcher()
         thumbnailCache.removeAllObjects()
         lastSharedContactsCheck = nil
@@ -402,10 +372,8 @@ final class NextcloudService: ObservableObject {
         lastAutoSyncAt = lastStamp > 0 ? Date(timeIntervalSince1970: lastStamp) : nil
         lastKnownBackupETag = scopedKey(Self.lastETagKey).flatMap { UserDefaults.standard.string(forKey: $0) }
 
-        // Wallet activation (load, import, switch) is the auto-restore moment: if the shared
-        // file exists and this wallet never restored it, import it silently in the background.
-        scheduleAutoRestoreIfNeeded()
-        // Continuous path after the bootstrap: watch the shared file for other devices' writes.
+        // Watch the contacts file for other devices' writes. A new device's first poll sees an ETag
+        // it doesn't know, so this is also how it gets the contacts.
         startChangeWatcherIfNeeded()
         syncSharedContactsIfDue()
         talkCallsAvailable = account != nil && (scopedKey(Self.talkCallsKey).map { UserDefaults.standard.bool(forKey: $0) } ?? false)
@@ -431,7 +399,7 @@ final class NextcloudService: ObservableObject {
     }
 
     /// Deletes the encrypted archive from the user's Nextcloud. Only ever on the user's say-so
-    /// (the Delete Account option that names it): the archive is what carries history to their
+    /// (the Delete Account option that names it): the contacts file is what carries them to their
     /// other devices.
     func deleteRemoteBackup() async throws {
         guard let account, let server = account.serverURL else { throw NextcloudError.badCredentials }
@@ -439,16 +407,18 @@ final class NextcloudService: ObservableObject {
         for part in backupFolderPath.split(separator: "/") {
             url.appendPathComponent(String(part))
         }
-        url.appendPathComponent(Self.backupFileName)
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        applyAuth(&request, account: account)
-        let (_, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw NextcloudError.malformedResponse }
-        if http.statusCode == 401 { throw NextcloudError.badCredentials }
-        // 404: nothing there, which is the state asked for.
-        guard (200..<300).contains(http.statusCode) || http.statusCode == 404 else {
-            throw NextcloudError.httpError(http.statusCode)
+        // The old chat backup too: this is the account going away, the one time KaChat still touches it.
+        for file in [Self.backupFileName, Self.retiredChatBackupFileName] {
+            var request = URLRequest(url: url.appendingPathComponent(file))
+            request.httpMethod = "DELETE"
+            applyAuth(&request, account: account)
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else { throw NextcloudError.malformedResponse }
+            if http.statusCode == 401 { throw NextcloudError.badCredentials }
+            // 404: nothing there, which is the state asked for.
+            guard (200..<300).contains(http.statusCode) || http.statusCode == 404 else {
+                throw NextcloudError.httpError(http.statusCode)
+            }
         }
         if let wallet = currentWalletAddress { setLastKnownBackupETag(nil, walletAddress: wallet) }
         AppLog.log("%@", "[Nextcloud] Remote archive deleted")
@@ -587,7 +557,7 @@ final class NextcloudService: ObservableObject {
 
     /// Runs the automatic backup when enabled, connected, and either at least `minInterval`
     /// past the last one (hourly for on-background, daily for the launch catch-up) or when the
-    /// persisted dirty flag says message activity is still owed an upload (a kill beat the
+    /// persisted dirty flag says a contact change is still owed an upload (a kill beat the
     /// debounce timer). Failures are silent by design (the flag is re-marked and the next
     /// trigger retries); success stamps the throttle clock and clears the flag. Every upload
     /// goes through `runBackup`, so it merges with the server's copy exactly like a manual one.
@@ -602,14 +572,12 @@ final class NextcloudService: ObservableObject {
         await performAutomaticSync(walletAtStart: walletAtStart)
     }
 
-    // MARK: - Continuous sync (debounced message-activity uploads)
+    // MARK: - Continuous sync (debounced contact uploads)
 
-    /// Message activity signal - called from `ChatService.addMessageToConversation` for every
-    /// message that lands, incoming or outgoing, whatever the path. Marks the active wallet's
-    /// archive dirty (persisted, so a kill can't lose the fact that an upload is owed) and
-    /// restarts the quiet-time timer; a rapid exchange coalesces into one merge upload after
-    /// things settle. Cheap and safe to call at any rate.
-    func noteMessageActivity() {
+    /// A contact changed. Marks the active wallet's contacts dirty (persisted, so a kill can't lose
+    /// the fact that an upload is owed) and restarts the quiet-time timer, so a run of edits becomes
+    /// one merge upload. Cheap and safe to call at any rate.
+    func noteContactActivity() {
         guard autoBackupEnabled, isConnected, let wallet = currentWalletAddress else { return }
         if !pendingSyncDirty {
             pendingSyncDirty = true
@@ -617,45 +585,11 @@ final class NextcloudService: ObservableObject {
                 UserDefaults.standard.set(true, forKey: key)
             }
         }
-        // Tier picked at ARM time: a message landing while a chat is open arms the fast
-        // upload; background-ish activity (sweeps, catch-up syncs) arms the relaxed one.
-        // Every re-arm re-reads the state, so the last message of a burst decides.
-        armSyncDebounce(for: wallet, after: currentSyncDebounceInterval)
+        armSyncDebounce(for: wallet, after: Self.syncDebounceInterval)
     }
 
-    // MARK: - Cadence tiers (fast in an open chat, relaxed elsewhere, for battery)
-
-    /// True while a 1:1 conversation or a group thread is actually open on screen - the same
-    /// signals notification suppression keys off. `ChatService.enterConversation` /
-    /// `leaveConversation` and `GroupChatService.enterGroup` / `exitGroup` are driven by the
-    /// chat views' appear/disappear, so both clear on leaving the thread.
-    private var isChatOpenOnScreen: Bool {
-        ChatService.shared.activeConversationAddress != nil
-            || GroupChatService.shared.activeGroupId != nil
-    }
-
-    /// The change watcher's base cadence for the CURRENT tier, resolved fresh per tick.
-    /// Expensive (cellular/metered) paths get the relaxed tier pair.
     private var currentChangeWatchInterval: TimeInterval {
-        if NetworkEpochMonitor.shared.isExpensivePath {
-            return isChatOpenOnScreen ? Self.inChatChangeWatchIntervalExpensive : Self.idleChangeWatchIntervalExpensive
-        }
-        return isChatOpenOnScreen ? Self.inChatChangeWatchInterval : Self.idleChangeWatchInterval
-    }
-
-    /// The upload debounce for the CURRENT tier, resolved fresh at each arm.
-    private var currentSyncDebounceInterval: TimeInterval {
-        isChatOpenOnScreen ? Self.inChatSyncDebounceInterval : Self.idleSyncDebounceInterval
-    }
-
-    /// Chat-entry signal - called from `ChatService.enterConversation` and
-    /// `GroupChatService.enterGroup`. Wakes the change watcher out of whatever sleep it is in
-    /// so opening a chat polls the server immediately instead of waiting out a residual
-    /// idle-tier tick; the ticks after that resolve to the in-chat cadence on their own.
-    /// A no-op when no watcher is running (background, disconnected, sync off).
-    func noteChatOpened() {
-        guard changeWatcherTask != nil else { return }
-        changeWatcherWakeToken &+= 1
+        NetworkEpochMonitor.shared.isExpensivePath ? Self.changeWatchIntervalExpensive : Self.changeWatchInterval
     }
 
     private func armSyncDebounce(for wallet: String, after delay: TimeInterval) {
@@ -671,8 +605,8 @@ final class NextcloudService: ObservableObject {
     /// The one automatic upload path. `walletAtStart` is the wallet snapshotted at schedule
     /// time; the active wallet is re-checked before building and again before uploading (inside
     /// `runBackup`), so a wallet switch mid-flight drops the work instead of writing one
-    /// account's history into another's file. The dirty flag is cleared BEFORE building - a
-    /// message arriving during the upload re-marks it, so nothing is lost; clearing after would
+    /// account's contacts into another's file. The dirty flag is cleared BEFORE building - a
+    /// contact changed during the upload re-marks it, so nothing is lost; clearing after would
     /// swallow that signal - and re-marked on any failure so a later trigger retries.
     private func performAutomaticSync(walletAtStart: String) async {
         guard currentWalletAddress == walletAtStart, autoBackupEnabled, isConnected else { return }
@@ -690,11 +624,9 @@ final class NextcloudService: ObservableObject {
                 return
             }
         }
-        guard !syncInFlight,
-              !BackupRestoreCoordinator.shared.isRunning,
-              !IncomingResyncCoordinator.shared.isRunning else {
-            // A manual restore/resync (or another automatic pass) owns the store right now;
-            // the dirty flag stays set and a short re-arm retries once it is done.
+        guard !syncInFlight else {
+            // Another automatic pass is running; the dirty flag stays set and a short re-arm
+            // retries once it is done.
             armSyncDebounce(for: walletAtStart, after: 30)
             return
         }
@@ -714,7 +646,7 @@ final class NextcloudService: ObservableObject {
                 UserDefaults.standard.set(now.timeIntervalSince1970, forKey: lastBackupKey)
             }
             lastAutoSyncAt = now
-            AppLog.log("%@", "[Nextcloud] Automatic sync uploaded the merged archive")
+            AppLog.log("%@", "[Nextcloud] Automatic sync merged the contacts")
         } catch {
             setPendingSyncDirty(true, walletAddress: walletAtStart)
             AppLog.log("%@", "[Nextcloud] Automatic sync upload failed (a later trigger retries): \(error.localizedDescription)")
@@ -732,84 +664,16 @@ final class NextcloudService: ObservableObject {
         }
     }
 
-    // MARK: - Automatic restore (one-time silent bootstrap per wallet)
-
-    /// Arms the silent restore for the active wallet if it never had one. Runs a few seconds
-    /// later so wallet activation (message store switch, chat list load) finishes first; the
-    /// wallet is re-checked at every await. No modal for this path - one log line and a short
-    /// toast with counts.
-    func scheduleAutoRestoreIfNeeded() {
-        guard isConnected, autoBackupEnabled, let wallet = currentWalletAddress,
-              let doneKey = scopedKey(Self.autoRestoreDoneKey),
-              !UserDefaults.standard.bool(forKey: doneKey) else { return }
-        autoRestoreTask?.cancel()
-        autoRestoreTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            guard !Task.isCancelled, let self else { return }
-            await self.runAutoRestore(walletAtStart: wallet)
-        }
-    }
-
-    private func runAutoRestore(walletAtStart: String) async {
-        guard currentWalletAddress == walletAtStart, isConnected, autoBackupEnabled else { return }
-        // The manual restore/resync modals own the store while running; skip silently (the
-        // done flag stays unset, so the next wallet activation retries).
-        guard !BackupRestoreCoordinator.shared.isRunning,
-              !IncomingResyncCoordinator.shared.isRunning,
-              !syncInFlight else { return }
-        let doneKey = "\(Self.autoRestoreDoneKey)_\(KeychainService.walletHashSuffix(walletAtStart))"
-        guard !UserDefaults.standard.bool(forKey: doneKey) else { return }
-
-        syncInFlight = true
-        defer { syncInFlight = false }
-
-        do {
-            // ETag before the download (best-effort): recorded after a successful import so
-            // the change watcher's first poll does not immediately re-download the file the
-            // bootstrap just imported.
-            let etagAtDownload = (try? await fetchBackupETag()) ?? nil
-            // Envelope-aware: decrypts a v1 encrypted backup, passes legacy plaintext through.
-            // A failed decrypt throws into the silent catch below - the done flag stays unset
-            // and nothing is imported or uploaded.
-            let data = try await BackupEnvelope.decryptIfEnvelopedDetached(
-                try await downloadBackup(), key: backupEncryptionKey(), walletAddress: walletAtStart
-            )
-            guard !Task.isCancelled, currentWalletAddress == walletAtStart,
-                  !BackupRestoreCoordinator.shared.isRunning,
-                  !IncomingResyncCoordinator.shared.isRunning else { return }
-            let summary = try await ChatService.shared.importChatHistoryArchive(data)
-            guard currentWalletAddress == walletAtStart else { return }
-            UserDefaults.standard.set(true, forKey: doneKey)
-            if let etagAtDownload {
-                setLastKnownBackupETag(etagAtDownload, walletAddress: walletAtStart)
-            }
-            // Fully silent by design: sync is invisible background plumbing.
-            // The log line is the only trace.
-            AppLog.log("%@", "[Nextcloud] Automatic restore finished: \(summary.messageCount) messages in \(summary.conversationCount) chats")
-        } catch NextcloudError.backupNotFound {
-            // No file yet is not an error, and does NOT mark restore done: if a backup appears
-            // later (first sync from another device), the next activation picks it up.
-        } catch {
-            // Includes "archive invalid/empty" and transient network failures: stay silent
-            // (the flag stays unset, so a later activation retries) and never surface a modal.
-            AppLog.log("%@", "[Nextcloud] Automatic restore skipped (next wallet activation retries): \(error.localizedDescription)")
-        }
-    }
-
-    // MARK: - Change watcher (foreground near-live pull of other devices' uploads)
+    // MARK: - Change watcher (foreground pull of other devices' contact changes)
 
     /// Starts the foreground ETag watcher when every condition holds: Automatic Sync on, a
     /// server connected, a wallet active, and the app not in the background. Called from the
     /// same lifecycle moments as the debounce machinery (foreground, wallet load, connect,
     /// toggle-on); a no-op while a watcher is already running.
     ///
-    /// The loop polls the shared file's ETag with a Depth-0 PROPFIND (a tiny request, no body
-    /// download), fast while a chat is open on screen and relaxed elsewhere (see the cadence
-    /// tier constants). When the ETag differs from the last one this device imported or
-    /// wrote, the file is downloaded, decrypted and merge-imported through
-    /// `importChatHistoryArchive` - additive, txId-deduped, never-unread - silently, with one
-    /// AppLog line. Combined with the other device's upload debounce, a message sent there
-    /// lands here in seconds while you are looking at the chat.
+    /// The loop polls the contacts file's ETag with a Depth-0 PROPFIND (a tiny request, no body
+    /// download). When the ETag differs from the last one this device merged or wrote, the file is
+    /// downloaded, decrypted and merged into the contacts, silently, with one AppLog line.
     func startChangeWatcherIfNeeded() {
         guard changeWatcherTask == nil else { return }
         guard autoBackupEnabled, isConnected, let wallet = currentWalletAddress,
@@ -829,12 +693,9 @@ final class NextcloudService: ObservableObject {
         changeWatcherTask = nil
     }
 
-    /// The poll loop. The cadence tier is resolved fresh for every tick, so leaving a chat
-    /// relaxes the very next sleep and entering one tightens it (plus `noteChatOpened` cuts
-    /// the sleep short for an immediate poll). A failed poll backs off from the current
-    /// tier's base (x3 per consecutive failure, capped) and snaps back on the next success;
-    /// a guard failure ends the loop (every state change that could cause one also calls
-    /// `stopChangeWatcher`, so this is belt and braces).
+    /// The poll loop. A failed poll backs off (x3 per consecutive failure, capped) and snaps back on
+    /// the next success; a guard failure ends the loop (every state change that could cause one also
+    /// calls `stopChangeWatcher`, so this is belt and braces).
     private func runChangeWatcher(walletAtStart: String, epoch: Int) async {
         var backoffFactor: Double = 1
         while !Task.isCancelled {
@@ -855,59 +716,50 @@ final class NextcloudService: ObservableObject {
         }
     }
 
-    /// Sleeps up to `seconds`, returning early when the watcher is cancelled, superseded
-    /// (epoch bump) or woken by `noteChatOpened`. Implemented as short sleep slices with a
-    /// wake-token check between them - not a busy loop, and the watcher only runs while the
-    /// app is foregrounded, so the half-second granularity is battery-trivial.
+    /// Sleeps up to `seconds`, returning early when the watcher is cancelled or superseded (epoch
+    /// bump). Short sleep slices with a check between them - not a busy loop, and the watcher only
+    /// runs while the app is foregrounded, so the half-second granularity is battery-trivial.
     private func sleepInterruptibly(seconds: TimeInterval, epoch: Int) async {
-        let wakeTokenAtStart = changeWatcherWakeToken
         let deadline = Date().addingTimeInterval(seconds)
-        while !Task.isCancelled,
-              changeWatcherEpoch == epoch,
-              changeWatcherWakeToken == wakeTokenAtStart {
+        while !Task.isCancelled, changeWatcherEpoch == epoch {
             let remaining = deadline.timeIntervalSinceNow
             guard remaining > 0 else { return }
             try? await Task.sleep(nanoseconds: UInt64(min(0.5, remaining) * 1_000_000_000))
         }
     }
 
-    /// One poll: fetch the ETag, and import the file if it changed. Skips silently (leaving
-    /// the last-known ETag alone, so the next poll retries) while a manual restore/resync or
-    /// another sync pass owns the store. Throws on network trouble so the watcher backs off.
+    /// One poll: fetch the ETag, and merge the file if it changed. Skips silently (leaving the
+    /// last-known ETag alone, so the next poll retries) while a sync pass is running. Throws on
+    /// network trouble so the watcher backs off.
     private func checkForRemoteChangeAndImport(walletAtStart: String) async throws {
         // ETag BEFORE the download: if the file is replaced between the two requests, the
-        // stored ETag is the older one and the next poll simply imports again - the safe
-        // direction (an import can only add).
+        // stored ETag is the older one and the next poll simply merges again - the safe
+        // direction (a merge is idempotent).
         guard let etag = try await fetchBackupETag() else { return } // no backup yet
         guard etag != lastKnownBackupETag else { return }
-        guard currentWalletAddress == walletAtStart, autoBackupEnabled, isConnected else { return }
-        guard !syncInFlight,
-              !BackupRestoreCoordinator.shared.isRunning,
-              !IncomingResyncCoordinator.shared.isRunning else { return }
+        guard currentWalletAddress == walletAtStart, autoBackupEnabled, isConnected, !syncInFlight else { return }
         syncInFlight = true
         defer { syncInFlight = false }
 
-        let data: Data
+        let raw = try await downloadBackup()
+        guard !Task.isCancelled, currentWalletAddress == walletAtStart else { return }
+        let book = AddressBookManager.shared
+        let serverIsBehind: Bool
         do {
-            data = try await BackupEnvelope.decryptIfEnvelopedDetached(
-                try await downloadBackup(), key: backupEncryptionKey(), walletAddress: walletAtStart
-            )
-        } catch let error as BackupEnvelope.EnvelopeError {
-            // A file this wallet cannot read (foreign wallet's backup, corrupt envelope):
-            // record the ETag so it is not re-downloaded every poll; a future replacement
-            // changes the ETag and gets a fresh look.
+            guard BackupEnvelope.parse(raw) != nil else { throw NextcloudError.malformedResponse }
+            let plaintext = try await BackupEnvelope.decryptIfEnvelopedDetached(raw, key: backupEncryptionKey(), walletAddress: walletAtStart)
+            guard !Task.isCancelled, currentWalletAddress == walletAtStart, book.holdsWallet(walletAtStart) else { return }
+            serverIsBehind = try book.mergeBackup(plaintext).serverIsBehind
+        } catch {
+            // A file this wallet can't read: record the ETag so it isn't downloaded every poll; a
+            // future replacement changes the ETag and gets a fresh look.
             setLastKnownBackupETag(etag, walletAddress: walletAtStart)
-            AppLog.log("%@", "[Nextcloud] Change watcher skipped an unreadable server backup: \(error.localizedDescription)")
+            AppLog.log("%@", "[Nextcloud] Change watcher skipped an unreadable contacts file: \(error.localizedDescription)")
             return
         }
-        guard !Task.isCancelled, currentWalletAddress == walletAtStart,
-              !BackupRestoreCoordinator.shared.isRunning,
-              !IncomingResyncCoordinator.shared.isRunning else { return }
-        let summary = try await ChatService.shared.importChatHistoryArchive(data)
-        guard currentWalletAddress == walletAtStart else { return }
         setLastKnownBackupETag(etag, walletAddress: walletAtStart)
-        // Fully silent by design, like the auto-restore: the log line is the only trace.
-        AppLog.log("%@", "[Nextcloud] Change watcher merged another device's update (\(summary.messageCount) messages in \(summary.conversationCount) chats on the server)")
+        if serverIsBehind { noteContactActivity() }
+        AppLog.log("%@", "[Nextcloud] Change watcher merged another device's contacts")
     }
 
     /// The backup file's current ETag via a Depth-0 PROPFIND requesting only `getetag`.
@@ -1047,12 +899,10 @@ final class NextcloudService: ObservableObject {
         }
 
         // Automatic Sync starts OFF for a fresh connection (an earlier explicit choice for this
-        // wallet carries over instead). `noteMessageActivity` and `scheduleAutoRestoreIfNeeded`
-        // below are both gated on it, so nothing uploads or restores until the user turns it on
-        // in Settings.
+        // wallet carries over instead). `noteContactActivity` below is gated on it, so nothing
+        // uploads until the user turns it on in Settings.
         autoBackupEnabled = resolveAutoSyncForConnect()
-        noteMessageActivity()
-        scheduleAutoRestoreIfNeeded()
+        noteContactActivity()
         startChangeWatcherIfNeeded()
         refreshTalkAvailability()
     }
@@ -1136,8 +986,6 @@ final class NextcloudService: ObservableObject {
         syncDebounceTask?.cancel()
         syncDebounceTask = nil
         stopChangeWatcher()
-        autoRestoreTask?.cancel()
-        autoRestoreTask = nil
         autoBackupTask?.cancel()
         autoBackupTask = nil
         if let walletAddress = currentWalletAddress {
@@ -1179,7 +1027,7 @@ final class NextcloudService: ObservableObject {
     /// that was pointed elsewhere - looked to a fresh connection like an account with no backup
     /// at all, and the app would happily start a second one beside it.
     ///
-    /// Prefers a folder that actually holds `kachat-backup.json`; a folder merely NAMED KaChat is
+    /// Prefers a folder that actually holds `kachat-contacts.json`; a folder merely NAMED KaChat is
     /// the fallback. Breadth-first and bounded, since a WebDAV walk of someone's whole drive is
     /// not a thing to do on connect.
     func discoverExistingBackupFolder() async -> String? {
@@ -1306,22 +1154,14 @@ final class NextcloudService: ObservableObject {
         return data
     }
 
-    // MARK: - Chat-history backup (WebDAV PUT/GET of the archive JSON)
+    // MARK: - Contacts backup (WebDAV PUT/GET of one encrypted file)
 
     static let backupFolderName = "KaChat"
-    static let backupFileName = "kachat-backup.json"
+    static let backupFileName = "kachat-contacts.json"
+    /// Where chat history used to go. Never read or written now: messages and groups come back from
+    /// the seed, and the file stays on the server until the account is deleted.
+    private static let retiredChatBackupFileName = "kachat-backup.json"
 
-    /// The whole backup: read whatever the server already holds, merge it with this device's
-    /// history (`ChatService.buildBackupArchiveData`), and upload the union - so a backup can
-    /// only ever ADD to `kachat-backup.json` (desktop, iOS and Android all write that same
-    /// file) and no device can delete another's chat history. Every path that backs chat
-    /// history up must go through here, never a raw `uploadBackup`.
-    ///
-    /// The only "just upload" case is a genuine 404 (no backup yet). Every other failure - an
-    /// unreadable server response, or a merge that rejects the remote file as foreign, corrupt
-    /// or a different wallet - throws BEFORE the PUT, leaving the existing file untouched. The
-    /// active wallet is re-checked around every await so a mid-flight account switch aborts
-    /// instead of cross-pollinating archives.
     /// Backups run one at a time on this device. The manual button and the automatic sync
     /// both come here, and two uploads of the same file at once had Nextcloud answering the
     /// second with HTTP 423 - its write lock on the file. A caller arriving while one runs
@@ -1340,6 +1180,12 @@ final class NextcloudService: ObservableObject {
         try await task.value
     }
 
+    /// One read, merge, write of the contacts file. Newest edit or deletion wins per address, so
+    /// no device can undo another's newer change. Written only when the file is missing something
+    /// this device has. Any file that can't be read as this account's contacts throws before the
+    /// PUT, except this account's own file that fails to decrypt (cut off at rest, say): that's
+    /// replaced in place, since Nextcloud's version history keeps the old content. The active wallet
+    /// is re-checked around every await so a mid-flight account switch aborts.
     private func performBackup() async throws {
         let walletAtStart = currentWalletAddress
         // Encryption key up front: writers ALWAYS encrypt (see BackupEnvelope), so if the
@@ -1347,68 +1193,47 @@ final class NextcloudService: ObservableObject {
         guard let walletAddress = walletAtStart, let key = backupEncryptionKey() else {
             throw BackupEnvelope.EnvelopeError.keyUnavailable
         }
-        // KaPay's contacts first, so this backup carries them to the other KaChat clients. A
-        // problem with that file never stops the chat backup.
+        // KaPay's contacts first, so this backup carries them to this account's other devices. A
+        // problem with that file never stops this one.
         do {
             try await syncSharedContacts(walletAtStart: walletAddress)
         } catch {
             AppLog.log("%@", "[Nextcloud] Syncing contacts with KaPay failed: \(error.localizedDescription)")
         }
         guard !Task.isCancelled, currentWalletAddress == walletAtStart else { throw CancellationError() }
-        // ETag short-circuit: if the server file's ETag still equals the one THIS device wrote
-        // last (recorded after every PUT and every watcher import), the remote content is our
-        // own last upload - already merged locally, and kept a local superset by the change
-        // watcher's imports. Downloading it back just to merge a guaranteed no-op wasted a
-        // full archive transfer per automatic sync; skip straight to building and uploading
-        // the fresh local archive. Any doubt (no stored ETag, PROPFIND failure, or a
-        // different ETag meaning another device wrote in between) falls through to the full
-        // download+merge exactly as before.
-        var skipDownload = false
-        if let ownWriteETag = lastKnownBackupETag,
-           let remoteETag = try? await fetchBackupETag(),
-           remoteETag == ownWriteETag {
-            skipDownload = true
+
+        var serverCopy: Data?
+        var replaceUnreadable = false
+        do {
+            let raw = try await downloadBackup()
+            guard BackupEnvelope.parse(raw) != nil else { throw NextcloudError.malformedResponse }
+            do {
+                serverCopy = try await BackupEnvelope.decryptIfEnvelopedDetached(raw, key: key, walletAddress: walletAddress)
+            } catch {
+                guard BackupEnvelope.isOwnUnreadableEnvelope(raw, walletAddress: walletAddress) else { throw error }
+                AppLog.log("%@", "[Nextcloud] This account's contacts file can't be decrypted; replacing it in place")
+                replaceUnreadable = true
+            }
+        } catch NextcloudError.backupNotFound {
+            // Nothing there yet: the one other case that writes without merging.
         }
         guard !Task.isCancelled, currentWalletAddress == walletAtStart else { throw CancellationError() }
 
-        // What to do with the server copy follows NEXTCLOUD_SYNC.md §7:
-        // - a download that failed or stopped early (network) throws here, before any PUT - the
-        //   file itself may be fine, so it is never overwritten on a transfer problem;
-        // - another wallet's file (envelope walletHint, or plaintext walletAddress, differs) is
-        //   never touched;
-        // - a newer schema is never touched (a newer app wrote it);
-        // - THIS wallet's file that can't be read (failed decrypt under our own walletHint, or
-        //   content that isn't a valid archive - e.g. cut off at rest) is overwritten in place
-        //   with this device's history, and no copy is made: Nextcloud's version history keeps
-        //   the old content, and every other device unions its own history back in on its next
-        //   sync. It used to abort instead, which left automatic sync stuck for good.
-        var existing: Data?
-        if skipDownload {
-            existing = nil
-        } else {
-            do {
-                let raw = try await downloadBackup()
-                do {
-                    existing = try await BackupEnvelope.decryptIfEnvelopedDetached(raw, key: key, walletAddress: walletAddress)
-                } catch {
-                    guard BackupEnvelope.isOwnUnreadableEnvelope(raw, walletAddress: walletAddress) else { throw error }
-                    AppLog.log("%@", "[Nextcloud] This account's backup on the server can't be decrypted; replacing it in place")
-                    existing = nil
-                }
-            } catch NextcloudError.backupNotFound {
-                existing = nil
-            }
+        let book = AddressBookManager.shared
+        guard book.holdsWallet(walletAddress) else { throw CancellationError() }
+        var serverIsBehind = replaceUnreadable || book.hasBackupData
+        if let serverCopy {
+            serverIsBehind = try book.mergeBackup(serverCopy).serverIsBehind
         }
-        guard !Task.isCancelled, currentWalletAddress == walletAtStart else { throw CancellationError() }
-        let merged: Data
-        do {
-            merged = try await ChatService.shared.buildBackupArchiveData(mergingRemote: existing)
-        } catch ChatService.ChatHistoryArchiveError.remoteBackupUnreadable {
-            AppLog.log("%@", "[Nextcloud] The backup on the server isn't a readable archive (damaged or cut off); replacing it in place")
-            merged = try await ChatService.shared.buildBackupArchiveData(mergingRemote: nil)
+        guard serverIsBehind else {
+            setLastKnownBackupETag((try? await fetchBackupETag()) ?? nil, walletAddress: walletAddress)
+            return
         }
+
+        let body = try await BackupEnvelope.encryptDetached(
+            try book.exportData(includingDeleted: true), key: key, walletAddress: walletAddress
+        )
         guard !Task.isCancelled, currentWalletAddress == walletAtStart else { throw CancellationError() }
-        let body = try await BackupEnvelope.encryptDetached(merged, key: key, walletAddress: walletAddress)
         var newETag = try await uploadBackup(body)
         // Verify (NEXTCLOUD_SYNC.md §4.6): a relay that cuts a large PUT can leave a short file,
         // which the next sync would read as damaged. Say so plainly instead of looping.
@@ -1426,7 +1251,7 @@ final class NextcloudService: ObservableObject {
         }
         // Feedback-loop guard: remember our own write's ETag so the watcher never downloads
         // it back. If both captures failed, the stored ETag is cleared - the watcher then
-        // re-imports our own upload once, which the txId dedupe makes a harmless no-op.
+        // merges our own upload once, which changes nothing.
         guard currentWalletAddress == walletAtStart else { return }
         setLastKnownBackupETag(newETag, walletAddress: walletAddress)
     }
@@ -1439,10 +1264,10 @@ final class NextcloudService: ObservableObject {
         return BackupEnvelope.key(identityPrivateKey: identityKey)
     }
 
-    /// Uploads the archive to `<backup folder>/kachat-backup.json`, creating the folder first
+    /// Uploads the contacts to `<backup folder>/kachat-contacts.json`, creating the folder first
     /// (MKCOL answers 405 when it already exists — fine; a user-picked folder always already
     /// exists since it was chosen through the folder browser). Overwrites in place: private so
-    /// every chat-history caller goes through `runBackup` and the body is a merge, never a
+    /// every caller goes through `runBackup` and the body is a merge, never a
     /// replacement. Returns the uploaded file's ETag when the server sent one on the PUT
     /// response (`OC-ETag` first - Nextcloud's canonical header - then `ETag`), normalized;
     /// nil when the header is missing.
@@ -1477,7 +1302,7 @@ final class NextcloudService: ObservableObject {
             if http.statusCode == 401 { throw NextcloudError.badCredentials }
             if http.statusCode == 423 {
                 // Nextcloud's file lock: another device (or this one's own change watcher) is
-                // reading the archive, or another device is writing it, and a lock held by a
+                // reading the file, or another device is writing it, and a lock held by a
                 // live request clears the moment that request ends. Wait it out a few times
                 // before calling it stale.
                 guard attempt < Self.lockRetryDelays.count else { throw NextcloudError.backupLocked }
@@ -1492,7 +1317,7 @@ final class NextcloudService: ObservableObject {
         }
     }
 
-    /// Pauses between PUT attempts while the archive is locked - half a minute in all.
+    /// Pauses between PUT attempts while the file is locked - half a minute in all.
     private static let lockRetryDelays: [Double] = [1, 2, 4, 8, 15]
 
     /// The backup file's server-side metadata (nil = no backup yet). A missing folder lists
@@ -1502,22 +1327,11 @@ final class NextcloudService: ObservableObject {
         return listing.first { $0.name == Self.backupFileName && !$0.isDirectory }
     }
 
-    /// Downloads the backup archive bytes. 404 -> `backupNotFound`.
-    /// `progress` (optional) streams `(bytesReceived, totalBytesExpected)` as the body downloads;
-    /// `totalBytesExpected` is nil when the server omits Content-Length. It is invoked OFF the
-    /// main actor (the byte accumulation runs nonisolated so a large archive never stalls UI),
-    /// so callers must hop to the main actor themselves.
-    func downloadBackup(progress: (@Sendable (Int64, Int64?) -> Void)? = nil) async throws -> Data {
+    /// Downloads the contacts file's bytes. 404 -> `backupNotFound`.
+    func downloadBackup() async throws -> Data {
         guard let request = authenticatedFileRequest(for: "\(backupFolderPath)/\(Self.backupFileName)") else {
             throw NextcloudError.badCredentials
         }
-        return try await Self.performBackupDownload(request: request, progress: progress)
-    }
-
-    private nonisolated static func performBackupDownload(
-        request: URLRequest,
-        progress: (@Sendable (Int64, Int64?) -> Void)?
-    ) async throws -> Data {
         let (bytes, response) = try await URLSession.shared.bytes(for: request)
         guard let http = response as? HTTPURLResponse else { throw NextcloudError.malformedResponse }
         if http.statusCode == 401 { throw NextcloudError.badCredentials }
@@ -1525,46 +1339,30 @@ final class NextcloudService: ObservableObject {
         guard (200..<300).contains(http.statusCode) else {
             throw NextcloudError.httpError(http.statusCode)
         }
-        // A WebDAV GET of the backup file is never legitimately HTML; a 2xx HTML body is a
-        // reverse-proxy, login, or maintenance page standing in for the server. Without this
-        // check that page flows into the merge parser and surfaces as "the file on the server
-        // isn't a KaChat backup", which misreads a transient hiccup as a foreign file.
+        // A WebDAV GET of this file is never legitimately HTML; a 2xx HTML body is a reverse-proxy,
+        // login, or maintenance page standing in for the server.
         if http.mimeType?.lowercased().contains("html") == true {
             throw NextcloudError.malformedResponse
         }
-
         let expected: Int64? = http.expectedContentLength > 0 ? http.expectedContentLength : nil
         var data = Data()
-        if let expected { data.reserveCapacity(Int(expected)) }
-        // Throttle progress to every 64KB so a big archive doesn't flood the main actor.
-        let reportStride: Int64 = 65_536
-        var lastReported: Int64 = 0
         for try await byte in bytes {
             data.append(byte)
-            if let progress {
-                let count = Int64(data.count)
-                if count - lastReported >= reportStride {
-                    lastReported = count
-                    progress(count, expected)
-                }
-            }
         }
         guard !data.isEmpty else { throw NextcloudError.httpError(http.statusCode) }
         // A stream that ends early does not always throw - a connection closed gracefully
         // mid-body just ends the sequence - so short of the advertised length has to be caught
-        // here. Silently accepting it hands megabytes of half an archive to the merge parser,
-        // which reports it as a corrupt or foreign backup.
+        // here. A short file must never read as a damaged one and be overwritten.
         if let expected, Int64(data.count) < expected {
             throw NextcloudError.truncatedDownload(received: Int64(data.count), expected: expected)
         }
-        progress?(Int64(data.count), expected)
         return data
     }
 
     // MARK: - Media send (chat photos/voice notes uploaded as public share links)
 
     /// Fixed upload destination for chat media — intentionally independent of the user-chosen
-    /// backup folder so media never lands inside a folder the user picked for archives.
+    /// backup folder so media never lands inside a folder the user picked for backups.
     nonisolated static let mediaFolderPath = "KaChat/Media"
 
     /// Uploads one media file to `KaChat/Media/` and returns a public `/s/TOKEN` share link for
@@ -1606,11 +1404,11 @@ final class NextcloudService: ObservableObject {
 
     // MARK: - Contacts shared with KaPay
 
-    /// KaPay, KaChat's wallet app, never reads `kachat-backup.json`: it keeps its contacts as a
+    /// KaPay, KaChat's wallet app, never reads `kachat-contacts.json`: it keeps its contacts as a
     /// plain JSON file (`AddressBookManager.ExportFile`, with `deleted`) in the `KaChat` folder at
     /// the root of the user's files. KaChat reads, merges and writes that same file, which is how
     /// a contact added or deleted in either app reaches the other (NEXTCLOUD_SYNC.md §9). It stays
-    /// in that folder even when the chat backup's folder was moved, since KaPay only looks there.
+    /// in that folder even when the contacts backup's folder was moved, since KaPay only looks there.
     private nonisolated static let sharedContactsFolder = "KaChat"
     private nonisolated static let sharedContactsFileName = "KaPay Contacts.json"
     /// KaPay's earlier names for it: read when there's no file under the current name yet.
@@ -1619,8 +1417,8 @@ final class NextcloudService: ObservableObject {
     private nonisolated static let sharedContactsCheckInterval: TimeInterval = 60
 
     /// With Automatic Sync on, brings in KaPay's changes when the app opens, on an account
-    /// activation and while the change watcher runs. A change it brings is passed on to the other
-    /// KaChat clients through the chat backup.
+    /// activation and while the change watcher runs. A change it brings is passed on to this
+    /// account's other devices through the contacts file.
     private func syncSharedContactsIfDue() {
         guard autoBackupEnabled, isConnected, !sharedContactsSyncInFlight, let wallet = currentWalletAddress else { return }
         if let lastSharedContactsCheck, Date().timeIntervalSince(lastSharedContactsCheck) < Self.sharedContactsCheckInterval { return }
@@ -1631,7 +1429,7 @@ final class NextcloudService: ObservableObject {
             guard let self, self.currentWalletAddress == wallet else { return }
             do {
                 if try await self.syncSharedContacts(walletAtStart: wallet) {
-                    self.noteMessageActivity()
+                    self.noteContactActivity()
                 }
             } catch {
                 AppLog.log("%@", "[Nextcloud] Syncing contacts with KaPay failed: \(error.localizedDescription)")
@@ -1684,7 +1482,7 @@ final class NextcloudService: ObservableObject {
     // MARK: - Plain files in the KaChat folder (Address Book export / import)
 
     /// Uploads `data` as `filename` into the KaChat folder (`backupFolderPath` - the same folder
-    /// the chat backup lives in), creating the folder chain if it isn't there yet, and returns
+    /// the contacts backup lives in), creating the folder chain if it isn't there yet, and returns
     /// the stored path. A file of the same name is replaced - exports carry a timestamp in their
     /// name, so in practice each one is a new file.
     /// `keepSpaces` keeps a name like "KaChat Address Book" readable in
@@ -1955,7 +1753,7 @@ private final class DavMultistatusParser: NSObject, XMLParserDelegate {
 
 // MARK: - Encrypted backup envelope (v1)
 
-/// At-rest encryption for the shared Nextcloud `kachat-backup.json` - the exact cross-platform
+/// At-rest encryption for the Nextcloud `kachat-contacts.json` and exported chat archives - the exact cross-platform
 /// format specified in MESSAGING.md ("Encrypted Backup Envelope (v1)"). AES-256-GCM via
 /// CryptoKit; the key is SHA-256(identity private key raw 32 bytes || "kachat-backup-v1"), so
 /// any device holding the seed derives the same key and nothing else can read the archive.
@@ -2089,16 +1887,8 @@ final class BackupRestoreCoordinator: ObservableObject {
         case failure(String)
     }
 
-    enum Source {
-        /// kachat-backup.json downloaded from the connected Nextcloud server.
-        case nextcloud
-        /// An archive the user picked with the file importer (Settings > Storage > Import Chat History).
-        case localArchive(Data)
-    }
-
     @Published private(set) var phase: Phase = .idle
-    /// 0...1, monotonic. Stage weights: download 0-30% (real bytes when the server sends
-    /// Content-Length), validate/prepare 30-40%, Core Data import 40-90% (advances per
+    /// 0...1, monotonic. Stage weights: validate/prepare up to 40%, Core Data import 40-90% (advances per
     /// conversation inside MessageStore.syncFromConversations), finalize 90-100%.
     @Published private(set) var fraction: Double = 0
     @Published private(set) var stageText: String = ""
@@ -2106,19 +1896,19 @@ final class BackupRestoreCoordinator: ObservableObject {
     var isRunning: Bool { phase == .running }
     var isPresentingModal: Bool { phase != .idle }
 
-    /// Kept so Try Again after a failure reruns the exact same restore.
-    private var lastSource: Source?
+    /// The archive the user picked with the file importer (Settings > Storage > Import Chat
+    /// History), kept so Try Again after a failure reruns the exact same restore.
+    private var lastArchive: Data?
     /// Held by the singleton (not a view) so navigation or sheet dismissal cannot cancel it.
     private var restoreTask: Task<Void, Never>?
 
-    func startNextcloudRestore() { start(.nextcloud) }
-    func startLocalRestore(data: Data) { start(.localArchive(data)) }
+    func startLocalRestore(data: Data) { start(data) }
 
     /// Reruns the failed restore. Only valid from the failure state.
     func retry() {
-        guard case .failure = phase, let lastSource else { return }
+        guard case .failure = phase, let lastArchive else { return }
         phase = .idle
-        start(lastSource)
+        start(lastArchive)
     }
 
     /// Leaves the modal. Only honored from a terminal state; a running restore cannot be dismissed.
@@ -2129,42 +1919,24 @@ final class BackupRestoreCoordinator: ObservableObject {
         stageText = ""
     }
 
-    private func start(_ source: Source) {
+    private func start(_ data: Data) {
         guard !isRunning else { return }
-        lastSource = source
+        lastArchive = data
         fraction = 0
-        switch source {
-        case .nextcloud: stageText = "Downloading backup..."
-        case .localArchive: stageText = "Reading archive..."
-        }
+        stageText = "Reading archive..."
         phase = .running
         restoreTask = Task { [weak self] in
-            await self?.run(source)
+            await self?.run(data)
         }
     }
 
-    private func run(_ source: Source) async {
+    private func run(_ data: Data) async {
         do {
-            let data: Data
-            switch source {
-            case .nextcloud:
-                data = try await NextcloudService.shared.downloadBackup { [weak self] received, expectedTotal in
-                    Task { @MainActor [weak self] in
-                        guard let self, let expectedTotal, expectedTotal > 0 else { return }
-                        let downloaded = min(1.0, Double(received) / Double(expectedTotal))
-                        self.advance(to: 0.30 * downloaded, stage: "Downloading backup...")
-                    }
-                }
-                advance(to: 0.30, stage: "Validating backup...")
-            case .localArchive(let archiveData):
-                data = archiveData
-                advance(to: 0.05, stage: "Validating backup...")
-            }
+            advance(to: 0.05, stage: "Validating backup...")
 
-            // Envelope-aware for BOTH sources: the Nextcloud file is encrypted at rest (see
-            // BackupEnvelope), and a locally picked file may be a hand-copied server backup.
-            // Legacy plaintext archives pass through untouched. A failed decrypt lands in the
-            // catch below with the clear "different account" message.
+            // Envelope-aware: an exported archive is encrypted. Legacy plaintext archives pass
+            // through untouched. A failed decrypt lands in the catch below with the clear
+            // "different account" message.
             let archive = try await BackupEnvelope.decryptIfEnvelopedDetached(
                 data,
                 key: NextcloudService.shared.backupEncryptionKey(),
@@ -2191,7 +1963,7 @@ final class BackupRestoreCoordinator: ObservableObject {
             fraction = 1.0
             stageText = "Done"
             // Retry is only offered after a failure; drop the retained archive bytes on success.
-            lastSource = nil
+            lastArchive = nil
             phase = .success(
                 conversations: summary.conversationCount,
                 messages: summary.messageCount,

@@ -280,7 +280,7 @@ final class AddressBookManager: ObservableObject {
         photoCache.removeAllObjects()
         photolessAddresses.removeAll()
         photoVersion &+= 1
-        if walletAddress != nil { NextcloudService.shared.noteMessageActivity() }
+        if walletAddress != nil { NextcloudService.shared.noteContactActivity() }
     }
 
     private nonisolated static var photosRoot: URL? {
@@ -519,7 +519,7 @@ final class AddressBookManager: ObservableObject {
         SharedDataManager.syncContactsForExtension()
     }
 
-    /// The merge both restore and the shared-backup upload use (`ChatService.mergeBackupArchives`).
+    /// The merge a restore and the contacts file both use.
     nonisolated static func merge(
         entries sides: [[AddressBookEntry]], tombstones tombSides: [[AddressBookTombstone]]
     ) -> (entries: [AddressBookEntry], tombstones: [AddressBookTombstone]) {
@@ -568,7 +568,7 @@ final class AddressBookManager: ObservableObject {
     /// A user edit: names in notifications and the share sheet follow, and the backup owes an upload.
     private func didChange() {
         SharedDataManager.syncContactsForExtension()
-        NextcloudService.shared.noteMessageActivity()
+        NextcloudService.shared.noteContactActivity()
     }
 
     private func persist() {

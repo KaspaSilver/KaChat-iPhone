@@ -633,7 +633,6 @@
 "None yet" = "עדיין אין";
 ".kachat Name" = "שם .kachat";
 "Customize Profile" = "התאמת פרופיל";
-"Get a %@ domain at %@" = "קבלו דומיין %1$@ ב-%2$@";
 "No %@ names yet." = "עדיין אין שמות %@.";
 "Couldn't reach %@. Pull down to try again." = "לא ניתן להגיע אל %@. משכו למטה כדי לנסות שוב.";
 "Settling" = "בתהליך אישור";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "ניתוק Nextcloud";
-"Restore from Backup" = "שחזור מגיבוי";
 "Connected Account" = "חשבון מחובר";
 "Server" = "שרת";
 "Username" = "שם משתמש";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "סנכרון אוטומטי";
 "Last synced" = "סנכרון אחרון";
 "Backup Folder" = "תיקיית גיבוי";
-"Back Up Messages Now" = "גיבוי הודעות עכשיו";
 "Last backup" = "גיבוי אחרון";
-"Message Backup" = "גיבוי הודעות";
 "Disconnect" = "התנתקות";
 "Use https. Unencrypted connections are not supported." = "השתמשו ב-https. חיבורים לא מוצפנים אינם נתמכים.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "התחברות";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "סיסמת האפליקציה מוסרת מה-Keychain של המכשיר הזה. אפשר להתחבר מחדש בכל זמן.";
 "Restore" = "שחזור";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "הודעות מגיבוי השרת ממוזגות להיסטוריית הצ'אט במכשיר הזה. שום דבר לא נמחק.";
 "Restore Complete" = "השחזור הושלם";
 "Restore Failed" = "השחזור נכשל";
 "Restoring Backup" = "משחזר גיבוי";
@@ -1826,3 +1821,7 @@
 "Invited" = "הוזמן";
 "Declined" = "דחה";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "לא תהיו בקבוצה הזו אלא אם תאשרו. התשובה נשלחת כעסקה מוצפנת קטנה, כדי שהקבוצה והמכשירים האחרים שלכם יידעו.";
+"Back Up Contacts Now" = "גיבוי אנשי הקשר עכשיו";
+"Contact Backup" = "גיבוי אנשי קשר";
+"Contacts backed up." = "אנשי הקשר גובו.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "כאן מגובים רק אנשי הקשר שלך, בהצפנה. ההודעות והצ׳אטים הקבוצתיים שלך חוזרים עם ביטוי השחזור שלך.";

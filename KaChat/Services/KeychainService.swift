@@ -398,6 +398,22 @@ final class KeychainService {
     // GroupBag holds a group's symmetric key material (groupSeed/groupRootEpoch/blindingKey) -
     // deliberately Keychain-only, never synced anywhere, matching the seed-phrase precedent.
     // A new device won't auto-restore group membership - the admin has to re-add it directly.
+    //
+    // Per account: two accounts on one device can be in the same group, and each store lists it
+    // separately. Bags used to be per device, so deleting one account or leaving the group on it
+    // took the key from the other, whose thread then read as empty. A bag from then is still read
+    // and copied across, and stays until the group is deleted, since another account here may need it.
+
+    /// The account `loadGroupBag`, `saveGroupBag` and `deleteGroupBag` work on. Follows
+    /// `GroupChatService.setCurrentWallet`, the only thing that reads or writes bags.
+    private var groupBagWallet: String?
+
+    func setGroupBagWallet(_ address: String?) {
+        groupBagCacheLock.withLock {
+            groupBagWallet = address?.lowercased()
+            groupBagCache.removeAll()
+        }
+    }
 
     /// Decoded bags, by group id. `loadGroupBag` is on the group poll's path - every group,
     /// every tick (5s while a group is open), and again per incoming message - and each uncached
@@ -408,34 +424,57 @@ final class KeychainService {
     private let groupBagCacheLock = NSLock()
 
     func saveGroupBag(_ bag: GroupBag) throws {
+        guard let wallet = groupBagCacheLock.withLock({ groupBagWallet }) else {
+            throw KasiaError.keychainError("No account to save group keys for")
+        }
         let data = try JSONEncoder().encode(bag)
-        try saveSensitiveDataForGroup(data, baseKey: .groupBag, groupId: bag.groupId)
-        groupBagCacheLock.withLock { groupBagCache[bag.groupId] = bag }
+        try saveSensitiveDataRaw(tryWrapPrivateKey(data) ?? data, keyName: accountGroupBagKeyName(wallet: wallet, groupId: bag.groupId))
+        groupBagCacheLock.withLock {
+            if groupBagWallet == wallet { groupBagCache[bag.groupId] = bag }
+        }
     }
 
+    /// Nil only when this account has no bag for the group; a Keychain that can't be read throws.
     func loadGroupBag(groupId: String) throws -> GroupBag? {
-        if let cached = groupBagCacheLock.withLock({ groupBagCache[groupId] }) { return cached }
-        guard let data = try loadSensitiveDataForGroup(baseKey: .groupBag, groupId: groupId) else {
-            return nil
+        let (wallet, cached) = groupBagCacheLock.withLock { (groupBagWallet, groupBagCache[groupId]) }
+        if let cached { return cached }
+        guard let wallet else { return nil }
+        var stored = try loadSensitiveDataForGroup(keyName: accountGroupBagKeyName(wallet: wallet, groupId: groupId))
+        if stored == nil, let shared = try loadSensitiveDataForGroup(baseKey: .groupBag, groupId: groupId) {
+            stored = shared
+            try? saveSensitiveDataRaw(tryWrapPrivateKey(shared) ?? shared, keyName: accountGroupBagKeyName(wallet: wallet, groupId: groupId))
         }
-        let bag = try JSONDecoder().decode(GroupBag.self, from: data)
-        groupBagCacheLock.withLock { groupBagCache[groupId] = bag }
+        guard let stored else { return nil }
+        let bag = try JSONDecoder().decode(GroupBag.self, from: stored)
+        groupBagCacheLock.withLock {
+            if groupBagWallet == wallet { groupBagCache[groupId] = bag }
+        }
         return bag
     }
 
+    /// Takes the old per-device copy too, or the group's keys would stay behind on this device. An
+    /// account here that hasn't copied it yet gets its key back from chain (`GroupChatService`).
     func deleteGroupBag(groupId: String) throws {
-        groupBagCacheLock.withLock { _ = groupBagCache.removeValue(forKey: groupId) }
+        let wallet = groupBagCacheLock.withLock {
+            _ = groupBagCache.removeValue(forKey: groupId)
+            return groupBagWallet
+        }
+        if let wallet {
+            try deleteSensitiveDataRaw(keyName: accountGroupBagKeyName(wallet: wallet, groupId: groupId))
+        }
         try deleteSensitiveDataForGroup(baseKey: .groupBag, groupId: groupId)
     }
 
-    private func saveSensitiveDataForGroup(_ data: Data, baseKey: KeychainKey, groupId: String) throws {
-        let keyName = try groupScopedKeyName(baseKey: baseKey, groupId: groupId)
-        let wrapped = tryWrapPrivateKey(data) ?? data
-        try saveSensitiveDataRaw(wrapped, keyName: keyName)
+    private func accountGroupBagKeyName(wallet: String, groupId: String) throws -> String {
+        let deviceId = try deviceIdentifier()
+        return "\(KeychainKey.groupBag.rawValue).\(deviceId).\(wallet).\(groupId)"
     }
 
     private func loadSensitiveDataForGroup(baseKey: KeychainKey, groupId: String) throws -> Data? {
-        let keyName = try groupScopedKeyName(baseKey: baseKey, groupId: groupId)
+        try loadSensitiveDataForGroup(keyName: groupScopedKeyName(baseKey: baseKey, groupId: groupId))
+    }
+
+    private func loadSensitiveDataForGroup(keyName: String) throws -> Data? {
         guard let data = try loadSensitiveDataRaw(keyName: keyName) else {
             return nil
         }

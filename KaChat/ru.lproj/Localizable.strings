@@ -633,7 +633,6 @@
 "None yet" = "Пока нет";
 ".kachat Name" = "Имя .kachat";
 "Customize Profile" = "Настроить профиль";
-"Get a %@ domain at %@" = "Получите домен %1$@ на %2$@";
 "No %@ names yet." = "Пока нет имён %@.";
 "Couldn't reach %@. Pull down to try again." = "Не удалось связаться с %@. Потяните вниз, чтобы повторить.";
 "Settling" = "Подтверждается";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldмс";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Отключить Nextcloud";
-"Restore from Backup" = "Восстановить из копии";
 "Connected Account" = "Подключённый аккаунт";
 "Server" = "Сервер";
 "Username" = "Имя пользователя";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "Автосинхронизация";
 "Last synced" = "Последняя синхронизация";
 "Backup Folder" = "Папка резервных копий";
-"Back Up Messages Now" = "Создать резервную копию сообщений сейчас";
 "Last backup" = "Последняя копия";
-"Message Backup" = "Резервная копия сообщений";
 "Disconnect" = "Отключить";
 "Use https. Unencrypted connections are not supported." = "Используйте https. Незашифрованные соединения не поддерживаются.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "Подключить";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "Пароль приложения удаляется из связки ключей этого устройства. Вы можете подключиться снова в любой момент.";
 "Restore" = "Восстановить";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Сообщения из копии на сервере объединяются с историей чатов на этом устройстве. Ничего не удаляется.";
 "Restore Complete" = "Восстановление завершено";
 "Restore Failed" = "Восстановление не удалось";
 "Restoring Backup" = "Восстановление копии";
@@ -1826,3 +1821,7 @@
 "Invited" = "Приглашён";
 "Declined" = "Отклонено";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Вы не в этой группе, пока не примете приглашение. Ваш ответ отправляется небольшой зашифрованной транзакцией, чтобы группа и другие ваши устройства о нём узнали.";
+"Back Up Contacts Now" = "Создать копию контактов сейчас";
+"Contact Backup" = "Резервная копия контактов";
+"Contacts backed up." = "Копия контактов создана.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Здесь в зашифрованном виде сохраняются только ваши контакты. Сообщения и групповые чаты восстанавливаются с помощью сид-фразы.";

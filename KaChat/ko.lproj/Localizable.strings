@@ -633,7 +633,6 @@
 "None yet" = "아직 없음";
 ".kachat Name" = ".kachat 이름";
 "Customize Profile" = "프로필 맞춤 설정";
-"Get a %@ domain at %@" = "%2$@에서 %1$@ 도메인 받기";
 "No %@ names yet." = "아직 %@ 이름이 없습니다.";
 "Couldn't reach %@. Pull down to try again." = "%@에 연결할 수 없습니다. 아래로 당겨 다시 시도하세요.";
 "Settling" = "확정 중";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Nextcloud 연결 해제";
-"Restore from Backup" = "백업에서 복원";
 "Connected Account" = "연결된 계정";
 "Server" = "서버";
 "Username" = "사용자 이름";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "자동 동기화";
 "Last synced" = "마지막 동기화";
 "Backup Folder" = "백업 폴더";
-"Back Up Messages Now" = "지금 메시지 백업";
 "Last backup" = "마지막 백업";
-"Message Backup" = "메시지 백업";
 "Disconnect" = "연결 해제";
 "Use https. Unencrypted connections are not supported." = "https를 사용하세요. 암호화되지 않은 연결은 지원하지 않습니다.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "연결";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "앱 비밀번호가 이 기기의 키체인에서 제거됩니다. 언제든 다시 연결할 수 있습니다.";
 "Restore" = "복원";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "서버 백업의 메시지가 이 기기의 채팅 기록에 병합됩니다. 아무것도 삭제되지 않습니다.";
 "Restore Complete" = "복원 완료";
 "Restore Failed" = "복원 실패";
 "Restoring Backup" = "백업 복원 중";
@@ -1826,3 +1821,7 @@
 "Invited" = "초대됨";
 "Declined" = "거절함";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "수락하기 전에는 이 그룹에 참여하지 않습니다. 답변은 소액의 암호화된 거래로 전송되어 그룹과 내 다른 기기에 전달됩니다.";
+"Back Up Contacts Now" = "지금 연락처 백업";
+"Contact Backup" = "연락처 백업";
+"Contacts backed up." = "연락처를 백업했습니다.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "여기에는 연락처만 암호화되어 백업됩니다. 메시지와 그룹 채팅은 시드 문구로 복원됩니다.";

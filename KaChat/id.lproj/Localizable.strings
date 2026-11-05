@@ -633,7 +633,6 @@
 "None yet" = "Belum ada";
 ".kachat Name" = "Nama .kachat";
 "Customize Profile" = "Sesuaikan Profil";
-"Get a %@ domain at %@" = "Dapatkan domain %1$@ di %2$@";
 "No %@ names yet." = "Belum ada nama %@.";
 "Couldn't reach %@. Pull down to try again." = "Tidak dapat menjangkau %@. Tarik ke bawah untuk mencoba lagi.";
 "Settling" = "Sedang dikonfirmasi";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldmd";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Putuskan Nextcloud";
-"Restore from Backup" = "Pulihkan dari Cadangan";
 "Connected Account" = "Akun Terhubung";
 "Server" = "Server";
 "Username" = "Nama pengguna";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "Sinkronisasi Otomatis";
 "Last synced" = "Sinkronisasi terakhir";
 "Backup Folder" = "Folder Cadangan";
-"Back Up Messages Now" = "Cadangkan Pesan Sekarang";
 "Last backup" = "Cadangan terakhir";
-"Message Backup" = "Cadangan Pesan";
 "Disconnect" = "Putuskan";
 "Use https. Unencrypted connections are not supported." = "Gunakan https. Koneksi tanpa enkripsi tidak didukung.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "Hubungkan";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "Kata sandi aplikasi dihapus dari Keychain perangkat ini. Anda dapat menghubungkan kembali kapan saja.";
 "Restore" = "Pulihkan";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Pesan dari cadangan server digabungkan ke riwayat obrolan perangkat ini. Tidak ada yang dihapus.";
 "Restore Complete" = "Pemulihan Selesai";
 "Restore Failed" = "Pemulihan Gagal";
 "Restoring Backup" = "Memulihkan Cadangan";
@@ -1826,3 +1821,7 @@
 "Invited" = "Diundang";
 "Declined" = "Ditolak";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Anda tidak masuk grup ini kecuali menerima. Jawaban Anda dikirim sebagai transaksi kecil terenkripsi, agar grup dan perangkat Anda yang lain mengetahuinya.";
+"Back Up Contacts Now" = "Cadangkan Kontak Sekarang";
+"Contact Backup" = "Cadangan Kontak";
+"Contacts backed up." = "Kontak dicadangkan.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Hanya kontak Anda yang dicadangkan di sini, terenkripsi. Pesan dan obrolan grup Anda kembali dengan frasa benih Anda.";

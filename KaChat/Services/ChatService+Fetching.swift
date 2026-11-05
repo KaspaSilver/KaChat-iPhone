@@ -3110,7 +3110,7 @@ extension ChatService {
         // An outgoing message from another device: the on-chain payload is encrypted for the
         // recipient, so this device can only decrypt it when it happens to hold that ability
         // (some message types). Otherwise a placeholder keeps the message's place until the
-        // Nextcloud archive restore delivers the text.
+        // chat archive import delivers the text.
         AppLog.log("[ChatService] Outgoing push from other device: %@ - trying payload decrypt", txId)
 
         let rawPayload = await resolveRawPayloadForTx(txId: txId, payloadHint: payload)
@@ -3424,10 +3424,6 @@ extension ChatService {
             // A reply to a message this device never received is the one signal that a message
             // was missed; act on it rather than leave a quote that opens onto nothing.
             recoverMissingReplyOriginalIfNeeded(for: message, contactAddress: contactAddress)
-            // Continuous Nextcloud sync: every message that lands - incoming or outgoing,
-            // whatever the delivery path - marks the archive dirty and (re)arms the debounced
-            // merge upload. No-op unless Automatic Sync is on and a server is connected.
-            NextcloudService.shared.noteMessageActivity()
         }
 
         // If user is currently viewing this chat, advance read marker immediately

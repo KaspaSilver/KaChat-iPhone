@@ -633,7 +633,6 @@
 "None yet" = "هنوز ندارد";
 ".kachat Name" = "نام .kachat";
 "Customize Profile" = "سفارشی‌سازی نمایه";
-"Get a %@ domain at %@" = "یک دامنه %1$@ از %2$@ بگیرید";
 "No %@ names yet." = "هنوز نام %@ ندارد.";
 "Couldn't reach %@. Pull down to try again." = "دسترسی به %@ ممکن نشد. برای تلاش دوباره به پایین بکشید.";
 "Settling" = "در حال تأیید";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "قطع اتصال Nextcloud";
-"Restore from Backup" = "بازیابی از نسخه پشتیبان";
 "Connected Account" = "حساب متصل";
 "Server" = "سرور";
 "Username" = "نام کاربری";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "همگام‌سازی خودکار";
 "Last synced" = "آخرین همگام‌سازی";
 "Backup Folder" = "پوشه پشتیبان";
-"Back Up Messages Now" = "پشتیبان‌گیری از پیام‌ها همین حالا";
 "Last backup" = "آخرین پشتیبان‌گیری";
-"Message Backup" = "پشتیبان پیام‌ها";
 "Disconnect" = "قطع اتصال";
 "Use https. Unencrypted connections are not supported." = "از https استفاده کنید. اتصال‌های رمزگذاری‌نشده پشتیبانی نمی‌شوند.";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "اتصال";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "گذرواژه برنامه از زنجیره کلید (Keychain) این دستگاه حذف می‌شود. هر زمان بخواهید می‌توانید دوباره وصل شوید.";
 "Restore" = "بازیابی";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "پیام‌های نسخه پشتیبان سرور با تاریخچه گفتگوی این دستگاه ادغام می‌شوند. چیزی حذف نمی‌شود.";
 "Restore Complete" = "بازیابی کامل شد";
 "Restore Failed" = "بازیابی ناموفق بود";
 "Restoring Backup" = "در حال بازیابی نسخه پشتیبان";
@@ -1826,3 +1821,7 @@
 "Invited" = "دعوت‌شده";
 "Declined" = "رد کرد";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "تا نپذیرید عضو این گروه نیستید. پاسخ شما به‌صورت یک تراکنش کوچک رمزگذاری‌شده ارسال می‌شود تا گروه و دستگاه‌های دیگرتان مطلع شوند.";
+"Back Up Contacts Now" = "پشتیبان‌گیری از مخاطبان همین حالا";
+"Contact Backup" = "پشتیبان مخاطبان";
+"Contacts backed up." = "از مخاطبان پشتیبان گرفته شد.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "اینجا فقط از مخاطبان شما به‌صورت رمزگذاری‌شده پشتیبان گرفته می‌شود. پیام‌ها و گفتگوهای گروهی شما با عبارت بازیابی برمی‌گردند.";

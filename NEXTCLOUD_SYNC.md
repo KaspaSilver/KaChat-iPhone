@@ -1,13 +1,44 @@
 # Nextcloud Automatic Sync: the shared contract
 
-Every KaChat client that backs chat history up to Nextcloud follows this contract:
-- iOS;
-- Android;
-- Desktop;
-- the extension wallet.
+## Contacts only (iOS, 2026-11-05)
 
-They all read and write **the same file**, so a client that drifts from this document breaks the
-others. When the behaviour changes, change this document first.
+Messages and group chats now come back from the seed, off the chain (`MESSAGING.md`), so **Nextcloud
+backs up contacts and nothing else**. iOS works this way now. Android, Desktop and the extension
+still follow the older sections below until they move, and contacts don't cross between iOS and
+those clients until they do.
+
+- **The file:** `<backup folder>/kachat-contacts.json`, one file, overwritten in place. The folder is
+  chosen as in §2, looking for this file's name.
+- **Encryption:** always the v1 envelope (§3), with the same key and `walletHint`. A plain file at this
+  path isn't a KaChat contacts file and is never overwritten.
+- **Inside the envelope:** the Address Book export JSON, `{type: "kachat-address-book", version: 1,
+  exportedAt, walletAddress, entries, deleted}`. `entries` and `deleted` are `addressBook` and
+  `addressBookDeleted` from §5, and the merge is §5's Address Book rule: newest edit or deletion wins
+  per address, and a deletion stays deleted.
+- **One sync:** read, merge, then write only if the file is missing something this device has. One at a
+  time per device (§4.1), re-checking the active wallet after every await (§4.7). There's no ETag
+  short-cut on the read, because a sync only runs when something changed.
+- **When:** after a contact changes (dirty flag, 15 s quiet time, at most once per 90 s, or 300 s on
+  metered networks); the §6 background and launch catch-ups; and "Back Up Contacts Now". While in the
+  foreground, poll the file's ETag every 30 s (60 s on metered networks), and download and merge when
+  it differs. A new device gets its contacts from that first poll, so there's no separate restore.
+- **Errors:** §7 applies: never write over another wallet's file, a newer schema or a failed transfer.
+  This wallet's own file that fails to decrypt is replaced in place. A file that decrypts but isn't an
+  Address Book is left alone.
+- **`kachat-backup.json` is retired on iOS.** It's never read or written, and its messages are never
+  imported, so it stays on the server as it is. Messages sent before seed recovery that only that file
+  holds stay hidden on a new device. The only thing iOS still does to it is delete it, with this file,
+  when the user chooses to delete their backup along with their account.
+- **Not affected:** media sent via Nextcloud, calls over Talk, the manual Address Book export (§1), the
+  contacts file shared with KaPay (§9), and exporting or importing a chat archive as a local file.
+
+---
+
+## Older clients: the chat backup
+
+Android, Desktop and the extension wallet follow this until they move to contacts only. They all read
+and write **the same file**, so a client that drifts from this document breaks the others. When the
+behaviour changes, change this document first.
 
 The iOS implementation (`KaChat/Services/NextcloudService.swift`, the archive merge in
 `ChatService+PushAndSync.swift`) is the reference. The encryption format is specified in
@@ -236,11 +267,10 @@ Nextcloud login in both apps, with Automatic Sync (KaChat) and Automatic Backup 
   deleted. A file whose `walletAddress` is another account's is not merged.
 - **Writing:** only when the file is missing something this device has, and never when the file
   there can't be read as contacts. No file is created for an account with no contacts or deletions.
-- **When:** before every chat backup, so the backup carries KaPay's changes to the other KaChat
-  clients; and with Automatic Sync on, when the app opens, an account activates and on change-watcher
+- **When:** before every contacts backup, so it carries KaPay's changes to this account's other
+  devices; and with Automatic Sync on, when the app opens, an account activates and on change-watcher
   ticks, at most once a minute.
 - **Known limit:** the file holds one account. Two accounts on one Nextcloud login take turns
   replacing it (each keeps its own contacts on the device and never gets the other's), so they only
   sync across apps reliably with separate logins.
-- **Other clients:** Android, Desktop and the extension don't do this yet. They still get these
-  contacts through `kachat-backup.json` once iOS has merged them.
+- **Other clients:** Android, Desktop and the extension don't do this yet.

@@ -1539,10 +1539,18 @@ final class PushNotificationManager: ObservableObject {
             // message" banner with no way to know which group it was for). Messages still
             // arrive through the block scan and catch-up, as they do for muted members.
             guard !GroupChatService.shared.silentNotifications(for: group.id) else { continue }
-            guard let bag = try? KeychainService.shared.loadGroupBag(groupId: group.id),
-                  let blindingKey = Data(hexString: bag.blindingKey) else {
+            let loadedBag: GroupBag?
+            do {
+                loadedBag = try KeychainService.shared.loadGroupBag(groupId: group.id)
+            } catch {
                 AppLog.log("[Push] Failed to load group bag for %@ - aborting group-id collection", group.id)
                 return nil
+            }
+            // Keys that are really gone are no reason to hold back every other change: this group
+            // goes without pushes until catch-up restores them, then the list is sent again.
+            guard let bag = loadedBag, let blindingKey = Data(hexString: bag.blindingKey) else {
+                AppLog.log("[Push] No group bag for %@ - leaving it out of the watched list", group.id)
+                continue
             }
             let mutedAddresses = GroupChatService.shared.mutedMemberAddresses(for: group.id)
             for member in group.members {

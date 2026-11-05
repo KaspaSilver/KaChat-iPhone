@@ -352,6 +352,8 @@ final class GroupChatService: ObservableObject {
     /// key, which is how logging out, creating a second account, then logging back into the first
     /// could reset every group back to "unread."
     private var currentWalletAddress: String?
+    /// See `prepareToRestoreMissingGroupKeys`.
+    private var groupKeyRestoreAttempts: Set<String> = []
 
     /// nil (falling back to the base, un-scoped key) when there's no active wallet - matches every
     /// other per-wallet store in this codebase reading nothing until a wallet is set.
@@ -699,9 +701,6 @@ final class GroupChatService: ObservableObject {
             // catch-up) and this open never run two full syncs at once.
             await PushNotificationManager.shared.runGroupCatchUp()
         }
-        // Nextcloud mirror runs on an adaptive cadence keyed off the open chat; wake its
-        // change watcher so this thread picks up other devices' uploads immediately.
-        NextcloudService.shared.noteChatOpened()
     }
 
     /// Loads this group's reactions from disk into the live in-memory index - mirrors
@@ -942,6 +941,7 @@ final class GroupChatService: ObservableObject {
     func setCurrentWallet(_ walletAddress: String?) {
         hasActiveWallet = walletAddress != nil
         currentWalletAddress = walletAddress
+        keychain.setGroupBagWallet(walletAddress)
         // Another wallet's store: what this one handled says nothing about it.
         handledGroupTxIds.removeAll()
         loadGroupCatchUpCursors()
@@ -2683,7 +2683,7 @@ final class GroupChatService: ObservableObject {
     // MARK: - Group invites (Message Requests)
 
     /// Invites waiting for an answer, newest first, leaving out any group this device has since
-    /// come to hold (a Nextcloud restore brings joined groups back on its own).
+    /// come to hold (importing a chat archive brings joined groups back on its own).
     var pendingGroupInvites: [PendingGroupInvite] {
         groupInvites
             .filter { invite in invite.rejected != true && !groups.contains { $0.id == invite.groupId } }
@@ -2970,9 +2970,12 @@ final class GroupChatService: ObservableObject {
     }
 
     private func applyRootPayload(_ payload: GroupCipher.GroupRootPayload) {
+        // A group with no keys has lost them, and the first root back may be an old one from the
+        // walk that restores them: what's stored is no baseline to report membership changes from.
+        let hadKeys = (try? keychain.loadGroupBag(groupId: payload.groupId)) != nil
         // Roster + name we held BEFORE this root updates them — used to emit "X was added/removed"
         // and "renamed" system lines. nil on a first-time join (no baseline → no false storm).
-        let previousGroupForDiff = store.group(id: payload.groupId)
+        let previousGroupForDiff = hadKeys ? store.group(id: payload.groupId) : nil
         let previousRosterForDiff = previousGroupForDiff?.members
         // device_id is persistent per device (spec) - preserve it across epoch-rotation
         // updates to an already-joined group; only a genuinely first-time join mints a new
@@ -3093,6 +3096,8 @@ final class GroupChatService: ObservableObject {
         }
         await publishGroupAnswers()
 
+        let restoringKeys = prepareToRestoreMissingGroupKeys()
+
         await catchUpGroupControlByRecipient(recipientAddress: wallet.publicAddress)
 
         // Pass 1 - CONTROL first. gctl carries epoch advances + the new epoch's root (and roster
@@ -3125,6 +3130,63 @@ final class GroupChatService: ObservableObject {
         // Groups and their history are both in hand now, so a seed re-import's rediscovered
         // groups can be marked read in one pass.
         seedImportReadMarkersIfNeeded()
+
+        // A restored group went off the push watch list while its keys were missing.
+        if restoringKeys.contains(where: { !isGroupKeyMissing($0) }) {
+            await PushNotificationManager.shared.updateWatchedAddresses()
+        }
+    }
+
+    /// Whether this account's keys for the group are really gone, as opposed to a Keychain that
+    /// couldn't be read just now.
+    private func isGroupKeyMissing(_ groupId: String) -> Bool {
+        do {
+            return try keychain.loadGroupBag(groupId: groupId) == nil
+        } catch {
+            return false
+        }
+    }
+
+    /// A listed group with no keys reads as an empty thread, and catch-up alone never brings them
+    /// back: its cursors are already past the root that carried them. So those streams are walked
+    /// again, and the root rewrites the keys through `completeJoin`, still from the admin this
+    /// device has on record. Once per launch for a group, since one whose root can't be found would
+    /// otherwise walk everything on every catch-up. Returns the groups being restored.
+    private func prepareToRestoreMissingGroupKeys() -> [String] {
+        var restoring: [String] = []
+        for group in groups where isGroupKeyMissing(group.id) {
+            let attempt = "\(currentWalletAddress ?? "")|\(group.id)"
+            guard groupKeyRestoreAttempts.insert(attempt).inserted else { continue }
+            AppLog.log("[GroupChatService] No keys for %@ - walking its streams again to restore them", String(group.id.prefix(12)))
+            resetCatchUpCursors(for: group)
+            restoring.append(group.id)
+        }
+        return restoring
+    }
+
+    /// Drops every cursor a group's repair depends on, so each stream is walked from the start -
+    /// and the CONTROL streams matter more than the message ones. Dropping only `gcomm`
+    /// re-downloaded pre-rotation ciphertext while the control cursors stayed put, so the epoch
+    /// roots needed to read it were never re-acquired: the refresh did real work and changed nothing
+    /// you could see. `gctl-recipient` carries this device's own invites and `gctl` the admin's
+    /// rotations; both are shared with other groups, which is fine - a re-walk is idempotent
+    /// everywhere.
+    private func resetCatchUpCursors(for group: GroupChat) {
+        var keysToReset: Set<String> = ["gctl-recipient|\(WalletManager.shared.currentWallet?.publicAddress.lowercased() ?? "")"]
+        if !group.adminAddress.isEmpty {
+            keysToReset.insert("gctl|\(group.adminAddress.lowercased())")
+        }
+        for key in groupCatchUpCursors.keys where key.hasPrefix("gcomm|\(group.id)|") {
+            keysToReset.insert(key)
+        }
+        for key in keysToReset {
+            groupCatchUpCursors.removeValue(forKey: key)
+            // Also clear the one-shot deep-backfill mark, or the walk stops at the first page
+            // instead of going back through the whole stream.
+            groupDeepBackfilled.remove(key)
+        }
+        saveGroupCatchUpCursors()
+        saveScoped(groupDeepBackfilledKey, Array(groupDeepBackfilled))
     }
 
     /// Why the last repair could not keep a message. Populated only while `forceRefresh` runs,
@@ -3197,28 +3259,7 @@ final class GroupChatService: ObservableObject {
         defer { refreshRejections = nil }
         refreshProgress = GroupRefreshProgress(groupId: groupId, phase: .invites)
 
-        // Drop every cursor this group's repair depends on, so each stream is walked from the
-        // start - and the CONTROL streams matter more than the message ones. Dropping only
-        // `gcomm` re-downloaded pre-rotation ciphertext while the control cursors stayed put, so
-        // the epoch roots needed to read it were never re-acquired: the refresh did real work and
-        // changed nothing you could see. `gctl-recipient` carries this device's own invites and
-        // `gctl` the admin's rotations; both are shared with other groups, which is fine - a
-        // re-walk is idempotent everywhere.
-        var keysToReset: Set<String> = ["gctl-recipient|\(WalletManager.shared.currentWallet?.publicAddress.lowercased() ?? "")"]
-        if !group.adminAddress.isEmpty {
-            keysToReset.insert("gctl|\(group.adminAddress.lowercased())")
-        }
-        for key in groupCatchUpCursors.keys where key.hasPrefix("gcomm|\(groupId)|") {
-            keysToReset.insert(key)
-        }
-        for key in keysToReset {
-            groupCatchUpCursors.removeValue(forKey: key)
-            // Also clear the one-shot deep-backfill mark, or the walk stops at the first page
-            // instead of going back through the whole stream.
-            groupDeepBackfilled.remove(key)
-        }
-        saveGroupCatchUpCursors()
-        saveScoped(groupDeepBackfilledKey, Array(groupDeepBackfilled))
+        resetCatchUpCursors(for: group)
 
         if let wallet = WalletManager.shared.currentWallet {
             await catchUpGroupControlByRecipient(recipientAddress: wallet.publicAddress)

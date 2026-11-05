@@ -633,7 +633,6 @@
 "None yet" = "暂无";
 ".kachat Name" = ".kachat 名称";
 "Customize Profile" = "自定义资料";
-"Get a %@ domain at %@" = "在 %2$@ 获取 %1$@ 域名";
 "No %@ names yet." = "还没有 %@ 名称。";
 "Couldn't reach %@. Pull down to try again." = "无法连接 %@。下拉重试。";
 "Settling" = "确认中";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "断开 Nextcloud";
-"Restore from Backup" = "从备份恢复";
 "Connected Account" = "已连接的账户";
 "Server" = "服务器";
 "Username" = "用户名";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "自动同步";
 "Last synced" = "上次同步";
 "Backup Folder" = "备份文件夹";
-"Back Up Messages Now" = "立即备份消息";
 "Last backup" = "上次备份";
-"Message Backup" = "消息备份";
 "Disconnect" = "断开连接";
 "Use https. Unencrypted connections are not supported." = "请使用 https。不支持未加密的连接。";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "连接";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "App 密码会从此设备的钥匙串中移除。你随时可以重新连接。";
 "Restore" = "恢复";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "服务器备份中的消息会合并到此设备的聊天记录中。不会删除任何内容。";
 "Restore Complete" = "恢复完成";
 "Restore Failed" = "恢复失败";
 "Restoring Backup" = "正在恢复备份";
@@ -1826,3 +1821,7 @@
 "Invited" = "已邀请";
 "Declined" = "已拒绝";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "只有接受后你才会加入此群组。你的回复会以一笔小额加密交易发送，让群组和你的其他设备知晓。";
+"Back Up Contacts Now" = "立即备份联系人";
+"Contact Backup" = "联系人备份";
+"Contacts backed up." = "联系人已备份。";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "这里只加密备份你的联系人。你的消息和群聊可通过助记词恢复。";

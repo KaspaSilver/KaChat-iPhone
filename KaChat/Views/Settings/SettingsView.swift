@@ -3367,7 +3367,7 @@ private struct AllNodesRow: View {
 }
 
 /// Settings > Storage > Nextcloud tab: connect/disconnect the user's own Nextcloud server,
-/// plus start-folder choice and message backup. Renders bare Sections (no Form of its own) so
+/// plus start-folder choice and contact backup. Renders bare Sections (no Form of its own) so
 /// the Storage page can embed it directly in its Form.
 /// Credentials are verified against the OCS user endpoint before being stored in the Keychain
 /// (see NextcloudService). The connected account powers the chat attach picker's
@@ -3376,7 +3376,6 @@ struct NextcloudSettingsView: View {
     @ObservedObject private var service = NextcloudService.shared
     // Restore runs on this singleton behind the blocking modal (presented by SettingsView's
     // fullScreenCover, which covers this pushed page too); this view only starts it.
-    @ObservedObject private var restoreCoordinator = BackupRestoreCoordinator.shared
 
     @State private var serverInput = ""
     @State private var usernameInput = ""
@@ -3387,7 +3386,6 @@ struct NextcloudSettingsView: View {
     @State private var showStartFolderPicker = false
     @State private var backupInfo: NextcloudFile?
     @State private var isBackingUp = false
-    @State private var showRestoreConfirm = false
     @State private var showBackupFolderPicker = false
     @State private var backupStatusMessage: String?
     @State private var backupErrorMessage: String?
@@ -3487,23 +3485,12 @@ struct NextcloudSettingsView: View {
                         backUpNow()
                     } label: {
                         HStack {
-                            Label("Back Up Messages Now", systemImage: "arrow.up.doc")
+                            Label("Back Up Contacts Now", systemImage: "arrow.up.doc")
                             Spacer()
                             if isBackingUp { ProgressView() }
                         }
                     }
-                    .disabled(isBackingUp || restoreCoordinator.isRunning)
-
-                    Button {
-                        showRestoreConfirm = true
-                    } label: {
-                        HStack {
-                            Label("Restore from Backup", systemImage: "arrow.down.doc")
-                            Spacer()
-                            if restoreCoordinator.isRunning { ProgressView() }
-                        }
-                    }
-                    .disabled(isBackingUp || restoreCoordinator.isRunning || backupInfo == nil)
+                    .disabled(isBackingUp)
 
                     if let backupInfo, let modified = backupInfo.modified {
                         HStack {
@@ -3530,7 +3517,9 @@ struct NextcloudSettingsView: View {
                             .foregroundColor(.red)
                     }
                 } header: {
-                    Text("Message Backup")
+                    Text("Contact Backup")
+                } footer: {
+                    Text("Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase.")
                 }
 
                 Section {
@@ -3607,18 +3596,6 @@ struct NextcloudSettingsView: View {
                 Task { backupInfo = await NextcloudService.shared.fetchBackupInfo() }
             }
         }
-        .alert("Restore from Backup", isPresented: $showRestoreConfirm) {
-            Button("Restore") {
-                backupStatusMessage = nil
-                backupErrorMessage = nil
-                // Runs behind the blocking progress modal; the coordinator owns the Task, so
-                // nothing this view does (including being popped) can interrupt the restore.
-                restoreCoordinator.startNextcloudRestore()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Messages from the server backup are merged into this device's chat history. Nothing is deleted.")
-        }
         .task {
             guard service.isConnected else { return }
             backupInfo = await NextcloudService.shared.fetchBackupInfo()
@@ -3632,11 +3609,11 @@ struct NextcloudSettingsView: View {
         backupErrorMessage = nil
         Task {
             do {
-                // Merge-on-upload: reads the server's copy first and uploads the union, so a
-                // manual backup can never clobber another device's history (or desktop's state).
+                // Merge-on-upload: reads the server's copy first, so a manual backup can never
+                // undo another device's newer change, and it brings those changes in here.
                 try await NextcloudService.shared.runBackup()
                 backupInfo = await NextcloudService.shared.fetchBackupInfo()
-                backupStatusMessage = "Backup uploaded."
+                backupStatusMessage = AppLocalization.string("Contacts backed up.")
             } catch {
                 backupErrorMessage = UserFacingError.message(for: error)
             }

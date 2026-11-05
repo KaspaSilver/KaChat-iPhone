@@ -311,9 +311,9 @@ There is no per-contact "disable realtime" flag or spam detector on any platform
 
 ## Encrypted Backup Envelope (v1)
 
-Cloud copies of the chat archive (the shared Nextcloud `kachat-backup.json` and Android's
-per-account Google Drive files) are encrypted at rest. These archives are the only cloud copies
-that exist; iOS keeps nothing in iCloud.
+Cloud copies (the Nextcloud `kachat-contacts.json`, the older clients' shared
+`kachat-backup.json`, and Android's per-account Google Drive files) are encrypted at rest. These are
+the only cloud copies that exist; iOS keeps nothing in iCloud, and on iOS Nextcloud holds contacts only.
 
 **Envelope** (the file's entire content):
 
@@ -516,6 +516,16 @@ the chat, not as the chat-list preview, not in search, never counted as unread, 
 record stays, so a later successful decrypt replaces it (real content wins the dedupe) and the
 message appears. The match is on the content itself (owner's decision on IOS-108: a contact
 typing exactly `[Encrypted message]` is hidden too, an accepted quirk).
+
+## Group keys on a device
+
+A group's keys are stored per account, because two accounts on one device can share a group: deleting
+one account, or the group on it, must not touch the other's keys. A listed group with no keys reads as
+an empty thread, and normal catch-up can't fix that because its cursors are already past the root. So
+the client drops that group's control and message cursors once per launch and walks them again: the
+root rewrites the keys, still only from the admin on record, and the messages decrypt. Until then the
+group is left out of the push watch list, while a Keychain read error still holds the whole update
+back, so a passing failure can't drop a group from the server's list.
 
 ## Group invites
 

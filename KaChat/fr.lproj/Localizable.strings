@@ -634,7 +634,6 @@
 "None yet" = "Aucun pour l'instant";
 ".kachat Name" = "Nom .kachat";
 "Customize Profile" = "Personnaliser le profil";
-"Get a %@ domain at %@" = "Obtenez un domaine %1$@ sur %2$@";
 "No %@ names yet." = "Aucun nom %@ pour l'instant.";
 "Couldn't reach %@. Pull down to try again." = "Impossible de joindre %@. Tirez vers le bas pour réessayer.";
 "Settling" = "En confirmation";
@@ -1443,7 +1442,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA : %@";
 "Disconnect Nextcloud" = "Déconnecter Nextcloud";
-"Restore from Backup" = "Restaurer depuis une sauvegarde";
 "Connected Account" = "Compte connecté";
 "Server" = "Serveur";
 "Username" = "Nom d'utilisateur";
@@ -1452,9 +1450,7 @@
 "Automatic Sync" = "Synchronisation automatique";
 "Last synced" = "Dernière synchronisation";
 "Backup Folder" = "Dossier de sauvegarde";
-"Back Up Messages Now" = "Sauvegarder les messages maintenant";
 "Last backup" = "Dernière sauvegarde";
-"Message Backup" = "Sauvegarde des messages";
 "Disconnect" = "Déconnecter";
 "Use https. Unencrypted connections are not supported." = "Utilisez https. Les connexions non chiffrées ne sont pas prises en charge.";
 "cloud.example.com" = "cloud.example.com";
@@ -1462,7 +1458,6 @@
 "Connect" = "Connecter";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "Le mot de passe de l'app est retiré du Trousseau de cet appareil. Vous pouvez vous reconnecter à tout moment.";
 "Restore" = "Restaurer";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "Les messages de la sauvegarde du serveur sont fusionnés avec l'historique des discussions de cet appareil. Rien n'est supprimé.";
 "Restore Complete" = "Restauration terminée";
 "Restore Failed" = "Échec de la restauration";
 "Restoring Backup" = "Restauration de la sauvegarde";
@@ -1827,3 +1822,7 @@
 "Invited" = "Invité";
 "Declined" = "Refusé";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Vous ne faites partie de ce groupe que si vous acceptez. Votre réponse part sous forme de petite transaction chiffrée, pour que le groupe et vos autres appareils soient informés.";
+"Back Up Contacts Now" = "Sauvegarder les contacts";
+"Contact Backup" = "Sauvegarde des contacts";
+"Contacts backed up." = "Contacts sauvegardés.";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Seuls vos contacts sont sauvegardés ici, chiffrés. Vos messages et discussions de groupe reviennent avec votre phrase de récupération.";

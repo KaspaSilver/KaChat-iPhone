@@ -243,7 +243,7 @@ Remote push notifications are implemented for background/terminated delivery. `P
 
 ### Multi-Device Architecture
 
-A seed can be entered on several devices; each keeps its own local message store, and the encrypted Nextcloud archive (Settings > Storage > Nextcloud, Automatic Sync) is what carries history between them. The app never uses iCloud or CloudKit - removed in 4.1 - so there is no iCloud container entitlement and nothing about a wallet reaches Apple.
+A seed can be entered on several devices; each keeps its own local message store and gets messages and groups back from the chain with the seed. Nextcloud (Settings > Storage > Nextcloud, Automatic Sync) backs up contacts only, in an encrypted `kachat-contacts.json`; the old `kachat-backup.json` is never read or written. The app never uses iCloud or CloudKit - removed in 4.1 - so there is no iCloud container entitlement and nothing about a wallet reaches Apple.
 
 **Bundle Identifiers:**
 - Bundle ID: `com.kachat.app`
@@ -405,7 +405,7 @@ Settings' last row is Delete Account (`DeleteAccountSheet`, the warning the sign
 Delete also shows; `WalletManager.deleteCurrentAccount`), and Log Out is the last row on Profile.
 Deleting removes the account,
 its messages, contacts and the bell's notifications from this device and revokes the app password
-KaChat made on Nextcloud; the encrypted backup stays on the server.
+KaChat made on Nextcloud; the encrypted files stay on the server.
 
 Incoming photos in a 1:1 chat have one rule and no setting (`ContactsManager.photosUnlockDate`):
 hidden until both sides have sent a message and 10 minutes have passed, with no way to reveal one
@@ -414,7 +414,7 @@ early. While the app is open, every contact's profile is looked up again once an
 
 Every sign-in gets new tabs (`ContentView`'s `signInSession`, the `MainTabView` id, bumped on
 sign-out), opening on Chats; without it SwiftUI brought the last account's tabs back, on Settings
-and with no onAppear. Biometrics for account login are on by default for new installs.
+and with no onAppear. Biometrics for account login are off by default.
 
 ### Face ID on Kaspa leaving and on deleting
 
@@ -431,7 +431,7 @@ message's ephemeral key from the chatting key and the message's random nonce (HK
 recipient it's an ordinary message. Messages (`decryptSentMessage`) and payment memos
 (`decryptSentPayment`) both do this. Whoever holds the seed can read these, which is the point.
 Anything sent before this used a random key that's gone: it stays the hidden
-`sentViaOtherDevicePlaceholder` unless a Nextcloud archive has its text. The full protocol note is
+`sentViaOtherDevicePlaceholder` unless an imported chat archive has its text. The full protocol note is
 in MESSAGING.md; other clients need the same change for their sends to be recoverable.
 
 ### Send Kaspa screens
@@ -543,7 +543,7 @@ Change these pieces rather than one screen, so the screens stay matched.
 | `KACHAT_NAMES.md` | Design of `.kachat` names on Kaspa covenants: gap registry (uniqueness), commit-wait-register, name UTXO with trustless list/buy, offers, address-keyed profiles, indexer + app work, phased plan |
 | `INDEXER_HANDOFF.md` | The queue of indexer work from iPhone changes: the iPhone session writes what the indexer needs to support an app change, and the indexer session works the Open items when the owner says "check iOS". This session never changes kachat-indexer itself |
 | `KACHAT_NAMES_INDEXER.md` | Indexer handoff: (A) run a testnet-10 instance of the whole indexer for the app's Testnet mode; (B-E) the `names` module - following the covenant registry from spends, offer payload markers, status/expiry, address profiles (`kchat:1:profile:`), the names/market/identity API and name push events |
-| `NEXTCLOUD_SYNC.md` | The shared contract for Nextcloud Automatic Sync across iOS, Android, Desktop and the extension: one `kachat-backup.json` overwritten in place (never extra files), folder discovery, read-merge-write, merge rules (chats, groups, Address Book, portfolios - the wallet app's, passed through here), timings, error handling, per-client conformance |
+| `NEXTCLOUD_SYNC.md` | The shared contract for Nextcloud Automatic Sync: contacts only on iOS since 2026-11-05 (`kachat-contacts.json`); for Android, Desktop and the extension until they move, one `kachat-backup.json` overwritten in place (never extra files), folder discovery, read-merge-write, merge rules (chats, groups, Address Book, portfolios - the wallet app's, passed through here), timings, error handling, per-client conformance |
 | `DETERMINISTIC_ALIASES.md` | Deterministic alias derivation (shipped protocol - see `Utilities/DeterministicAlias.swift`): algorithm, migration notes, legacy-alias compatibility |
 
 Historical plan/design documents were removed from the repo in the 4.0 hygiene pass; shipped code is the source of truth for those features.

@@ -633,7 +633,6 @@
 "None yet" = "अभी कोई नहीं";
 ".kachat Name" = ".kachat नाम";
 "Customize Profile" = "प्रोफ़ाइल कस्टमाइज़ करें";
-"Get a %@ domain at %@" = "%2$@ पर %1$@ डोमेन पाएँ";
 "No %@ names yet." = "अभी कोई %@ नाम नहीं।";
 "Couldn't reach %@. Pull down to try again." = "%@ तक नहीं पहुँच सके। फिर से कोशिश करने के लिए नीचे खींचें।";
 "Settling" = "पुष्टि हो रही है";
@@ -1442,7 +1441,6 @@
 "%lldms" = "%lldms";
 "DAA: %@" = "DAA: %@";
 "Disconnect Nextcloud" = "Nextcloud डिस्कनेक्ट करें";
-"Restore from Backup" = "बैकअप से बहाल करें";
 "Connected Account" = "जुड़ा हुआ खाता";
 "Server" = "सर्वर";
 "Username" = "उपयोगकर्ता नाम";
@@ -1451,9 +1449,7 @@
 "Automatic Sync" = "स्वचालित सिंक";
 "Last synced" = "पिछला सिंक";
 "Backup Folder" = "बैकअप फ़ोल्डर";
-"Back Up Messages Now" = "संदेशों का बैकअप अभी लें";
 "Last backup" = "पिछला बैकअप";
-"Message Backup" = "संदेश बैकअप";
 "Disconnect" = "डिस्कनेक्ट करें";
 "Use https. Unencrypted connections are not supported." = "https का उपयोग करें। बिना एन्क्रिप्शन वाले कनेक्शन समर्थित नहीं हैं।";
 "cloud.example.com" = "cloud.example.com";
@@ -1461,7 +1457,6 @@
 "Connect" = "कनेक्ट करें";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "ऐप पासवर्ड इस डिवाइस के Keychain से हटा दिया जाता है। आप कभी भी फिर से कनेक्ट कर सकते हैं।";
 "Restore" = "बहाल करें";
-"Messages from the server backup are merged into this device's chat history. Nothing is deleted." = "सर्वर बैकअप के संदेश इस डिवाइस की चैट हिस्ट्री में जोड़ दिए जाते हैं। कुछ भी हटाया नहीं जाता।";
 "Restore Complete" = "बहाली पूरी हुई";
 "Restore Failed" = "बहाली विफल रही";
 "Restoring Backup" = "बैकअप बहाल हो रहा है";
@@ -1826,3 +1821,7 @@
 "Invited" = "आमंत्रित";
 "Declined" = "अस्वीकार किया";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "जब तक आप स्वीकार नहीं करते, आप इस समूह में नहीं हैं। आपका जवाब एक छोटे एन्क्रिप्टेड लेनदेन के रूप में जाता है, ताकि समूह और आपके अन्य डिवाइस को पता चले।";
+"Back Up Contacts Now" = "अभी संपर्कों का बैकअप लें";
+"Contact Backup" = "संपर्क बैकअप";
+"Contacts backed up." = "संपर्कों का बैकअप हो गया।";
+"Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "यहाँ केवल आपके संपर्कों का एन्क्रिप्टेड बैकअप लिया जाता है। आपके संदेश और ग्रुप चैट आपके सीड फ़्रेज़ से वापस आ जाते हैं।";

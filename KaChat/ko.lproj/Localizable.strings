@@ -1825,3 +1825,4 @@
 "Contact Backup" = "연락처 백업";
 "Contacts backed up." = "연락처를 백업했습니다.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "여기에는 연락처만 암호화되어 백업됩니다. 메시지와 그룹 채팅은 시드 문구로 복원됩니다.";
+"Confirm sending this domain" = "이 도메인 보내기 확인";

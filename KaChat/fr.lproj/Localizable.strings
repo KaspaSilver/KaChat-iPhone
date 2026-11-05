@@ -1826,3 +1826,4 @@
 "Contact Backup" = "Sauvegarde des contacts";
 "Contacts backed up." = "Contacts sauvegardés.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Seuls vos contacts sont sauvegardés ici, chiffrés. Vos messages et discussions de groupe reviennent avec votre phrase de récupération.";
+"Confirm sending this domain" = "Confirmer l'envoi de ce domaine";

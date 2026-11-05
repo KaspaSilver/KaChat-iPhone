@@ -527,6 +527,42 @@ root rewrites the keys, still only from the admin on record, and the messages de
 group is left out of the push watch list, while a Keychain read error still holds the whole update
 back, so a passing failure can't drop a group from the server's list.
 
+## Signed rosters
+
+A `gctl_root`'s `sig` leaves out `members` and `name`, so a member could resend the admin's root with
+either one edited. Roots now also carry two optional fields, and `v` stays 1:
+
+- `roster_version`: a number that only goes up. Writers use the time in milliseconds, or the last
+  version this device saw plus 1 if that's higher.
+- `roster_sig`: hex Schnorr signature by `admin_signing_pub` over these bytes, with every integer an
+  8-byte little-endian value:
+  `0x01 || "gctl_roster" || group_id (raw) || epoch || roster_version || member count || for each
+  member: byte length, bytes || name byte length, name bytes`. Members are the UTF-8 of each lowercased
+  address, sorted by those bytes. The name is the UTF-8 of `name` exactly as sent.
+
+Every root an updated client writes carries both, including the self-addressed recovery root.
+
+**Reading**, after `sig` verifies:
+1. **Either field present:** verify `roster_sig`, and refuse the root if it's missing or fails. Never
+   fall back to rule 2, or editing a signed root would work. The sender doesn't matter.
+2. **Neither present:** the sender must be blank or equal the address derived from `admin_signing_pub`
+   (version 0, the network's prefix, ignoring case). Blank is allowed because the by-recipient endpoint
+   returns no sender until the indexer has resolved one.
+3. **Pin:** store the highest `roster_version` applied, per account and group. A root for an older epoch
+   only archives that epoch's key, as before. For the same or a newer epoch, a root that's unsigned or
+   has a lower version than the pin can't change the name or members: at a newer epoch apply its keys
+   and keep the stored name and members, and at the same epoch refuse it. Keys need no such check,
+   because only the admin can sign them.
+4. **Invites:** a held invite's signed root isn't replaced by an unsigned or lower-version root for the
+   same epoch.
+
+**Limits.** The pin only protects a device that has already seen a signed root. A new invitee or a
+device restoring from its seed falls back to rule 2 until one arrives. Rule 2 stays weak: a blank sender
+passes, and the live block scan reads the sender from the first output, which the transaction's builder
+chooses. Those gaps close only once every client signs and unsigned roots can be refused. A device
+without a pin can also be shown an older signed roster, since it's still genuinely the admin's. iOS's
+push extension doesn't check `roster_sig` for the group name in an invite banner.
+
 ## Group invites
 
 Being sent a `gctl_root` for a group this wallet doesn't hold is only an invite: it waits in Message

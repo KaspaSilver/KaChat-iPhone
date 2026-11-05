@@ -2699,7 +2699,11 @@ struct KNSDomainSendView: View {
                         ProgressView()
                     } else {
                         Button("Send") {
-                            send()
+                            // Giving a domain away can't be undone, so the phone's lock comes first,
+                            // whatever the settings say. Declining leaves the form as it was.
+                            DeviceAuth.authenticate(reason: AppLocalization.string("Confirm sending this domain")) {
+                                send()
+                            }
                         }
                         .disabled(!canSend)
                     }

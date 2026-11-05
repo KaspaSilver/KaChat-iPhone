@@ -1825,3 +1825,4 @@
 "Contact Backup" = "Sao lưu danh bạ";
 "Contacts backed up." = "Đã sao lưu danh bạ.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Tại đây chỉ sao lưu danh bạ của bạn, được mã hóa. Tin nhắn và cuộc trò chuyện nhóm của bạn sẽ trở lại nhờ cụm từ khôi phục.";
+"Confirm sending this domain" = "Xác nhận gửi tên miền này";

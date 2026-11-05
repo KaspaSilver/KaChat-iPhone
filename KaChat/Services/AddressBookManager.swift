@@ -335,7 +335,7 @@ final class AddressBookManager: ObservableObject {
         var walletAddress: String?
         /// Every entry with its assigned photo (base64 JPEG) attached.
         var entries: [AddressBookEntry]
-        /// The contacts file shared with KaPay only: what was deleted, so a merge doesn't bring it
+        /// The contacts backup only: what was deleted, so a merge doesn't bring it
         /// back. Other readers of the file ignore it.
         var deleted: [AddressBookTombstone]?
     }
@@ -356,8 +356,8 @@ final class AddressBookManager: ObservableObject {
         }
     }
 
-    /// This wallet's Address Book as an export file. `includingDeleted` is for the contacts file
-    /// shared with KaPay.
+    /// This wallet's Address Book as an export file. `includingDeleted` is for the contacts backup
+    /// (`kachat-contacts.json`, which KaPay shares).
     func exportData(includingDeleted: Bool = false) throws -> Data {
         let file = ExportFile(exportedAt: Date(), walletAddress: walletAddress, entries: archiveEntries,
                               deleted: includingDeleted ? archiveTombstones : nil)
@@ -448,7 +448,7 @@ final class AddressBookManager: ObservableObject {
         }
     }
 
-    /// Merges the contacts file shared with KaPay into this book, the newest edit or deletion
+    /// Merges the contacts backup (`kachat-contacts.json`, which KaPay shares) into this book, the newest edit or deletion
     /// winning per address. Unlike importing a file, a deletion stays deleted. A file another
     /// account uploaded (accounts can share a Nextcloud login) is left out, so one account's
     /// contacts never land in another. `serverIsBehind`: this book has something the file doesn't,

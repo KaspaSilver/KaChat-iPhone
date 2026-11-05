@@ -201,10 +201,6 @@ final class NextcloudService: ObservableObject {
     /// The in-flight automatic backup, held so a wallet switch can cancel it - account A's
     /// contacts must never upload while account B is active.
     private var autoBackupTask: Task<Void, Never>?
-    /// When the app last looked at the contacts file shared with KaPay.
-    private var lastSharedContactsCheck: Date?
-    /// One at a time: two `PUT`s at once get `423 Locked`.
-    private var sharedContactsSyncInFlight = false
 
     /// The quiet-time timer armed by `noteContactActivity` - a rapid exchange coalesces into
     /// one merge upload after things settle. Cancelled by wallet switch, disconnect, toggle-off
@@ -310,7 +306,6 @@ final class NextcloudService: ObservableObject {
             Task { @MainActor in
                 NextcloudService.shared.scheduleAutoBackup(minInterval: Self.autoBackupCatchUpInterval)
                 NextcloudService.shared.startChangeWatcherIfNeeded()
-                NextcloudService.shared.syncSharedContactsIfDue()
             }
         }
     }
@@ -341,7 +336,6 @@ final class NextcloudService: ObservableObject {
         syncDebounceTask = nil
         stopChangeWatcher()
         thumbnailCache.removeAllObjects()
-        lastSharedContactsCheck = nil
 
         currentWalletAddress = walletAddress
         currentWalletHashSuffix = walletAddress.map { KeychainService.walletHashSuffix($0) }
@@ -375,7 +369,6 @@ final class NextcloudService: ObservableObject {
         // Watch the contacts file for other devices' writes. A new device's first poll sees an ETag
         // it doesn't know, so this is also how it gets the contacts.
         startChangeWatcherIfNeeded()
-        syncSharedContactsIfDue()
         talkCallsAvailable = account != nil && (scopedKey(Self.talkCallsKey).map { UserDefaults.standard.bool(forKey: $0) } ?? false)
         refreshTalkAvailability()
     }
@@ -705,7 +698,6 @@ final class NextcloudService: ObservableObject {
             guard currentWalletAddress == walletAtStart, autoBackupEnabled, isConnected else { break }
             do {
                 try await checkForRemoteChangeAndImport(walletAtStart: walletAtStart)
-                syncSharedContactsIfDue()
                 backoffFactor = 1
             } catch {
                 backoffFactor = min(backoffFactor * 3, Self.changeWatchBackoffFactorMax)
@@ -1193,15 +1185,6 @@ final class NextcloudService: ObservableObject {
         guard let walletAddress = walletAtStart, let key = backupEncryptionKey() else {
             throw BackupEnvelope.EnvelopeError.keyUnavailable
         }
-        // KaPay's contacts first, so this backup carries them to this account's other devices. A
-        // problem with that file never stops this one.
-        do {
-            try await syncSharedContacts(walletAtStart: walletAddress)
-        } catch {
-            AppLog.log("%@", "[Nextcloud] Syncing contacts with KaPay failed: \(error.localizedDescription)")
-        }
-        guard !Task.isCancelled, currentWalletAddress == walletAtStart else { throw CancellationError() }
-
         var serverCopy: Data?
         var replaceUnreadable = false
         do {
@@ -1402,83 +1385,6 @@ final class NextcloudService: ObservableObject {
         return try await createPublicShareLink(for: "\(Self.mediaFolderPath)/\(storedName)")
     }
 
-    // MARK: - Contacts shared with KaPay
-
-    /// KaPay, KaChat's wallet app, never reads `kachat-contacts.json`: it keeps its contacts as a
-    /// plain JSON file (`AddressBookManager.ExportFile`, with `deleted`) in the `KaChat` folder at
-    /// the root of the user's files. KaChat reads, merges and writes that same file, which is how
-    /// a contact added or deleted in either app reaches the other (NEXTCLOUD_SYNC.md §9). It stays
-    /// in that folder even when the contacts backup's folder was moved, since KaPay only looks there.
-    private nonisolated static let sharedContactsFolder = "KaChat"
-    private nonisolated static let sharedContactsFileName = "KaPay Contacts.json"
-    /// KaPay's earlier names for it: read when there's no file under the current name yet.
-    private nonisolated static let legacySharedContactsFileNames = ["KaPay Address Book.json", "KaChat Wallet Address Book.json"]
-    /// Going in and out of the app, and each change-watcher tick, check the server at most this often.
-    private nonisolated static let sharedContactsCheckInterval: TimeInterval = 60
-
-    /// With Automatic Sync on, brings in KaPay's changes when the app opens, on an account
-    /// activation and while the change watcher runs. A change it brings is passed on to this
-    /// account's other devices through the contacts file.
-    private func syncSharedContactsIfDue() {
-        guard autoBackupEnabled, isConnected, !sharedContactsSyncInFlight, let wallet = currentWalletAddress else { return }
-        if let lastSharedContactsCheck, Date().timeIntervalSince(lastSharedContactsCheck) < Self.sharedContactsCheckInterval { return }
-        lastSharedContactsCheck = Date()
-        Task { [weak self] in
-            // after the other services have switched to this account
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            guard let self, self.currentWalletAddress == wallet else { return }
-            do {
-                if try await self.syncSharedContacts(walletAtStart: wallet) {
-                    self.noteContactActivity()
-                }
-            } catch {
-                AppLog.log("%@", "[Nextcloud] Syncing contacts with KaPay failed: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    /// One read, merge, write of the shared file; the write only when the file is missing something
-    /// this book has. A file that can't be read as contacts throws before any write, so it is never
-    /// overwritten. Returns whether the merge changed this book.
-    @discardableResult
-    private func syncSharedContacts(walletAtStart: String) async throws -> Bool {
-        guard !sharedContactsSyncInFlight else { return false }
-        sharedContactsSyncInFlight = true
-        defer { sharedContactsSyncInFlight = false }
-
-        let book = AddressBookManager.shared
-        guard currentWalletAddress == walletAtStart, book.holdsWallet(walletAtStart) else { return false }
-        var changedHere = false
-        var serverIsBehind = book.hasBackupData
-        if let remote = try await downloadSharedContacts() {
-            guard currentWalletAddress == walletAtStart, book.holdsWallet(walletAtStart) else { return false }
-            let result = try book.mergeBackup(remote)
-            changedHere = result.changedHere
-            serverIsBehind = result.serverIsBehind
-        }
-        guard serverIsBehind, currentWalletAddress == walletAtStart, book.holdsWallet(walletAtStart) else { return changedHere }
-        _ = try await uploadToKaChatFolder(
-            data: try book.exportData(includingDeleted: true),
-            filename: Self.sharedContactsFileName,
-            contentType: "application/json",
-            keepSpaces: true,
-            folder: Self.sharedContactsFolder
-        )
-        return changedHere
-    }
-
-    /// The shared file under its name, else under an earlier one; nil when neither is there.
-    private func downloadSharedContacts() async throws -> Data? {
-        for name in [Self.sharedContactsFileName] + Self.legacySharedContactsFileNames {
-            do {
-                return try await downloadFile("\(Self.sharedContactsFolder)/\(name)", maxBytes: 50_000_000)
-            } catch NextcloudError.httpError(404) {
-                continue
-            }
-        }
-        return nil
-    }
-
     // MARK: - Plain files in the KaChat folder (Address Book export / import)
 
     /// Uploads `data` as `filename` into the KaChat folder (`backupFolderPath` - the same folder
@@ -1486,11 +1392,10 @@ final class NextcloudService: ObservableObject {
     /// the stored path. A file of the same name is replaced - exports carry a timestamp in their
     /// name, so in practice each one is a new file.
     /// `keepSpaces` keeps a name like "KaChat Address Book" readable in
-    /// Nextcloud instead of turning its spaces into underscores. `folder` puts it somewhere other
-    /// than `backupFolderPath` (the contacts file shared with KaPay).
-    func uploadToKaChatFolder(data: Data, filename: String, contentType: String, keepSpaces: Bool = false, folder: String? = nil) async throws -> String {
+    /// Nextcloud instead of turning its spaces into underscores.
+    func uploadToKaChatFolder(data: Data, filename: String, contentType: String, keepSpaces: Bool = false) async throws -> String {
         guard let account, let server = account.serverURL else { throw NextcloudError.badCredentials }
-        let folder = folder ?? backupFolderPath
+        let folder = backupFolderPath
         var folderURL = server.appendingPathComponent("remote.php/dav/files/\(account.username)")
         // Level by level: MKCOL is not recursive, and 405 means the level already exists.
         for part in folder.split(separator: "/") {

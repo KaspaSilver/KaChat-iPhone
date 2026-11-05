@@ -1825,3 +1825,4 @@
 "Contact Backup" = "پشتیبان مخاطبان";
 "Contacts backed up." = "از مخاطبان پشتیبان گرفته شد.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "اینجا فقط از مخاطبان شما به‌صورت رمزگذاری‌شده پشتیبان گرفته می‌شود. پیام‌ها و گفتگوهای گروهی شما با عبارت بازیابی برمی‌گردند.";
+"Confirm sending this domain" = "تأیید ارسال این دامنه";

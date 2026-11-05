@@ -3028,10 +3028,14 @@ struct GroupBag: Codable, Sendable {
     /// rotation made every earlier message undecryptable, and the thread rendered as empty. The
     /// ciphertext was never lost; the key to read it was being thrown away.
     var previousRoots: [String: String]? = nil
+    /// The newest signed roster this device has applied for the group. Once set, a root with no
+    /// signed roster or an older one can't change the name or member list (`completeJoin`). An admin
+    /// also uses it so its next version is always higher (`GroupChatService.nextRosterVersion`).
+    var rosterVersion: UInt64? = nil
 
     enum CodingKeys: String, CodingKey {
         case groupId, groupSeed, groupRootEpoch, blindingKey
-        case currentEpoch, deviceId, msgCounter, selfInviteEpoch, previousRoots
+        case currentEpoch, deviceId, msgCounter, selfInviteEpoch, previousRoots, rosterVersion
     }
 
     init(
@@ -3043,8 +3047,10 @@ struct GroupBag: Codable, Sendable {
         deviceId: String,
         msgCounter: UInt64,
         selfInviteEpoch: UInt64? = nil,
-        previousRoots: [String: String]? = nil
+        previousRoots: [String: String]? = nil,
+        rosterVersion: UInt64? = nil
     ) {
+        self.rosterVersion = rosterVersion
         self.groupId = groupId
         self.groupSeed = groupSeed
         self.groupRootEpoch = groupRootEpoch
@@ -3082,6 +3088,7 @@ struct GroupBag: Codable, Sendable {
         msgCounter = try container.decode(UInt64.self, forKey: .msgCounter)
         selfInviteEpoch = try container.decodeIfPresent(UInt64.self, forKey: .selfInviteEpoch)
         previousRoots = Self.decodeEpochRoots(from: container)
+        rosterVersion = (try? container.decodeIfPresent(UInt64.self, forKey: .rosterVersion)) ?? nil
     }
 
     /// Reads the object form, then the alternating-array form, then gives up quietly.

@@ -1825,3 +1825,4 @@
 "Contact Backup" = "联系人备份";
 "Contacts backed up." = "联系人已备份。";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "这里只加密备份你的联系人。你的消息和群聊可通过助记词恢复。";
+"Confirm sending this domain" = "确认发送此域名";

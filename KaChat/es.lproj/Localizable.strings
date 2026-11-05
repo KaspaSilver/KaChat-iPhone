@@ -1825,3 +1825,4 @@
 "Contact Backup" = "Copia de contactos";
 "Contacts backed up." = "Copia de contactos realizada.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Aquí solo se hace copia de tus contactos, cifrada. Tus mensajes y chats de grupo vuelven con tu frase semilla.";
+"Confirm sending this domain" = "Confirmar el envío de este dominio";

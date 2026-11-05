@@ -1125,7 +1125,8 @@ final class GroupChatService: ObservableObject {
                 groupId: g.groupId, groupSeed: g.groupSeed ?? existingBag?.groupSeed, groupRootEpoch: groupRootEpoch,
                 blindingKey: blindingKey, currentEpoch: g.currentEpoch, deviceId: deviceId, msgCounter: msgCounter,
                 selfInviteEpoch: existingBag?.selfInviteEpoch,
-                previousRoots: mergedPreviousRoots.isEmpty ? nil : mergedPreviousRoots
+                previousRoots: mergedPreviousRoots.isEmpty ? nil : mergedPreviousRoots,
+                rosterVersion: existingBag?.rosterVersion
             )
             try? keychain.saveGroupBag(bag)
             let members = g.members.map {
@@ -2092,7 +2093,7 @@ final class GroupChatService: ObservableObject {
         let rootPayload = try GroupCipher.buildSignedRootPayload(
             groupId: gid, epoch: bag.currentEpoch, groupRootEpoch: groupRootEpoch, blindingKey: blindingKey,
             adminSigningPub: adminXOnlyPub, members: group.members.map { $0.address }, name: group.name,
-            adminPrivateKey: privateKey
+            rosterVersion: nextRosterVersion(groupId: group.id), adminPrivateKey: privateKey
         )
         let json = try JSONEncoder().encode(rootPayload)
         try await sendControlPayload(json, to: recipientPublicKey, from: wallet.publicAddress, privateKey: privateKey)
@@ -2111,16 +2112,31 @@ final class GroupChatService: ObservableObject {
               let selfPublicKey = KaspaAddress.publicKey(from: wallet.publicAddress) else {
             throw KasiaError.invalidAddress
         }
+        let rosterVersion = nextRosterVersion(groupId: group.id)
         let rootPayload = try GroupCipher.buildSignedRootPayload(
             groupId: gid, epoch: bag.currentEpoch, groupRootEpoch: groupRootEpoch, blindingKey: blindingKey,
             adminSigningPub: adminXOnlyPub, members: group.members.map { $0.address }, name: group.name,
-            adminPrivateKey: privateKey, groupSeed: groupSeed
+            rosterVersion: rosterVersion, adminPrivateKey: privateKey, groupSeed: groupSeed
         )
         let json = try JSONEncoder().encode(rootPayload)
         try await sendControlPayload(json, to: selfPublicKey, from: wallet.publicAddress, privateKey: privateKey)
         var updated = bag
         updated.selfInviteEpoch = bag.currentEpoch
+        updated.rosterVersion = max(updated.rosterVersion ?? 0, rosterVersion)
         try? keychain.saveGroupBag(updated)
+    }
+
+    /// The version for the next signed roster: the time in milliseconds, so the admin's devices agree
+    /// without sharing a counter, and always above the last one this device saw, so a clock set back
+    /// can't get the admin's own changes refused. Recorded from a fresh read of the bag, because the
+    /// one a caller holds may be older than its message counter.
+    private func nextRosterVersion(groupId: String) -> UInt64 {
+        let now = UInt64(Date().timeIntervalSince1970 * 1000)
+        guard var bag = try? keychain.loadGroupBag(groupId: groupId) else { return now }
+        let version = max(now, (bag.rosterVersion ?? 0) + 1)
+        bag.rosterVersion = version
+        try? keychain.saveGroupBag(bag)
+        return version
     }
 
     private func sendEpochControlMessage(groupId: Data, epoch: UInt64, reason: GroupCipher.EpochChangeReason, to recipientAddress: String, adminPrivateKey: Data) async throws {
@@ -2661,6 +2677,20 @@ final class GroupChatService: ObservableObject {
             rootPayload.adminSigningPub = rootPayload.adminSigningPub.lowercased()
             if isSelfSent && rootPayload.groupSeed == nil { return } // our own member-copy echo — ignore
             guard GroupCipher.verifyRootPayload(rootPayload) else { return }
+            if rootPayload.rosterSig != nil || rootPayload.rosterVersion != nil {
+                // The admin signed the name and members, so it doesn't matter who delivered them. One
+                // that fails has been edited: it never falls back to the sender rule below.
+                guard GroupCipher.verifyRoster(rootPayload) else {
+                    AppLog.log("[GroupChatService] Refused a root for %@ with a bad roster signature", String(rootPayload.groupId.prefix(12)))
+                    return
+                }
+            } else {
+                let hrp = AppSettings.load().networkType == .mainnet ? "kaspa" : "kaspatest"
+                guard GroupCipher.rootSenderAllowed(senderAddress: senderAddress, adminSigningPub: rootPayload.adminSigningPub, hrp: hrp) else {
+                    AppLog.log("[GroupChatService] Refused a root for %@ sent by someone other than its admin", String(rootPayload.groupId.prefix(12)))
+                    return
+                }
+            }
             let isNewGroup = store.group(id: rootPayload.groupId) == nil
             // Nobody joins a group by being added to it: a group this device doesn't hold waits in
             // Message Requests. Your own (the admin's recovery copy) just comes back, and so does one
@@ -2699,6 +2729,9 @@ final class GroupChatService: ObservableObject {
             // Later roots of the same invite, from the same admin: the group's history if you
             // join. One that leaves you out takes the invite back. A different admin's root for
             // this id is its own invite, so whoever got here first can't shut the real one out.
+            // A signed roster isn't replaced by an unsigned or older one for the same epoch.
+            if let heldVersion = groupInvites[index].roots.first(where: { $0.epoch == payload.epoch })?.rosterVersion,
+               (payload.rosterVersion ?? 0) < heldVersion { return }
             let isNewest = payload.epoch >= groupInvites[index].latest.epoch
             if isNewest, !includesMe {
                 groupInvites.remove(at: index)
@@ -2939,7 +2972,8 @@ final class GroupChatService: ObservableObject {
         }
         // Refuse to downgrade to an older epoch than what's already stored locally (replay
         // protection); otherwise apply (covers both "brand new group" and "legitimate advance").
-        if let existingBag = try? keychain.loadGroupBag(groupId: payload.groupId),
+        let heldBag = try? keychain.loadGroupBag(groupId: payload.groupId)
+        if let existingBag = heldBag,
            existingBag.currentEpoch > payload.epoch {
             // A root for an OLDER epoch is not an attack to drop on the floor - it is history
             // this device may no longer hold. Archiving it is strictly additive (currentEpoch
@@ -2948,6 +2982,22 @@ final class GroupChatService: ObservableObject {
             // refresh re-downloads pre-rotation ciphertext it still has no key for, which is
             // why refreshing appeared to do nothing.
             archivePreviousRoot(epoch: payload.epoch, root: payload.groupRootEpoch, into: existingBag)
+            return
+        }
+        // After a signed roster, an unsigned or older one can't change the name or members. A newer
+        // epoch's keys still count, since only the admin can sign those: an admin device on an older
+        // app would otherwise cut every member off from the group's new messages.
+        if let heldBag, let pinned = heldBag.rosterVersion, (payload.rosterVersion ?? 0) < pinned {
+            guard payload.epoch > heldBag.currentEpoch, let held = store.group(id: payload.groupId) else {
+                AppLog.log("[GroupChatService] Refused a root for %@ with no newer signed roster", String(payload.groupId.prefix(12)))
+                return
+            }
+            var keysOnly = payload
+            keysOnly.members = held.members.map(\.address)
+            keysOnly.name = held.name
+            keysOnly.rosterVersion = nil
+            keysOnly.rosterSig = nil
+            applyRootPayload(keysOnly)
             return
         }
         applyRootPayload(payload)
@@ -3019,7 +3069,8 @@ final class GroupChatService: ObservableObject {
             msgCounter: preservedCounter,
             // A recovered admin group already has its recovery invite on chain for this epoch.
             selfInviteEpoch: recoveredSeedHex != nil ? payload.epoch : existingBag?.selfInviteEpoch,
-            previousRoots: previousRoots.isEmpty ? nil : previousRoots
+            previousRoots: previousRoots.isEmpty ? nil : previousRoots,
+            rosterVersion: payload.rosterVersion ?? existingBag?.rosterVersion
         )
         try? keychain.saveGroupBag(bag)
 

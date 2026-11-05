@@ -1825,3 +1825,4 @@
 "Contact Backup" = "संपर्क बैकअप";
 "Contacts backed up." = "संपर्कों का बैकअप हो गया।";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "यहाँ केवल आपके संपर्कों का एन्क्रिप्टेड बैकअप लिया जाता है। आपके संदेश और ग्रुप चैट आपके सीड फ़्रेज़ से वापस आ जाते हैं।";
+"Confirm sending this domain" = "इस डोमेन को भेजने की पुष्टि करें";

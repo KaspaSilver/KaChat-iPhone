@@ -1825,3 +1825,4 @@
 "Contact Backup" = "Резервная копия контактов";
 "Contacts backed up." = "Копия контактов создана.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Здесь в зашифрованном виде сохраняются только ваши контакты. Сообщения и групповые чаты восстанавливаются с помощью сид-фразы.";
+"Confirm sending this domain" = "Подтвердите отправку этого домена";

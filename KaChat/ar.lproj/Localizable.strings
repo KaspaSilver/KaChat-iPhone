@@ -1825,3 +1825,4 @@
 "Contact Backup" = "نسخ جهات الاتصال احتياطيًا";
 "Contacts backed up." = "تم نسخ جهات الاتصال احتياطيًا.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "يتم هنا نسخ جهات اتصالك فقط احتياطيًا، بشكل مشفّر. تعود رسائلك ومحادثاتك الجماعية باستخدام عبارة الاسترداد الخاصة بك.";
+"Confirm sending this domain" = "تأكيد إرسال هذا النطاق";

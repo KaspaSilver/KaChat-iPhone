@@ -226,6 +226,11 @@ enum GroupCipher {
         /// rebuild the group as admin. Not signed; authenticated by re-deriving group_id +
         /// blinding_key from it (see GroupChatService.applyRootPayload). Members' copies omit it.
         var groupSeed: String?
+        /// The admin's signature over `members` and `name`, which `sig` leaves out, and the version
+        /// that orders it (MESSAGING.md, "Signed rosters"). Optional: older clients neither send nor
+        /// read them, and their `sig` check is unaffected.
+        var rosterVersion: UInt64?
+        var rosterSig: String?
 
         enum CodingKeys: String, CodingKey {
             case type, v
@@ -236,6 +241,8 @@ enum GroupCipher {
             case adminSigningPub = "admin_signing_pub"
             case members, name, sig
             case groupSeed = "group_seed"
+            case rosterVersion = "roster_version"
+            case rosterSig = "roster_sig"
         }
     }
 
@@ -265,6 +272,7 @@ enum GroupCipher {
         adminSigningPub: Data,
         members: [String],
         name: String,
+        rosterVersion: UInt64,
         adminPrivateKey: Data,
         groupSeed: Data? = nil
     ) throws -> GroupRootPayload {
@@ -273,6 +281,10 @@ enum GroupCipher {
             groupRootEpoch: groupRootEpoch, blindingKey: blindingKey, adminSigningPub: adminSigningPub
         )
         let sig = try sign(signingPayload, privateKey: adminPrivateKey)
+        let rosterSig = try sign(
+            buildRosterSigningPayload(groupId: groupId, epoch: epoch, rosterVersion: rosterVersion, members: members, name: name),
+            privateKey: adminPrivateKey
+        )
         return GroupRootPayload(
             groupId: groupId.hexString,
             epoch: epoch,
@@ -282,8 +294,43 @@ enum GroupCipher {
             members: members,
             name: name,
             sig: sig.hexString,
-            groupSeed: groupSeed?.hexString
+            groupSeed: groupSeed?.hexString,
+            rosterVersion: rosterVersion,
+            rosterSig: rosterSig.hexString
         )
+    }
+
+    /// What `roster_sig` covers. Members are lowercased and sorted by their UTF-8 bytes, so every
+    /// client signs the same bytes for the same list; the name is exactly as sent.
+    static func buildRosterSigningPayload(groupId: Data, epoch: UInt64, rosterVersion: UInt64, members: [String], name: String) -> Data {
+        var payload = Data([1])
+        payload.append(Data("gctl_roster".utf8))
+        payload.append(groupId)
+        payload.append(leBytes(epoch))
+        payload.append(leBytes(rosterVersion))
+        let sorted = members.map { Array($0.lowercased().utf8) }.sorted { $0.lexicographicallyPrecedes($1) }
+        payload.append(leBytes(UInt64(sorted.count)))
+        for member in sorted {
+            payload.append(leBytes(UInt64(member.count)))
+            payload.append(contentsOf: member)
+        }
+        let nameBytes = Data(name.utf8)
+        payload.append(leBytes(UInt64(nameBytes.count)))
+        payload.append(nameBytes)
+        return payload
+    }
+
+    /// The root's `roster_sig` checks out against its own `admin_signing_pub`. Whether that's the
+    /// group's real admin is the same separate question as `verifyRootPayload`.
+    static func verifyRoster(_ payload: GroupRootPayload) -> Bool {
+        guard let groupId = Data(hexString: payload.groupId),
+              let adminSigningPub = Data(hexString: payload.adminSigningPub),
+              let version = payload.rosterVersion,
+              let sigHex = payload.rosterSig, let sig = Data(hexString: sigHex) else { return false }
+        let signingPayload = buildRosterSigningPayload(
+            groupId: groupId, epoch: payload.epoch, rosterVersion: version, members: payload.members, name: payload.name
+        )
+        return verify(sig, message: signingPayload, xOnlyPublicKey: adminSigningPub)
     }
 
     /// Verifies a received `gctl_root` payload's signature against the claimed admin key.
@@ -304,6 +351,19 @@ enum GroupCipher {
             groupRootEpoch: groupRootEpoch, blindingKey: blindingKey, adminSigningPub: adminSigningPub
         )
         return verify(sig, message: signingPayload, xOnlyPublicKey: adminSigningPub)
+    }
+
+    /// Whether this sender may deliver a root with no signed roster: `sig` leaves out `members` and
+    /// `name`, so a member could otherwise resend the admin's root with an edited roster or name. Blank is
+    /// allowed because the indexer's by-recipient endpoint returns no sender until it has resolved
+    /// one, and refusing that would lose a real root as the cursor moves past it. This narrows the
+    /// problem and doesn't close it: a blank sender gets through, and the live block scan takes the
+    /// sender from a transaction's first output, which whoever builds the transaction chooses.
+    static func rootSenderAllowed(senderAddress: String, adminSigningPub: String, hrp: String) -> Bool {
+        let sender = senderAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !sender.isEmpty else { return true }
+        guard let admin = Data(hexString: adminSigningPub) else { return false }
+        return sender.lowercased() == KaspaAddress(hrp: hrp, type: .pubKey, payload: admin).address.lowercased()
     }
 
     static func buildSignedEpochPayload(

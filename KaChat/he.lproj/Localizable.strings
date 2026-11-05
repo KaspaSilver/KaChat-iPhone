@@ -1825,3 +1825,4 @@
 "Contact Backup" = "גיבוי אנשי קשר";
 "Contacts backed up." = "אנשי הקשר גובו.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "כאן מגובים רק אנשי הקשר שלך, בהצפנה. ההודעות והצ׳אטים הקבוצתיים שלך חוזרים עם ביטוי השחזור שלך.";
+"Confirm sending this domain" = "אישור שליחת הדומיין הזה";

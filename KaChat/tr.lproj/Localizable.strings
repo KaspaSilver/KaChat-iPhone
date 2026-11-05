@@ -1825,3 +1825,4 @@
 "Contact Backup" = "Kişi Yedeği";
 "Contacts backed up." = "Kişiler yedeklendi.";
 "Only your contacts are backed up here, encrypted. Your messages and group chats come back with your seed phrase." = "Burada yalnızca kişileriniz şifreli olarak yedeklenir. Mesajlarınız ve grup sohbetleriniz başlangıç ifadenizle geri gelir.";
+"Confirm sending this domain" = "Bu alan adının gönderilmesini onayla";

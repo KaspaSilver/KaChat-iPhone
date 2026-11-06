@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld लोग";
 "Transaction" = "लेन-देन";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "इस खाते का बैकअप नहीं है। अगर आप इसे अभी हटाते हैं, तो यह और इसके फंड कभी वापस नहीं मिल सकते।";
-"To back it up first, sign in to it and use the card on the Profile tab." = "पहले इसका बैकअप लेने के लिए इसमें साइन इन करें और प्रोफ़ाइल टैब पर कार्ड का उपयोग करें।";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "पहले बैकअप लेने के लिए, उसमें साइन इन करें और बैलेंस के नीचे बैकअप बैनर पर टैप करें।";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "पक्का करें कि आपके 12 या 24 शब्दों का बैकअप है, और अगर पासफ़्रेज़ है तो उसका भी। इस खाते और इसके फंड को वापस पाने का यही एकमात्र रास्ता है।";
 "Couldn't load the coins at this address" = "इस पते के कॉइन लोड नहीं हो सके";
 "Failed to send. Tap to retry." = "भेजना विफल रहा। फिर कोशिश करने के लिए टैप करें।";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "पुष्टि नहीं हुई";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "हो सकता है यह भेजा जा चुका हो, लेकिन नेटवर्क ने इसकी पुष्टि नहीं की। दोबारा भेजने से पहले अपना बैलेंस जाँच लें।";
 "Swipe up, then let go to send." = "ऊपर स्वाइप करें, फिर भेजने के लिए छोड़ दें।";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "आपका पता ढूँढा जा रहा है...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "एक लेनदेन %d सिक्के समेकित कर सकता है, इसलिए सबसे बड़े %d समेकित किए जाते हैं। बाकी के लिए फिर से समेकित करें।";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "मैक्स वह है जो एक लेनदेन ले जा सकता है: उसके सबसे बड़े %d सिक्के। \"UTXO समेकित करें\" बाकी को जोड़ता है।";
+"Couldn't load this address's balance." = "इस पते का बैलेंस लोड नहीं हो सका।";

@@ -122,7 +122,9 @@ struct NFCCardRestoreView: View {
                 throw NFCCardError.unreadableBackup
             }
             // A wrong passphrase still derives a valid account, just not this one.
-            guard address == payload.chattingAddress else { throw NFCCardError.wrongPassphrase }
+            // Compared as an account, not a string: a card saved on mainnet holds a `kaspa:`
+            // address, and this phone may be on testnet (or the other way round).
+            guard WalletManager.isSameAccount(address, payload.chattingAddress) else { throw NFCCardError.wrongPassphrase }
             try await commitImport(payload, passphrase: enteredPassphrase, family: family)
         } catch {
             show(error)

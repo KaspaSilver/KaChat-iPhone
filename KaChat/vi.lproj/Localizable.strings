@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld người";
 "Transaction" = "Giao dịch";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Tài khoản này chưa được sao lưu. Nếu bạn xóa bây giờ, tài khoản và tiền trong đó sẽ không bao giờ khôi phục được.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Để sao lưu trước, hãy đăng nhập vào tài khoản đó và dùng thẻ trong tab Hồ sơ.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Để sao lưu trước, hãy đăng nhập vào tài khoản đó và chạm vào thông báo sao lưu bên dưới số dư.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Hãy chắc chắn 12 hoặc 24 từ của bạn đã được sao lưu, và cả cụm mật khẩu nếu bạn có. Đó là cách duy nhất để khôi phục tài khoản này và tiền trong đó.";
 "Couldn't load the coins at this address" = "Không thể tải các coin tại địa chỉ này";
 "Failed to send. Tap to retry." = "Gửi không thành công. Chạm để thử lại.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "Chưa xác nhận";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Giao dịch có thể đã được gửi, nhưng mạng chưa xác nhận. Hãy kiểm tra số dư trước khi gửi lại.";
 "Swipe up, then let go to send." = "Vuốt lên rồi thả để gửi.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Đang tìm địa chỉ của bạn...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Một giao dịch có thể hợp nhất %d đồng, nên %d đồng lớn nhất được hợp nhất. Hợp nhất lại cho phần còn lại.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Tối đa là lượng một giao dịch có thể chứa: %d đồng lớn nhất. \"Hợp nhất UTXO\" gộp phần còn lại.";
+"Couldn't load this address's balance." = "Không thể tải số dư của địa chỉ này.";

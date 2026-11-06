@@ -931,7 +931,8 @@ struct ManageAddressesView: View {
             var lastError: Error?
             for entry in entries where entry.index != activeIndex && entry.balanceSompi > 0 {
                 do {
-                    let maxSendable = try await chatService.estimateMaxSpendingAddressAmount(index: entry.index, toAddress: primaryAddress, extraFeeSompi: extraFeeSompi)
+                    // an address with more coins than one transaction spends moves its largest ones
+                    let maxSendable = try await chatService.estimateMaxSpendingAddressAmount(index: entry.index, toAddress: primaryAddress, extraFeeSompi: extraFeeSompi).amountSompi
                     guard maxSendable > 0 else { continue }
                     let txId = try await chatService.sendFromSpendingAddress(index: entry.index, toAddress: primaryAddress, amountSompi: maxSendable, extraFeeSompi: extraFeeSompi)
                     sentTxIds.append(txId)
@@ -1281,9 +1282,13 @@ struct SpendingAddressWithdrawView: View {
 
     @State private var feeTier: WithdrawFeeTier = .normal
     @State private var normalFeeSompi: UInt64?
-    /// Change too small to keep, which goes to the fee (`SendFeeEstimate`).
-    @State private var foldedChangeSompi: UInt64 = 0
+    /// The fee this exact send pays at the chosen speed (network fee, extra and any change too
+    /// small to keep), from an estimate made with that extra; nil until it is known.
+    @State private var builtFeeSompi: UInt64?
     @State private var isEstimatingFee = false
+    /// The amount a Max set that is what one transaction can carry, not the whole balance: the
+    /// note shows while the amount is still that one.
+    @State private var cappedMaxAmount: String?
     @State private var customExtraFeeSompi: UInt64?
     @State private var isEditingFee = false
     @State private var customFeeText = ""
@@ -1299,8 +1304,11 @@ struct SpendingAddressWithdrawView: View {
         return sompi
     }
 
+    /// The swipe waits for the amount and the fee it shows to be the ones that will be sent: not
+    /// while Max or the fee is being worked out again, and not when the fee couldn't be.
     private var canSend: Bool {
         hasValidRecipient && amountSompi != nil && !isSending
+            && !isEstimatingMax && !isEstimatingFee && totalFeeSompi != nil
     }
 
     /// Extra priority tip on top of the base (Normal-tier) fee, for network congestion. A
@@ -1314,13 +1322,15 @@ struct SpendingAddressWithdrawView: View {
     }
 
     private var totalFeeSompi: UInt64? {
-        guard let normalFeeSompi else { return nil }
-        return SendFeeEstimate(networkFee: normalFeeSompi, foldedChange: foldedChangeSompi).total(extra: extraFeeSompi)
+        guard normalFeeSompi != nil else { return nil }
+        return builtFeeSompi
     }
 
+    /// The speed and a custom fee are in the key: the fee shown is worked out with the extra
+    /// actually paid (it can take another coin, or leave no change worth keeping).
     private var feeEstimationKey: String {
         let manualKey = manualUtxos?.map { "\($0.outpoint.transactionId):\($0.outpoint.index)" }.sorted().joined(separator: ",") ?? ""
-        return "\(source.index)|\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)"
+        return "\(source.index)|\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(feeTier.rawValue)|\(customExtraFeeSompi.map { String($0) } ?? "")"
     }
 
     /// The spending address this send comes from: `entry` (the primary, from Profile or the
@@ -1461,6 +1471,14 @@ struct SpendingAddressWithdrawView: View {
                             .font(.footnote)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
+                    } else if let cappedMaxAmount, cappedMaxAmount == amountInput {
+                        // Why Max isn't the whole balance: one transaction spends at most
+                        // `maxInputsPerTransaction` coins, and this address holds more.
+                        Text(String(format: AppLocalization.string("Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest."),
+                                    locale: AppLocalization.locale, KasiaTransactionBuilder.maxInputsPerTransaction))
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -1481,19 +1499,34 @@ struct SpendingAddressWithdrawView: View {
             .task(id: feeEstimationKey) {
                 guard hasValidRecipient, let amountSompi else {
                     normalFeeSompi = nil
+                    builtFeeSompi = nil
+                    isEstimatingFee = false
                     return
                 }
                 isEstimatingFee = true
                 try? await Task.sleep(nanoseconds: 400_000_000)
                 guard !Task.isCancelled else { return }
+                let index = source.index
+                let recipient = effectiveAddress
+                let coins = manualUtxos
+                let preloaded = isCompoundMode ? preloadedUtxos : []
                 do {
-                    let fee = try await chatService.estimateSpendingAddressWithdrawalFee(index: source.index, toAddress: effectiveAddress, amountSompi: amountSompi, manualUtxos: manualUtxos, availableUtxos: isCompoundMode ? preloadedUtxos : [])
+                    // The Normal fee is the base the speeds multiply (and the editor's minimum);
+                    // with the extra in, the estimate builds the same shape the send will.
+                    let base = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: recipient, amountSompi: amountSompi, manualUtxos: coins, availableUtxos: preloaded)
                     guard !Task.isCancelled else { return }
-                    normalFeeSompi = fee.networkFee
-                    foldedChangeSompi = fee.foldedChange
+                    let extra = customExtraFeeSompi ?? base.networkFee * (feeTier.multiplier - 1)
+                    var paid = base
+                    if extra > 0 {
+                        paid = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: recipient, amountSompi: amountSompi, manualUtxos: coins, extraFeeSompi: extra, availableUtxos: preloaded)
+                    }
+                    guard !Task.isCancelled else { return }
+                    normalFeeSompi = base.networkFee
+                    builtFeeSompi = paid.networkFee + paid.foldedChange
                 } catch {
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = nil
+                    builtFeeSompi = nil
                 }
                 isEstimatingFee = false
             }
@@ -1633,9 +1666,10 @@ struct SpendingAddressWithdrawView: View {
                         isEstimatingMax = false
                     }
                 } else {
-                    let maxSompi = try await chatService.estimateMaxSpendingAddressAmount(index: source.index, toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                    let result = try await chatService.estimateMaxSpendingAddressAmount(index: source.index, toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                     await MainActor.run {
-                        amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
+                        amountInput = fiatAmountState.setMaxKas(Double(result.amountSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
+                        cappedMaxAmount = result.cappedAtInputLimit ? amountInput : nil
                         isEstimatingMax = false
                     }
                 }
@@ -1664,7 +1698,8 @@ struct SpendingAddressWithdrawView: View {
     }
 
     private func send() {
-        guard let amountSompi else { return }
+        // one send at a time: a second swipe or activation must never build a second transaction
+        guard let amountSompi, !isSending else { return }
         isSending = true
         errorMessage = nil
         // In compound mode, `manualUtxos` is the one-transaction chunk pinned by setMaxAmount() and

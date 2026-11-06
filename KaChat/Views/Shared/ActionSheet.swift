@@ -467,7 +467,7 @@ struct DeleteAccountSheet: View {
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
                     if onBackUp == nil {
-                        Text("To back it up first, sign in to it and use the card on the Profile tab.")
+                        Text("To back it up first, sign in to it and tap the backup banner under the balance.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)

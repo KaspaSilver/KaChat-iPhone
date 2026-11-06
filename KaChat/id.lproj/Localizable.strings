@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld orang";
 "Transaction" = "Transaksi";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Akun ini belum dicadangkan. Jika Anda menghapusnya sekarang, akun dan dananya tidak akan pernah bisa dipulihkan.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Untuk mencadangkannya dulu, masuk ke akun itu dan gunakan kartu di tab Profil.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Untuk mencadangkannya dulu, masuk ke akun itu dan ketuk pemberitahuan cadangan di bawah saldo.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Pastikan 12 atau 24 kata Anda sudah dicadangkan, begitu juga frasa sandi Anda jika punya. Itu satu-satunya cara memulihkan akun ini dan dananya.";
 "Couldn't load the coins at this address" = "Tidak dapat memuat koin di alamat ini";
 "Failed to send. Tap to retry." = "Gagal dikirim. Ketuk untuk mencoba lagi.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "Belum dikonfirmasi";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Ini mungkin sudah terkirim, tetapi jaringan belum mengonfirmasinya. Periksa saldo Anda sebelum mengirim lagi.";
 "Swipe up, then let go to send." = "Geser ke atas, lalu lepaskan untuk mengirim.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Mencari alamatmu...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Satu transaksi dapat menggabungkan %d koin, jadi %d koin terbesar digabungkan. Gabungkan lagi untuk sisanya.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Maks adalah yang bisa dimuat satu transaksi: %d koin terbesarnya. \"Gabungkan UTXO\" menggabungkan sisanya.";
+"Couldn't load this address's balance." = "Saldo alamat ini tidak dapat dimuat.";

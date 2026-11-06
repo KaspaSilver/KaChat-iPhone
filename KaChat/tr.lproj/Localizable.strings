@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld kişi";
 "Transaction" = "İşlem";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Bu hesap yedeklenmemiş. Şimdi silersen, hesap ve fonları asla kurtarılamaz.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Önce yedeklemek için ona giriş yap ve Profil sekmesindeki kartı kullan.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Önce yedeklemek için o hesaba giriş yap ve bakiyenin altındaki yedekleme uyarısına dokun.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "12 veya 24 kelimenin yedeklendiğinden, varsa parola ifadenin de yedeklendiğinden emin ol. Bunlar bu hesabı ve fonlarını kurtarmanın tek yoludur.";
 "Couldn't load the coins at this address" = "Bu adresteki coin'ler yüklenemedi";
 "Failed to send. Tap to retry." = "Gönderilemedi. Tekrar denemek için dokun.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "Onaylanmadı";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Bu işlem gerçekleşmiş olabilir ancak ağ onaylamadı. Yeniden göndermeden önce bakiyenizi kontrol edin.";
 "Swipe up, then let go to send." = "Yukarı kaydırın, ardından göndermek için bırakın.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Adresin aranıyor...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Bir işlem %d coin birleştirebilir, bu yüzden en büyük %d tanesi birleştirilir. Kalanlar için yeniden birleştir.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Maks., bir işlemin taşıyabileceği miktardır: en büyük %d coin. \"UTXO'ları Birleştir\" kalanları birleştirir.";
+"Couldn't load this address's balance." = "Bu adresin bakiyesi yüklenemedi.";

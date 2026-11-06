@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld 人";
 "Transaction" = "交易";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "此账户尚未备份。如果现在删除，它和其中的资金将永远无法找回。";
-"To back it up first, sign in to it and use the card on the Profile tab." = "要先备份，请登录该账户，使用“个人资料”标签页上的卡。";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "要先备份，请登录该账户并点按余额下方的备份提示。";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "请确认你的 12 或 24 个单词已备份，如果有密码短语，也要备份。它们是恢复此账户及其资金的唯一方式。";
 "Couldn't load the coins at this address" = "无法加载此地址上的币";
 "Failed to send. Tap to retry." = "发送失败。轻点重试。";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "未确认";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "这笔交易可能已发送，但网络未确认。再次发送前请先查看余额。";
 "Swipe up, then let go to send." = "向上滑动，然后松手发送。";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "正在查找你的地址...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "一笔交易最多可合并 %d 个币，因此会合并最大的 %d 个。请再次合并剩下的部分。";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "最大值是一笔交易能承载的金额：最大的 %d 个币。“合并 UTXO”可合并其余的币。";
+"Couldn't load this address's balance." = "无法加载此地址的余额。";

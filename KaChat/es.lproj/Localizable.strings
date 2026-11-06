@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld personas";
 "Transaction" = "Transacción";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Esta cuenta no tiene respaldo. Si la eliminas ahora, ni ella ni sus fondos podrán recuperarse nunca.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Para respaldarla primero, inicia sesión en ella y usa la tarjeta en la pestaña Perfil.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Para respaldarla primero, inicia sesión en ella y toca el aviso de respaldo debajo del saldo.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Asegúrate de que tus 12 o 24 palabras estén respaldadas, y también tu frase de contraseña si tienes una. Son la única forma de recuperar esta cuenta y sus fondos.";
 "Couldn't load the coins at this address" = "No se pudieron cargar las monedas de esta dirección";
 "Failed to send. Tap to retry." = "No se pudo enviar. Toca para reintentar.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "Sin confirmar";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Puede que se haya enviado, pero la red no lo ha confirmado. Comprueba tu saldo antes de volver a enviar.";
 "Swipe up, then let go to send." = "Desliza hacia arriba y suelta para enviar.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Buscando tu dirección...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Una transacción puede consolidar %d monedas, así que se consolidan las %d más grandes. Consolida de nuevo para el resto.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Máx. es lo que cabe en una transacción: sus %d monedas más grandes. «Consolidar UTXOs» combina el resto.";
+"Couldn't load this address's balance." = "No se pudo cargar el saldo de esta dirección.";

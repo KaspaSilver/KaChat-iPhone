@@ -11,6 +11,9 @@ struct OnboardingView: View {
     @State private var pendingRemovalAccount: SavedAccountSummary?
     /// The pencil's half sheet: Rename or Delete for one saved account.
     @State private var accountActionsTarget: SavedAccountSummary?
+    /// What the half sheet's choice opens, once the half sheet has finished closing: presenting
+    /// the next sheet or alert while it is still going away can be dropped (iOS 16).
+    @State private var afterAccountActions: (() -> Void)?
     @State private var isRemovingAccount = false
     @State private var signInErrorMessage: String?
     /// A saved account this device has no keys for (tapped after an iPhone restore): the sheet
@@ -81,7 +84,11 @@ struct OnboardingView: View {
                 // identity derivation path family, then seed entry continues as before.
                 ImportSourceWalletView()
             }
-            .sheet(item: $accountActionsTarget) { account in
+            .sheet(item: $accountActionsTarget, onDismiss: {
+                let next = afterAccountActions
+                afterAccountActions = nil
+                next?()
+            }) { account in
                 accountActionsSheet(account)
             }
             .sheet(isPresented: Binding(
@@ -158,6 +165,12 @@ struct OnboardingView: View {
 
     private var hasSavedAccounts: Bool { !walletManager.savedAccounts.isEmpty }
 
+    /// Creating, signing in or removing: one at a time, since each one replaces the account in
+    /// the active slot.
+    private var isAccountActionRunning: Bool {
+        isCreatingAccount || signingInAccountId != nil || isRemovingAccount
+    }
+
     /// Wordmark with the app mark beside it, matching Android. The tagline stays whether or not
     /// there are accounts saved: it is what the screen is, and hiding it on a returning device
     /// left the wordmark sitting on its own with nothing saying what it belongs to.
@@ -203,6 +216,7 @@ struct OnboardingView: View {
                 .foregroundColor(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+            .disabled(signingInAccountId != nil || isRemovingAccount)
 
             Button {
                 showImportWallet = true
@@ -217,7 +231,7 @@ struct OnboardingView: View {
                 .foregroundColor(.primary)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .disabled(isCreatingAccount)
+            .disabled(isAccountActionRunning)
 
             Button {
                 showCreateWallet = true
@@ -226,7 +240,7 @@ struct OnboardingView: View {
                     .font(.footnote.weight(.semibold))
                     .foregroundColor(.accentColor)
             }
-            .disabled(isCreatingAccount)
+            .disabled(isAccountActionRunning)
         }
         .padding(.horizontal, 32)
         .padding(.bottom, 40)
@@ -304,11 +318,11 @@ struct OnboardingView: View {
                 subtitle: "Gives this account a name of your own.",
                 systemImage: "pencil"
             ) {
-                accountActionsTarget = nil
-                DispatchQueue.main.async {
+                afterAccountActions = {
                     renameText = account.alias
                     pendingRenameAccount = account
                 }
+                accountActionsTarget = nil
             }
             ActionSheetRow(
                 title: "Delete",
@@ -316,8 +330,8 @@ struct OnboardingView: View {
                 systemImage: "trash",
                 tint: .red
             ) {
+                afterAccountActions = { pendingRemovalAccount = account }
                 accountActionsTarget = nil
-                DispatchQueue.main.async { pendingRemovalAccount = account }
             }
 
             Spacer(minLength: 0)
@@ -353,7 +367,7 @@ struct OnboardingView: View {
                 }
             }
             .buttonStyle(.plain)
-            .disabled(signingInAccountId != nil || isRemovingAccount)
+            .disabled(isAccountActionRunning)
 
             // Half sheet rather than a context menu, like every other chooser in the app - and
             // Delete gets a line saying what it takes with it, which a menu of bare verbs cannot.
@@ -367,7 +381,7 @@ struct OnboardingView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(signingInAccountId != nil || isRemovingAccount)
+            .disabled(isAccountActionRunning)
         }
         .padding(.horizontal, 12)
         .frame(height: Self.savedAccountRowHeight)
@@ -376,7 +390,7 @@ struct OnboardingView: View {
     }
 
     private func signIn(_ account: SavedAccountSummary) {
-        guard signingInAccountId == nil, !isRemovingAccount else { return }
+        guard !isAccountActionRunning else { return }
         signInErrorMessage = nil
 
         if settingsViewModel.settings.biometricAccountLoginEnabled {
@@ -391,6 +405,8 @@ struct OnboardingView: View {
     }
 
     private func performSignIn(_ account: SavedAccountSummary) {
+        // the Face ID prompt may have let another action start meanwhile
+        guard !isAccountActionRunning else { return }
         signingInAccountId = account.id
         Task {
             let didSignIn = await walletManager.signInToSavedAccount(account)
@@ -412,7 +428,7 @@ struct OnboardingView: View {
     /// A new account in one tap: 24 words, no passphrase, the next free default name. The Welcome
     /// Guide follows, and the seed phrase comes later, through Profile's backup card.
     private func createAccount() {
-        guard !isCreatingAccount else { return }
+        guard !isAccountActionRunning else { return }
         isCreatingAccount = true
         Task {
             do {
@@ -426,7 +442,7 @@ struct OnboardingView: View {
     }
 
     private func removeSavedAccount(_ account: SavedAccountSummary) {
-        guard !isRemovingAccount else { return }
+        guard !isAccountActionRunning else { return }
         isRemovingAccount = true
         Task {
             await walletManager.removeSavedAccount(account)

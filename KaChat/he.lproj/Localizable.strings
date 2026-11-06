@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld אנשים";
 "Transaction" = "עסקה";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "החשבון הזה לא מגובה. אם תמחקו אותו עכשיו, אי אפשר יהיה לשחזר אותו ואת הכספים שבו לעולם.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "כדי לגבות אותו קודם, היכנסו אליו והשתמשו בכרטיס בלשונית פרופיל.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "כדי לגבות אותו קודם, התחבר אליו והקש על באנר הגיבוי שמתחת ליתרה.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "ודאו ש-12 או 24 המילים שלכם מגובות, וגם ביטוי הסיסמה אם יש לכם. הם הדרך היחידה לשחזר את החשבון הזה ואת הכספים שבו.";
 "Couldn't load the coins at this address" = "לא ניתן היה לטעון את המטבעות בכתובת הזו";
 "Failed to send. Tap to retry." = "השליחה נכשלה. הקישו כדי לנסות שוב.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "לא אושר";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "ייתכן שזה עבר, אבל הרשת לא אישרה זאת. כדאי לבדוק את היתרה לפני שליחה נוספת.";
 "Swipe up, then let go to send." = "החליקו למעלה ואז הרפו כדי לשלוח.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "מחפשים את הכתובת שלך...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "עסקה אחת יכולה לאחד %d מטבעות, לכן מאוחדים %d הגדולים ביותר. אחד שוב לשאר.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "מקסימום הוא מה שעסקה אחת יכולה לשאת: %d המטבעות הגדולים שלה. \"איחוד UTXO\" מאחד את השאר.";
+"Couldn't load this address's balance." = "לא ניתן לטעון את היתרה של הכתובת הזו.";

@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld명";
 "Transaction" = "거래";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "이 계정은 백업되어 있지 않습니다. 지금 삭제하면 계정과 자금을 다시는 복구할 수 없습니다.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "먼저 백업하려면 그 계정에 로그인하고 프로필 탭의 카드를 사용하세요.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "먼저 백업하려면 그 계정에 로그인한 뒤 잔액 아래의 백업 알림을 탭하세요.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "12개 또는 24개 단어가 백업되어 있는지 확인하고, 패스프레이즈가 있다면 그것도 확인하세요. 이것이 이 계정과 자금을 복구하는 유일한 방법입니다.";
 "Couldn't load the coins at this address" = "이 주소의 코인을 불러올 수 없습니다";
 "Failed to send. Tap to retry." = "전송하지 못했습니다. 탭하여 다시 시도";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "확인되지 않음";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "전송되었을 수 있지만 네트워크에서 확인되지 않았습니다. 다시 보내기 전에 잔액을 확인하세요.";
 "Swipe up, then let go to send." = "위로 밀고 손을 떼면 전송됩니다.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "주소를 찾는 중...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "한 번의 거래로 %d개의 코인을 통합할 수 있어 가장 큰 %d개를 통합합니다. 나머지는 다시 통합하세요.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "최대는 한 번의 거래에 담을 수 있는 금액입니다(가장 큰 코인 %d개). 나머지는 \"UTXO 통합\"으로 합칠 수 있습니다.";
+"Couldn't load this address's balance." = "이 주소의 잔액을 불러오지 못했습니다.";

@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld نفر";
 "Transaction" = "تراکنش";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "از این حساب نسخه پشتیبان وجود ندارد. اگر اکنون آن را حذف کنید، خودش و دارایی‌اش هرگز قابل بازیابی نیستند.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "برای اینکه اول از آن نسخه پشتیبان بگیرید، وارد آن شوید و از کارت در زبانه نمایه استفاده کنید.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "برای پشتیبان‌گیری اول، وارد آن حساب شوید و روی نوار پشتیبان‌گیری زیر موجودی بزنید.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "مطمئن شوید از ۱۲ یا ۲۴ کلمه خود و اگر عبارت عبور دارید از آن هم نسخه پشتیبان دارید. این‌ها تنها راه بازیابی این حساب و دارایی آن هستند.";
 "Couldn't load the coins at this address" = "سکه‌های این آدرس بارگذاری نشدند";
 "Failed to send. Tap to retry." = "ارسال نشد. برای تلاش دوباره ضربه بزنید.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "تأیید نشد";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "ممکن است انجام شده باشد، اما شبکه آن را تأیید نکرد. پیش از ارسال دوباره، موجودی خود را بررسی کنید.";
 "Swipe up, then let go to send." = "به بالا بکشید و برای ارسال رها کنید.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "در حال یافتن نشانی شما...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "یک تراکنش می‌تواند %d سکه را ادغام کند، پس %d سکه‌ی بزرگ‌تر ادغام می‌شوند. برای بقیه دوباره ادغام کنید.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "حداکثر، مقداری است که یک تراکنش می‌تواند جابه‌جا کند: %d سکه‌ی بزرگ‌ترش. «ادغام UTXOها» بقیه را یکی می‌کند.";
+"Couldn't load this address's balance." = "موجودی این نشانی بارگیری نشد.";

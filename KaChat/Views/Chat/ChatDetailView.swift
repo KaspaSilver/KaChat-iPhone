@@ -321,8 +321,9 @@ struct ChatDetailView: View {
     /// The payment's memo, encrypted to the recipient with the payment (shown in its bubble).
     @State private var paymentNote = ""
     @State private var paymentFeeSompi: UInt64?
-    /// Change too small to keep, which goes to the fee (`SendFeeEstimate`).
-    @State private var paymentFoldedChangeSompi: UInt64 = 0
+    /// The fee this payment pays at the chosen speed (network fee, extra and any change too
+    /// small to keep), from an estimate made with that extra; nil until it is known.
+    @State private var paymentBuiltFeeSompi: UInt64?
     @State private var isEstimatingPaymentFee = false
     @State private var paymentFeeTask: Task<Void, Never>?
     @State private var paymentError: String?
@@ -3115,9 +3116,12 @@ struct ChatDetailView: View {
         .onChange(of: paymentFeeTier) { _ in
             paymentCustomExtraFeeSompi = nil
             isEditingPaymentFee = false
+            // a bigger extra can take another coin or leave no change worth keeping
+            schedulePaymentFee(for: amountText)
             if paymentUsedMax { setPaymentMax() }
         }
         .onChange(of: paymentCustomExtraFeeSompi) { _ in
+            schedulePaymentFee(for: amountText)
             if paymentUsedMax { setPaymentMax() }
         }
         .onChange(of: paymentFrom) { _ in
@@ -3263,7 +3267,9 @@ struct ChatDetailView: View {
             onBack: { goToPaymentStep(.amount) },
             title: "Swipe up to Send",
             isBusy: isSending,
-            isEnabled: paymentAmountSompi > 0 && !paymentExceedsBalance && !isEstimatingPaymentMax,
+            // not while Max or the fee is still being worked out: the Review would show a fee
+            // other than the one sent
+            isEnabled: paymentAmountSompi > 0 && !paymentExceedsBalance && !isEstimatingPaymentMax && !isEstimatingPaymentFee,
             amountSompi: paymentAmountSompi,
             recipient: contactsManager.displayName(for: contact),
             sent: sentPayment,
@@ -3428,9 +3434,8 @@ struct ChatDetailView: View {
     }
 
     private var paymentTotalFeeSompi: UInt64? {
-        paymentFeeSompi.map {
-            SendFeeEstimate(networkFee: $0, foldedChange: paymentFoldedChangeSompi).total(extra: paymentExtraFeeSompi)
-        }
+        guard paymentFeeSompi != nil else { return nil }
+        return paymentBuiltFeeSompi
     }
 
     /// A typed total fee below the base is raised to it (a transaction can't go out under it).
@@ -3607,6 +3612,8 @@ struct ChatDetailView: View {
     }
 
     private func executePayment(amountSompi: UInt64) {
+        // one send at a time: a second swipe must never build a second transaction
+        guard !isSending else { return }
         let extraFee = paymentExtraFeeSompi
         let manualUtxos = paymentManualUtxos
         isSending = true
@@ -4235,22 +4242,35 @@ struct ChatDetailView: View {
         let amountSompi = parseAmountSompi(normalized)
         guard amountSompi > 0 else {
             paymentFeeSompi = nil
+            paymentBuiltFeeSompi = nil
             isEstimatingPaymentFee = false
             return
         }
         let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
         let source = paymentFrom.spendingIndex
         let manual = paymentManualUtxos
+        let customExtra = paymentCustomExtraFeeSompi
+        let multiplier = paymentFeeTier.multiplier
 
         isEstimatingPaymentFee = true
         paymentFeeTask = Task {
             try? await Task.sleep(nanoseconds: 200_000_000)
             if Task.isCancelled { return }
-            let estimate = try? await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual)
+            // The Normal fee is the base the speeds multiply (and the editor's minimum). With the
+            // extra in, the estimate builds the same shape the send will.
+            let base = try? await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual)
             if Task.isCancelled { return }
+            var paid = base
+            if let base {
+                let extra = customExtra ?? base.networkFee * (multiplier - 1)
+                if extra > 0 {
+                    paid = try? await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: extra)
+                    if Task.isCancelled { return }
+                }
+            }
             await MainActor.run {
-                paymentFeeSompi = estimate?.networkFee
-                paymentFoldedChangeSompi = estimate?.foldedChange ?? 0
+                paymentFeeSompi = base?.networkFee
+                paymentBuiltFeeSompi = paid.map { $0.networkFee + $0.foldedChange }
                 isEstimatingPaymentFee = false
             }
         }

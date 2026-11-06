@@ -260,15 +260,26 @@ struct ChessGameView: View {
         }
     }
 
-    /// Flagging: my clock hit zero on my turn. Sends a single resign with reason "timeout"; the
-    /// result then renders through the normal derived-state pipeline ("You lost on time").
+    /// Flagging: my clock hit zero on my turn. Sends a resign with reason "timeout"; the result
+    /// then renders through the normal derived-state pipeline ("You lost on time"). A send that
+    /// fails is tried again, a little later each time: dropped once, the opponent waited on a
+    /// move that could never come. If every try fails, the next clock tick starts over.
     private func sendTimeoutResign() {
         guard !didSendTimeoutResign else { return }
         didSendTimeoutResign = true
         selectedSquare = nil
-        Task {
-            try? await ChessGameService.resign(gameId: gameId, reason: "timeout", to: contact)
-            ChessClockStore.clear(gameId: gameId)
+        Task { @MainActor in
+            for delay: UInt64 in [0, 3, 10, 30] {
+                if delay > 0 { try? await Task.sleep(nanoseconds: delay * 1_000_000_000) }
+                do {
+                    try await ChessGameService.resign(gameId: gameId, reason: "timeout", to: contact)
+                    ChessClockStore.clear(gameId: gameId)
+                    return
+                } catch {
+                    AppLog.log("[Chess] Timeout resign didn't send: %@", error.localizedDescription)
+                }
+            }
+            didSendTimeoutResign = false
         }
     }
 

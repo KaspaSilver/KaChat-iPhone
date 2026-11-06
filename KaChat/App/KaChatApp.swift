@@ -14,9 +14,6 @@ struct KaChatApp: App {
     @StateObject private var settingsViewModel = SettingsViewModel()
     @StateObject private var pushManager = PushNotificationManager.shared
     @StateObject private var groupChatService = GroupChatService.shared
-    /// The blur over the app in the App Switcher and behind system prompts: balances, chats
-    /// and the seed screen used to sit in iOS's snapshot of the app in plain view.
-    @State private var showPrivacyCover = false
     @State private var isProcessingOutboundShare = false
     @State private var lastActiveResyncAt: Date?
     @State private var hasCompletedFirstActiveTransition = false
@@ -63,13 +60,6 @@ struct KaChatApp: App {
                 .environmentObject(settingsViewModel)
                 .environmentObject(pushManager)
                 .environmentObject(groupChatService)
-                .overlay {
-                    if showPrivacyCover {
-                        PrivacyCoverView()
-                            .transition(.opacity)
-                    }
-                }
-                .animation(.easeOut(duration: 0.15), value: showPrivacyCover)
                 .onAppear {
                     ChatService.shared.settingsViewModel = settingsViewModel
                     applyWindowAppearanceOverride()
@@ -182,10 +172,17 @@ struct KaChatApp: App {
         }
     }
 
+    @MainActor
     private func handleScenePhaseChange(to newPhase: ScenePhase) {
         // Covered the moment the app stops being the thing in front (the switcher, a system
-        // prompt, a call), uncovered when it is again.
-        showPrivacyCover = newPhase != .active
+        // prompt, a call), uncovered when it is again. The cover is its own window
+        // (`PrivacyCoverWindow`), so it is over every sheet too: the 12 or 24 words, the
+        // passphrase and the private key are shown on sheets.
+        if newPhase == .active {
+            PrivacyCoverWindow.hide()
+        } else {
+            PrivacyCoverWindow.show()
+        }
         switch newPhase {
         case .background:
             // Persist any debounced message draft immediately so it survives termination.
@@ -1115,11 +1112,40 @@ extension Notification.Name {
     static let openGroup = Notification.Name("openGroup")
 }
 
+/// Puts `PrivacyCoverView` in a window of its own above the app, as KaPost and KaPay do. An
+/// overlay on the root view sat underneath presented sheets, which is where the 12 or 24 words,
+/// the passphrase and the private key are shown. Hidden, the window is gone, so it never takes
+/// a touch.
+@MainActor
+private enum PrivacyCoverWindow {
+    private static var window: UIWindow?
+
+    static func show() {
+        guard window == nil,
+              let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first else { return }
+        let cover = UIWindow(windowScene: scene)
+        cover.windowLevel = .alert + 1
+        // the app's appearance (Settings' choice), which its own windows carry
+        cover.overrideUserInterfaceStyle = scene.windows.first?.overrideUserInterfaceStyle ?? .unspecified
+        cover.rootViewController = UIHostingController(rootView: PrivacyCoverView())
+        cover.isHidden = false
+        window = cover
+    }
+
+    static func hide() {
+        window?.isHidden = true
+        window = nil
+    }
+}
+
 /// What the App Switcher and a system prompt see instead of the app's contents: the app's own
 /// icon (`KaChatAppIcon`, the home-screen icon's light and dark versions), not the Kaspa logo.
 private struct PrivacyCoverView: View {
     var body: some View {
         ZStack {
+            // Solid under the blur: in its own window the material would otherwise let large
+            // words on a sheet below be read through it.
+            Color(.systemBackground)
             Rectangle().fill(.ultraThinMaterial)
             Image("KaChatAppIcon")
                 .resizable()

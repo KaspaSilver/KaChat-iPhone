@@ -359,6 +359,9 @@ struct OwnAddressHistorySheet: View {
     private enum Resolved {
         case chatting
         case spending(SpendingAddressEntry)
+        /// One of your spending addresses whose balance couldn't be read: shown as 0 it said the
+        /// address was empty and turned its Send off.
+        case balanceUnavailable
         case unknown
     }
 
@@ -374,6 +377,18 @@ struct OwnAddressHistorySheet: View {
                     ChattingAddressManageView(address: address)
                 case .spending(let entry)?:
                     SpendingAddressTransactionHistoryView(entry: entry)
+                case .balanceUnavailable?:
+                    VStack(spacing: 12) {
+                        Text("Couldn't load this address's balance.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Try Again") {
+                            resolved = nil
+                            Task { resolved = await resolve() }
+                        }
+                    }
+                    .padding()
                 case .unknown?:
                     Text("This address isn't in this wallet any more.")
                         .font(.subheadline)
@@ -395,14 +410,17 @@ struct OwnAddressHistorySheet: View {
     private func resolve() async -> Resolved {
         let target = address.lowercased()
         if walletManager.currentWallet?.publicAddress.lowercased() == target { return .chatting }
-        let utxos = (try? await NodePoolService.shared.getUtxosByAddresses([address])) ?? []
-        let balance = utxos.reduce(UInt64(0)) { $0 + $1.amount }
         var spending = walletManager.spendingAddresses(inRange: 0..<(max(0, walletManager.maxSpendingAddressIndex) + 1))
         if walletManager.maxQuantumAddressIndex >= 0 {
             let base = WalletManager.quantumIndexBase
             spending.merge(walletManager.spendingAddresses(inRange: base..<(base + walletManager.maxQuantumAddressIndex + 1))) { a, _ in a }
         }
         if let match = spending.first(where: { $0.value.lowercased() == target }) {
+            // A failed read says nothing about the balance: left unknown, never shown as 0.
+            guard let utxos = try? await NodePoolService.shared.getUtxosByAddresses([address]) else {
+                return .balanceUnavailable
+            }
+            let balance = utxos.reduce(UInt64(0)) { $0 + $1.amount }
             return .spending(SpendingAddressEntry(
                 index: match.key,
                 address: match.value,

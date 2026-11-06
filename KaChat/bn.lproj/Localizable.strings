@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld জন";
 "Transaction" = "লেনদেন";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "এই অ্যাকাউন্টের ব্যাকআপ নেওয়া নেই। এখন মুছে ফেললে এটি ও এর ফান্ড আর কখনও ফিরে পাওয়া যাবে না।";
-"To back it up first, sign in to it and use the card on the Profile tab." = "আগে এর ব্যাকআপ নিতে এতে সাইন ইন করুন এবং প্রোফাইল ট্যাবে কার্ডটি ব্যবহার করুন।";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "আগে ব্যাকআপ নিতে, সেটিতে সাইন ইন করুন এবং ব্যালেন্সের নিচের ব্যাকআপ ব্যানারে ট্যাপ করুন।";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "নিশ্চিত করুন আপনার ১২ বা ২৪টি শব্দের ব্যাকআপ আছে, আর পাসফ্রেজ থাকলে সেটিরও। এই অ্যাকাউন্ট ও এর ফান্ড ফিরে পাওয়ার এটাই একমাত্র উপায়।";
 "Couldn't load the coins at this address" = "এই ঠিকানার কয়েন লোড করা যায়নি";
 "Failed to send. Tap to retry." = "পাঠানো যায়নি। আবার চেষ্টা করতে ট্যাপ করুন।";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "নিশ্চিত হয়নি";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "এটি হয়তো পাঠানো হয়েছে, কিন্তু নেটওয়ার্ক তা নিশ্চিত করেনি। আবার পাঠানোর আগে আপনার ব্যালেন্স দেখে নিন।";
 "Swipe up, then let go to send." = "উপরে সোয়াইপ করুন, তারপর পাঠাতে ছেড়ে দিন।";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "আপনার ঠিকানা খোঁজা হচ্ছে...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "একটি লেনদেন %dটি কয়েন একত্র করতে পারে, তাই সবচেয়ে বড় %dটি একত্র করা হয়। বাকিগুলোর জন্য আবার একত্র করুন।";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "সর্বোচ্চ হলো একটি লেনদেন যতটা বহন করতে পারে: এর সবচেয়ে বড় %dটি কয়েন। \"UTXO একত্র করুন\" বাকিগুলো একত্র করে।";
+"Couldn't load this address's balance." = "এই ঠিকানার ব্যালেন্স লোড করা যায়নি।";

@@ -1499,7 +1499,7 @@
 "%lld people" = "Человек: %lld";
 "Transaction" = "Транзакция";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "У этого аккаунта нет резервной копии. Если удалить его сейчас, аккаунт и его средства будут потеряны навсегда.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Чтобы сначала сделать копию, войдите в него и используйте карту на вкладке «Профиль».";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Чтобы сначала сделать резервную копию, войдите в него и нажмите на баннер резервной копии под балансом.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Убедитесь, что ваши 12 или 24 слова сохранены, а также парольная фраза, если она есть. Это единственный способ вернуть этот аккаунт и его средства.";
 "Couldn't load the coins at this address" = "Не удалось загрузить монеты на этом адресе";
 "Failed to send. Tap to retry." = "Не отправлено. Нажмите, чтобы повторить.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "Не подтверждено";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Возможно, отправка прошла, но сеть её не подтвердила. Проверьте баланс, прежде чем отправлять снова.";
 "Swipe up, then let go to send." = "Проведите вверх и отпустите, чтобы отправить.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Ищем ваш адрес...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Одна транзакция может объединить %d монет, поэтому объединяются %d самых крупных. Объедините снова, чтобы обработать остальные.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Максимум — это то, что вмещает одна транзакция: её %d самых крупных монет. «Объединить UTXO» объединяет остальные.";
+"Couldn't load this address's balance." = "Не удалось загрузить баланс этого адреса.";

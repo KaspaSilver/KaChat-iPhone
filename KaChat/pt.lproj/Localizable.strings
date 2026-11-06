@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld pessoas";
 "Transaction" = "Transação";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Esta conta não tem backup. Se você a excluir agora, ela e seus fundos nunca poderão ser recuperados.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Para fazer o backup antes, entre nela e use o cartão na aba Perfil.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Para fazer o backup primeiro, entre nela e toque no aviso de backup abaixo do saldo.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Confirme que suas 12 ou 24 palavras estão salvas, e sua frase secreta também, se tiver uma. São o único jeito de recuperar esta conta e os fundos dela.";
 "Couldn't load the coins at this address" = "Não foi possível carregar as moedas deste endereço";
 "Failed to send. Tap to retry." = "Falha no envio. Toque para tentar de novo.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "Não confirmado";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Isso pode ter sido enviado, mas a rede não confirmou. Verifique seu saldo antes de enviar novamente.";
 "Swipe up, then let go to send." = "Deslize para cima e solte para enviar.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Procurando seu endereço...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Uma transação pode consolidar %d moedas, então as %d maiores são consolidadas. Consolide de novo para o restante.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Máx. é o que uma transação comporta: as suas %d maiores moedas. \"Consolidar UTXOs\" junta o restante.";
+"Couldn't load this address's balance." = "Não foi possível carregar o saldo deste endereço.";

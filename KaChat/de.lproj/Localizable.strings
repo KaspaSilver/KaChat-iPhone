@@ -1449,7 +1449,7 @@
 "%lld people" = "%lld Personen";
 "Transaction" = "Transaktion";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Dieses Konto ist nicht gesichert. Wenn du es jetzt löschst, können das Konto und sein Guthaben nie wiederhergestellt werden.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Um es zuerst zu sichern, melde dich dort an und nutze die Karte im Tab „Profil“.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Um es zuerst zu sichern, melde dich dort an und tippe auf den Sicherungshinweis unter dem Guthaben.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Stelle sicher, dass deine 12 oder 24 Wörter gesichert sind, und auch deine Passphrase, falls du eine hast. Sie sind der einzige Weg, dieses Konto und sein Guthaben wiederherzustellen.";
 "Couldn't load the coins at this address" = "Die Coins an dieser Adresse konnten nicht geladen werden";
 "Failed to send. Tap to retry." = "Senden fehlgeschlagen. Tippe, um es erneut zu versuchen.";
@@ -1778,3 +1778,9 @@
 "Not confirmed" = "Nicht bestätigt";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "Das ist möglicherweise durchgegangen, aber das Netzwerk hat es nicht bestätigt. Prüfe dein Guthaben, bevor du erneut sendest.";
 "Swipe up, then let go to send." = "Nach oben wischen und zum Senden loslassen.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Deine Adresse wird gesucht...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Eine Transaktion kann %d Coins zusammenführen, daher werden die größten %d zusammengeführt. Führe den Rest erneut zusammen.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Max ist, was eine Transaktion tragen kann: ihre größten %d Coins. „UTXOs zusammenführen“ fasst den Rest zusammen.";
+"Couldn't load this address's balance." = "Das Guthaben dieser Adresse konnte nicht geladen werden.";

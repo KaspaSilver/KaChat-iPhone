@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld人";
 "Transaction" = "トランザクション";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "このアカウントはバックアップされていません。今削除すると、アカウントも資金も二度と復元できません。";
-"To back it up first, sign in to it and use the card on the Profile tab." = "先にバックアップするには、そのアカウントにサインインして、プロフィールタブのカードを使ってください。";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "先にバックアップするには、そのアカウントにサインインして残高の下のバックアップ案内をタップしてください。";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "12語または24語がバックアップされていることを確認してください。パスフレーズがある場合は、それも確認してください。これらがこのアカウントと資金を復元する唯一の方法です。";
 "Couldn't load the coins at this address" = "このアドレスのコインを読み込めませんでした";
 "Failed to send. Tap to retry." = "送信に失敗しました。タップして再試行";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "未確認";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "送信された可能性がありますが、ネットワークで確認できませんでした。再度送信する前に残高を確認してください。";
 "Swipe up, then let go to send." = "上にスワイプしてから指を離すと送信します。";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "アドレスを探しています...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "1回の取引で統合できるのは %d 枚のコインなので、大きい順に %d 枚を統合します。残りはもう一度統合してください。";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "最大は1回の取引で送れる額です（大きい順に %d 枚のコイン）。残りは「UTXO を統合」でまとめられます。";
+"Couldn't load this address's balance." = "このアドレスの残高を読み込めませんでした。";

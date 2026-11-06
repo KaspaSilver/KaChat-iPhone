@@ -1499,7 +1499,7 @@
 "%lld people" = "%lld أشخاص";
 "Transaction" = "معاملة";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "هذا الحساب غير منسوخ احتياطيًا. إذا حذفته الآن، فلن يمكن استعادته هو وأمواله أبدًا.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "لنسخه احتياطيًا أولًا، سجّل الدخول إليه واستخدم البطاقة في تبويب الملف الشخصي.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "لنسخه احتياطيًا أولًا، سجّل الدخول إليه واضغط على شريط النسخ الاحتياطي أسفل الرصيد.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "تأكد من نسخ كلماتك الـ 12 أو 24 احتياطيًا، وعبارة المرور أيضًا إن كانت لديك. فهي الطريقة الوحيدة لاستعادة هذا الحساب وأمواله.";
 "Couldn't load the coins at this address" = "تعذّر تحميل العملات في هذا العنوان";
 "Failed to send. Tap to retry." = "فشل الإرسال. اضغط لإعادة المحاولة.";
@@ -1828,3 +1828,9 @@
 "Not confirmed" = "لم يتم التأكيد";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "ربما تمت العملية، لكن الشبكة لم تؤكدها. تحقق من رصيدك قبل الإرسال مرة أخرى.";
 "Swipe up, then let go to send." = "اسحب لأعلى ثم اترك للإرسال.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "جارٍ البحث عن عنوانك...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "يمكن لمعاملة واحدة دمج %d عملة، لذلك يتم دمج أكبر %d. ادمج مرة أخرى لبقية العملات.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "الحد الأقصى هو ما تستطيع معاملة واحدة حمله: أكبر %d عملة فيها. يجمع «دمج UTXOs» الباقي.";
+"Couldn't load this address's balance." = "تعذّر تحميل رصيد هذا العنوان.";

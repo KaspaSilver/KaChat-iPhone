@@ -1500,7 +1500,7 @@
 "%lld people" = "%lld personnes";
 "Transaction" = "Transaction";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "Ce compte n'est pas sauvegardé. Si vous le supprimez maintenant, lui et ses fonds ne pourront jamais être récupérés.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "Pour la sauvegarder d'abord, connectez-vous à ce compte et utilisez la carte dans l'onglet Profil.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "Pour la sauvegarder d'abord, connecte-toi et touche le bandeau de sauvegarde sous le solde.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Assurez-vous que vos 12 ou 24 mots sont sauvegardés, et votre phrase secrète aussi si vous en avez une. Ce sont le seul moyen de récupérer ce compte et ses fonds.";
 "Couldn't load the coins at this address" = "Impossible de charger les pièces de cette adresse";
 "Failed to send. Tap to retry." = "Échec de l'envoi. Touchez pour réessayer.";
@@ -1829,3 +1829,9 @@
 "Not confirmed" = "Non confirmé";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "L'envoi a peut-être abouti, mais le réseau ne l'a pas confirmé. Vérifiez votre solde avant de renvoyer.";
 "Swipe up, then let go to send." = "Balayez vers le haut, puis relâchez pour envoyer.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Recherche de ton adresse...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Une transaction peut consolider %d pièces, donc les %d plus grosses sont consolidées. Consolide à nouveau pour le reste.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Max correspond à ce qu'une transaction peut contenir : ses %d plus grosses pièces. « Consolider les UTXO » regroupe le reste.";
+"Couldn't load this address's balance." = "Impossible de charger le solde de cette adresse.";

@@ -1500,7 +1500,7 @@
 "%lld people" = "%lld people";
 "Transaction" = "Transaction";
 "This account isn't backed up. If you delete it now, it and its funds can never be recovered." = "This account isn't backed up. If you delete it now, it and its funds can never be recovered.";
-"To back it up first, sign in to it and use the card on the Profile tab." = "To back it up first, sign in to it and use the card on the Profile tab.";
+"To back it up first, sign in to it and tap the backup banner under the balance." = "To back it up first, sign in to it and tap the backup banner under the balance.";
 "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds." = "Make sure your 12 or 24 words are backed up, and your passphrase too if you have one. They are the only way to recover this account and its funds.";
 "Couldn't load the coins at this address" = "Couldn't load the coins at this address";
 "Failed to send. Tap to retry." = "Failed to send. Tap to retry.";
@@ -1829,3 +1829,9 @@
 "Not confirmed" = "Not confirmed";
 "This may have gone through, but the network didn't confirm it. Check your balance before sending again." = "This may have gone through, but the network didn't confirm it. Check your balance before sending again.";
 "Swipe up, then let go to send." = "Swipe up, then let go to send.";
+
+/* Wallet send Max past one transaction's coins, passphrase search, address balance (2026-11-06) */
+"Finding your address..." = "Finding your address...";
+"One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest.";
+"Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest.";
+"Couldn't load this address's balance." = "Couldn't load this address's balance.";

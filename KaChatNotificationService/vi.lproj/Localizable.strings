@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "Yêu cầu nhắn tin mới";
 "%@ wants to chat with you." = "%@ muốn trò chuyện với bạn.";
-"New offer on %@" = "Đề nghị mới cho %@";
-"%@ offered for it." = "Có người đề nghị %@ cho tên này.";
-"Someone made an offer for it." = "Có người đã gửi đề nghị cho tên này.";
-"%@ sold" = "%@ đã bán";
-"%@ was paid to you." = "Bạn đã nhận %@.";
-"Your listing was bought." = "Tên bạn đăng bán đã được mua.";
-"Offer accepted" = "Đề nghị đã được chấp nhận";
-"%@ is yours now." = "%@ giờ là của bạn.";
-"Renew %@" = "Gia hạn %@";
-"Renewal is open: renew now to keep it." = "Đã mở gia hạn: gia hạn ngay để giữ tên.";
-"%@ expires soon" = "%@ sắp hết hạn";
-"%d days left to renew it." = "Còn %d ngày để gia hạn.";
-"1 day left to renew it." = "Còn 1 ngày để gia hạn.";
-"%@ has expired" = "%@ đã hết hạn";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "Hãy sớm gia hạn để giữ tên.";
-"Renew it soon or anyone can claim it." = "Hãy sớm gia hạn nếu không ai cũng có thể lấy.";
-"Offer on %@ declined" = "Đề nghị cho %@ bị từ chối";
-"The owner declined it. The KAS is back with you." = "Chủ đã từ chối. KAS đã trở về với bạn.";
-"Offer on %@ expired" = "Đề nghị cho %@ đã hết hạn";
-"Nobody accepted it in time. The KAS is back with you." = "Không ai chấp nhận kịp. KAS đã trở về với bạn.";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ không còn là của bạn";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Tên đã hết hạn và không được gia hạn, nên giờ ai cũng có thể nhận trong chợ. Tiền đặt cọc sẽ trở lại với bạn khi có người nhận tên.";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Đã gửi cho bạn %@ KAS";

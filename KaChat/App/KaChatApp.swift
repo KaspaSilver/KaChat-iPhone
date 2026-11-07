@@ -384,6 +384,15 @@ struct KaChatApp: App {
                 SharedDataManager.removeOutboundShare(id: share.id)
                 continue
             }
+            // Made while another account was signed in (or signed out): sending it from this one
+            // would message that account's contact from this address. It's dropped, not sent.
+            if let owner = share.walletAddress,
+               let current = walletManager.currentWallet?.publicAddress,
+               !WalletManager.isSameAccount(owner, current) {
+                AppLog.log("[Share] Dropped a share made under another account")
+                SharedDataManager.removeOutboundShare(id: share.id)
+                continue
+            }
 
             let contact = contactsManager.getContact(byAddress: share.contactAddress)
                 ?? contactsManager.getOrCreateContact(address: share.contactAddress)
@@ -498,6 +507,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         guard backgroundFlushTaskId != .invalid else { return }
         UIApplication.shared.endBackgroundTask(backgroundFlushTaskId)
         backgroundFlushTaskId = .invalid
+    }
+
+    /// No third-party keyboards anywhere in the app, as in KaPost and KaPay: the 12 or 24 words,
+    /// the passphrase and the NFC card PIN are typed on the system keyboard, so a keyboard with
+    /// Full Access never sees them. They're offered the system's.
+    func application(_ application: UIApplication, shouldAllowExtensionPointIdentifier extensionPointIdentifier: UIApplication.ExtensionPointIdentifier) -> Bool {
+        extensionPointIdentifier != .keyboard
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -1115,26 +1131,29 @@ extension Notification.Name {
 /// Puts `PrivacyCoverView` in a window of its own above the app, as KaPost and KaPay do. An
 /// overlay on the root view sat underneath presented sheets, which is where the 12 or 24 words,
 /// the passphrase and the private key are shown. Hidden, the window is gone, so it never takes
-/// a touch.
+/// a touch. One cover per window scene: on iPad and Mac the app can have several windows open,
+/// and each one is snapshotted.
 @MainActor
 private enum PrivacyCoverWindow {
-    private static var window: UIWindow?
+    private static var windows: [UIWindow] = []
 
     static func show() {
-        guard window == nil,
-              let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first else { return }
-        let cover = UIWindow(windowScene: scene)
-        cover.windowLevel = .alert + 1
-        // the app's appearance (Settings' choice), which its own windows carry
-        cover.overrideUserInterfaceStyle = scene.windows.first?.overrideUserInterfaceStyle ?? .unspecified
-        cover.rootViewController = UIHostingController(rootView: PrivacyCoverView())
-        cover.isHidden = false
-        window = cover
+        let covered = Set(windows.compactMap { $0.windowScene.map(ObjectIdentifier.init) })
+        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+        where !covered.contains(ObjectIdentifier(scene)) {
+            let cover = UIWindow(windowScene: scene)
+            cover.windowLevel = .alert + 1
+            // the app's appearance (Settings' choice), which its own windows carry
+            cover.overrideUserInterfaceStyle = scene.windows.first?.overrideUserInterfaceStyle ?? .unspecified
+            cover.rootViewController = UIHostingController(rootView: PrivacyCoverView())
+            cover.isHidden = false
+            windows.append(cover)
+        }
     }
 
     static func hide() {
-        window?.isHidden = true
-        window = nil
+        windows.forEach { $0.isHidden = true }
+        windows = []
     }
 }
 

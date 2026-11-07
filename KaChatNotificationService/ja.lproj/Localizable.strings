@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "新しいメッセージリクエスト";
 "%@ wants to chat with you." = "%@ があなたとチャットしたいようです。";
-"New offer on %@" = "%@ に新しいオファー";
-"%@ offered for it." = "%@ のオファーがありました。";
-"Someone made an offer for it." = "誰かがオファーを出しました。";
-"%@ sold" = "%@ が売れました";
-"%@ was paid to you." = "%@ が支払われました。";
-"Your listing was bought." = "出品していた名前が購入されました。";
-"Offer accepted" = "オファーが承諾されました";
-"%@ is yours now." = "%@ はあなたのものになりました。";
-"Renew %@" = "%@ を更新";
-"Renewal is open: renew now to keep it." = "更新できるようになりました。保持するには今すぐ更新してください。";
-"%@ expires soon" = "%@ の期限が近づいています";
-"%d days left to renew it." = "更新まであと %d 日です。";
-"1 day left to renew it." = "更新まであと 1 日です。";
-"%@ has expired" = "%@ の期限が切れました";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "保持するには早めに更新してください。";
-"Renew it soon or anyone can claim it." = "早めに更新しないと誰でも取得できるようになります。";
-"Offer on %@ declined" = "%@ へのオファーが辞退されました";
-"The owner declined it. The KAS is back with you." = "所有者が辞退しました。KAS は返金されました。";
-"Offer on %@ expired" = "%@ へのオファーが期限切れ";
-"Nobody accepted it in time. The KAS is back with you." = "期限内に承諾されませんでした。KAS は返金されました。";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ はあなたのものではなくなりました";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "期限切れで更新されなかったため、マーケットプレイスで誰でも取得できるようになりました。誰かが取得すると保証金があなたに返却されます。";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "%@ KAS を送ってきました";

@@ -400,6 +400,8 @@ final class AddressBookManager: ObservableObject {
             let photo = incoming.photo.flatMap { Data(base64Encoded: $0) }
             incoming.photo = nil
             incoming.name = incoming.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            // a file dated in the future would otherwise win over every later edit
+            incoming.updatedAt = min(incoming.updatedAt, Date())
             if let i = byAddress[address] {
                 guard incoming.updatedAt > entries[i].updatedAt else { continue }
                 entries[i].name = incoming.name
@@ -409,6 +411,12 @@ final class AddressBookManager: ObservableObject {
                 updated += 1
             } else {
                 if entries.contains(where: { $0.id == incoming.id }) { incoming.id = UUID() }
+                // Brought back over a deletion: dated after it (the file keeps whole seconds), or
+                // the next merge with a copy that still holds the deletion removes it again.
+                if let tombstone = deleted[address] {
+                    let afterTombstone = Date(timeIntervalSince1970: tombstone.timeIntervalSince1970.rounded(.down) + 1)
+                    incoming.updatedAt = max(Date(), afterTombstone)
+                }
                 entries.append(incoming)
                 if let photo { writePhoto(photo, for: address) }
                 added += 1
@@ -523,17 +531,20 @@ final class AddressBookManager: ObservableObject {
     nonisolated static func merge(
         entries sides: [[AddressBookEntry]], tombstones tombSides: [[AddressBookTombstone]]
     ) -> (entries: [AddressBookEntry], tombstones: [AddressBookTombstone]) {
+        // Nothing dated in the future: a file dated 2099 would otherwise win over every later edit.
+        let now = Date()
         var latest: [String: AddressBookEntry] = [:]
         for entry in sides.joined() {
             var e = entry
             e.address = normalize(e.address)
+            e.updatedAt = min(e.updatedAt, now)
             if let have = latest[e.address], have.updatedAt >= e.updatedAt { continue }
             latest[e.address] = e
         }
         var deletedAt: [String: Date] = [:]
         for t in tombSides.joined() {
             let a = normalize(t.address)
-            deletedAt[a] = max(deletedAt[a] ?? .distantPast, t.deletedAt)
+            deletedAt[a] = max(deletedAt[a] ?? .distantPast, min(t.deletedAt, now))
         }
         var kept: [AddressBookEntry] = []
         for (address, e) in latest {

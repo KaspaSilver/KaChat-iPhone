@@ -193,7 +193,7 @@ final class KachatNamesActions: ObservableObject {
     func profileFee(_ profile: KachatNames.Profile) async throws -> UInt64 {
         let s = try profileSigner()
         let json = try profile.sanitized().recordJSON()
-        let utxos = try await NodePoolService.shared.getUtxosByAddresses([s.address])
+        let utxos = ChatService.shared.unreservedUtxos(try await NodePoolService.shared.getUtxosByAddresses([s.address]))
         let tx = try service.buildProfileRecord(address: s.address, privateKey: s.privateKey, utxos: utxos, json: json)
         let spent = tx.inputs.reduce(UInt64(0)) { total, input in
             total + (utxos.first {
@@ -208,7 +208,8 @@ final class KachatNamesActions: ObservableObject {
         let s = try profileSigner()
         let clean = profile.sanitized()
         let json = try clean.recordJSON()
-        let utxos = try await NodePoolService.shared.getUtxosByAddresses([s.address])
+        // never coins another send from this app has just spent
+        let utxos = ChatService.shared.unreservedUtxos(try await NodePoolService.shared.getUtxosByAddresses([s.address]))
         let txId = try await service.submitProfileRecord(address: s.address, privateKey: s.privateKey, utxos: utxos, json: json)
         registry.noteOwnProfile(clean, address: s.address, txId: txId)
         registry.refreshAfter(txId: txId)

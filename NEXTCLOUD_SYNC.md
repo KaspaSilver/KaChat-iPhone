@@ -27,8 +27,8 @@ those clients until they do.
   Address Book is left alone.
 - **`kachat-backup.json` is retired on iOS.** It's never read or written, and its messages are never
   imported, so it stays on the server as it is. Messages sent before seed recovery that only that file
-  holds stay hidden on a new device. The only thing iOS still does to it is delete it, with this file,
-  when the user chooses to delete their backup along with their account.
+  holds stay hidden on a new device. iOS never deletes it either: deleting an account removes only
+  what is on the phone, and revokes the app password KaChat made.
 - **KaPay** reads and writes this same file directly (§9).
 - **Not affected:** media sent via Nextcloud, calls over Talk, the manual Address Book export (§1), and
   exporting or importing a chat archive as a local file.
@@ -41,9 +41,8 @@ Android, Desktop and the extension wallet follow this until they move to contact
 and write **the same file**, so a client that drifts from this document breaks the others. When the
 behaviour changes, change this document first.
 
-The iOS implementation (`KaChat/Services/NextcloudService.swift`, the archive merge in
-`ChatService+PushAndSync.swift`) is the reference. The encryption format is specified in
-`MESSAGING.md` § "Encrypted Backup Envelope (v1)".
+iOS no longer runs any of this (it moved to contacts only, above); Android is now the reference for
+the chat backup. The encryption format is specified in `MESSAGING.md` § "Encrypted Backup Envelope (v1)".
 
 ---
 
@@ -211,7 +210,8 @@ The dirty flag clears only after a successful upload.
   it, then record that ETag;
 - if the file can't be read, record its ETag anyway, so it isn't downloaded on every poll.
 
-**Silent restore, once per wallet.** The first time a wallet activates with sync on, import the
+**Silent restore, once per wallet** (older clients; iOS gets contacts from its first poll of
+`kachat-contacts.json` instead). The first time a wallet activates with sync on, import the
 shared file quietly. Mark that as done **only after a successful import**: if the file is
 missing, a backup that appears later (first sync from another device) still triggers the restore.
 
@@ -236,6 +236,9 @@ server) must give writes **at least 120 s**. A large backup `PUT` can sit silent
 stores it, and cutting it short leaves a short file, which the next sync then reads as damaged.
 
 ## 8. Conformance (2026-10-03)
+
+iOS stopped using `kachat-backup.json` on 2026-11-05 (contacts only, at the top of this file), so its
+column records what it did until then.
 
 | Rule | iOS | Android | Desktop | Extension |
 |---|---|---|---|---|

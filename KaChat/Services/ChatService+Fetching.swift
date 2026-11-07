@@ -644,7 +644,8 @@ extension ChatService {
             }
 
             if pageCount == 0 {
-                AppLog.log("[ChatService] Kaspa API URL: %@", url.absoluteString)
+                // the path names the address being read: only its host, and the address's end
+                AppLog.log("[ChatService] Kaspa API request to %@ (…%@)", url.host ?? "", String(url.path.suffix(8)))
             }
 
             // This page, retried on a backoff. Nil means every attempt failed, which is a
@@ -788,7 +789,7 @@ extension ChatService {
                     if let alias = decrypted.alias {
                         AppLog.log("%@", "[ChatService] Extracted alias \(alias.prefix(6))… from handshake by …\(contactAddress.suffix(8))")
                     } else {
-                        AppLog.log("%@", "[ChatService] Received alias-less (deterministic) handshake from \(contactAddress)")
+                        AppLog.log("%@", "[ChatService] Received alias-less (deterministic) handshake from …\(contactAddress.suffix(8))")
                     }
                 }
             } else {
@@ -2178,6 +2179,9 @@ extension ChatService {
             guard beginContextualFetch(fetchKey) else {
                 AppLog.log("[ChatService] Contextual fetch in-flight, skipping incoming %@",
                       String(contactAddress.suffix(10)))
+                // Not read here: the other fetch may still fail, and a pass that counted this
+                // alias as read would move the sync position past messages nobody fetched.
+                contactSuccess = false
                 continue
             }
             defer { endContextualFetch(fetchKey) }
@@ -2294,6 +2298,8 @@ extension ChatService {
             guard beginContextualFetch(fetchKey) else {
                 AppLog.log("[ChatService] Contextual fetch in-flight, skipping outgoing %@",
                       String(contactAddress.suffix(10)))
+                // not read here, as for incoming above
+                contactSuccess = false
                 continue
             }
             defer { endContextualFetch(fetchKey) }
@@ -3279,6 +3285,17 @@ extension ChatService {
         }
 
         if let reaction = MessageReactionCodec.parse(message.content) {
+            // A reaction belongs to this chat's messages: one naming a message from another chat
+            // would show this contact's emoji under someone else's message. A target not loaded
+            // anywhere yet is kept (it may arrive later in the same sync).
+            let target = reaction.targetTxId
+            let inThisChat = conversations.first(where: { $0.contact.address == contactAddress })?
+                .messages.contains(where: { $0.txId == target }) ?? false
+            if !inThisChat, conversations.contains(where: { conversation in
+                conversation.contact.address != contactAddress && conversation.messages.contains(where: { $0.txId == target })
+            }) {
+                return
+            }
             let reactorAddress = message.isOutgoing
                 ? (WalletManager.shared.currentWallet?.publicAddress ?? message.senderAddress)
                 : message.senderAddress
@@ -3330,6 +3347,9 @@ extension ChatService {
         var isNewConversation = false
 
         if message.isOutgoing && message.deliveryStatus == .sent {
+            if settleUnconfirmedSend(txId: message.txId, contactAddress: contactAddress) {
+                return
+            }
             if updateOutgoingPendingMessageIfMatch(
                 contactAddress: contactAddress,
                 newTxId: message.txId,

@@ -376,13 +376,11 @@ private struct PaymentRequestShareSheet: UIViewControllerRepresentable {
 /// `kachat://pay/`). Two stay here: your own (nothing to pay - `OwnPaymentRequestView`), and one
 /// asking for a chat payment (`toChattingAddress`, made from a 1:1 chat), which KaChat pays as an
 /// encrypted chat payment so it lands in your chat with them - KaPay can't; `inApp` opens those.
-/// Without KaPay installed, the App Store opens to get it.
+/// Without KaPay installed, KaChat's install page opens to get it.
 enum KaPayHandoff {
     static let scheme = "kapay"
-    /// Where a request goes when KaPay isn't installed. KaPay isn't listed yet, so this is an App
-    /// Store search for it; swap in its page (`https://apps.apple.com/app/id<KaPay's id>`) once
-    /// it is.
-    static let appStoreURL = URL(string: "https://apps.apple.com/search?term=KaPay")!
+    /// Where a request goes when KaPay isn't installed: the install page all the apps share.
+    static let installURL = URL(string: "https://home.kachat.app/install/")!
 
     @MainActor
     static func pay(_ request: PaymentRequest, inApp: @escaping () -> Void) {
@@ -392,7 +390,7 @@ enum KaPayHandoff {
             return
         }
         UIApplication.shared.open(url) { opened in
-            if !opened { UIApplication.shared.open(appStoreURL) }
+            if !opened { UIApplication.shared.open(installURL) }
         }
     }
 }

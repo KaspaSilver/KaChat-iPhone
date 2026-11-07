@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "Nueva solicitud de mensaje";
 "%@ wants to chat with you." = "%@ quiere chatear contigo.";
-"New offer on %@" = "Nueva oferta por %@";
-"%@ offered for it." = "Ofrecieron %@ por él.";
-"Someone made an offer for it." = "Alguien hizo una oferta por él.";
-"%@ sold" = "%@ vendido";
-"%@ was paid to you." = "Te pagaron %@.";
-"Your listing was bought." = "Compraron tu nombre en venta.";
-"Offer accepted" = "Oferta aceptada";
-"%@ is yours now." = "%@ ya es tuyo.";
-"Renew %@" = "Renueva %@";
-"Renewal is open: renew now to keep it." = "La renovación está abierta: renueva ahora para conservarlo.";
-"%@ expires soon" = "%@ caduca pronto";
-"%d days left to renew it." = "Quedan %d días para renovarlo.";
-"1 day left to renew it." = "Queda 1 día para renovarlo.";
-"%@ has expired" = "%@ ha caducado";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "Renuévalo pronto para conservarlo.";
-"Renew it soon or anyone can claim it." = "Renuévalo pronto o cualquiera podrá reclamarlo.";
-"Offer on %@ declined" = "Oferta por %@ rechazada";
-"The owner declined it. The KAS is back with you." = "El dueño la rechazó. Los KAS volvieron a ti.";
-"Offer on %@ expired" = "Oferta por %@ vencida";
-"Nobody accepted it in time. The KAS is back with you." = "Nadie la aceptó a tiempo. Los KAS volvieron a ti.";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ ya no es tuyo";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Venció y no se renovó, así que ahora está disponible para cualquiera en el mercado. Tu fianza vuelve a ti cuando alguien lo reclame.";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Te envió %@ KAS";

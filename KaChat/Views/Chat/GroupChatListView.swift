@@ -36,7 +36,6 @@ struct GroupChatRow: View {
     @EnvironmentObject var groupChatService: GroupChatService
     @EnvironmentObject var contactsManager: ContactsManager
     @EnvironmentObject var walletManager: WalletManager
-    @ObservedObject private var knsService = KNSService.shared
 
     /// Messages are stored oldest-first (loaded sorted, then appended), so the newest is the
     /// last element. This used to be a `max` scan of the whole array - evaluated several times

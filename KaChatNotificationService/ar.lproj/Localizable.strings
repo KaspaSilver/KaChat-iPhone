@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "طلب رسالة جديد";
 "%@ wants to chat with you." = "يريد %@ الدردشة معك.";
-"New offer on %@" = "عرض جديد على %@";
-"%@ offered for it." = "عُرض %@ مقابله.";
-"Someone made an offer for it." = "قدّم أحدهم عرضًا عليه.";
-"%@ sold" = "تم بيع %@";
-"%@ was paid to you." = "تم دفع %@ لك.";
-"Your listing was bought." = "تم شراء اسمك المعروض.";
-"Offer accepted" = "تم قبول العرض";
-"%@ is yours now." = "%@ أصبح لك الآن.";
-"Renew %@" = "جدّد %@";
-"Renewal is open: renew now to keep it." = "باب التجديد مفتوح: جدّد الآن للاحتفاظ به.";
-"%@ expires soon" = "%@ ينتهي قريبًا";
-"%d days left to renew it." = "بقي %d أيام لتجديده.";
-"1 day left to renew it." = "بقي يوم واحد لتجديده.";
-"%@ has expired" = "انتهت صلاحية %@";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "جدّده قريبًا للاحتفاظ به.";
-"Renew it soon or anyone can claim it." = "جدّده قريبًا وإلا يمكن لأي شخص المطالبة به.";
-"Offer on %@ declined" = "رُفض العرض على %@";
-"The owner declined it. The KAS is back with you." = "رفضه المالك. عادت KAS إليك.";
-"Offer on %@ expired" = "انتهى العرض على %@";
-"Nobody accepted it in time. The KAS is back with you." = "لم يقبله أحد في الوقت المحدد. عادت KAS إليك.";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ لم يعد ملكك";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "انتهت صلاحيته ولم يُجدَّد، لذا أصبح متاحًا لأي شخص في السوق. يعود ضمانك إليك عندما يطالب به أحد.";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "أرسل لك %@ KAS";

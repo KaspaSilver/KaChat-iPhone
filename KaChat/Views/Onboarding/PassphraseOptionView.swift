@@ -236,6 +236,20 @@ struct PassphraseOptionView: View {
                 .buttonStyle(.plain)
                 .disabled(!canSubmitPassphrase || isBusy)
 
+                // The search is a network round trip: never the only way forward.
+                if mode == .importExisting, isSearchingAddresses, !passphrase.isEmpty, !isBusy {
+                    Button {
+                        submitFromEntry(skippingSearch: true)
+                    } label: {
+                        Text("Skip the Search: Import on Address #0")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.accentColor)
+                }
+
                 // Creating opens here, past the question, so this is its only way to the explainer.
                 Button {
                     explainerReturnStep = .entry
@@ -375,8 +389,9 @@ struct PassphraseOptionView: View {
         !passphrase.isEmpty && !isSearchingAddresses
     }
 
-    private func submitFromEntry() {
-        guard !isSearchingAddresses else { return }
+    /// - Parameter skippingSearch: Import on address #0 without waiting for the funds search.
+    private func submitFromEntry(skippingSearch: Bool = false) {
+        guard skippingSearch || !isSearchingAddresses else { return }
         guard !passphrase.isEmpty else {
             error = "Enter a passphrase, or go back and choose No."
             return
@@ -385,6 +400,7 @@ struct PassphraseOptionView: View {
             error = "The passphrases do not match. Please re-enter them."
             return
         }
+        if skippingSearch { chattingAddressIndex?.wrappedValue = 0 }
         submit(passphrase: passphrase)
     }
 
@@ -430,6 +446,8 @@ struct PassphraseAddressPreview: View {
 
     /// The same depth as one page of the chatting address picker.
     private static let searchDepth = 0..<50
+    /// How long Import waits for that search before letting go and importing onto #0.
+    private static let searchTimeoutNanoseconds: UInt64 = 12_000_000_000
 
     @State private var foundAddresses: [FoundChattingAddress] = []
     @State private var previewAddress: String?
@@ -437,6 +455,11 @@ struct PassphraseAddressPreview: View {
     /// What `previewAddress` holds: nil while looking it up, or when the lookup failed.
     @State private var previewBalanceSompi: UInt64?
     @State private var previewBalanceFailed = false
+    /// The running search, so a late answer to an abandoned one is ignored.
+    @State private var searchToken: UUID?
+    @State private var searchTimeoutTask: Task<Void, Never>?
+    /// The funds search failed or ran out of time: Import goes to #0, and the screen says so.
+    @State private var searchIncomplete = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -457,6 +480,17 @@ struct PassphraseAddressPreview: View {
             if foundAddresses.count > 1 {
                 foundAddressRows
             }
+            if searchIncomplete {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("The search for funds on this account's other addresses didn't finish, so Import uses address #0.")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Search Again") { schedulePreview(for: passphrase) }
+                        .font(.caption.weight(.semibold))
+                }
+                .padding(.top, 4)
+            }
             Text(passphrase.isEmpty
                  ? "This is the account your 12 or 24 words open on their own."
                  : "A different passphrase gives a different address, and a different account.")
@@ -475,6 +509,8 @@ struct PassphraseAddressPreview: View {
         .onAppear { schedulePreview(for: passphrase) }
         .onDisappear {
             previewTask?.cancel()
+            searchTimeoutTask?.cancel()
+            searchToken = nil
             isSearching?.wrappedValue = false
         }
     }
@@ -553,6 +589,9 @@ struct PassphraseAddressPreview: View {
 
     private func schedulePreview(for typed: String) {
         previewTask?.cancel()
+        searchTimeoutTask?.cancel()
+        searchToken = nil
+        searchIncomplete = false
         guard !words.isEmpty else {
             isSearching?.wrappedValue = false
             return
@@ -583,15 +622,31 @@ struct PassphraseAddressPreview: View {
             try? await Task.sleep(nanoseconds: 450_000_000)
             guard !Task.isCancelled else { return }
             if selectedIndex != nil {
+                // A slow or unreachable node lets Import go after the timeout, onto #0, and says
+                // so; an answer that comes later is ignored.
+                let token = UUID()
+                searchToken = token
+                let timeout = Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: Self.searchTimeoutNanoseconds)
+                    guard !Task.isCancelled, searchToken == token else { return }
+                    searchToken = nil
+                    searchIncomplete = true
+                    previewBalanceFailed = true
+                    isSearching?.wrappedValue = false
+                }
+                searchTimeoutTask = timeout
                 let found = await walletManager.findChattingAddresses(
                     words: words,
                     passphrase: typed,
                     family: family,
                     indices: Self.searchDepth
                 )
-                guard !Task.isCancelled else { return }
+                timeout.cancel()
+                guard !Task.isCancelled, searchToken == token else { return }
+                searchToken = nil
                 isSearching?.wrappedValue = false
                 guard let found, let first = found.first(where: { $0.balanceSompi > 0 }) ?? found.first else {
+                    searchIncomplete = true
                     previewBalanceFailed = true
                     return
                 }

@@ -10,8 +10,6 @@ import Foundation
 /// `TransactionV1Id`, keyed with their domain string zero-padded to 32 bytes) for v1 tx ids.
 /// Checked against the official BLAKE3 test vectors and against Rust `blake3::hash`.
 struct Blake3 {
-    static let outLength = 32
-
     private static let iv: [UInt32] = [
         0x6A09_E667, 0xBB67_AE85, 0x3C6E_F372, 0xA54F_F53A,
         0x510E_527F, 0x9B05_688C, 0x1F83_D9AB, 0x5BE0_CD19

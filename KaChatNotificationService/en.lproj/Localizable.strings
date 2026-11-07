@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "New message request";
 "%@ wants to chat with you." = "%@ wants to chat with you.";
-"New offer on %@" = "New offer on %@";
-"%@ offered for it." = "%@ offered for it.";
-"Someone made an offer for it." = "Someone made an offer for it.";
-"%@ sold" = "%@ sold";
-"%@ was paid to you." = "%@ was paid to you.";
-"Your listing was bought." = "Your listing was bought.";
-"Offer accepted" = "Offer accepted";
-"%@ is yours now." = "%@ is yours now.";
-"Renew %@" = "Renew %@";
-"Renewal is open: renew now to keep it." = "Renewal is open: renew now to keep it.";
-"%@ expires soon" = "%@ expires soon";
-"%d days left to renew it." = "%d days left to renew it.";
-"1 day left to renew it." = "1 day left to renew it.";
-"%@ has expired" = "%@ has expired";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "Renew it soon to keep it.";
-"Renew it soon or anyone can claim it." = "Renew it soon or anyone can claim it.";
-"Offer on %@ declined" = "Offer on %@ declined";
-"The owner declined it. The KAS is back with you." = "The owner declined it. The KAS is back with you.";
-"Offer on %@ expired" = "Offer on %@ expired";
-"Nobody accepted it in time. The KAS is back with you." = "Nobody accepted it in time. The KAS is back with you.";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ is no longer yours";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it.";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Sent you %@ KAS";

@@ -603,12 +603,18 @@ struct ChessGameView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
                 Text("Sent")
-            case .failed, .warning:
+            case .failed:
                 Image(systemName: "exclamationmark.circle.fill")
                     .foregroundColor(.red)
                 Text("Retry")
                     .foregroundColor(.red)
                     .fontWeight(.semibold)
+            case .warning:
+                // The move's outcome is unknown: it may have landed, so a Retry could play it twice.
+                Image(systemName: "questionmark.circle")
+                    .foregroundColor(.orange)
+                Text("Not confirmed")
+                    .foregroundColor(.orange)
             case .pending:
                 ProgressView()
                     .scaleEffect(0.7)
@@ -619,7 +625,7 @@ struct ChessGameView: View {
         .foregroundColor(.secondary)
         .contentShape(Rectangle())
         .onTapGesture {
-            guard status == .failed || status == .warning, let lastActionMessage else { return }
+            guard status == .failed, let lastActionMessage else { return }
             retryMessage(lastActionMessage)
         }
     }
@@ -860,10 +866,20 @@ struct ChessGameView: View {
         }
     }
 
+    /// Leaves the board only once the resignation is out. A failed one keeps the player here with
+    /// the error (the game isn't over for the opponent), and its row offers Retry.
     private func resign() {
+        guard !isSending else { return }
+        isSending = true
         Task {
-            try? await ChessGameService.resign(gameId: gameId, to: contact)
-            dismiss()
+            do {
+                try await ChessGameService.resign(gameId: gameId, to: contact)
+                isSending = false
+                dismiss()
+            } catch {
+                self.error = error.localizedDescription
+                isSending = false
+            }
         }
     }
 }

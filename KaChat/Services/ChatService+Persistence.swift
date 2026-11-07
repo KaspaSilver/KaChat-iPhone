@@ -510,8 +510,9 @@ extension ChatService {
     func rebuildPendingOutgoingQueue() {
         pendingOutgoingQueue.removeAll()
         for conversation in conversations {
+            // Not confirmed rows are left out: they already carry their own transaction id.
             let pending = conversation.messages
-                .filter { $0.isOutgoing && $0.deliveryStatus != .sent }
+                .filter { $0.isOutgoing && $0.deliveryStatus != .sent && $0.deliveryStatus != .warning }
                 .sorted(by: Self.isMessageOrderedBefore)
             guard !pending.isEmpty else { continue }
             let contactAddress = conversation.contact.address

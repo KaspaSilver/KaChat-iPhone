@@ -2720,6 +2720,16 @@ struct SendOutcomeUnknownError: LocalizedError {
     var errorDescription: String? { Self.message }
 }
 
+/// A send built at the swipe would pay more than its Review showed: its coins changed in between
+/// (`ChatService.checkFeeAgainstReview`). Nothing was sent; the Review works its fee out again.
+struct SendFeeChangedError: LocalizedError {
+    let feeSompi: UInt64
+    var errorDescription: String? {
+        String(format: AppLocalization.string("The network fee is now %@ KAS, more than the Review showed. Nothing was sent: check the new fee and swipe again."),
+               locale: AppLocalization.locale, KaspaUnit.plain(feeSompi))
+    }
+}
+
 enum UserFacingError {
     static func message(for error: Error) -> String {
         if error is CancellationError { return "Cancelled." }

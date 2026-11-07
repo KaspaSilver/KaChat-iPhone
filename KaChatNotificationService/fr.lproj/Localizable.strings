@@ -318,34 +318,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "Nouvelle demande de message";
 "%@ wants to chat with you." = "%@ veut discuter avec vous.";
-"New offer on %@" = "Nouvelle offre pour %@";
-"%@ offered for it." = "%@ proposés pour ce nom.";
-"Someone made an offer for it." = "Quelqu'un a fait une offre pour ce nom.";
-"%@ sold" = "%@ vendu";
-"%@ was paid to you." = "%@ vous ont été versés.";
-"Your listing was bought." = "Votre nom en vente a été acheté.";
-"Offer accepted" = "Offre acceptée";
-"%@ is yours now." = "%@ est à vous.";
-"Renew %@" = "Renouveler %@";
-"Renewal is open: renew now to keep it." = "Le renouvellement est ouvert : renouvelez maintenant pour le garder.";
-"%@ expires soon" = "%@ expire bientôt";
-"%d days left to renew it." = "Il reste %d jours pour le renouveler.";
-"1 day left to renew it." = "Il reste 1 jour pour le renouveler.";
-"%@ has expired" = "%@ a expiré";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "Renouvelez-le bientôt pour le garder.";
-"Renew it soon or anyone can claim it." = "Renouvelez-le bientôt ou n’importe qui pourra le récupérer.";
-"Offer on %@ declined" = "Offre sur %@ refusée";
-"The owner declined it. The KAS is back with you." = "Le propriétaire l’a refusée. Les KAS vous sont revenus.";
-"Offer on %@ expired" = "Offre sur %@ expirée";
-"Nobody accepted it in time. The KAS is back with you." = "Personne ne l’a acceptée à temps. Les KAS vous sont revenus.";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ ne vous appartient plus";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Il a expiré et n'a pas été renouvelé : il est maintenant disponible pour tous sur la place de marché. Votre caution vous revient quand quelqu'un le réclame.";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Vous a envoyé %@ KAS";

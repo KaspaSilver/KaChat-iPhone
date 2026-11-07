@@ -316,8 +316,9 @@ struct ChatDetailView: View {
     @State private var showPaymentSheet = false
     /// Opened with `startInPaymentMode`: presented once the push has landed, not mid-transition.
     @State private var openPaymentOnAppear = false
-    /// Set by the "+" sheet's Pay in Kaspa: the payment sheet opens when that sheet is gone.
-    @State private var openPaymentAfterPlusSheet = false
+    /// What a "+" sheet row opens next (Send Kaspa, the photo picker, the camera...), run from
+    /// that sheet's onDismiss: a sheet presented while another is still closing can be dropped.
+    @State private var afterPlusSheet: (() -> Void)?
     /// The payment's memo, encrypted to the recipient with the payment (shown in its bubble).
     @State private var paymentNote = ""
     @State private var paymentFeeSompi: UInt64?
@@ -349,6 +350,13 @@ struct ChatDetailView: View {
     /// The amount is Max: a From, fee, coin or memo change works it out again.
     @State private var paymentUsedMax = false
     @State private var isEstimatingPaymentMax = false
+    /// The fee estimate failed: the swipe waits, and Try Again works it out again.
+    @State private var paymentFeeError: String?
+    /// The running Max: a late answer for an older speed, From or coin pick is dropped.
+    @State private var paymentMaxRequest = UUID()
+    /// The amount Max set when it was capped at one transaction's coins (the note shows while
+    /// the amount is still that).
+    @State private var paymentCappedMaxText: String?
     /// The fee being typed on the fee editor, in KAS.
     @State private var paymentFeeDraft = ""
     @State private var recordedAudioURL: URL?
@@ -2248,10 +2256,9 @@ struct ChatDetailView: View {
         // Reopens on the options step, never on whichever step it was closed from.
         .sheet(isPresented: $showComposerPlusSheet, onDismiss: {
             composerSheetStep = .options
-            if openPaymentAfterPlusSheet {
-                openPaymentAfterPlusSheet = false
-                openPaymentSheet()
-            }
+            let next = afterPlusSheet
+            afterPlusSheet = nil
+            next?()
         }) {
             composerPlusSheet
         }
@@ -2340,10 +2347,10 @@ struct ChatDetailView: View {
         switch kind {
         case .camera:
             // After the sheet is gone: a full-screen cover can't present from under it.
-            DispatchQueue.main.async { takePhoto(viaNextcloud: viaNextcloud) }
+            afterPlusSheet = { takePhoto(viaNextcloud: viaNextcloud) }
         case .photo:
             nextcloudPhotoRequested = viaNextcloud
-            DispatchQueue.main.async { showPhotoPickerFromMenu = true }
+            afterPlusSheet = { showPhotoPickerFromMenu = true }
         case .voice:
             switchMode(.audio)
             startRecording(viaNextcloud: viaNextcloud)
@@ -2413,7 +2420,7 @@ struct ChatDetailView: View {
                     customIcon: Image("KaspaLogo")
                 ) {
                     // Opens once this sheet is gone (see the sheet's onDismiss).
-                    openPaymentAfterPlusSheet = true
+                    afterPlusSheet = { openPaymentSheet() }
                     showComposerPlusSheet = false
                 }
                 // A bot only takes text and Kaspa.
@@ -2448,8 +2455,8 @@ struct ChatDetailView: View {
                             subtitle: "Send any file from your Nextcloud. It shows as a preview.",
                             systemImage: "doc"
                         ) {
+                            afterPlusSheet = { showNextcloudPicker = true }
                             showComposerPlusSheet = false
-                            DispatchQueue.main.async { showNextcloudPicker = true }
                         }
                     }
                     ActionSheetRow(
@@ -2457,8 +2464,8 @@ struct ChatDetailView: View {
                         subtitle: "Ask this contact for an exact amount, with what it's for.",
                         systemImage: "doc.text"
                     ) {
+                        afterPlusSheet = { showPaymentRequestSheet = true }
                         showComposerPlusSheet = false
-                        DispatchQueue.main.async { showPaymentRequestSheet = true }
                     }
                     ActionSheetRow(
                         title: "Play Chess",
@@ -3037,6 +3044,8 @@ struct ChatDetailView: View {
         isEditingPaymentFee = false
         paymentManualUtxos = nil
         paymentFeeSompi = nil
+        paymentFeeError = nil
+        paymentCappedMaxText = nil
         isEstimatingPaymentFee = false
         sentPayment = nil
         paymentStep = .from
@@ -3269,7 +3278,8 @@ struct ChatDetailView: View {
             isBusy: isSending,
             // not while Max or the fee is still being worked out: the Review would show a fee
             // other than the one sent
-            isEnabled: paymentAmountSompi > 0 && !paymentExceedsBalance && !isEstimatingPaymentMax && !isEstimatingPaymentFee,
+            isEnabled: paymentAmountSompi > 0 && !paymentExceedsBalance && !isEstimatingPaymentMax && !isEstimatingPaymentFee
+                && paymentFeeError == nil,
             amountSompi: paymentAmountSompi,
             recipient: contactsManager.displayName(for: contact),
             sent: sentPayment,
@@ -3350,10 +3360,23 @@ struct ChatDetailView: View {
                     onEditFee: openPaymentFeeEditor
                 )
 
-                if let paymentError {
-                    Text(paymentError)
+                if let message = paymentError ?? paymentFeeError {
+                    Text(message)
                         .font(.footnote)
                         .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                    // A failed estimate holds the swipe: never for good.
+                    if paymentError == nil {
+                        Button("Try Again") { schedulePaymentFee(for: amountText) }
+                            .font(.footnote.weight(.semibold))
+                    }
+                } else if let paymentCappedMaxText, paymentCappedMaxText == amountText {
+                    // Why Max isn't the whole balance: one transaction spends at most
+                    // `maxInputsPerTransaction` coins, and this address holds more.
+                    Text(String(format: AppLocalization.string("Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest."),
+                                locale: AppLocalization.locale, KasiaTransactionBuilder.maxInputsPerTransaction))
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 } else if paymentAmountSompi > 0 && paymentAmountSompi < 10_000_001 {
                     KaspaUnit.text("Sending less than 0.1 KAS may fail due to the network dust protection limit.")
@@ -3454,26 +3477,29 @@ struct ChatDetailView: View {
         paymentUsedMax = true
         isEstimatingPaymentMax = true
         paymentError = nil
+        let request = UUID()
+        paymentMaxRequest = request
         let note = paymentNote.trimmingCharacters(in: .whitespacesAndNewlines)
         let source = paymentFrom.spendingIndex
         let manual = paymentManualUtxos
         let customExtra = paymentCustomExtraFeeSompi
-        let knownExtra = paymentExtraFeeSompi
-        let hasBase = paymentFeeSompi != nil
         let multiplier = paymentFeeTier.multiplier
         Task {
             do {
-                var extra = customExtra ?? knownExtra
-                if !hasBase, customExtra == nil, multiplier > 1 {
+                // The speed's extra is priced from what Max sends (every coin), never from the
+                // typed amount's fee: that one coin's fee is far smaller, and the send charges
+                // the extra on the sweep's.
+                var extra = customExtra ?? 0
+                if customExtra == nil, multiplier > 1 {
                     let provisional = try await chatService.estimateMaxPaymentAmount(
                         to: contact, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: 0
                     )
                     let base = try await chatService.estimatePaymentFee(
-                        to: contact, amountSompi: provisional, note: note, sourceSpendingIndex: source, manualUtxos: manual
+                        to: contact, amountSompi: provisional.amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual
                     )
                     extra = base.networkFee * (multiplier - 1)
                 }
-                let maxSompi = try await chatService.estimateMaxPaymentAmount(
+                let result = try await chatService.estimateMaxPaymentAmount(
                     to: contact,
                     note: note,
                     sourceSpendingIndex: source,
@@ -3481,13 +3507,18 @@ struct ChatDetailView: View {
                     extraFeeSompi: extra
                 )
                 await MainActor.run {
-                    let kas = Double(maxSompi) / 100_000_000.0
+                    guard paymentMaxRequest == request else { return }
+                    let kas = Double(result.amountSompi) / 100_000_000.0
                     amountText = fiatAmountState.setMaxKas(kas, priceInCurrency: priceModel.currentPriceUsd)
+                    paymentCappedMaxText = result.cappedAtInputLimit ? amountText : nil
                     isEstimatingPaymentMax = false
                 }
             } catch {
                 AppLog.log("[ChatDetail] Max calculation failed: %@", error.localizedDescription)
-                await MainActor.run { isEstimatingPaymentMax = false }
+                await MainActor.run {
+                    guard paymentMaxRequest == request else { return }
+                    isEstimatingPaymentMax = false
+                }
             }
         }
     }
@@ -4243,6 +4274,7 @@ struct ChatDetailView: View {
         guard amountSompi > 0 else {
             paymentFeeSompi = nil
             paymentBuiltFeeSompi = nil
+            paymentFeeError = nil
             isEstimatingPaymentFee = false
             return
         }
@@ -4257,21 +4289,31 @@ struct ChatDetailView: View {
             try? await Task.sleep(nanoseconds: 200_000_000)
             if Task.isCancelled { return }
             // The Normal fee is the base the speeds multiply (and the editor's minimum). With the
-            // extra in, the estimate builds the same shape the send will.
-            let base = try? await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual)
-            if Task.isCancelled { return }
-            var paid = base
-            if let base {
+            // extra in, the estimate builds the same shape the send will. Either failing holds
+            // the swipe with the error: never a silent fall back to a fee nobody saw.
+            do {
+                let base = try await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual)
+                if Task.isCancelled { return }
+                var paid = base
                 let extra = customExtra ?? base.networkFee * (multiplier - 1)
                 if extra > 0 {
-                    paid = try? await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: extra)
+                    paid = try await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: note, sourceSpendingIndex: source, manualUtxos: manual, extraFeeSompi: extra)
                     if Task.isCancelled { return }
                 }
-            }
-            await MainActor.run {
-                paymentFeeSompi = base?.networkFee
-                paymentBuiltFeeSompi = paid.map { $0.networkFee + $0.foldedChange }
-                isEstimatingPaymentFee = false
+                await MainActor.run {
+                    paymentFeeSompi = base.networkFee
+                    paymentBuiltFeeSompi = paid.networkFee + paid.foldedChange
+                    paymentFeeError = nil
+                    isEstimatingPaymentFee = false
+                }
+            } catch {
+                if Task.isCancelled { return }
+                await MainActor.run {
+                    paymentFeeSompi = nil
+                    paymentBuiltFeeSompi = nil
+                    paymentFeeError = UserFacingError.message(for: error)
+                    isEstimatingPaymentFee = false
+                }
             }
         }
     }

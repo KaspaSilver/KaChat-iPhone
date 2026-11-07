@@ -17,10 +17,6 @@ struct ManageAddressesView: View {
     @State private var isLoading = false
     @State private var isGenerating = false
     @State private var isDiscovering = false
-    @State private var isConsolidating = false
-    @State private var showConsolidateConfirm = false
-    @State private var showConsolidateSuccess = false
-    @State private var consolidateSentTxIds: [String] = []
     @State private var errorMessage: String?
     @State private var qrTarget: SpendingAddressEntry?
     @State private var renameTarget: SpendingAddressEntry?
@@ -47,6 +43,9 @@ struct ManageAddressesView: View {
     /// The "Address Actions" half sheet, and the per-row one behind each ellipsis.
     @State private var showAddressActions = false
     @State private var addressActionsTarget: SpendingAddressEntry?
+    /// What a row of that sheet opens next, run from its onDismiss: a sheet presented while
+    /// another is still closing can be dropped by iOS.
+    @State private var afterAddressActions: (() -> Void)?
     /// Live scan position while discovering, so the actions sheet can count up rather than sit
     /// on a spinner for the half-minute a gap-limit walk takes.
     @State private var discoveryProgress: WalletManager.SpendingDiscoveryProgress?
@@ -98,7 +97,11 @@ struct ManageAddressesView: View {
         }
         .navigationTitle("Manage Addresses")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showAddressActions) {
+        .sheet(isPresented: $showAddressActions, onDismiss: {
+            let next = afterAddressActions
+            afterAddressActions = nil
+            next?()
+        }) {
             addressActionsSheet
                 .presentationDetents([.height(440)])
                 .presentationDragIndicator(.visible)
@@ -148,32 +151,6 @@ struct ManageAddressesView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage ?? "")
-        }
-        .sheet(isPresented: $showConsolidateConfirm) {
-            ConsolidateToPrimaryConfirmView(
-                sources: entries.filter { $0.index != walletManager.currentSpendingAddressIndex && $0.balanceSompi > 0 },
-                primaryAddress: walletManager.currentSpendingAddress() ?? ""
-            ) { extraFeeSompi in
-                consolidateToPrimary(extraFeeSompi: extraFeeSompi)
-            }
-            // .medium clipped the fee row's footer text on shorter screens once the fee
-            // picker/editable field pushed the "From" list below the fold - always opening
-            // full height avoids that ambiguity for what's a fund-affecting confirmation.
-            .presentationDetents([.large])
-        }
-        // A half sheet like every other send confirmation. It keeps its own card body rather
-        // than using `SentConfirmationSheet`, because a consolidation sweep submits one
-        // transaction per source address and the list of them is the whole point.
-        .sheet(isPresented: $showConsolidateSuccess) {
-            ConsolidateSuccessCard(
-                txIds: consolidateSentTxIds,
-                explorer: settingsViewModel.settings.kaspaExplorer
-            ) {
-                showConsolidateSuccess = false
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .presentationDetents([.height(min(420, 220 + CGFloat(consolidateSentTxIds.count) * 44))])
-            .presentationDragIndicator(.visible)
         }
         .sheet(item: $qrTarget) { entry in
             SpendingAddressQRView(entry: entry)
@@ -431,7 +408,7 @@ struct ManageAddressesView: View {
             showAddressActions = true
         } label: {
             Group {
-                if isGenerating || isDiscovering || isConsolidating {
+                if isGenerating || isDiscovering {
                     ProgressView()
                 } else {
                     Image(systemName: "slider.horizontal.3")
@@ -448,7 +425,7 @@ struct ManageAddressesView: View {
             )
         }
         .buttonStyle(.plain)
-        .disabled(isGenerating || isDiscovering || isConsolidating)
+        .disabled(isGenerating || isDiscovering)
         .padding(.trailing, 20)
         .padding(.bottom, 16)
         .accessibilityLabel(Text("Address Actions"))
@@ -510,7 +487,7 @@ struct ManageAddressesView: View {
                         subtitle: "Reveals the next unused address in this wallet.",
                         systemImage: "plus.circle",
                         isBusy: isGenerating,
-                        isDisabled: isDiscovering || isConsolidating
+                        isDisabled: isDiscovering
                     ) {
                         generateNew()
                         showAddressActions = false
@@ -519,7 +496,7 @@ struct ManageAddressesView: View {
                         title: "Discover Addresses",
                         subtitle: "Finds addresses holding a balance or a domain.",
                         systemImage: "magnifyingglass",
-                        isDisabled: isDiscovering || isConsolidating
+                        isDisabled: isDiscovering
                     ) {
                         discoverAddresses()
                     }
@@ -529,10 +506,8 @@ struct ManageAddressesView: View {
                         systemImage: "checklist",
                         isDisabled: isDiscovering
                     ) {
+                        afterAddressActions = { showVisibilityManager = true }
                         showAddressActions = false
-                        // One runloop turn: presenting a sheet from inside one that is still
-                        // dismissing drops it.
-                        DispatchQueue.main.async { showVisibilityManager = true }
                     }
                     if let discoverySummary {
                         Text(discoverySummary)
@@ -749,7 +724,7 @@ struct ManageAddressesView: View {
                         entries[position].everUsed = used
                     }
                     unknownUsedAddresses.remove(address)
-                    AppLog.log("[ManageAddresses] everUsed check address=%@ used=%@", address, used ? "true" : "false")
+                    AppLog.log("[ManageAddresses] everUsed check address=…%@ used=%@", String(address.suffix(8)), used ? "true" : "false")
                 }
                 // A failed probe stays in unknownUsedAddresses: the badge keeps showing
                 // "Checking" (never a possibly-wrong "Unused") and pull to refresh retries.
@@ -910,47 +885,6 @@ struct ManageAddressesView: View {
         }
     }
 
-    /// Sweeps every non-primary spending address's balance into the current primary, one at
-    /// a time. Best-effort: a failure on one address doesn't block the rest. `extraFeeSompi`
-    /// (chosen in the confirmation sheet) is applied to each individual sweep, same as any other
-    /// send's fee customization - there's no single combined fee to show since this can be
-    /// several separate transactions, one per source address.
-    private func consolidateToPrimary(extraFeeSompi: UInt64 = 0) {
-        guard !isConsolidating else { return }
-        isConsolidating = true
-        errorMessage = nil
-        Task {
-            guard let primaryAddress = walletManager.currentSpendingAddress() else {
-                isConsolidating = false
-                return
-            }
-            let activeIndex = walletManager.currentSpendingAddressIndex
-            var sentTxIds: [String] = []
-            // One address failing must not hide the others' success - but if nothing went out
-            // and something threw, that error is the answer, not a sheet that just closes.
-            var lastError: Error?
-            for entry in entries where entry.index != activeIndex && entry.balanceSompi > 0 {
-                do {
-                    // an address with more coins than one transaction spends moves its largest ones
-                    let maxSendable = try await chatService.estimateMaxSpendingAddressAmount(index: entry.index, toAddress: primaryAddress, extraFeeSompi: extraFeeSompi).amountSompi
-                    guard maxSendable > 0 else { continue }
-                    let txId = try await chatService.sendFromSpendingAddress(index: entry.index, toAddress: primaryAddress, amountSompi: maxSendable, extraFeeSompi: extraFeeSompi)
-                    sentTxIds.append(txId)
-                } catch {
-                    lastError = error
-                }
-            }
-            await loadEntries()
-            isConsolidating = false
-            if !sentTxIds.isEmpty {
-                consolidateSentTxIds = sentTxIds
-                showConsolidateSuccess = true
-            } else if let lastError {
-                errorMessage = lastError.localizedDescription
-            }
-        }
-    }
-
     private func formatKasExact(_ sompi: UInt64) -> String {
         String(format: "%.8f", Double(sompi) / 100_000_000.0)
     }
@@ -997,232 +931,6 @@ struct ContainsDomainTag: View {
     }
 }
 
-/// Confirm-before-you-sweep sheet for "Send All Kaspa To Primary Spend Address" - shows exactly
-/// which addresses will be swept, where the funds are going, and a fee the user can adjust,
-/// rather than firing off however-many transactions the instant the menu item is tapped.
-private struct ConsolidateToPrimaryConfirmView: View {
-    let sources: [SpendingAddressEntry]
-    let primaryAddress: String
-    let onConfirm: (UInt64) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var feeTier: WithdrawFeeTier = .normal
-    @State private var customExtraFeeSompi: UInt64?
-    @State private var isEditingFee = false
-    @State private var feeEditorText = ""
-    @FocusState private var feeFieldFocused: Bool
-
-    /// A fixed 1-input/2-output reference mass, good enough to show/edit a per-transaction fee
-    /// estimate without a network round trip.
-    private var referenceMass: UInt64 { KaspaFeePolicy.referenceMassForFeeEditor }
-
-    private var normalFeeSompi: UInt64 {
-        KaspaFeePolicy.calculateFee(mass: referenceMass, rateSompiPerGram: KaspaFeePolicy.minimumRelayFeePerGramSompi)
-    }
-
-    /// Extra priority tip on top of the base (Normal-tier) fee - same Normal/Fast/Priority
-    /// system as the chatting-address withdraw flow, applied per swept address here since a
-    /// consolidation can be several separate transactions.
-    private var extraFeeSompi: UInt64 {
-        if let customExtraFeeSompi { return customExtraFeeSompi }
-        return normalFeeSompi * (feeTier.multiplier - 1)
-    }
-
-    private var effectiveFeeSompi: UInt64 {
-        normalFeeSompi + extraFeeSompi
-    }
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    if sources.isEmpty {
-                        Text("No other addresses have a balance to consolidate.")
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(sources) { entry in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(entry.displayLabel)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    Text(entry.shortAddress)
-                                        .font(.system(.subheadline, design: .monospaced))
-                                }
-                                Spacer()
-                                Text(verbatim: "\(formatKas(entry.balanceSompi)) \(KaspaUnit.symbol)")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                    }
-                } header: {
-                    Text("From")
-                }
-
-                Section {
-                    Text(primaryAddress)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                } header: {
-                    Text("To (Primary Address)")
-                }
-
-                if !sources.isEmpty {
-                    Section {
-                        Picker("Fee", selection: $feeTier) {
-                            ForEach(WithdrawFeeTier.allCases) { tier in
-                                Text(tier.rawValue).tag(tier)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .onChange(of: feeTier) { _ in
-                            customExtraFeeSompi = nil
-                            isEditingFee = false
-                        }
-
-                        HStack {
-                            Text("Network Fee")
-                            Spacer()
-                            if isEditingFee {
-                                TextField("0.00", text: $feeEditorText)
-                                    .keyboardType(.decimalPad)
-                                    .numericKeyboardDoneButton()
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(maxWidth: 100)
-                                    .focused($feeFieldFocused)
-                                    .onSubmit { commitCustomFee() }
-                                Button {
-                                    commitCustomFee()
-                                } label: {
-                                    Image(systemName: "checkmark.circle.fill")
-                                }
-                                .buttonStyle(.borderless)
-                            } else {
-                                Button {
-                                    feeEditorText = formatKas(effectiveFeeSompi)
-                                    isEditingFee = true
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Text(verbatim: "~\(formatKas(effectiveFeeSompi)) \(KaspaUnit.symbol)")
-                                            .underline()
-                                        Image(systemName: "pencil")
-                                            .font(.caption2)
-                                    }
-                                    .foregroundColor(.accentColor)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    } footer: {
-                        Text(sources.count > 1
-                             ? "\(sources.count) separate transactions will be sent, one per address. Fast or Priority pays a higher fee to help them confirm sooner. Tap the fee amount to set a custom fee, applied to each."
-                             : "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee.")
-                    }
-                }
-            }
-            .navigationTitle("Consolidate to Primary")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        feeFieldFocused = false
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Confirm") {
-                        onConfirm(extraFeeSompi)
-                        dismiss()
-                    }
-                    .disabled(sources.isEmpty)
-                }
-            }
-        }
-    }
-
-    /// Commits the manually-typed total fee. Values below the network-computed minimum are
-    /// clamped up to that minimum rather than rejected outright, matching the chatting-address
-    /// withdraw flow's identical behavior.
-    private func commitCustomFee() {
-        defer { isEditingFee = false }
-        guard let totalSompi = KaspaUnit.sompi(fromUserText: feeEditorText) else { return }
-        customExtraFeeSompi = totalSompi > normalFeeSompi ? totalSompi - normalFeeSompi : 0
-    }
-
-    private func formatKas(_ sompi: UInt64) -> String {
-        var text = String(format: "%.8f", Double(sompi) / 100_000_000.0)
-        while text.hasSuffix("0") { text.removeLast() }
-        if text.hasSuffix(".") { text.removeLast() }
-        return text
-    }
-}
-
-/// Confirms a completed consolidation sweep - shown after "Send All Kaspa To Primary Spend
-/// Address" finishes, listing every transaction id it actually submitted (there can be more
-/// than one, one per source address swept) so the user has something concrete to check on an
-/// explorer rather than just trusting the sheet silently closed. Same half-sheet language as
-/// `SentConfirmationSheet` (checkmark + "Sent" + tappable ids), just extended to a list, since a
-/// sweep submits one transaction per source address and that list is the whole point.
-private struct ConsolidateSuccessCard: View {
-    let txIds: [String]
-    let explorer: KaspaExplorer
-    let onDismiss: () -> Void
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.scaled(size: 44))
-                .foregroundColor(.green)
-
-            Text("Sent")
-                .font(.headline)
-                .fontWeight(.bold)
-
-            VStack(spacing: 8) {
-                ForEach(txIds, id: \.self) { txId in
-                    if let url = explorer.txURL(for: txId) {
-                        Link(destination: url) {
-                            Text(txId)
-                                .font(.system(.footnote, design: .monospaced))
-                                .foregroundColor(.accentColor)
-                                .underline()
-                                .multilineTextAlignment(.center)
-                        }
-                    } else {
-                        Text(txId)
-                            .font(.system(.footnote, design: .monospaced))
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-            }
-
-            Button {
-                onDismiss()
-            } label: {
-                Text("OK")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.accentColor)
-        }
-        .padding(24)
-        .frame(maxWidth: 300)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.regularMaterial)
-        )
-        .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
-    }
-}
-
 /// Scoped withdraw dialog for a single spending address — change stays on that same address
 /// (no rotation), unlike the auto-sweep-and-rotate behavior of a regular chat payment. Widened
 /// from `private` so ContactsView.swift's Profile-tab "Spending Address" dropdown can reuse it
@@ -1254,6 +962,8 @@ struct SpendingAddressWithdrawView: View {
     @State private var showQRScanner = false
     @State private var isSending = false
     @State private var isEstimatingMax = false
+    /// The running Max: a late answer for an older speed or coin pick is dropped.
+    @State private var maxRequest = UUID()
     @State private var errorMessage: String?
     /// The completed send, driving the sent-confirmation half sheet.
     @State private var sentTransaction: SentTransaction?
@@ -1265,7 +975,6 @@ struct SpendingAddressWithdrawView: View {
     @State private var nameResolutions: [NameResolution] = []
     @State private var selectedTLD: NameServiceTLD?
     @State private var knsError: String?
-    private let knsService = KNSService.shared
 
     /// The actual address to use (resolved from a KNS domain, or the direct input) - same
     /// precedence as ContactsView's WithdrawKaspaView/AddContactView.
@@ -1289,6 +998,12 @@ struct SpendingAddressWithdrawView: View {
     /// The amount a Max set that is what one transaction can carry, not the whole balance: the
     /// note shows while the amount is still that one.
     @State private var cappedMaxAmount: String?
+    /// The amount Max last set: while it's still the amount, a fee change works Max out again.
+    @State private var maxSetAmount: String?
+    /// Why the fee couldn't be worked out (usually: not enough Kaspa for the amount and fee).
+    @State private var feeError: String?
+
+    private var usedMax: Bool { maxSetAmount != nil && maxSetAmount == amountInput }
     @State private var customExtraFeeSompi: UInt64?
     @State private var isEditingFee = false
     @State private var customFeeText = ""
@@ -1308,7 +1023,7 @@ struct SpendingAddressWithdrawView: View {
     /// while Max or the fee is being worked out again, and not when the fee couldn't be.
     private var canSend: Bool {
         hasValidRecipient && amountSompi != nil && !isSending
-            && !isEstimatingMax && !isEstimatingFee && totalFeeSompi != nil
+            && !isEstimatingMax && !isEstimatingFee && feeError == nil && totalFeeSompi != nil
     }
 
     /// Extra priority tip on top of the base (Normal-tier) fee, for network congestion. A
@@ -1328,9 +1043,12 @@ struct SpendingAddressWithdrawView: View {
 
     /// The speed and a custom fee are in the key: the fee shown is worked out with the extra
     /// actually paid (it can take another coin, or leave no change worth keeping).
+    /// Bumped when a send stopped because its fee went up: the Review works the fee out again.
+    @State private var feeRefresh = 0
+
     private var feeEstimationKey: String {
         let manualKey = manualUtxos?.map { "\($0.outpoint.transactionId):\($0.outpoint.index)" }.sorted().joined(separator: ",") ?? ""
-        return "\(source.index)|\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(feeTier.rawValue)|\(customExtraFeeSompi.map { String($0) } ?? "")"
+        return "\(source.index)|\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(feeTier.rawValue)|\(customExtraFeeSompi.map { String($0) } ?? "")|\(feeRefresh)"
     }
 
     /// The spending address this send comes from: `entry` (the primary, from Profile or the
@@ -1466,11 +1184,16 @@ struct SpendingAddressWithdrawView: View {
                         onEditFee: { showFeeEditor(true) }
                     )
 
-                    if let errorMessage {
-                        Text(errorMessage)
+                    if let message = errorMessage ?? feeError {
+                        Text(message)
                             .font(.footnote)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
+                        // A failed estimate holds the swipe: never for good.
+                        if errorMessage == nil {
+                            Button("Try Again") { feeRefresh += 1 }
+                                .font(.footnote.weight(.semibold))
+                        }
                     } else if let cappedMaxAmount, cappedMaxAmount == amountInput {
                         // Why Max isn't the whole balance: one transaction spends at most
                         // `maxInputsPerTransaction` coins, and this address holds more.
@@ -1490,16 +1213,17 @@ struct SpendingAddressWithdrawView: View {
             .onChange(of: feeTier) { _ in
                 customExtraFeeSompi = nil
                 isEditingFee = false
-                if isCompoundMode { setMaxAmount() }
+                if isCompoundMode || usedMax { setMaxAmount() }
             }
             .onChange(of: customExtraFeeSompi) { _ in
-                // Compound sends everything: the amount is what's left after the fee
-                if isCompoundMode { setMaxAmount() }
+                // Compound and Max send everything: the amount is what's left after the fee
+                if isCompoundMode || usedMax { setMaxAmount() }
             }
             .task(id: feeEstimationKey) {
                 guard hasValidRecipient, let amountSompi else {
                     normalFeeSompi = nil
                     builtFeeSompi = nil
+                    feeError = nil
                     isEstimatingFee = false
                     return
                 }
@@ -1523,10 +1247,12 @@ struct SpendingAddressWithdrawView: View {
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = base.networkFee
                     builtFeeSompi = paid.networkFee + paid.foldedChange
+                    feeError = nil
                 } catch {
                     guard !Task.isCancelled else { return }
                     normalFeeSompi = nil
                     builtFeeSompi = nil
+                    feeError = UserFacingError.message(for: error)
                 }
                 isEstimatingFee = false
             }
@@ -1649,10 +1375,34 @@ struct SpendingAddressWithdrawView: View {
         guard hasValidRecipient else { return }
         isEstimatingMax = true
         errorMessage = nil
+        let request = UUID()
+        maxRequest = request
         let recipient = effectiveAddress
-        let tipSompi = extraFeeSompi
+        let customExtra = customExtraFeeSompi
+        let multiplier = feeTier.multiplier
+        let index = source.index
+        let coins = manualUtxos
+        let preloaded = preloadedUtxos
+        let compound = isCompoundMode
         Task {
             do {
+                // The speed's extra is priced from what Max sends, never from the typed amount's
+                // fee: that send's fee is smaller, and the send charges the extra on this one's.
+                var tipSompi = customExtra ?? 0
+                if customExtra == nil, multiplier > 1 {
+                    let provisionalAmount: UInt64
+                    let provisionalCoins: [UTXO]?
+                    if compound {
+                        let chunk = try await chatService.maxConsolidatableChunk(index: index, availableUtxos: preloaded)
+                        provisionalAmount = chunk.amountSompi
+                        provisionalCoins = chunk.utxos
+                    } else {
+                        provisionalAmount = try await chatService.estimateMaxSpendingAddressAmount(index: index, toAddress: recipient, manualUtxos: coins).amountSompi
+                        provisionalCoins = coins
+                    }
+                    let base = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: recipient, amountSompi: provisionalAmount, manualUtxos: provisionalCoins, availableUtxos: compound ? preloaded : [])
+                    tipSompi = base.networkFee * (multiplier - 1)
+                }
                 if isCompoundMode {
                     // Consolidation is bounded by Kaspa's per-transaction mass cap, so estimate the
                     // max over only the UTXOs that fit ONE transaction (largest-first) and pin the
@@ -1661,20 +1411,25 @@ struct SpendingAddressWithdrawView: View {
                     // reduce further.
                     let (maxSompi, utxos) = try await chatService.maxConsolidatableChunk(index: source.index, extraFeeSompi: tipSompi, availableUtxos: preloadedUtxos)
                     await MainActor.run {
+                        guard maxRequest == request else { return }
                         manualUtxos = utxos
                         amountInput = fiatAmountState.setMaxKas(Double(maxSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
+                        maxSetAmount = amountInput
                         isEstimatingMax = false
                     }
                 } else {
                     let result = try await chatService.estimateMaxSpendingAddressAmount(index: source.index, toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
                     await MainActor.run {
+                        guard maxRequest == request else { return }
                         amountInput = fiatAmountState.setMaxKas(Double(result.amountSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
                         cappedMaxAmount = result.cappedAtInputLimit ? amountInput : nil
+                        maxSetAmount = amountInput
                         isEstimatingMax = false
                     }
                 }
             } catch {
                 await MainActor.run {
+                    guard maxRequest == request else { return }
                     errorMessage = UserFacingError.message(for: error)
                     isEstimatingMax = false
                 }
@@ -1707,10 +1462,12 @@ struct SpendingAddressWithdrawView: View {
         // consolidation transaction. In normal mode it's a regular send.
         let recipient = effectiveAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         let tipSompi = extraFeeSompi
+        // what the Review showed: a send rebuilt at the swipe that would pay more doesn't go
+        let expectedFee = totalFeeSompi
         Task {
             do {
                 try await SendFailureSimulation.failIfEnabled()
-                let txId = try await chatService.sendFromSpendingAddress(index: source.index, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                let txId = try await chatService.sendFromSpendingAddress(index: source.index, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi, expectedFeeSompi: expectedFee)
                 await MainActor.run {
                     isSending = false
                     sentTransaction = SentTransaction(
@@ -1725,6 +1482,8 @@ struct SpendingAddressWithdrawView: View {
                 await MainActor.run {
                     isSending = false
                     errorMessage = UserFacingError.message(for: error)
+                    // nothing went out; Try Again goes back to a Review with the fee of today's coins
+                    if error is SendFeeChangedError { feeRefresh += 1 }
                 }
             }
         }

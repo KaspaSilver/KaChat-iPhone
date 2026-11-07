@@ -13,6 +13,9 @@ struct AddressBookView: View {
     @State private var search = ""
     @State private var showAdd = false
     @State private var showImportExport = false
+    /// What a row of that sheet opens next, run from its onDismiss: a sheet presented while
+    /// another is still closing can be dropped by iOS.
+    @State private var afterActionsSheet: (() -> Void)?
     @State private var showFileImporter = false
     @State private var showNextcloudImporter = false
     @State private var exportFile: ExportedFile?
@@ -73,7 +76,11 @@ struct AddressBookView: View {
             .sheet(isPresented: $showAdd) {
                 AddressBookEntryEditor(address: nil) { _ in }
             }
-            .sheet(isPresented: $showImportExport) { actionsSheet }
+            .sheet(isPresented: $showImportExport, onDismiss: {
+                let next = afterActionsSheet
+                afterActionsSheet = nil
+                next?()
+            }) { actionsSheet }
             .sheet(item: $exportFile) { file in
                 AddressBookShareSheet(fileURL: file.url)
             }
@@ -133,16 +140,16 @@ struct AddressBookView: View {
                 subtitle: "Save a Kaspa address with a name you'll recognize.",
                 systemImage: "plus"
             ) {
+                afterActionsSheet = { showAdd = true }
                 showImportExport = false
-                DispatchQueue.main.async { showAdd = true }
             }
             ActionSheetRow(
                 title: "Import File",
                 subtitle: "Add contacts from a contacts export.",
                 systemImage: "square.and.arrow.down"
             ) {
+                afterActionsSheet = { showFileImporter = true }
                 showImportExport = false
-                DispatchQueue.main.async { showFileImporter = true }
             }
             ActionSheetRow(
                 title: "Export File",
@@ -158,8 +165,8 @@ struct AddressBookView: View {
                     subtitle: "Pick a contacts export from your Nextcloud.",
                     systemImage: "icloud.and.arrow.down"
                 ) {
+                    afterActionsSheet = { showNextcloudImporter = true }
                     showImportExport = false
-                    DispatchQueue.main.async { showNextcloudImporter = true }
                 }
                 ActionSheetRow(
                     title: "Export to Nextcloud",

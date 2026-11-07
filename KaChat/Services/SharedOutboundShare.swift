@@ -45,6 +45,9 @@ struct SharedOutboundShare: Codable {
     let image: ImageAttachment?
     let createdAtMs: Int64
     let autoSend: Bool
+    /// The account signed in when the share was made: the app sends it only from that account.
+    /// nil for shares queued by builds before this field.
+    let walletAddress: String?
 
     static let maxStoredItems = 50
     static let maxAgeMs: Int64 = 7 * 24 * 60 * 60 * 1000
@@ -59,7 +62,8 @@ struct SharedOutboundShare: Codable {
         text: String,
         image: ImageAttachment? = nil,
         createdAtMs: Int64,
-        autoSend: Bool = true
+        autoSend: Bool = true,
+        walletAddress: String? = nil
     ) {
         self.id = id
         self.contactAddress = contactAddress
@@ -67,6 +71,7 @@ struct SharedOutboundShare: Codable {
         self.image = image
         self.createdAtMs = createdAtMs
         self.autoSend = autoSend
+        self.walletAddress = walletAddress
     }
 
     init(from decoder: Decoder) throws {
@@ -78,5 +83,6 @@ struct SharedOutboundShare: Codable {
         image = try container.decodeIfPresent(ImageAttachment.self, forKey: .image)
         createdAtMs = try container.decode(Int64.self, forKey: .createdAtMs)
         autoSend = try container.decodeIfPresent(Bool.self, forKey: .autoSend) ?? true
+        walletAddress = try container.decodeIfPresent(String.self, forKey: .walletAddress)
     }
 }

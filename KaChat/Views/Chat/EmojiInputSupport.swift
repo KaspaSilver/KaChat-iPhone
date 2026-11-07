@@ -18,10 +18,6 @@ enum EmojiInputSupport {
         shouldShowDesktopEmojiButton(isMacCatalyst: isCurrentPlatformMacCatalyst)
     }
 
-    static var currentPresentationMode: EmojiInputPresentationMode {
-        presentationMode(isMacCatalyst: isCurrentPlatformMacCatalyst)
-    }
-
     private static var isCurrentPlatformMacCatalyst: Bool {
         #if targetEnvironment(macCatalyst)
         return true
@@ -30,7 +26,4 @@ enum EmojiInputSupport {
         #endif
     }
 
-    static var shouldUseDesktopEmojiPicker: Bool {
-        currentPresentationMode == .desktopEmojiPicker
-    }
 }

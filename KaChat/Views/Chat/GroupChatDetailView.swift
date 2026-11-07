@@ -198,6 +198,9 @@ struct GroupChatDetailView: View {
     @State private var nextcloudUploadTask: Task<Void, Never>?
     @State private var showNextcloudPicker = false
     @State private var showPlusSheet = false
+    /// What a row of that sheet opens next, run from its onDismiss: a sheet presented while
+    /// another is still closing can be dropped by iOS.
+    @State private var afterPlusSheet: (() -> Void)?
     /// The "+" sheet's second step (on chain or via Nextcloud), or nil for the options.
     @State private var plusSheetMediaStep: ComposerMediaKind?
     /// The sender whose avatar was tapped; non-nil presents `senderSheet`.
@@ -1509,8 +1512,8 @@ struct GroupChatDetailView: View {
                         subtitle: "Send any file from your Nextcloud. It shows as a preview.",
                         systemImage: "doc"
                     ) {
+                        afterPlusSheet = { showNextcloudPicker = true }
                         showPlusSheet = false
-                        DispatchQueue.main.async { showNextcloudPicker = true }
                     }
                 }
             }
@@ -1537,10 +1540,10 @@ struct GroupChatDetailView: View {
         switch kind {
         case .camera:
             // After the sheet is gone: a full-screen cover can't present from under it.
-            DispatchQueue.main.async { takePhoto(viaNextcloud: viaNextcloud) }
+            afterPlusSheet = { takePhoto(viaNextcloud: viaNextcloud) }
         case .photo:
             nextcloudPhotoRequested = viaNextcloud
-            DispatchQueue.main.async { showPhotoPicker = true }
+            afterPlusSheet = { showPhotoPicker = true }
         case .voice:
             feeEstimateSompi = nil
             nextcloudVoiceRequested = viaNextcloud
@@ -1649,7 +1652,12 @@ struct GroupChatDetailView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("More options"))
-        .sheet(isPresented: $showPlusSheet, onDismiss: { plusSheetMediaStep = nil }) { plusSheet }
+        .sheet(isPresented: $showPlusSheet, onDismiss: {
+            plusSheetMediaStep = nil
+            let next = afterPlusSheet
+            afterPlusSheet = nil
+            next?()
+        }) { plusSheet }
         .sheet(item: $senderSheetTarget) { senderSheet(for: $0) }
         .photosPicker(
             isPresented: $showPhotoPicker,
@@ -2930,13 +2938,7 @@ private struct GroupMessageBubbleRow: View {
     }
 
     private var statusIcon: some View {
-        let status: DeliveryStatusLabel.Status
-        switch message.deliveryStatus {
-        case .sent: status = .sent
-        case .pending: status = .pending
-        case .failed: status = .failed
-        case .warning: status = .warning
-        }
+        let status = DeliveryStatusLabel.Status(message.deliveryStatus, isOutgoing: message.isOutgoing)
         return DeliveryStatusLabel(status: status, retry: message.deliveryStatus == .failed ? onRetry : nil)
     }
 }

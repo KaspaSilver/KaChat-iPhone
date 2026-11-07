@@ -115,7 +115,7 @@ extension ChatService {
         )
         let spentUtxos = spentMessageUtxos(from: transaction, candidates: candidateUtxos)
         let usesUnconfirmedInputs = spentUtxos.contains { $0.blockDaaScore == 0 }
-        let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: usesUnconfirmedInputs)
+        let submitted = try await submitSpendingMessageCoins(transaction, spent: spentUtxos, allowOrphan: usesUnconfirmedInputs, rpcManager: rpcManager)
         reserveMessageOutpoints(spentUtxos)
         consumePendingUtxos(spentUtxos)
         addPendingOutputs(from: transaction, txId: submitted.txId, senderScriptPubKey: senderScriptPubKey)
@@ -264,7 +264,7 @@ extension ChatService {
         )
         let spentUtxos = spentMessageUtxos(from: transaction, candidates: candidateUtxos)
         let usesUnconfirmedInputs = spentUtxos.contains { $0.blockDaaScore == 0 }
-        let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: usesUnconfirmedInputs)
+        let submitted = try await submitSpendingMessageCoins(transaction, spent: spentUtxos, allowOrphan: usesUnconfirmedInputs, rpcManager: rpcManager)
 
         reserveMessageOutpoints(spentUtxos)
         consumePendingUtxos(spentUtxos)

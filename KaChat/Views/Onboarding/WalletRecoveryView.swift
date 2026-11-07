@@ -84,8 +84,11 @@ struct WalletRecoveryView: View {
             .alert("Remove this account?", isPresented: $showRemoveConfirmation) {
                 // Face ID first, as on both Delete Account sheets.
                 Button("Remove", role: .destructive) {
-                    DeviceAuth.authenticate(reason: AppLocalization.string("Confirm deleting this account")) {
-                        remove()
+                    // Once the alert is gone: Face ID started while it is still closing can fail.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        DeviceAuth.authenticate(reason: AppLocalization.string("Confirm deleting this account")) {
+                            remove()
+                        }
                     }
                 }
                 Button("Cancel", role: .cancel) {}
@@ -110,10 +113,13 @@ struct WalletRecoveryView: View {
         guard !isRemoving else { return }
         isRemoving = true
         Task {
-            do {
-                try await walletManager.deleteWallet()
-            } catch {
-                errorMessage = UserFacingError.message(for: error)
+            // The full removal (messages, groups, contacts, notifications), as the sign-in
+            // screen's Delete does: the keys-missing state never opened this account's stores, so
+            // the old `deleteWallet()` path left them on the phone.
+            walletManager.error = nil
+            await walletManager.removeAccountWithoutKeys(wallet)
+            if let failure = walletManager.error {
+                errorMessage = failure.localizedDescription
             }
             isRemoving = false
         }

@@ -66,7 +66,6 @@ final class NodePoolService: ObservableObject {
     private var isInitialized = false
     private var isInitializing = false
     private var quickBootTask: Task<Void, Never>?
-    private var cancellables = Set<AnyCancellable>()
     private var statsUpdateTask: Task<Void, Never>?
     private var previousPoolHealth: PoolHealth?
     /// Client tokens currently wanting block-added notifications - see subscribeBlockAdded.
@@ -603,7 +602,23 @@ final class NodePoolService: ObservableObject {
     /// looked up: found in a mempool or accepted, the send succeeded. If a node may have received it
     /// and never answered, the look-up goes on for longer, and a transaction still not found ends in
     /// `SendOutcomeUnknownError` rather than a failure: it may yet land.
+    ///
+    /// Sent, or with an unknown outcome, its inputs are reserved (`ChatService.reserveSpentOutpoints`)
+    /// so no other send, from any part of the app, picks those coins again before the node shows
+    /// them spent.
     func submitTransaction(_ transaction: KaspaRpcTransaction, allowOrphan: Bool = false) async throws -> (txId: String, endpoint: String) {
+        let spent = transaction.inputs.map(\.previousOutpoint)
+        do {
+            let sent = try await submitTransactionLookingUp(transaction, allowOrphan: allowOrphan)
+            ChatService.shared.reserveSpentOutpoints(spent)
+            return sent
+        } catch let unknown as SendOutcomeUnknownError {
+            ChatService.shared.reserveSpentOutpoints(spent)
+            throw unknown
+        }
+    }
+
+    private func submitTransactionLookingUp(_ transaction: KaspaRpcTransaction, allowOrphan: Bool) async throws -> (txId: String, endpoint: String) {
         do {
             return try await submitRpcTransaction(transaction.toProtobuf(), allowOrphan: allowOrphan)
         } catch {
@@ -629,7 +644,7 @@ final class NodePoolService: ObservableObject {
                 }
             }
             let txId = KasiaTransactionBuilder.computeTransactionId(transaction)
-            if await isTransactionKnown(txId: txId) {
+            if await isTransactionKnown(txId: txId, afterRejection: !answerLost) {
                 AppLog.log("[NodePool] submit of %@ reported \"%@\" but the network has it: treated as sent",
                            String(txId.prefix(12)), error.localizedDescription)
                 return (txId: txId, endpoint: "already-known")
@@ -643,10 +658,24 @@ final class NodePoolService: ObservableObject {
     /// transaction the network already has (by its locally computed `expectedTxId`) is a send.
     /// For the version-1 builders (`.kachat`), whose transactions aren't `KaspaRpcTransaction`s.
     func submitRpcTransaction(_ rpcTransaction: Protowire_RpcTransaction, expectedTxId: String) async throws -> (txId: String, endpoint: String) {
+        let spent = rpcTransaction.inputs.map {
+            UTXO.Outpoint(transactionId: $0.previousOutpoint.transactionID, index: $0.previousOutpoint.index)
+        }
+        do {
+            let sent = try await submitRpcTransactionLookingUp(rpcTransaction, expectedTxId: expectedTxId)
+            ChatService.shared.reserveSpentOutpoints(spent)
+            return sent
+        } catch let unknown as SendOutcomeUnknownError {
+            ChatService.shared.reserveSpentOutpoints(spent)
+            throw unknown
+        }
+    }
+
+    private func submitRpcTransactionLookingUp(_ rpcTransaction: Protowire_RpcTransaction, expectedTxId: String) async throws -> (txId: String, endpoint: String) {
         do {
             return try await submitRpcTransaction(rpcTransaction)
         } catch {
-            if await isTransactionKnown(txId: expectedTxId) {
+            if await isTransactionKnown(txId: expectedTxId, afterRejection: !(error is SubmitAnswerLostError)) {
                 AppLog.log("[NodePool] submit of %@ reported \"%@\" but the network has it: treated as sent",
                            String(expectedTxId.prefix(12)), error.localizedDescription)
                 return (txId: expectedTxId, endpoint: "already-known")
@@ -674,17 +703,21 @@ final class NodePoolService: ObservableObject {
 
     /// Whether the network already has `txId`: in a mempool, or accepted (REST API). Checked
     /// twice, a moment apart, since a just-accepted transaction may not have propagated yet.
-    private func isTransactionKnown(txId: String) async -> Bool {
+    /// `afterRejection`: a node refused it, so a REST "accepted" counts only from the built-in
+    /// REST server. A custom one in Settings could otherwise turn a refused send into Sent.
+    private func isTransactionKnown(txId: String, afterRejection: Bool) async -> Bool {
         for attempt in 0..<2 {
             if attempt > 0 { try? await Task.sleep(nanoseconds: 1_500_000_000) }
             if await getMempoolEntry(txId: txId, attempt: attempt) != nil { return true }
-            if await Self.isAcceptedViaREST(txId: txId) { return true }
+            if await Self.isAcceptedViaREST(txId: txId, builtInOnly: afterRejection) { return true }
         }
         return false
     }
 
-    private static func isAcceptedViaREST(txId: String) async -> Bool {
-        let base = AppSettings.load().kaspaRestAPIURL.trimmingCharacters(in: .whitespacesAndNewlines)
+    private static func isAcceptedViaREST(txId: String, builtInOnly: Bool = false) async -> Bool {
+        let settings = AppSettings.load()
+        let base = (builtInOnly ? AppSettings.defaultKaspaRestURL(for: settings.networkType) : settings.kaspaRestAPIURL)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         guard let url = URL(string: "\(base.hasSuffix("/") ? String(base.dropLast()) : base)/transactions/\(txId)?inputs=false&outputs=false&resolve_previous_outpoints=no") else { return false }
         var request = URLRequest(url: url)
         request.timeoutInterval = 8
@@ -701,8 +734,9 @@ final class NodePoolService: ObservableObject {
         do {
             return try await hedgedSubmit(rpcTransaction, allowOrphan: allowOrphan, answerLost: answerLost)
         } catch {
-            // A node that rejected the transaction has given a verdict on it: the race isn't lost,
-            // even if another node timed out, and saying "may have gone through" would be wrong.
+            // A node that refused the transaction as invalid has given a verdict on it: the race
+            // isn't lost, even if another node timed out. An "already known" style refusal is no
+            // verdict (see `rejectionMayMeanAlreadyKnown`), so it never sets `wasRejected`.
             if answerLost.isSet && !answerLost.wasRejected { throw SubmitAnswerLostError(underlying: error) }
             throw error
         }
@@ -722,7 +756,9 @@ final class NodePoolService: ObservableObject {
             do {
                 response = try await conn.sendRequest(msg, type: .submitTransaction, timeout: 15.0)
             } catch {
-                answerLost.set()
+                // A request refused before it was written never reached the node: no answer is
+                // lost, the send simply didn't go (`GRPCStreamConnection.sendRequest`).
+                if !Self.isNotSentError(error) { answerLost.set() }
                 throw error
             }
 
@@ -731,12 +767,35 @@ final class NodePoolService: ObservableObject {
             }
 
             if txResponse.hasError && !txResponse.error.message.isEmpty {
-                answerLost.markRejected()
+                // Only a verdict that the transaction can't be valid ends the lost-answer path.
+                // "Already in the mempool", "already accepted", orphan or already-spent answers
+                // are what a node says when another node (the one whose answer was lost) has
+                // already taken and relayed this very transaction: they mean it may well land,
+                // so they leave the longer check (`confirmAfterLostAnswer`) in place.
+                if !Self.rejectionMayMeanAlreadyKnown(txResponse.error.message) {
+                    answerLost.markRejected()
+                }
                 throw NodeRejectedTransactionError(message: txResponse.error.message)
             }
 
             return (txId: txResponse.transactionID, endpoint: conn.endpoint.key)
         }
+    }
+
+    /// A rejection a node also gives for a transaction the network already has (sent through
+    /// another node): in a mempool, accepted, its inputs spent by it, or its parents not yet seen.
+    /// A bad signature, a low fee or too much mass is a verdict on the transaction itself.
+    private static func rejectionMayMeanAlreadyKnown(_ message: String) -> Bool {
+        let lower = message.lowercased()
+        return lower.contains("already") || lower.contains("orphan") || lower.contains("double spend")
+            || lower.contains("spent") || lower.contains("missing outpoint") || lower.contains("mempool")
+    }
+
+    /// `GRPCStreamConnection.sendRequest`'s refusals before anything is written: no connection, or
+    /// the connection dropped while the request waited for its slot, or an open circuit breaker.
+    private static func isNotSentError(_ error: Error) -> Bool {
+        guard case .networkError(let message)? = error as? KasiaError else { return false }
+        return message.hasPrefix("Not connected to ") || message.hasPrefix("Circuit breaker open")
     }
 
     /// A submit reached a node and no answer came back. Says what the underlying error says, since
@@ -751,7 +810,7 @@ final class NodePoolService: ObservableObject {
         private var value = false
         private var rejected = false
         var isSet: Bool { lock.withLock { value } }
-        /// Some node answered with a rejection of the transaction itself.
+        /// Some node refused the transaction as invalid (not merely as already known).
         var wasRejected: Bool { lock.withLock { rejected } }
         func set() { lock.withLock { value = true } }
         func markRejected() { lock.withLock { rejected = true } }
@@ -782,11 +841,13 @@ final class NodePoolService: ObservableObject {
             let bLatency = b.health.latencyMs.value ?? b.health.globalLatencyMs.value ?? Double.infinity
             return aLatency < bLatency
         }
+        // The primary first - the node most likely to hold a transaction just submitted - then
+        // the three fastest others.
         let primaryKey = primaryEndpoint?.key
         let filteredRecords = sortedRecords.filter { $0.endpoint.key != primaryKey }
         var endpoints = filteredRecords.prefix(3).map { $0.endpoint }
-        if endpoints.isEmpty {
-            endpoints = sortedRecords.prefix(3).map { $0.endpoint }
+        if let primary = sortedRecords.first(where: { $0.endpoint.key == primaryKey })?.endpoint {
+            endpoints.insert(primary, at: 0)
         }
 
         guard !endpoints.isEmpty else {

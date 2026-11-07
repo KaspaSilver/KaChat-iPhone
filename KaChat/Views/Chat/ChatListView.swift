@@ -1727,15 +1727,10 @@ struct ConversationRow: View {
                 HStack {
                     if let lastMessage {
                         if lastMessage.isOutgoing || lastMessage.deliveryStatus == .warning {
-                            let status: DeliveryStatusLabel.Status = {
-                                switch lastMessage.deliveryStatus {
-                                case .sent: return .sent
-                                case .pending: return .pending
-                                case .failed: return .failed
-                                case .warning: return .warning
-                                }
-                            }()
-                            DeliveryStatusLabel(status: status, compact: true)
+                            DeliveryStatusLabel(
+                                status: .init(lastMessage.deliveryStatus, isOutgoing: lastMessage.isOutgoing),
+                                compact: true
+                            )
                         }
 
                         Text(reactionPreviewText ?? formatPreview(lastMessage.content))

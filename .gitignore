@@ -38,7 +38,7 @@ external/*
 # Claude Code
 .claude/
 
-# Local API keys (see KaChat/Secrets.xcconfig.example)
+# Local API keys (none are used any more; kept so an old local copy never gets committed)
 KaChat/Secrets.xcconfig
 
 # The local build counter (the "Local Build Number" script phase): per machine, never shared.

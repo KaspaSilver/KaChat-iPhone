@@ -552,11 +552,25 @@ final class KachatNamesRegistry: ObservableObject {
             return
         }
         // No batch (the chain walker - local lookups - or an indexer without the endpoint yet):
-        // a few at a time, the people you talk to most recently first.
-        for key in targets.prefix(40) {
+        // four at a time, the people you talk to most recently first.
+        let due = Array(targets.prefix(40))
+        var start = 0
+        while start < due.count {
             guard UIApplication.shared.applicationState == .active else { return }
-            if let found = await refreshIdentity(address: key) {
-                unnamedAnswers[key] = found.label == nil ? (unnamedAnswers[key] ?? 0) + 1 : nil
+            let slice = due[start..<min(start + 4, due.count)]
+            start += slice.count
+            // per address: nil when the lookup failed, else whether the answer has no name
+            let answers = await withTaskGroup(of: (String, Bool?).self) { group in
+                for key in slice {
+                    group.addTask { (key, await self.refreshIdentity(address: key).map { $0.label == nil }) }
+                }
+                var collected: [(String, Bool?)] = []
+                for await answer in group { collected.append(answer) }
+                return collected
+            }
+            for (key, unnamed) in answers {
+                guard let unnamed else { continue }
+                unnamedAnswers[key] = unnamed ? (unnamedAnswers[key] ?? 0) + 1 : nil
             }
         }
     }

@@ -303,7 +303,7 @@ final class GroupStore {
         return (failed, removed)
     }
 
-    /// A delivered message's failed row, if a send that was marked failed did go out after all.
+    /// A delivered message's failed or Not confirmed row, if that send did go out after all.
     /// Returns its pending id.
     func removeFailedCopy(groupId: String, msgIdHex: String) -> String? {
         var removedId: String?
@@ -311,8 +311,9 @@ final class GroupStore {
         context.performAndWait {
             let request = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
             request.predicate = NSPredicate(
-                format: "groupId == %@ AND msgIdHex == %@ AND txId BEGINSWITH %@ AND deliveryStatus == %@",
-                groupId, msgIdHex, "pending_", ChatMessage.DeliveryStatus.failed.rawValue
+                format: "groupId == %@ AND msgIdHex == %@ AND txId BEGINSWITH %@ AND deliveryStatus IN %@",
+                groupId, msgIdHex, "pending_",
+                [ChatMessage.DeliveryStatus.failed.rawValue, ChatMessage.DeliveryStatus.warning.rawValue]
             )
             request.fetchLimit = 1
             guard let message = (try? context.fetch(request))?.first else { return }
@@ -333,14 +334,15 @@ final class GroupStore {
         return ((try? context.count(for: request)) ?? 0) > 0
     }
 
-    func markMessageFailed(pendingId: String) {
+    /// `status`: `.failed`, or `.warning` (Not confirmed) for a send whose outcome is unknown.
+    func markMessageFailed(pendingId: String, status: ChatMessage.DeliveryStatus = .failed) {
         let context = viewContext
         context.performAndWait {
             let request = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
             request.predicate = NSPredicate(format: "txId == %@", pendingId)
             request.fetchLimit = 1
             guard let message = (try? context.fetch(request))?.first else { return }
-            message.deliveryStatus = ChatMessage.DeliveryStatus.failed.rawValue
+            message.deliveryStatus = status.rawValue
             save(context)
         }
     }

@@ -34,6 +34,9 @@ struct SettingsView: View {
     @State private var showBackupOverDeleteWarning = false
     @ObservedObject private var backupStatus = AccountBackupStatus.shared
     @State private var showWipeIncomingConfirmation = false
+    /// What a row of that sheet opens next, run from its onDismiss: a sheet presented while
+    /// another is still closing can be dropped by iOS.
+    @State private var afterResyncOptions: (() -> Void)?
     @State private var showResyncChatPicker = false
     /// Selection handed back by the chat picker sheet; the resync starts from the sheet's
     /// onDismiss so the fullScreenCover is never presented while the sheet is still animating out.
@@ -143,8 +146,14 @@ struct SettingsView: View {
                 SeedPhraseView()
             }
             .task(id: walletManager.currentWallet?.publicAddress) {
-                let passphrase = (try? walletManager.getSeedPhrase())?.passphrase ?? ""
-                accountHasPassphrase = !passphrase.isEmpty
+                // A failed read says nothing about the passphrase: try again next time, rather
+                // than settling on "none" and hiding the card's passphrase option.
+                do {
+                    let seed = try walletManager.getSeedPhrase()
+                    accountHasPassphrase = !(seed?.passphrase ?? "").isEmpty
+                } catch {
+                    AppLog.log("[Settings] Seed read failed; passphrase state left as it was")
+                }
             }
             .sheet(isPresented: $showAccountBackup) {
                 AccountBackupView()
@@ -465,7 +474,11 @@ struct SettingsView: View {
         // Half sheet, like every other chooser in the app - and a destructive action
         // is exactly where the consequence deserves a line of its own next to it,
         // which a dialog of bare verbs under a grey message cannot give it.
-        .sheet(isPresented: $showWipeIncomingConfirmation) {
+        .sheet(isPresented: $showWipeIncomingConfirmation, onDismiss: {
+            let next = afterResyncOptions
+            afterResyncOptions = nil
+            next?()
+        }) {
             resyncOptionsSheet
         }
         .sheet(isPresented: $showResyncChatPicker, onDismiss: {
@@ -550,10 +563,8 @@ struct SettingsView: View {
                 subtitle: "Pick which chats to wipe and re-sync. Everything else is left alone.",
                 systemImage: "checklist"
             ) {
+                afterResyncOptions = { showResyncChatPicker = true }
                 showWipeIncomingConfirmation = false
-                // One runloop turn: presenting from inside a sheet that is still dismissing
-                // drops it.
-                DispatchQueue.main.async { showResyncChatPicker = true }
             }
             ActionSheetRow(
                 title: "Cancel",
@@ -1687,6 +1698,7 @@ struct SeedPhraseView: View {
     @State private var toastMessage: String?
     @State private var toastToken = UUID()
     @State private var toastStyle: ToastStyle = .success
+    @State private var showScreenshotWarning = false
 
     var body: some View {
         NavigationStack {
@@ -1720,7 +1732,8 @@ struct SeedPhraseView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if isRevealed {
-                        // Seed phrase grid (protected from screenshots)
+                        // Seed phrase grid. SecureView only blurs it while the screen is recorded or
+                        // mirrored; iOS can't stop a screenshot, so one gets the warning below.
                         SecureView {
                             LazyVGrid(columns: [
                                 GridItem(.flexible()),
@@ -1833,6 +1846,15 @@ struct SeedPhraseView: View {
             }
             .onAppear {
                 loadSeedPhrase()
+            }
+            // iOS can't stop a screenshot, only say so afterwards, as the backup steps do.
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
+                if isRevealed { showScreenshotWarning = true }
+            }
+            .alert("Delete That Screenshot", isPresented: $showScreenshotWarning) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("A screenshot of your 12 or 24 words can end up online. Delete it from your photos and write the words on paper instead.")
             }
         }
     }

@@ -377,7 +377,22 @@ final class NextcloudService: ObservableObject {
     /// one per connect), so disconnecting or deleting the wallet leaves nothing that can still
     /// log in. Best effort: the local copy is deleted whatever the server says.
     func revokeAppPassword() async {
-        guard let account, let server = account.serverURL else { return }
+        guard let account else { return }
+        await revokeAppPassword(of: account)
+    }
+
+    /// An account being removed from this phone: revokes the app password KaChat made with its
+    /// stored login (signed in or not), then deletes that login and its settings.
+    func revokeAndPurgeStoredState(forWalletAddress walletAddress: String) async {
+        if let data = try? KeychainService.shared.loadNextcloudCredentials(walletAddress: walletAddress),
+           let stored = try? JSONDecoder().decode(NextcloudAccount.self, from: data) {
+            await revokeAppPassword(of: stored)
+        }
+        purgeStoredState(forWalletAddress: walletAddress)
+    }
+
+    private func revokeAppPassword(of account: NextcloudAccount) async {
+        guard let server = account.serverURL else { return }
         var request = URLRequest(url: server.appendingPathComponent("ocs/v2.php/core/apppassword"))
         request.httpMethod = "DELETE"
         request.setValue("true", forHTTPHeaderField: "OCS-APIRequest")
@@ -389,32 +404,6 @@ final class NextcloudService: ObservableObject {
         } catch {
             AppLog.log("%@", "[Nextcloud] App password revoke failed: \(error.localizedDescription)")
         }
-    }
-
-    /// Deletes the encrypted archive from the user's Nextcloud. Only ever on the user's say-so
-    /// (the Delete Account option that names it): the contacts file is what carries them to their
-    /// other devices.
-    func deleteRemoteBackup() async throws {
-        guard let account, let server = account.serverURL else { throw NextcloudError.badCredentials }
-        var url = server.appendingPathComponent("remote.php/dav/files/\(account.username)")
-        for part in backupFolderPath.split(separator: "/") {
-            url.appendPathComponent(String(part))
-        }
-        // The old chat backup too: this is the account going away, the one time KaChat still touches it.
-        for file in [Self.backupFileName, Self.retiredChatBackupFileName] {
-            var request = URLRequest(url: url.appendingPathComponent(file))
-            request.httpMethod = "DELETE"
-            applyAuth(&request, account: account)
-            let (_, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else { throw NextcloudError.malformedResponse }
-            if http.statusCode == 401 { throw NextcloudError.badCredentials }
-            // 404: nothing there, which is the state asked for.
-            guard (200..<300).contains(http.statusCode) || http.statusCode == 404 else {
-                throw NextcloudError.httpError(http.statusCode)
-            }
-        }
-        if let wallet = currentWalletAddress { setLastKnownBackupETag(nil, walletAddress: wallet) }
-        AppLog.log("%@", "[Nextcloud] Remote archive deleted")
     }
 
     /// Deletes a wallet's stored Nextcloud login and settings outright - used when that account
@@ -1150,9 +1139,6 @@ final class NextcloudService: ObservableObject {
 
     static let backupFolderName = "KaChat"
     static let backupFileName = "kachat-contacts.json"
-    /// Where chat history used to go. Never read or written now: messages and groups come back from
-    /// the seed, and the file stays on the server until the account is deleted.
-    private static let retiredChatBackupFileName = "kachat-backup.json"
 
     /// Backups run one at a time on this device. The manual button and the automatic sync
     /// both come here, and two uploads of the same file at once had Nextcloud answering the
@@ -1676,6 +1662,9 @@ enum BackupEnvelope {
     enum EnvelopeError: LocalizedError {
         case decryptFailed
         case keyUnavailable
+        /// A chat archive that isn't an encrypted KaChat export. Nothing in a plaintext file is
+        /// checked against the chain or a key, so anyone could write one.
+        case notEncrypted
 
         var errorDescription: String? {
             switch self {
@@ -1683,6 +1672,8 @@ enum BackupEnvelope {
                 return "Could not decrypt the backup. It may belong to a different account."
             case .keyUnavailable:
                 return "The wallet key needed to encrypt the backup is not available."
+            case .notEncrypted:
+                return "This file isn't an encrypted KaChat archive, so it can't be imported."
             }
         }
     }
@@ -1839,9 +1830,10 @@ final class BackupRestoreCoordinator: ObservableObject {
         do {
             advance(to: 0.05, stage: "Validating backup...")
 
-            // Envelope-aware: an exported archive is encrypted. Legacy plaintext archives pass
-            // through untouched. A failed decrypt lands in the catch below with the clear
-            // "different account" message.
+            // Only an encrypted export, which is all KaChat writes: a plaintext file's messages,
+            // contacts and groups would be taken as they are, from anyone who sent it. A failed
+            // decrypt lands in the catch below with the clear "different account" message.
+            guard BackupEnvelope.parse(data) != nil else { throw BackupEnvelope.EnvelopeError.notEncrypted }
             let archive = try await BackupEnvelope.decryptIfEnvelopedDetached(
                 data,
                 key: NextcloudService.shared.backupEncryptionKey(),

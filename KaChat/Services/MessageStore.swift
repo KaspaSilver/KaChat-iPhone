@@ -1395,37 +1395,11 @@ final class MessageStore {
         }
     }
 
-    /// Clears incoming messages for the CURRENT wallet only.
-    func clearIncomingMessages() {
-        guard ensureStoreLoaded() else { return }
-        let walletAddr = currentWalletAddress
-        let context = container.newBackgroundContext()
-        context.perform {
-            let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: CDMessage.entityName)
-            if let walletAddr = walletAddr {
-                fetch.predicate = NSPredicate(format: "isOutgoing == NO AND (walletAddress == %@ OR walletAddress == nil)", walletAddr)
-            } else {
-                fetch.predicate = NSPredicate(format: "isOutgoing == NO")
-            }
-            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetch)
-            deleteRequest.resultType = .resultTypeObjectIDs
-            do {
-                let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
-                let objectIds = result?.result as? [NSManagedObjectID] ?? []
-                if !objectIds.isEmpty {
-                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: [NSDeletedObjectsKey: objectIds], into: [self.viewContext])
-                }
-            } catch {
-                self.logInfo("[MessageStore] Failed to clear incoming messages: \(error)")
-            }
-        }
-    }
-
     /// Awaitable incoming-message wipe for the CURRENT wallet, optionally limited to the given
     /// conversations (matched by `CDMessage.contactAddress`). Used by the Settings
     /// wipe-and-resync flow, which must not start re-fetching until the delete has actually
-    /// landed in the store (the fire-and-forget `clearIncomingMessages()` above could otherwise
-    /// race the re-sync's own writes).
+    /// landed in the store (a fire-and-forget delete could otherwise race the re-sync's own
+    /// writes).
     func clearIncomingMessagesAndWait(forContacts contactAddresses: [String]? = nil) async {
         guard ensureStoreLoaded() else { return }
         if let contactAddresses, contactAddresses.isEmpty { return }

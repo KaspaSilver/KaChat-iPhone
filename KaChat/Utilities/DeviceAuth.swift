@@ -34,19 +34,50 @@ enum DeviceAuth {
         }
     }
 
+    /// The same check for a place with no screen of its own to show an alert on (a Siri or
+    /// Shortcuts action): true only once the person has passed Face ID, Touch ID or the passcode.
+    /// A device with no passcode fails, as above.
+    static func confirm(reason: String) async -> Bool {
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else { return false }
+        return (try? await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)) ?? false
+    }
+
+    /// The window the alert below is shown in, while it's up.
+    private static var passcodeAlertWindow: UIWindow?
+
     /// One alert, from wherever the reveal was asked: the callers are spread over several
     /// screens that have no shared message surface.
+    ///
+    /// In a window of its own, above the app: several callers close a sheet and ask straight
+    /// after (Delete Account's `dismiss(); onConfirm()`), and an alert presented from that sheet
+    /// went away with it, or was refused while it was closing.
     private static func presentPasscodeRequired() {
+        guard passcodeAlertWindow == nil,
+              let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first(where: { $0.activationState == .foregroundActive }) else { return }
+        let window = UIWindow(windowScene: scene)
+        window.windowLevel = .alert
+        // the app's appearance (Settings' choice), which its own windows carry
+        window.overrideUserInterfaceStyle = scene.windows.first?.overrideUserInterfaceStyle ?? .unspecified
+        let host = UIViewController()
+        host.view.backgroundColor = .clear
+        window.rootViewController = host
+        window.isHidden = false
+        passcodeAlertWindow = window
+
         let alert = UIAlertController(
             title: "Passcode Required",
             message: "Set a passcode on this iPhone (Settings > Face ID & Passcode) to send Kaspa, delete an account, or view secret keys in KaChat.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first(where: { $0.activationState == .foregroundActive }),
-              let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first else { return }
-        var top = window.rootViewController
-        while let presented = top?.presentedViewController { top = presented }
-        top?.present(alert, animated: true)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            passcodeAlertWindow?.isHidden = true
+            passcodeAlertWindow = nil
+        })
+        // A turn later, once the new window is on screen and can present.
+        DispatchQueue.main.async {
+            host.present(alert, animated: true)
+        }
     }
 }

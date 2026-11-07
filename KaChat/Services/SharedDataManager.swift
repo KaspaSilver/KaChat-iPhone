@@ -141,12 +141,18 @@ final class SharedDataManager {
         let trimmedAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedAddress.isEmpty else { return }
 
-        var recents = getRecentConversations().filter { $0.address != trimmedAddress }
+        // Filed under the signed-in account: the Share Extension offers a recent chat only to the
+        // account it belongs to, or a share could message one account's contact from another.
+        let walletAddress = sharedDefaults?.string(forKey: Keys.walletAddress)?.lowercased()
+        var recents = getRecentConversations().filter {
+            !($0.address == trimmedAddress && $0.walletAddress?.lowercased() == walletAddress)
+        }
         recents.insert(
             SharedRecentConversation(
                 address: trimmedAddress,
                 alias: alias.trimmingCharacters(in: .whitespacesAndNewlines),
-                lastUsedMs: Int64(Date().timeIntervalSince1970 * 1000)
+                lastUsedMs: Int64(Date().timeIntervalSince1970 * 1000),
+                walletAddress: walletAddress
             ),
             at: 0
         )
@@ -566,6 +572,8 @@ struct SharedRecentConversation: Codable {
     let address: String
     let alias: String
     let lastUsedMs: Int64
+    /// The account the chat belongs to (lowercased); nil in entries from before this field.
+    var walletAddress: String?
 }
 
 /// Pending message that needs to be fetched

@@ -416,17 +416,6 @@ extension KaspaAmountEntry {
     }
 }
 
-extension Binding where Value == String {
-    /// An amount field's text with thousands separators while shown ("12,345.5"), the plain number
-    /// stored - the same rules as `KaspaAmountEntry`, for the amount fields that aren't one.
-    var groupedAmount: Binding<String> {
-        Binding(
-            get: { KaspaAmountEntry.grouped(wrappedValue) },
-            set: { wrappedValue = KaspaAmountEntry.ungrouped($0, previous: KaspaAmountEntry.grouped(wrappedValue)) }
-        )
-    }
-}
-
 // MARK: - Fee and coin control
 
 /// Network fee (tap to set a custom one), the fee speed, and coin control - one card.
@@ -1993,6 +1982,19 @@ struct CoinControlView: View {
         "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)"
     }
 
+    /// A coin the send can't spend right now: not in a block yet, just spent by a send or message
+    /// from this app (`ChatService.unreservedUtxos`), or a mining reward on the chatting address,
+    /// whose sends leave those out. Shown greyed, never picked: a selection of them would only
+    /// fail at the send.
+    private func isSpendable(_ utxo: UTXO) -> Bool {
+        guard utxo.blockDaaScore > 0, !ChatService.shared.unreservedUtxos([utxo]).isEmpty else { return false }
+        if utxo.isCoinbase, let chatting = WalletManager.shared.currentWallet?.publicAddress,
+           WalletManager.isSameAccount(chatting, fromAddress) {
+            return false
+        }
+        return true
+    }
+
     private var selectedTotalSompi: UInt64 {
         utxos.filter { selectedKeys.contains(key($0)) }.reduce(0) { $0 + $1.amount }
     }
@@ -2020,6 +2022,7 @@ struct CoinControlView: View {
                         ForEach(Array(utxos.enumerated()), id: \.offset) { _, utxo in
                             let k = key(utxo)
                             let isSelected = selectedKeys.contains(k)
+                            let spendable = isSpendable(utxo)
                             Button {
                                 if isSelected {
                                     selectedKeys.remove(k)
@@ -2044,12 +2047,19 @@ struct CoinControlView: View {
                                         Text("\(utxo.outpoint.transactionId.prefix(10))...:\(utxo.outpoint.index)")
                                             .font(.system(.caption2, design: .monospaced))
                                             .foregroundColor(.secondary)
+                                        if !spendable {
+                                            Text("Not spendable yet")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
                                     Spacer()
                                 }
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
+                            .disabled(!spendable)
+                            .opacity(spendable ? 1 : 0.45)
                         }
                     } footer: {
                         if !selectedKeys.isEmpty {
@@ -2066,7 +2076,7 @@ struct CoinControlView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        Button("Select All") { selectedKeys = Set(utxos.map(key)) }
+                        Button("Select All") { selectedKeys = Set(utxos.filter(isSpendable).map(key)) }
                         Button("Automatic (Clear Selection)") { selectedKeys.removeAll() }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -2093,7 +2103,9 @@ struct CoinControlView: View {
                 utxoLabels = UtxoLabelStore.load(address: fromAddress)
                 await loadUtxos()
                 if let initialSelection {
-                    selectedKeys = Set(initialSelection.map(key))
+                    // only coins still in the list and spendable: a pick that's gone isn't kept
+                    let usable = Set(utxos.filter(isSpendable).map(key))
+                    selectedKeys = Set(initialSelection.map(key)).intersection(usable)
                 }
             }
         }

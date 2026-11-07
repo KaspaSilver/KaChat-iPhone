@@ -2,8 +2,8 @@ import SwiftUI
 
 /// First-run guided walkthrough shown automatically right after onboarding a wallet - whether it
 /// was freshly created or imported (see `WalletManager.justCreatedNewWallet`) - and replayable any
-/// time from the Profile section. Mirrors `KNSCreateProfileFlowView`'s step-enum-driven single-view
-/// wizard shape rather than a `TabView`/`NavigationStack` push-per-step, since every step here is
+/// time from the Profile section. A step-enum-driven single-view wizard rather than a
+/// `TabView`/`NavigationStack` push-per-step, since every step here is
 /// simple static content plus at most one piece of live state (no per-step async work to gate on).
 struct WelcomeGuideView: View {
     let onFinished: () -> Void

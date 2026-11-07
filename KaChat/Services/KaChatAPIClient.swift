@@ -343,26 +343,6 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
 
     // MARK: - Payments
 
-    func getPaymentsBySender(address: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [PaymentResponse] {
-        try await getPaginated(
-            endpoint: "/payments/by-sender",
-            params: ["address": address],
-            limit: limit,
-            startBlockTime: blockTime,
-            getBlockTime: { $0.blockTime }
-        )
-    }
-
-    func getPaymentsByReceiver(address: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [PaymentResponse] {
-        try await getPaginated(
-            endpoint: "/payments/by-receiver",
-            params: ["address": address],
-            limit: limit,
-            startBlockTime: blockTime,
-            getBlockTime: { $0.blockTime }
-        )
-    }
-
     /// Fetch a single page of payments by receiver (no pagination).
     func getPaymentsByReceiverOnce(address: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [PaymentResponse] {
         let params: [String: String] = [
@@ -375,14 +355,9 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
 
     // MARK: - Self Stash
 
-    /// `startBlockTime` 0 reads the whole stash. A caller that keeps a high-water mark passes
-    /// it (rewound for reorg safety) to read only what landed since - see
-    /// `ChatService.fetchSavedHandshakes`.
-    func getSelfStash(owner: String, scope: String, limit: Int = 50, startBlockTime: UInt64 = 0) async throws -> [SelfStashResponse] {
-        try await getSelfStashReportingEnd(owner: owner, scope: scope, limit: limit, startBlockTime: startBlockTime).items
-    }
-
-    /// `getSelfStash`, plus whether the read actually reached the end of the owner's stash - a
+    /// `startBlockTime` 0 reads the whole stash; a caller that keeps a high-water mark passes it
+    /// (rewound for reorg safety) to read only what landed since. Also says whether the read
+    /// actually reached the end of the owner's stash - a
     /// short last page - rather than stopping at the page cap or on a page that made no
     /// progress. Contact-note bookkeeping only trusts a read-back that reached the end.
     func getSelfStashReportingEnd(owner: String, scope: String, limit: Int = 50, startBlockTime: UInt64 = 0) async throws -> (items: [SelfStashResponse], reachedEnd: Bool) {

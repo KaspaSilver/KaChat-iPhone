@@ -652,13 +652,7 @@ struct MessageBubbleView: View {
     }
 
     private var statusIcon: some View {
-        let status: DeliveryStatusLabel.Status
-        switch message.deliveryStatus {
-        case .sent: status = .sent
-        case .pending: status = .pending
-        case .failed: status = .failed
-        case .warning: status = .warning
-        }
+        let status = DeliveryStatusLabel.Status(message.deliveryStatus, isOutgoing: message.isOutgoing)
         let retry: (() -> Void)? = (message.isOutgoing && message.deliveryStatus == .failed)
             ? onRetry.map { handler in { handler(message) } }
             : nil
@@ -2463,8 +2457,14 @@ private struct AudioShareSheet: UIViewControllerRepresentable {
         } else {
             fileExtension = "m4a"
         }
+        // The name comes from the sender: only its last path component, with no separators, so
+        // "../Library/x" can't reach outside the temporary folder.
+        let lastComponent = URL(fileURLWithPath: fileName).lastPathComponent
+            .components(separatedBy: CharacterSet(charactersIn: "/:\\")).joined(separator: "_")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let safeName = (lastComponent.isEmpty || lastComponent == "." || lastComponent == "..") ? "voice" : lastComponent
         let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(fileName.hasSuffix(".\(fileExtension)") ? fileName : "\(fileName).\(fileExtension)")
+            .appendingPathComponent(safeName.hasSuffix(".\(fileExtension)") ? safeName : "\(safeName).\(fileExtension)")
 
         try? data.write(to: tempURL)
 

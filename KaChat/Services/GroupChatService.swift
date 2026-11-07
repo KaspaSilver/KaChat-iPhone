@@ -1105,6 +1105,12 @@ final class GroupChatService: ObservableObject {
             // Never resurrect a group you deleted (tombstoned) - same rule as the on-chain path.
             if isGroupTombstoned(g.groupId, adminSigningPub: g.adminSigningPub) { continue }
             guard let groupRootEpoch = g.groupRootEpoch, let blindingKey = g.blindingKey else { continue }
+            // A group already held keeps its admin, as on the on-chain path (`completeJoin`): an
+            // archive naming another one is ignored for that group.
+            if let held = groups.first(where: { $0.id.lowercased() == g.groupId.lowercased() }),
+               held.adminXOnlyPubKeyHex.lowercased() != (g.adminSigningPub ?? "").lowercased() {
+                continue
+            }
             let existingBag = try? keychain.loadGroupBag(groupId: g.groupId)
             if let existingBag, existingBag.currentEpoch > g.currentEpoch { continue }
             let deviceId = existingBag?.deviceId ?? GroupCipher.generateDeviceId().hexString
@@ -1811,9 +1817,11 @@ final class GroupChatService: ObservableObject {
             SharedDataManager.syncOwnGroupTxIdsForExtension()
             replyingTo = nil
         } catch {
-            store.markMessageFailed(pendingId: pendingId)
+            // An unknown outcome may have landed: Not confirmed, no Retry, until its copy arrives.
+            let status: ChatMessage.DeliveryStatus = error is SendOutcomeUnknownError ? .warning : .failed
+            store.markMessageFailed(pendingId: pendingId, status: status)
             if let index = groupMessages[groupId]?.firstIndex(where: { $0.txId == pendingId }) {
-                groupMessages[groupId]?[index].deliveryStatus = .failed
+                groupMessages[groupId]?[index].deliveryStatus = status
             }
             throw error
         }
@@ -1886,9 +1894,10 @@ final class GroupChatService: ObservableObject {
             // Same as sendGroupMessage: the retried message now has a real txId to share.
             SharedDataManager.syncOwnGroupTxIdsForExtension()
         } catch {
-            store.markMessageFailed(pendingId: pendingId)
+            let status: ChatMessage.DeliveryStatus = error is SendOutcomeUnknownError ? .warning : .failed
+            store.markMessageFailed(pendingId: pendingId, status: status)
             if let index = groupMessages[groupId]?.firstIndex(where: { $0.id == message.id }) {
-                groupMessages[groupId]?[index].deliveryStatus = .failed
+                groupMessages[groupId]?[index].deliveryStatus = status
             }
             throw error
         }
@@ -2046,7 +2055,7 @@ final class GroupChatService: ObservableObject {
         do {
             let txId: String
             do {
-                let (t, _) = try await NodePoolService.shared.submitTransaction(tx, allowOrphan: usesUnconfirmedInputs)
+                let (t, _) = try await chatService.submitSpendingMessageCoins(tx, spent: spentUtxos, allowOrphan: usesUnconfirmedInputs)
                 txId = t
             } catch {
                 // A hedged submit can land on a node that briefly lags the DAG tip and rejects a tx
@@ -2055,7 +2064,7 @@ final class GroupChatService: ObservableObject {
                 // (sub-second) — rather than surfacing kaspad's raw rejection with no recovery. This
                 // is the same recovery the 1:1/Android send paths use; the group path lacked it.
                 if !usesUnconfirmedInputs, Self.isOrphanRejection(error) {
-                    let (t, _) = try await NodePoolService.shared.submitTransaction(tx, allowOrphan: true)
+                    let (t, _) = try await chatService.submitSpendingMessageCoins(tx, spent: spentUtxos, allowOrphan: true)
                     txId = t
                 } else {
                     throw error
@@ -2124,8 +2133,13 @@ final class GroupChatService: ObservableObject {
         )
         let json = try JSONEncoder().encode(rootPayload)
         try await sendControlPayload(json, to: selfPublicKey, from: wallet.publicAddress, privateKey: privateKey)
-        var updated = bag
-        updated.selfInviteEpoch = bag.currentEpoch
+        // A fresh read, not the caller's copy: a group message sent while this was on its way raised
+        // the message counter, and writing the older counter back would reuse a message id (and
+        // its nonce) under the same epoch key.
+        var updated = (try? keychain.loadGroupBag(groupId: group.id)) ?? bag
+        if updated.currentEpoch == bag.currentEpoch {
+            updated.selfInviteEpoch = bag.currentEpoch
+        }
         updated.rosterVersion = max(updated.rosterVersion ?? 0, rosterVersion)
         try? keychain.saveGroupBag(updated)
     }

@@ -278,7 +278,17 @@ struct SendKaChatPaymentIntent: AppIntent {
             }
         }
 
-        try await ChatService.shared.sendPayment(to: target, amountSompi: amountSompi, note: paymentNote)
+        // Kaspa never leaves on a spoken Confirm alone: Face ID first, as at every in-app swipe.
+        // Declined or unavailable, nothing is sent.
+        guard await DeviceAuth.confirm(reason: AppLocalization.string("Confirm sending Kaspa")) else {
+            throw KasiaError.networkError(AppLocalization.string("Sending Kaspa needs Face ID or your passcode."))
+        }
+
+        let txId = try await ChatService.shared.sendPayment(to: target, amountSompi: amountSompi, note: paymentNote)
+        // nil: deferred until your coins confirm. It sends on its own, so it isn't "sent" yet.
+        guard txId != nil else {
+            return .result(dialog: "Payment to \(target.alias) is waiting for your coins to confirm. It sends on its own in a moment, so don't send it again.")
+        }
         return .result(dialog: "Payment sent to \(target.alias)")
     }
 }

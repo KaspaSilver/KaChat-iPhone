@@ -1117,9 +1117,11 @@ extension ChatService {
         )
 
         let usesUnconfirmedInputs = compaction.selectedUtxos.contains { $0.blockDaaScore == 0 }
-        let submitted = try await rpcManager.submitTransaction(
+        let submitted = try await submitSpendingMessageCoins(
             compaction.transaction,
-            allowOrphan: usesUnconfirmedInputs
+            spent: compaction.selectedUtxos,
+            allowOrphan: usesUnconfirmedInputs,
+            rpcManager: rpcManager
         )
         reserveMessageOutpoints(compaction.selectedUtxos)
         consumePendingUtxos(compaction.selectedUtxos)
@@ -1516,7 +1518,8 @@ extension ChatService {
     }
 
     func retryOutgoingMessage(_ message: ChatMessage, contact: Contact) async throws {
-        guard message.isOutgoing else { return }
+        // Not confirmed may have landed: a second send could post or pay it twice.
+        guard message.isOutgoing, message.deliveryStatus != .warning else { return }
         switch message.messageType {
         case .contextual, .audio:
             try await enqueueOutgoingTxOperation {
@@ -1757,13 +1760,17 @@ extension ChatService {
             let txId: String
             let endpoint: String
             do {
-                let submitted = try await rpcManager.submitTransaction(
+                let submitted = try await submitSpendingMessageCoins(
                     transaction,
-                    allowOrphan: usesUnconfirmedInputs
+                    spent: spentUtxos,
+                    allowOrphan: usesUnconfirmedInputs,
+                    rpcManager: rpcManager
                 )
                 txId = submitted.txId
                 endpoint = submitted.endpoint
             } catch {
+                // It may have landed: no fallback send on other coins, which could post it twice.
+                if error is SendOutcomeUnknownError { throw error }
                 let signatureRejected = isSignatureRejection(error)
                 if signatureRejected {
                     logSignatureRejection(pendingTxId: activePendingTxId, inputs: spentUtxos, senderScriptPubKey: senderScriptPubKey)
@@ -1793,7 +1800,12 @@ extension ChatService {
                 transaction = confirmedOnlyTransaction
                 spentUtxos = spentMessageUtxos(from: transaction, candidates: confirmedOnlyUtxos)
 
-                let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: false)
+                let submitted = try await submitSpendingMessageCoins(
+                    transaction,
+                    spent: spentUtxos,
+                    allowOrphan: false,
+                    rpcManager: rpcManager
+                )
                 txId = submitted.txId
                 endpoint = submitted.endpoint
             }
@@ -1863,6 +1875,19 @@ extension ChatService {
                 clearNoInputRetryState(for: activePendingTxId)
                 saveMessages()
                 return
+            }
+            if let unknown = error as? SendOutcomeUnknownError {
+                // It may have landed: never Retry (that could post it twice). The row takes the
+                // transaction's own id and shows Not confirmed until its delivered copy arrives.
+                markSendUnconfirmed(
+                    contactAddress: contact.address,
+                    pendingTxId: activePendingTxId,
+                    pendingMessageId: activePendingMessageId,
+                    messageType: messageType,
+                    txId: unknown.txId
+                )
+                saveMessages()
+                throw unknown
             }
             if shouldRetryNoSpendableFundsError(error),
                spendableFundsRetryAttempt < spendableFundsRetryAttempts {
@@ -2180,6 +2205,18 @@ extension ChatService {
         }
     }
 
+    /// Called by `NodePoolService` for every transaction it sends (or may have sent): its inputs
+    /// stay out of every coin pick (`unreservedUtxos`, `prepareMessageUtxos`) until they expire.
+    func reserveSpentOutpoints(_ outpoints: [UTXO.Outpoint]) {
+        let expiration = Date().addingTimeInterval(pendingMessageUtxoTTL)
+        for outpoint in outpoints {
+            let key = outpointKey(outpoint)
+            if let until = reservedMessageOutpoints[key], until > expiration { continue }
+            reservedMessageOutpoints[key] = expiration
+            pendingMessageUtxos.removeValue(forKey: key)
+        }
+    }
+
     func consumePendingUtxos(_ utxos: [UTXO]) {
         for utxo in utxos {
             pendingMessageUtxos.removeValue(forKey: outpointKey(utxo.outpoint))
@@ -2305,16 +2342,23 @@ extension ChatService {
     ) {
         guard !scheduledSendRetries.contains(pendingTxId) else { return }
         scheduledSendRetries.insert(pendingTxId)
+        // The account it was scheduled under: after a switch it never signs as the new one.
+        let owner = WalletManager.shared.currentWallet?.publicAddress
         Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(delaySeconds * 1_000_000_000))
             guard let self else { return }
             self.scheduledSendRetries.remove(pendingTxId)
+            guard let owner, WalletManager.shared.currentWallet?.publicAddress == owner else {
+                AppLog.log("[ChatService] Dropped a scheduled retry: the account changed")
+                return
+            }
             guard let convIndex = self.conversations.firstIndex(where: { $0.contact.address == contact.address }),
                   let message = self.conversations[convIndex].messages.first(where: { $0.txId == pendingTxId || $0.id == pendingMessageId }) else {
                 self.clearNoInputRetryState(for: pendingTxId)
                 return
             }
-            guard message.deliveryStatus != .sent else {
+            // Sent, or Not confirmed (it may have landed): never sent again from here.
+            guard message.deliveryStatus != .sent, message.deliveryStatus != .warning else {
                 self.clearNoInputRetryState(for: pendingTxId)
                 return
             }
@@ -2526,7 +2570,8 @@ extension ChatService {
             }
 
             let utxos = try await rpcManager.getUtxosByAddresses([sourceAddress])
-            let confirmed = utxos.filter { $0.blockDaaScore > 0 && !$0.isCoinbase }
+            // coins a send or message from this app just spent are listed until that is in a block
+            let confirmed = unreservedUtxos(utxos.filter { $0.blockDaaScore > 0 && !$0.isCoinbase })
             // Coin control: only the chosen coins (still unspent) - the builder picks from these.
             // If every chosen coin is gone, refuse: falling back to all coins would spend ones
             // the person deliberately left out (previews may fall back; the send may not).
@@ -2592,7 +2637,15 @@ extension ChatService {
 
             // Submit via RPC manager
             AppLog.log("[ChatService] Submitting payment via RPC manager...")
-            let (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
+            let txId: String
+            let endpoint: String
+            do {
+                (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
+            } catch let unknown as SendOutcomeUnknownError {
+                // It may have landed: its coins stay out of the next message and send.
+                recordPlainSend(tx, spent: spendable, txId: nil, changeScriptPubKey: nil)
+                throw unknown
+            }
             AppLog.log("[ChatService] Payment submitted: \(txId) via \(endpoint)")
             if fromChattingAddress, let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: sourceAddress) {
                 // Chatting-address-funded payment (privacy OFF) spends from the SAME UTXO set
@@ -2662,6 +2715,17 @@ extension ChatService {
                 if !fromChattingAddress, let spendingIndex = sourceSpendingIndex, WalletManager.isQuantumIndex(spendingIndex) {
                     WalletManager.shared.markQuantumAddressSpent(sourceAddress, owner: wallet.publicAddress)
                 }
+                // Never Failed with Retry, which could pay twice: Not confirmed, under the
+                // transaction's own id, until the payment shows up.
+                markSendUnconfirmed(
+                    contactAddress: contact.address,
+                    pendingTxId: activePendingTxId,
+                    pendingMessageId: pendingMessageId,
+                    messageType: .payment,
+                    txId: (error as? SendOutcomeUnknownError)?.txId ?? activePendingTxId
+                )
+                saveMessages()
+                throw error
             }
 
             if isNoConfirmedInputsError(error) {
@@ -2700,7 +2764,9 @@ extension ChatService {
     /// this carries no KaChat protocol payload and has no chat/conversation bookkeeping
     /// (pending message, delivery status, etc.) since the recipient isn't necessarily a
     /// contact. Returns the submitted transaction id.
-    func sendWithdrawal(toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> String {
+    /// `expectedFeeSompi`: the fee the Review showed. A send built at the swipe that would pay more
+    /// (its coins changed since the Review) throws `SendFeeChangedError` and sends nothing.
+    func sendWithdrawal(toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0, expectedFeeSompi: UInt64? = nil) async throws -> String {
         guard amountSompi > 0 else {
             throw KasiaError.networkError("Amount must be greater than zero")
         }
@@ -2756,6 +2822,7 @@ extension ChatService {
                 extraFeeSompi: extraFeeSompi
             )
 
+            try self.checkFeeAgainstReview(tx, spending: spendable, expectedFeeSompi: expectedFeeSompi)
             AppLog.log("[ChatService] Submitting withdrawal via RPC manager...")
             let txId: String
             let endpoint: String
@@ -2791,7 +2858,7 @@ extension ChatService {
         guard !spendable.isEmpty else {
             throw KasiaError.networkError("No spendable UTXOs")
         }
-        let resolvedManualUtxos = resolveManualUtxos(manualUtxos, against: spendable)
+        let resolvedManualUtxos = try resolveReviewSelection(manualUtxos, against: spendable)
 
         return try KasiaTransactionBuilder.estimatePlainTransferFee(
             utxos: spendable,
@@ -2821,7 +2888,7 @@ extension ChatService {
         guard !spendable.isEmpty else {
             throw KasiaError.networkError("No spendable UTXOs")
         }
-        let resolvedManualUtxos = resolveManualUtxos(manualUtxos, against: spendable)
+        let resolvedManualUtxos = try resolveReviewSelection(manualUtxos, against: spendable)
         let chunk = resolvedManualUtxos == nil ? Self.oneTransactionChunk(spendable) : nil
         let maxSet = resolvedManualUtxos ?? chunk ?? spendable
 
@@ -2885,6 +2952,43 @@ extension ChatService {
         invalidateUtxoCache()
     }
 
+    /// Submits a transaction spending the chatting address's coins. When its outcome is unknown
+    /// (it may have landed) the coins it spent stay reserved, so the next message or send can't
+    /// spend them again, and the unknown outcome is passed on.
+    func submitSpendingMessageCoins(
+        _ tx: KaspaRpcTransaction,
+        spent candidates: [UTXO],
+        allowOrphan: Bool,
+        rpcManager: NodePoolService = .shared
+    ) async throws -> (txId: String, endpoint: String) {
+        do {
+            return try await rpcManager.submitTransaction(tx, allowOrphan: allowOrphan)
+        } catch let unknown as SendOutcomeUnknownError {
+            recordPlainSend(tx, spent: candidates, txId: nil, changeScriptPubKey: nil)
+            throw unknown
+        }
+    }
+
+    /// Within this of the Review's fee a rebuilt send still goes out.
+    static let reviewFeeMarginSompi: UInt64 = 1_000
+
+    /// A send is built again at the swipe, from the coins of that moment. If they changed since
+    /// the Review (a message spent one, a coin arrived) it can pick other coins and pay more,
+    /// change too small to keep included: then nothing is sent and the Review shows the new fee.
+    func checkFeeAgainstReview(_ tx: KaspaRpcTransaction, spending candidates: [UTXO], expectedFeeSompi: UInt64?) throws {
+        guard let expectedFeeSompi else { return }
+        let inputs = spentMessageUtxos(from: tx, candidates: candidates)
+        guard inputs.count == tx.inputs.count else { return }
+        let inTotal = inputs.reduce(UInt64(0)) { $0 + $1.amount }
+        let outTotal = tx.outputs.reduce(UInt64(0)) { $0 + $1.value }
+        guard inTotal >= outTotal else { return }
+        let fee = inTotal - outTotal
+        if fee > expectedFeeSompi + Self.reviewFeeMarginSompi {
+            AppLog.log("[ChatService] send would pay \(fee) sompi, the Review showed \(expectedFeeSompi): not sent")
+            throw SendFeeChangedError(feeSompi: fee)
+        }
+    }
+
     /// Drops the 20-second UTXO cache: a send just spent some of what it holds.
     func invalidateUtxoCache() {
         cachedUtxos = []
@@ -2901,7 +3005,8 @@ extension ChatService {
     /// you spend from and hand out next has never been used before. This path used to leave
     /// the primary sitting on the address it had just spent from. The old primary keeps
     /// whatever it still holds, listed in Manage Addresses like any other revealed slot.
-    func sendFromSpendingAddress(index: Int, toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> String {
+    /// `expectedFeeSompi` as in `sendWithdrawal`.
+    func sendFromSpendingAddress(index: Int, toAddress: String, amountSompi: UInt64, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0, expectedFeeSompi: UInt64? = nil) async throws -> String {
         // the account this send belongs to: what it writes after the network answers goes here,
         // even if another account is active by then (IOS-109)
         let owner = WalletManager.shared.currentWallet?.publicAddress
@@ -3001,6 +3106,7 @@ extension ChatService {
                 senderRedeemScript: senderRedeemScript
             )
 
+            try self.checkFeeAgainstReview(tx, spending: spendable, expectedFeeSompi: expectedFeeSompi)
             AppLog.log("[ChatService] Submitting spending-address withdrawal via RPC manager...")
             let txId: String
             let endpoint: String
@@ -3124,7 +3230,7 @@ extension ChatService {
         guard !spendable.isEmpty else {
             throw KasiaError.networkError("No spendable UTXOs")
         }
-        let resolvedManualUtxos = resolveManualUtxos(manualUtxos, against: spendable)
+        let resolvedManualUtxos = try resolveReviewSelection(manualUtxos, against: spendable)
 
         return try KasiaTransactionBuilder.estimatePlainTransferFee(
             utxos: spendable,
@@ -3160,7 +3266,7 @@ extension ChatService {
         guard !spendable.isEmpty else {
             throw KasiaError.networkError("No spendable UTXOs")
         }
-        let resolvedManualUtxos = resolveManualUtxos(manualUtxos, against: spendable)
+        let resolvedManualUtxos = try resolveReviewSelection(manualUtxos, against: spendable)
         // more coins than one transaction can spend: Max is what its largest coins can send
         let chunk = resolvedManualUtxos == nil ? Self.oneTransactionChunk(spendable) : nil
         let maxSet = resolvedManualUtxos ?? chunk ?? spendable
@@ -3192,6 +3298,17 @@ extension ChatService {
     /// callers that need to distinguish "gone" from "never selected" (i.e. the actual send,
     /// where silently falling back to automatic would spend UTXOs the user didn't choose) do
     /// their own stricter check instead of using this helper - see `sendFromSpendingAddress`.
+    /// Coin control for a Review's fee or Max: the picked coins that are still spendable, nil for
+    /// automatic. When none of the picked coins are left it throws the send's own error, rather
+    /// than estimating automatic selection for a send that would then refuse to go.
+    private func resolveReviewSelection(_ manualUtxos: [UTXO]?, against spendable: [UTXO]) throws -> [UTXO]? {
+        guard let manualUtxos, !manualUtxos.isEmpty else { return nil }
+        guard let resolved = resolveManualUtxos(manualUtxos, against: spendable) else {
+            throw KasiaError.networkError("Selected UTXOs are no longer available - please reselect")
+        }
+        return resolved
+    }
+
     private func resolveManualUtxos(_ manualUtxos: [UTXO]?, against spendable: [UTXO]) -> [UTXO]? {
         guard let manualUtxos, !manualUtxos.isEmpty else { return nil }
         func outpointKey(_ utxo: UTXO) -> String { "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)" }
@@ -3450,10 +3567,10 @@ extension ChatService {
         }
 
         let payload = try estimationPayload(note: note, amount: amountSompi, recipientPublicKey: recipientPublicKey)
-        // Use fallback method - doesn't require gRPC connection
-        let utxos = try await fetchUtxosWithFallback(for: sourceAddress)
-        let candidates = utxos.filter { !$0.isCoinbase }
-        let spendable = resolveManualUtxos(manualUtxos, against: candidates) ?? candidates
+        // The coins the send itself picks from, read fresh: the 20-second cache still lists coins
+        // a message or send just spent.
+        let candidates = try await withdrawalSpendableUtxos(for: sourceAddress)
+        let spendable = try resolveReviewSelection(manualUtxos, against: candidates) ?? candidates
         guard !spendable.isEmpty else {
             throw KasiaError.networkError("No spendable UTXOs")
         }
@@ -3476,17 +3593,20 @@ extension ChatService {
     }
 
     /// Calculate maximum sendable amount (balance - fee for send-all transaction with no change output)
-    func estimateMaxPaymentAmount(to contact: Contact, note: String = "", sourceSpendingIndex: Int? = nil, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> UInt64 {
+    /// `cappedAtInputLimit`: the source holds more coins than one transaction can spend, so Max is
+    /// what its largest `maxInputsPerTransaction` carry.
+    func estimateMaxPaymentAmount(to contact: Contact, note: String = "", sourceSpendingIndex: Int? = nil, manualUtxos: [UTXO]? = nil, extraFeeSompi: UInt64 = 0) async throws -> (amountSompi: UInt64, cappedAtInputLimit: Bool) {
         // Same toggle-aware sourcing as `estimatePaymentFee` above - see its doc comment.
         let sourceAddress = try paymentFundingSourceAddress(spendingIndex: sourceSpendingIndex)
         guard let recipientPublicKey = KaspaAddress.publicKey(from: contact.address) else {
             throw KasiaError.invalidAddress
         }
 
-        // Use fallback method - doesn't require gRPC connection
-        let utxos = try await fetchUtxosWithFallback(for: sourceAddress)
-        let candidates = utxos.filter { !$0.isCoinbase }
-        let spendable = resolveManualUtxos(manualUtxos, against: candidates) ?? candidates
+        // Fresh coins, as the send reads them (see `estimatePaymentFee`), and no more than one
+        // transaction can spend: with more coins than that, Max is what its largest ones carry.
+        let candidates = try await withdrawalSpendableUtxos(for: sourceAddress)
+        let picked = try resolveReviewSelection(manualUtxos, against: candidates) ?? candidates
+        let spendable = manualUtxos?.isEmpty == false ? picked : (Self.oneTransactionChunk(picked) ?? picked)
         guard !spendable.isEmpty else {
             throw KasiaError.networkError("No spendable UTXOs")
         }
@@ -3517,7 +3637,7 @@ extension ChatService {
             throw KasiaError.networkError("Balance too low to cover fee")
         }
 
-        return totalBalance - totalFee
+        return (totalBalance - totalFee, spendable.count < picked.count)
     }
 
     func sendHandshake(to contact: Contact, isResponse: Bool, pendingTxId: String? = nil) async throws {
@@ -3620,7 +3740,8 @@ extension ChatService {
 
             let utxos = try await rpcManager.getUtxosByAddresses([wallet.publicAddress])
             updateWalletBalanceIfNeeded(address: wallet.publicAddress, utxos: utxos)
-            let spendable = utxos.filter { $0.blockDaaScore > 0 && !$0.isCoinbase }
+            // Never coins a message or send from this app has just spent (still unconfirmed).
+            let spendable = unreservedUtxos(utxos.filter { $0.blockDaaScore > 0 && !$0.isCoinbase })
             guard !spendable.isEmpty else {
                 throw KasiaError.networkError("No UTXOs available. Your account may be empty.")
             }
@@ -3639,7 +3760,14 @@ extension ChatService {
                 utxos: handshakeUtxos
             )
 
-            let (txId, endpoint) = try await rpcManager.submitTransaction(transaction, allowOrphan: false)
+            let (txId, endpoint) = try await submitSpendingMessageCoins(
+                transaction,
+                spent: handshakeUtxos,
+                allowOrphan: false,
+                rpcManager: rpcManager
+            )
+            // Its coins stay out of the next message until the node shows them spent.
+            recordPlainSend(transaction, spent: handshakeUtxos, txId: nil, changeScriptPubKey: nil)
             AppLog.log("[ChatService] Handshake submitted: \(txId) via \(endpoint)")
             if let activePendingMessageId {
                 _ = updatePendingMessageById(activePendingMessageId, newTxId: txId, contactAddress: contact.address)
@@ -3695,6 +3823,18 @@ extension ChatService {
                 clearNoInputRetryState(for: activePendingTxId)
                 saveMessages()
                 return
+            }
+            if let unknown = error as? SendOutcomeUnknownError {
+                // It may have landed: Not confirmed, never a second handshake, until it shows up.
+                markSendUnconfirmed(
+                    contactAddress: contact.address,
+                    pendingTxId: activePendingTxId,
+                    pendingMessageId: activePendingMessageId,
+                    messageType: .handshake,
+                    txId: unknown.txId
+                )
+                saveMessages()
+                throw unknown
             }
 
             if isNoConfirmedInputsError(error) {
@@ -4347,7 +4487,8 @@ extension ChatService {
                 senderPrivateKey: privateKey,
                 utxos: utxos
             )
-            let txId = try await NodePoolService.shared.submitTransaction(stashTx, allowOrphan: allowOrphan)
+            let txId = try await submitSpendingMessageCoins(stashTx, spent: utxos, allowOrphan: allowOrphan)
+            recordPlainSend(stashTx, spent: utxos, txId: nil, changeScriptPubKey: nil)
             AppLog.log("%@", "[ChatService] Self-stash handshake submitted: \(txId)")
         } catch {
             AppLog.log("%@", "[ChatService] Failed to submit self-stash handshake tx: \(error.localizedDescription)")
@@ -4392,9 +4533,11 @@ extension ChatService {
 
             let utxos = try await rpcManager.getUtxosByAddresses([wallet.publicAddress])
             updateWalletBalanceIfNeeded(address: wallet.publicAddress, utxos: utxos)
-            guard !utxos.isEmpty else { return }
+            // Confirmed coins this app hasn't just spent: a reserved one is already in a mempool.
+            let usable = unreservedUtxos(utxos.filter { $0.blockDaaScore > 0 && !$0.isCoinbase })
+            guard !usable.isEmpty else { return }
 
-            var remaining = utxos
+            var remaining = usable
             var succeeded: [PendingSelfStash] = []
 
             for job in pendingSelfStash {
@@ -4418,7 +4561,13 @@ extension ChatService {
                             senderPrivateKey: privateKey,
                             utxos: first
                         )
-                    let (txId, endpoint) = try await rpcManager.submitTransaction(stashTx, allowOrphan: false)
+                    let (txId, endpoint) = try await submitSpendingMessageCoins(
+                        stashTx,
+                        spent: first,
+                        allowOrphan: false,
+                        rpcManager: rpcManager
+                    )
+                    recordPlainSend(stashTx, spent: first, txId: nil, changeScriptPubKey: nil)
                     AppLog.log("[ChatService] Self-stash submitted: \(txId) via \(endpoint)")
                     succeeded.append(job)
                     // Noted only once it is actually on its way: the queue does not survive a
@@ -4490,6 +4639,24 @@ extension ChatService {
     }
 
     /// Mark a pending message as failed (keeps it in the conversation for retry)
+    /// A send whose outcome is unknown (`SendOutcomeUnknownError`): the row takes the
+    /// transaction's own id and `.warning` ("Not confirmed", no Retry), and nothing retries it.
+    /// Its delivered copy, read back under that id, replaces it as Sent.
+    func markSendUnconfirmed(contactAddress: String, pendingTxId: String, pendingMessageId: UUID?, messageType: ChatMessage.MessageType, txId: String) {
+        let messageId = pendingMessageId ?? resolveMessageIdForPending(contactAddress: contactAddress, pendingTxId: pendingTxId)
+        if let messageId {
+            _ = updatePendingMessageById(messageId, newTxId: txId, contactAddress: contactAddress, deliveryStatus: .warning)
+        }
+        markOutgoingAttemptSubmitted(
+            messageId: messageId,
+            pendingTxId: pendingTxId,
+            contactAddress: contactAddress,
+            messageType: messageType,
+            txId: txId
+        )
+        clearNoInputRetryState(for: pendingTxId)
+    }
+
     func markPendingMessageFailed(_ pendingTxId: String, contactAddress: String) {
         if let convIndex = conversations.firstIndex(where: { $0.contact.address == contactAddress }) {
             updateConversation(at: convIndex) { conversation in
@@ -4588,10 +4755,39 @@ extension ChatService {
     }
 
     @discardableResult
+    /// A Not confirmed row (`markSendUnconfirmed`) whose transaction has now been read back from
+    /// the network becomes Sent. Its own content stays: the copy read back may be a placeholder.
+    func settleUnconfirmedSend(txId: String, contactAddress: String) -> Bool {
+        guard let index = conversations.firstIndex(where: { $0.contact.address == contactAddress }),
+              let msgIndex = conversations[index].messages.firstIndex(where: {
+                  $0.txId == txId && $0.isOutgoing && $0.deliveryStatus == .warning
+              }) else { return false }
+        let existing = conversations[index].messages[msgIndex]
+        updateConversation(at: index) { conversation in
+            conversation.messages[msgIndex] = ChatMessage(
+                id: existing.id,
+                txId: existing.txId,
+                senderAddress: existing.senderAddress,
+                receiverAddress: existing.receiverAddress,
+                content: existing.content,
+                timestamp: existing.timestamp,
+                blockTime: existing.blockTime,
+                acceptingBlock: existing.acceptingBlock ?? "mempool",
+                isOutgoing: true,
+                messageType: existing.messageType,
+                deliveryStatus: .sent
+            )
+        }
+        saveMessages()
+        return true
+    }
+
+    /// `deliveryStatus`: `.sent` normally, `.warning` for a send whose outcome is unknown.
     func updatePendingMessageById(
         _ messageId: UUID,
         newTxId: String,
-        contactAddress: String? = nil
+        contactAddress: String? = nil,
+        deliveryStatus: ChatMessage.DeliveryStatus = .sent
     ) -> Bool {
         let targetIndex: Int?
         if let contactAddress,
@@ -4622,10 +4818,10 @@ extension ChatService {
                 content: oldMessage.content,
                 timestamp: oldMessage.timestamp,
                 blockTime: oldMessage.blockTime,
-                acceptingBlock: "mempool",
+                acceptingBlock: deliveryStatus == .sent ? "mempool" : oldMessage.acceptingBlock,
                 isOutgoing: oldMessage.isOutgoing,
                 messageType: oldMessage.messageType,
-                deliveryStatus: .sent
+                deliveryStatus: deliveryStatus
             )
             conversation.messages[msgIndex] = newMessage
             didUpdate = true
@@ -4648,8 +4844,10 @@ extension ChatService {
         var didUpdate = false
         var oldPendingTxId: String?
         updateConversation(at: convIndex) { conversation in
+            // A Not confirmed row already carries its own transaction id: only its own copy
+            // settles it (`settleUnconfirmedSend`), never another message's.
             let candidates = conversation.messages
-                .filter { $0.isOutgoing && $0.deliveryStatus != .sent && $0.messageType == messageType }
+                .filter { $0.isOutgoing && $0.deliveryStatus != .sent && $0.deliveryStatus != .warning && $0.messageType == messageType }
                 .sorted(by: Self.isMessageOrderedBefore)
             guard let candidate = candidates.first,
                   let msgIndex = conversation.messages.firstIndex(where: { $0.id == candidate.id }) else { return }

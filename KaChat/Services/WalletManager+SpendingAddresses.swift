@@ -793,6 +793,29 @@ extension WalletManager {
         return out
     }
 
+    /// Everything this phone keeps about an account's spending addresses, for an account being
+    /// removed: the derived-address files, the `kachat_spending_*` settings (hidden, labels,
+    /// indices, caches) and every one of its addresses' coin labels, on both encodings.
+    func removeSpendingData(forAccount address: String) {
+        let variants = Self.accountAddressVariants(address)
+        let derived = cachedSpendingAddresses(ofAccount: address)
+        let defaults = UserDefaults.standard
+        for owned in derived + variants {
+            defaults.removeObject(forKey: spendingUtxoLabelsKey(for: owned))
+            defaults.removeObject(forKey: "kachat_cold_storage_utxo_labels_" + owned)
+        }
+        let suffixes = variants.flatMap { ["_" + $0, "_" + $0.replacingOccurrences(of: ":", with: "_")] }
+        for key in defaults.dictionaryRepresentation().keys
+        where key.hasPrefix("kachat_spending_") && suffixes.contains(where: { key.hasSuffix($0) }) {
+            defaults.removeObject(forKey: key)
+        }
+        for variant in variants {
+            for network in NetworkType.allCases {
+                DerivedAddressStore.remove("kachat_spending_derived_addresses_\(variant)_\(network.rawValue)")
+            }
+        }
+    }
+
     func allSpendingAddresses() -> [String] {
         guard let changeKey = spendingChangeKey() else { return [] }
         var out = (0...maxSpendingAddressIndex).compactMap { spendingAddress(at: $0, changeKey: changeKey) }
@@ -1261,6 +1284,14 @@ enum DerivedAddressStore {
         }
         AppLog.log("[DerivedAddressStore] Moved %d sets (%d addresses) out of UserDefaults; UserDefaults now %@",
                    movedSets, movedAddresses, sizeNote)
+    }
+
+    /// Drops one set, in memory and on disk (an account being removed).
+    static func remove(_ key: String) {
+        sets[key] = nil
+        dirty.remove(key)
+        guard let url = fileURL(key) else { return }
+        ioQueue.async { try? FileManager.default.removeItem(at: url) }
     }
 
     private static func readFile(_ key: String) -> [String: String] {

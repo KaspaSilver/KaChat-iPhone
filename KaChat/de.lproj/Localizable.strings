@@ -193,7 +193,6 @@
 "Invalid domain label" = "Ungültige Domänenbezeichnung";
 "Invalid recipient format." = "Ungültiges Empfängerformat.";
 "It's ok, I already have a domain" = "Alles gut, ich habe schon eine Domain";
-"Just send 5-10 KAS at a time, that's plenty to cover chat fees for a while (about 500 messages per KAS)" = "Sende jeweils nur 5-10 KAS, das reicht, um Chat-Gebühren eine Weile zu decken (etwa 500 Nachrichten pro KAS)";
 "KAS" = "KAS";
 "KNS API URL" = "KNS API URL";
 "KNS Domains" = "KNS-Domains";
@@ -455,7 +454,6 @@
 "Submitting transfer..." = "Überweisung wird gesendet...";
 "Support Email" = "Support-E-Mail";
 "Suspected" = "Verdächtig";
-"Swaps are processed by ChangeNOW, a third-party exchange. KaChat only submits your swap request and displays its status; KaChat is not responsible for failed, delayed, or lost swaps. If a swap doesn't go through, contact ChangeNOW support directly." = "Tauschvorgänge werden von ChangeNOW, einem Drittanbieter, abgewickelt. KaChat sendet nur deine Tauschanfrage und zeigt deren Status an; KaChat ist nicht verantwortlich für fehlgeschlagene, verzögerte oder verlorene Tauschvorgänge. Wenn ein Tausch nicht durchgeht, wende dich direkt an den ChangeNOW-Support.";
 "Switch direction" = "Richtung wechseln";
 "Sync system contacts" = "Systemkontakte synchronisieren";
 "Sync warning detected" = "Synchronisationswarnung erkannt";
@@ -1784,3 +1782,17 @@
 "One transaction can combine %d coins, so this combines the largest %d. Compound again for the rest." = "Eine Transaktion kann %d Coins zusammenführen, daher werden die größten %d zusammengeführt. Führe den Rest erneut zusammen.";
 "Max is what one transaction can carry: its largest %d coins. Compound UTXOs combines the rest." = "Max ist, was eine Transaktion tragen kann: ihre größten %d Coins. „UTXOs zusammenführen“ fasst den Rest zusammen.";
 "Couldn't load this address's balance." = "Das Guthaben dieser Adresse konnte nicht geladen werden.";
+"Sending Kaspa needs Face ID or your passcode." = "Zum Senden von Kaspa braucht es Face ID oder deinen Code.";
+"The network fee is now %@ KAS, more than the Review showed. Nothing was sent: check the new fee and swipe again." = "Die Netzwerkgebühr beträgt jetzt %@ KAS, mehr als in der Übersicht angezeigt. Es wurde nichts gesendet: Prüfe die neue Gebühr und wische erneut.";
+"Unable to sign in to this account." = "Anmeldung bei diesem Konto nicht möglich.";
+"This account's keys are on this phone again, so nothing was removed." = "Die Schlüssel dieses Kontos sind wieder auf diesem Telefon, daher wurde nichts entfernt.";
+"Skip the Search: Import on Address #0" = "Suche überspringen: Auf Adresse #0 importieren";
+"The search for funds on this account's other addresses didn't finish, so Import uses address #0." = "Die Suche nach Guthaben auf den anderen Adressen dieses Kontos wurde nicht abgeschlossen, daher verwendet der Import Adresse #0.";
+"Search Again" = "Erneut suchen";
+"Re-enter PIN" = "PIN erneut eingeben";
+"The PINs don't match." = "Die PINs stimmen nicht überein.";
+"Not confirmed yet. It may still go through." = "Noch nicht bestätigt. Es kann noch durchgehen.";
+"Not spendable yet" = "Noch nicht verfügbar";
+"Failed · Tap to retry" = "Fehlgeschlagen · Tippen zum Wiederholen";
+"Needs attention" = "Prüfung nötig";
+"Failed to send" = "Senden fehlgeschlagen";

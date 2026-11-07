@@ -238,7 +238,7 @@ Remote push notifications are implemented for background/terminated delivery. `P
 ### Data Storage
 
 - **Keychain + Secure Enclave**: Seed phrases and private keys wrapped with device-specific SE keys (see Multi-Device section)
-- **Core Data (local only)**: Messages in a plain `NSPersistentContainer`, one SQLite store per wallet. No iCloud/CloudKit anywhere in the app - the only cross-device channel is the encrypted Nextcloud archive (`NextcloudService`)
+- **Core Data (local only)**: Messages in a plain `NSPersistentContainer`, one SQLite store per wallet. No iCloud/CloudKit anywhere in the app. Messages and groups come back to any device from the chain with the seed; Nextcloud (`NextcloudService`) backs up contacts only
 - **UserDefaults**: Settings, contact aliases (fallback for wallet)
 
 ### Multi-Device Architecture
@@ -419,7 +419,8 @@ and with no onAppear. Biometrics for account login are off by default.
 ### Face ID on Kaspa leaving and on deleting
 
 `SwipeUpToSendScrollView` asks `DeviceAuth` before every send: declined, the screen settles back
-with everything filled in. Both Delete Account sheets ask too. A device with no passcode can't do
+with everything filled in. A Siri or Shortcuts payment asks too (`DeviceAuth.confirm`, after its
+Confirm). Both Delete Account sheets and the keys-missing screen's Remove ask too. A device with no passcode can't do
 either (`DeviceAuth` refuses and says why). Messages don't ask.
 
 ### Reading back what you sent
@@ -438,7 +439,7 @@ in MESSAGING.md; other clients need the same change for their sends to be recove
 
 Every Send Kaspa screen is built from the shared pieces in `Views/Shared/SendKaspaComponents.swift`,
 so they match: the 1:1 chat's Send KAS sheet, Send Kaspa (`WithdrawKaspaView`: Wallet's Send,
-Donate, the Address Book, an address's Send, paying a payment request). Coin Control
+the Address Book, an address's Send, paying a payment request). Coin Control
 (`CoinControlView`) lives there too. `SpendingAddressWithdrawView` is left for compounding one
 spending address's coins: a review ("Consolidating X KAS", read-only) whose fee row's Edit swaps
 in `SendFeeEditorScreen` in place (`editingFee`, `showFeeEditor(_:)`); the Max amount is worked
@@ -472,7 +473,7 @@ A send is steps, each sliding in (forward from the right, back from the left: a 
    warning above ten times the minimum; Cancel and Confirm at the bottom, Confirm back to the review.
 
 Where the steps start:
-- `WithdrawKaspaView` opens on To; a pre-filled recipient (Donate, the Address Book) or a payment
+- `WithdrawKaspaView` opens on To; a pre-filled recipient (the Address Book) or a payment
   request on From, with Back still reaching To (a request's Amount has the amount fixed: no
   keypad, the request summary instead); From is skipped when it's fixed (an address's own Send,
   `lockedSource`); Compound UTXOs opens on the Review.
@@ -545,6 +546,8 @@ Change these pieces rather than one screen, so the screens stay matched.
 | `KACHAT_NAMES_INDEXER.md` | Indexer handoff: (A) run a testnet-10 instance of the whole indexer for the app's Testnet mode; (B-E) the `names` module - following the covenant registry from spends, offer payload markers, status/expiry, address profiles (`kchat:1:profile:`), the names/market/identity API and name push events |
 | `NEXTCLOUD_SYNC.md` | The shared contract for Nextcloud Automatic Sync: contacts only on iOS since 2026-11-05 (`kachat-contacts.json`); for Android, Desktop and the extension until they move, one `kachat-backup.json` overwritten in place (never extra files), folder discovery, read-merge-write, merge rules (chats, groups, Address Book, portfolios - the wallet app's, passed through here), timings, error handling, per-client conformance |
 | `DETERMINISTIC_ALIASES.md` | Deterministic alias derivation (shipped protocol - see `Utilities/DeterministicAlias.swift`): algorithm, migration notes, legacy-alias compatibility |
+| `NO_HANDSHAKE_MESSAGING.md` | No-handshake 1:1 chats (5.2): the inbox tag on a first message, Message Requests, private chats, the indexer handoff and porting notes |
+| `QUANTUM_SAFE_CHATS.md` | Plan, not built: hybrid post-quantum (X-Wing) chats against harvest-now-decrypt-later, with seed-derived self-sealing, per-conversation setup, groups, UI and rollout |
 
 Historical plan/design documents were removed from the repo in the 4.0 hygiene pass; shipped code is the source of truth for those features.
 

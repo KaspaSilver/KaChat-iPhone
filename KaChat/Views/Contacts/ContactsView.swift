@@ -50,9 +50,7 @@ struct ProfileView: View {
     @ObservedObject private var socialImages = KachatSocialImageResolver.shared
     /// The pending coalesced refresh - see `scheduleBalanceRefresh`.
     @State private var balanceRefreshTask: Task<Void, Never>?
-    @State private var showAvatarPreview = false
     @State private var showKNSEditor = false
-    @State private var showCreateKNSProfileFlow = false
     @State private var settingPrimaryDomainId: String?
     /// Result of the last "Set as Primary" tap, shown by the editor sheet itself.
     @State private var setPrimaryMessage: KNSSetPrimaryMessage?
@@ -209,70 +207,15 @@ struct ProfileView: View {
             }
             // A .kas domain's full profile, customized from Your Domains > the domain.
             .sheet(item: $domainProfileEdit) { target in
-                KNSProfileEditorSheet(
-                    profileInfo: target.info,
-                    domains: $knsDomains,
-                    primaryDomain: $knsPrimaryDomain,
-                    settingPrimaryDomainId: $settingPrimaryDomainId,
-                    setPrimaryMessage: $setPrimaryMessage,
-                    onSetPrimary: { domain in
-                        Task {
-                            await setPrimaryDomain(domain)
-                        }
-                    },
-                    onInscribeComplete: { result in
-                        Haptics.success()
-                        showToast(localizedFormat("Inscribe submitted for %@.", result.domain))
-                        Task {
-                            await refreshKNSData(for: target.info.address)
-                        }
-                    },
-                    onTransferComplete: { result in
-                        Haptics.success()
-                        let message = result.verified
-                            ? localizedFormat("%@ transferred to %@.", result.domain, result.recipientAddress)
-                            : localizedFormat("Transfer submitted for %@.", result.domain)
-                        showToast(message)
-                        Task {
-                            await refreshKNSData(for: target.info.address)
-                        }
-                    },
-                    onRefreshDomains: {
-                        await refreshKNSDomainsOnly(for: target.info.address)
-                    }
-                ) { submission in
+                KNSProfileEditorSheet(profileInfo: target.info) { submission in
                     domainProfileEdit = nil
                     Task {
                         await saveKNSProfile(submission: submission, profileInfo: target.info)
                     }
                 }
             }
-            .fullScreenCover(isPresented: $showAvatarPreview) {
-                KNSAvatarFullscreenView(
-                    avatarURLString: knsProfileInfo?.avatarURL,
-                    fallbackText: editedAlias,
-                    title: knsProfileInfo?.domainName ?? editedAlias
-                )
-            }
             .fullScreenCover(isPresented: $showWelcomeGuideReplay) {
                 WelcomeGuideView(onFinished: { showWelcomeGuideReplay = false })
-            }
-            .fullScreenCover(isPresented: $showCreateKNSProfileFlow) {
-                if let wallet = walletManager.currentWallet {
-                    KNSCreateProfileFlowView(walletAddress: wallet.publicAddress, existingProfile: knsProfileInfo) { wroteSomething in
-                        showCreateKNSProfileFlow = false
-                        guard wroteSomething else { return }
-                        Task {
-                            // Wait out the fullScreenCover's dismiss transition before mutating
-                            // knsProfileInfo - refreshing immediately can grow knsProfileCard
-                            // (a new banner adds ~140pt) while the modal is still animating away,
-                            // which can leave the presenting view's touch handling stuck so
-                            // taps on it (e.g. the "Setup Guide" button) silently stop registering.
-                            try? await Task.sleep(nanoseconds: 400_000_000)
-                            await refreshKNSData(for: wallet.publicAddress)
-                        }
-                    }
-                }
             }
             .onAppear {
                 if let wallet = walletManager.currentWallet {
@@ -384,11 +327,6 @@ struct ProfileView: View {
                     setPrimaryError: $setPrimaryMessage,
                     onSetPrimary: { domain in
                         Task { await setPrimaryDomain(domain) }
-                    },
-                    onInscribeComplete: { result in
-                        Haptics.success()
-                        showToast(localizedFormat("Inscribe submitted for %@.", result.domain))
-                        Task { await refreshKNSData(for: walletAddress) }
                     },
                     onTransferComplete: { result in
                         Haptics.success()
@@ -1496,17 +1434,6 @@ private struct KNSSetPrimaryMessage: Identifiable, Equatable {
 private struct KNSProfileEditorSheet: View {
     let profileInfo: KNSAddressProfileInfo
     let onSave: (KNSProfileEditorSubmission) -> Void
-    // Bindings, not snapshots: this sheet is presented with `.sheet(isPresented:)`, whose content
-    // is built from the values captured when it opened. As plain lets, the in-flight spinner never
-    // started and the star never moved to the newly-set primary, so the row looked inert.
-    @Binding var domains: [KNSDomain]
-    @Binding var primaryDomain: String?
-    @Binding var settingPrimaryDomainId: String?
-    @Binding var setPrimaryMessage: KNSSetPrimaryMessage?
-    let onSetPrimary: (KNSDomain) -> Void
-    let onInscribeComplete: (KNSDomainInscribeResult) -> Void
-    let onTransferComplete: (KNSDomainTransferResult) -> Void
-    let onRefreshDomains: () async -> Void
 
     @EnvironmentObject private var walletManager: WalletManager
     @Environment(\.dismiss) private var dismiss
@@ -1546,25 +1473,9 @@ private struct KNSProfileEditorSheet: View {
 
     init(
         profileInfo: KNSAddressProfileInfo,
-        domains: Binding<[KNSDomain]>,
-        primaryDomain: Binding<String?>,
-        settingPrimaryDomainId: Binding<String?>,
-        setPrimaryMessage: Binding<KNSSetPrimaryMessage?>,
-        onSetPrimary: @escaping (KNSDomain) -> Void,
-        onInscribeComplete: @escaping (KNSDomainInscribeResult) -> Void,
-        onTransferComplete: @escaping (KNSDomainTransferResult) -> Void,
-        onRefreshDomains: @escaping () async -> Void,
         onSave: @escaping (KNSProfileEditorSubmission) -> Void
     ) {
         self.profileInfo = profileInfo
-        self._domains = domains
-        self._primaryDomain = primaryDomain
-        self._settingPrimaryDomainId = settingPrimaryDomainId
-        self._setPrimaryMessage = setPrimaryMessage
-        self.onSetPrimary = onSetPrimary
-        self.onInscribeComplete = onInscribeComplete
-        self.onTransferComplete = onTransferComplete
-        self.onRefreshDomains = onRefreshDomains
         self.onSave = onSave
 
         let profile = profileInfo.profile ?? .empty
@@ -2036,7 +1947,6 @@ private struct KNSDomainsListView: View {
     /// Success needs no message: the star moves to the new primary as soon as the write lands.
     @Binding var setPrimaryError: KNSSetPrimaryMessage?
     let onSetPrimary: (KNSDomain) -> Void
-    let onInscribeComplete: (KNSDomainInscribeResult) -> Void
     let onTransferComplete: (KNSDomainTransferResult) -> Void
     let onRefresh: () async -> Void
     var onCustomizeProfile: ((KNSDomain) -> Void)? = nil
@@ -2943,6 +2853,9 @@ struct ChattingAddressManageView: View {
     /// The "Address Actions" half sheet, and the public-key screen it can open.
     @State private var showAddressActions = false
     @State private var showPublicKeySheet = false
+    /// What a row of that sheet opens next, run from its onDismiss: a sheet presented while
+    /// another is still closing can be dropped by iOS.
+    @State private var afterAddressActions: (() -> Void)?
     @State private var utxoLabels: [String: String] = [:]
     @State private var renamingUtxo: UTXO?
     @State private var renameUtxoText = ""
@@ -3007,7 +2920,11 @@ struct ChattingAddressManageView: View {
         }
         .navigationTitle("Chatting Address")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showAddressActions) {
+        .sheet(isPresented: $showAddressActions, onDismiss: {
+            let next = afterAddressActions
+            afterAddressActions = nil
+            next?()
+        }) {
             addressActionsSheet
                 .presentationDetents([.height(330)])
                 .presentationDragIndicator(.visible)
@@ -3114,9 +3031,7 @@ struct ChattingAddressManageView: View {
                     subtitle: "The key that spends this address. Never share it.",
                     systemImage: "key.fill"
                 ) {
-                    showAddressActions = false
-                    // A turn later: presenting straight from a dismissing sheet is dropped.
-                    DispatchQueue.main.async {
+                    afterAddressActions = {
                         if settingsViewModel.settings.biometricSeedPhraseEnabled {
                             DeviceAuth.authenticate(reason: "Unlock to view this address's private key") {
                                 showPrivateKeySheet = true
@@ -3125,14 +3040,15 @@ struct ChattingAddressManageView: View {
                             showPrivateKeySheet = true
                         }
                     }
+                    showAddressActions = false
                 }
                 ActionSheetRow(
                     title: "View Public Key",
                     subtitle: "The public half of this address, for anyone who asks for it.",
                     systemImage: "number"
                 ) {
+                    afterAddressActions = { showPublicKeySheet = true }
                     showAddressActions = false
-                    DispatchQueue.main.async { showPublicKeySheet = true }
                 }
                 if let url = settingsViewModel.settings.kaspaExplorer.addressURL(for: address) {
                     ActionSheetRow(
@@ -3857,9 +3773,12 @@ struct WithdrawKaspaView: View {
     /// Debounce/cancellation key. The speed and a custom fee are in it: a bigger extra can make the
     /// send take another coin, or no longer leave change worth keeping, so the fee shown is worked
     /// out with the extra actually paid rather than added on top of the Normal estimate.
+    /// Bumped when a send stopped because its fee went up: the Review works the fee out again.
+    @State private var feeRefresh = 0
+
     private var feeEstimationKey: String {
         let manualKey = manualUtxos?.map { "\($0.outpoint.transactionId):\($0.outpoint.index)" }.sorted().joined(separator: ",") ?? ""
-        return "\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(source.spendingIndex ?? -1)|\(feeTier.rawValue)|\(customExtraFeeSompi.map { String($0) } ?? "")"
+        return "\(hasValidRecipient ? effectiveAddress : "")|\(amountSompi ?? 0)|\(manualKey)|\(source.spendingIndex ?? -1)|\(feeTier.rawValue)|\(customExtraFeeSompi.map { String($0) } ?? "")|\(feeRefresh)"
     }
 
     /// The three steps of a send: who it goes to, how much (on the app's own keypad, so no
@@ -4318,6 +4237,11 @@ struct WithdrawKaspaView: View {
                         .font(.footnote)
                         .foregroundColor(.red)
                         .multilineTextAlignment(.center)
+                    // A failed estimate holds the swipe: never for good.
+                    if errorMessage == nil {
+                        Button("Try Again") { feeRefresh += 1 }
+                            .font(.footnote.weight(.semibold))
+                    }
                 } else if usedMax && maxCapped {
                     Text(maxCappedNote)
                         .font(.footnote)
@@ -4410,8 +4334,10 @@ struct WithdrawKaspaView: View {
             return
         }
 
-        // A payment request pasted in fills in everything it carries.
-        if !isCompoundMode, let request = PaymentRequest.found(in: trimmed) {
+        // A payment request pasted in fills in everything it carries: only when the paste is the
+        // link and nothing else, never one found inside some longer text.
+        if !isCompoundMode, let match = KaChatInternalLink.match(in: trimmed), match.coversWholeMessage,
+           case .paymentRequest(let request) = match.link {
             apply(request)
             if currentStep == .recipient { go(to: afterRecipient) }
             return
@@ -4501,18 +4427,34 @@ struct WithdrawKaspaView: View {
         isEstimatingMax = true
         errorMessage = nil
         let recipient = effectiveAddress
-        let tipSompi = extraFeeSompi
+        let customExtra = customExtraFeeSompi
+        let multiplier = feeTier.multiplier
         let spendingIndex = isCompoundMode ? nil : source.spendingIndex
+        let coins = manualUtxos
         let request = UUID()
         maxRequest = request
         Task {
             do {
-                let result: (amountSompi: UInt64, cappedAtInputLimit: Bool)
-                if let index = spendingIndex {
-                    result = try await chatService.estimateMaxSpendingAddressAmount(index: index, toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
-                } else {
-                    result = try await chatService.estimateMaxWithdrawalAmount(toAddress: recipient, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                func maxSend(extra: UInt64) async throws -> (amountSompi: UInt64, cappedAtInputLimit: Bool) {
+                    if let index = spendingIndex {
+                        return try await chatService.estimateMaxSpendingAddressAmount(index: index, toAddress: recipient, manualUtxos: coins, extraFeeSompi: extra)
+                    }
+                    return try await chatService.estimateMaxWithdrawalAmount(toAddress: recipient, manualUtxos: coins, extraFeeSompi: extra)
                 }
+                // The speed's extra is priced from what Max sends, never from the typed amount's
+                // fee: that send's fee is smaller, and the send charges the extra on this one's.
+                var tipSompi = customExtra ?? 0
+                if customExtra == nil, multiplier > 1 {
+                    let provisional = try await maxSend(extra: 0)
+                    let base: SendFeeEstimate
+                    if let index = spendingIndex {
+                        base = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: recipient, amountSompi: provisional.amountSompi, manualUtxos: coins)
+                    } else {
+                        base = try await chatService.estimateWithdrawalFee(toAddress: recipient, amountSompi: provisional.amountSompi, manualUtxos: coins)
+                    }
+                    tipSompi = base.networkFee * (multiplier - 1)
+                }
+                let result = try await maxSend(extra: tipSompi)
                 await MainActor.run {
                     // a newer Max (another speed tapped meanwhile) decides the amount
                     guard maxRequest == request else { return }
@@ -4554,6 +4496,8 @@ struct WithdrawKaspaView: View {
         errorMessage = nil
         let recipient = effectiveAddress.trimmingCharacters(in: .whitespacesAndNewlines)
         let tipSompi = extraFeeSompi
+        // what the Review showed: a send rebuilt at the swipe that would pay more doesn't go
+        let expectedFee = totalFeeSompi
         let request = activeRequest
         let spendingIndex = source.spendingIndex
         Task {
@@ -4581,9 +4525,9 @@ struct WithdrawKaspaView: View {
                     }
                     txId = paid
                 } else if let spendingIndex {
-                    txId = try await chatService.sendFromSpendingAddress(index: spendingIndex, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                    txId = try await chatService.sendFromSpendingAddress(index: spendingIndex, toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi, expectedFeeSompi: expectedFee)
                 } else {
-                    txId = try await chatService.sendWithdrawal(toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi)
+                    txId = try await chatService.sendWithdrawal(toAddress: recipient, amountSompi: amountSompi, manualUtxos: manualUtxos, extraFeeSompi: tipSompi, expectedFeeSompi: expectedFee)
                 }
                 await MainActor.run {
                     isSending = false
@@ -4598,6 +4542,8 @@ struct WithdrawKaspaView: View {
                 await MainActor.run {
                     isSending = false
                     errorMessage = UserFacingError.message(for: error)
+                    // nothing went out; Try Again goes back to a Review with the fee of today's coins
+                    if error is SendFeeChangedError { feeRefresh += 1 }
                 }
             }
         }

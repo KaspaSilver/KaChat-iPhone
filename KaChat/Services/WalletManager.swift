@@ -137,6 +137,12 @@ final class WalletManager: ObservableObject {
     @Published private(set) var savedAccountNeedingKeys: SavedAccountSummary?
 
     func clearSavedAccountNeedingKeys() { savedAccountNeedingKeys = nil }
+    /// Why the last saved-account sign-in failed. Held here rather than on the accounts screen:
+    /// `loadWallet` shows the loading screen, which replaces the accounts screen, so a message
+    /// kept there was lost with it. The rebuilt screen shows it.
+    @Published private(set) var signInFailureMessage: String?
+
+    func clearSignInFailure() { signInFailureMessage = nil }
     @Published private(set) var isLoggedOut = false
     @Published private(set) var savedAccounts: [SavedAccountSummary] = []
     /// Set by `CreateWalletView` once the user has reviewed their seed phrase and checked "I have
@@ -266,7 +272,10 @@ final class WalletManager: ObservableObject {
                 UserDefaults.standard.removeObject(forKey: logoutFlagKey)
                 isLoggedOut = false
                 LaunchTrace.mark("loadWallet: key material check")
-                if case .missing = keychainService.keyMaterialStatus() {
+                // A readable snapshot of this account (filed on this phone) puts its keys back
+                // first: the recovery screen is only for keys that are really gone, and its
+                // Remove would erase a snapshot that could still have restored them.
+                if case .missing = keychainService.keyMaterialStatus(), !restoreKeysFromSnapshot(for: wallet) {
                     // The record survived but the keys did not (an iPhone restore, typically).
                     // Opening the app with an address that cannot sign or decrypt looked like a
                     // working wallet in which everything silently failed.
@@ -432,7 +441,9 @@ final class WalletManager: ObservableObject {
         // per-account contacts/archived state on same-account re-login.
         let existingStoredAddress = try? keychainService.loadWallet()?.publicAddress
         let previousAddress = currentWallet?.publicAddress ?? existingStoredAddress
-        let isNewWallet = previousAddress != publicAddress
+        // Compared as an account: the same words entered on the other network are the same
+        // account, and must not reset it or delete its contacts.
+        let isNewWallet = previousAddress.map { !Self.isSameAccount($0, publicAddress) } ?? true
 
         let wallet = Wallet(
             publicAddress: publicAddress,
@@ -451,8 +462,14 @@ final class WalletManager: ObservableObject {
         } catch {
             // nothing was created, so nothing is owed
             if owesBackup { AccountBackupStatus.shared.markDone(publicAddress) }
+            // nor kept in memory, and the account still signed in (a chatting-address switch)
+            // gets its polling back
+            if let cached = cachedPrivateKey, cached.address == publicAddress { cachedPrivateKey = nil }
+            if currentWallet != nil { ChatService.shared.startPolling() }
             throw error
         }
+        // The keys are on this phone now: a recovery screen left from before must not come back.
+        walletNeedingKeyRecovery = nil
 
         var updated = wallet
         if let cached = loadCachedBalance(for: wallet.publicAddress) {
@@ -524,87 +541,6 @@ final class WalletManager: ObservableObject {
         return wallet
     }
 
-    /// - Parameter removeRemoteBackup: also delete the encrypted archive on the user's
-    ///   Nextcloud. Off unless the user picked the option that names it.
-    func deleteWallet(preserveOutgoingMessages: Bool = false, removeRemoteBackup: Bool = false) async throws {
-        // the wallet being deleted: the active one, or the one stuck on the recovery screen
-        let walletAddressToDelete = (currentWallet ?? walletNeedingKeyRecovery)?.publicAddress
-        walletNeedingKeyRecovery = nil
-
-        // Unregister from push notifications before clearing wallet
-        await PushNotificationManager.shared.unregister()
-
-        // The user's Nextcloud: optionally the archive, always the app password KaChat made -
-        // both while the credentials still exist to authenticate with.
-        if NextcloudService.shared.isConnected {
-            if removeRemoteBackup {
-                try await NextcloudService.shared.deleteRemoteBackup()
-            }
-            await NextcloudService.shared.revokeAppPassword()
-        }
-
-        // Clear shared data (App Group)
-        SharedDataManager.clearAllSharedData()
-
-        // Clear message store BEFORE removing the persistent store
-        // (clearAll requires a valid store to operate on)
-        if preserveOutgoingMessages {
-            MessageStore.shared.clearIncomingMessages()
-        } else {
-            MessageStore.shared.clearAll()
-            // The rows are gone; the file itself stayed until the next store switch.
-            await MessageStore.shared.destroyLocalStoreFiles()
-        }
-        if let walletAddressToDelete {
-            AccountBackupStatus.shared.forget(walletAddressToDelete)
-            // its .kachat reminders would keep firing for names this phone no longer holds - on
-            // both networks: the tag is from the address, whose checksum differs per prefix
-            for address in Self.accountAddressVariants(walletAddressToDelete) {
-                await KachatNameReminders.removeAll(forWallet: address)
-            }
-        }
-
-        // The Secure Enclave key wraps every saved account's snapshot (and the device id and
-        // .kachat commit salts): it goes only with the last
-        // account. Otherwise only this account's keys and snapshot are removed.
-        let otherAccountsRemain = savedAccounts.contains { saved in
-            walletAddressToDelete.map { !Self.isSameAccount(saved.publicAddress, $0) } ?? true
-        }
-        if otherAccountsRemain {
-            for address in walletAddressToDelete.map(Self.accountAddressVariants) ?? [] {
-                try? keychainService.deleteAccountSnapshot(publicAddress: address)
-            }
-            try keychainService.clearCurrentAccountData()
-            if let walletAddressToDelete {
-                savedAccounts.removeAll { Self.isSameAccount($0.publicAddress, walletAddressToDelete) }
-                persistSavedAccountsToStorage()
-            }
-        } else {
-            try keychainService.clearAll()
-        }
-        currentWallet = nil
-        // the deleted account's key must not outlive it in memory
-        cachedPrivateKey = nil
-        lastBalanceRefresh = nil
-        updateSavedAccounts(from: nil)
-        isLoggedOut = false
-        UserDefaults.standard.removeObject(forKey: logoutFlagKey)
-        if let walletAddressToDelete {
-            ChatListSnapshotStore.clear(walletAddress: walletAddressToDelete)
-            ContactsManager.shared.deletePersistedContacts(forWalletAddress: walletAddressToDelete)
-            NextcloudService.shared.purgeStoredState(forWalletAddress: walletAddressToDelete)
-        }
-        ContactsManager.shared.setActiveWalletAddress(nil)
-
-        // Switch MessageStore back to default store (no wallet)
-        await MessageStore.shared.setCurrentWallet(nil)
-        GroupChatService.shared.setCurrentWallet(nil)
-        NextcloudService.shared.setCurrentWallet(nil)
-        SharedDataManager.syncWalletAddressForExtension()
-        NotificationCenter.default.post(name: .settingsDidChange, object: nil)
-        SharedDataManager.setPrivateKeyAvailable(false)
-    }
-
     /// Logs out the active session while preserving locally stored wallet and message data.
     func logout() async {
         guard let wallet = currentWallet else { return }
@@ -616,6 +552,9 @@ final class WalletManager: ObservableObject {
         updateSavedAccounts(from: wallet)
         currentWallet = nil
         cachedPrivateKey = nil
+        // signed in means the keys were here: Log Out goes to the sign-in screen, never to a
+        // recovery screen left from before
+        walletNeedingKeyRecovery = nil
         isLoggedOut = true
         UserDefaults.standard.set(true, forKey: logoutFlagKey)
         ContactsManager.shared.setActiveWalletAddress(nil)
@@ -630,8 +569,14 @@ final class WalletManager: ObservableObject {
 
     @discardableResult
     func signInToSavedAccount(_ account: SavedAccountSummary) async -> Bool {
-        guard savedAccounts.contains(account) else { return false }
+        guard savedAccounts.contains(account) else {
+            signInFailureMessage = AppLocalization.string("Unable to sign in to this account.")
+            return false
+        }
         savedAccountNeedingKeys = nil
+        signInFailureMessage = nil
+        // what the active slot held, put back if writing this account's keys fails part-way
+        var previousSlot: (wallet: Wallet, seedPhrase: SeedPhrase, privateKey: Data)?
 
         do {
             if let storedWallet = try keychainService.loadWallet(),
@@ -641,7 +586,7 @@ final class WalletManager: ObservableObject {
                 if currentWallet != nil {
                     ChatService.shared.startPolling()
                 }
-                return isCurrentAccount(account)
+                return finishSignIn(account)
             }
 
             // the account in the active slot must be safely filed before its keys are overwritten
@@ -671,20 +616,35 @@ final class WalletManager: ObservableObject {
             )
             // Keys first, record last: a record with no keys behind it is the broken state the
             // recovery screen exists for, so it is never written ahead of them.
+            previousSlot = activeSlotContents()
             try keychainService.saveSeedPhrase(snapshot.seedPhrase)
             try keychainService.savePrivateKey(snapshot.privateKey)
             try keychainService.saveWallet(wallet)
+            previousSlot = nil
 
             resetInMemoryChatStateForAccountSwitch()
             await loadWallet(force: true)
             if currentWallet != nil {
                 ChatService.shared.startPolling()
             }
-            return isCurrentAccount(account)
+            return finishSignIn(account)
         } catch {
+            if let previousSlot { restoreActiveSlot(previousSlot) }
             self.error = .keychainError(error.localizedDescription)
+            signInFailureMessage = error.localizedDescription
             return false
         }
+    }
+
+    /// Whether the sign-in landed on `account`; when it didn't, and no recovery screen explains
+    /// why, the reason waits in `signInFailureMessage` for the rebuilt accounts screen.
+    private func finishSignIn(_ account: SavedAccountSummary) -> Bool {
+        if isCurrentAccount(account) { return true }
+        if walletNeedingKeyRecovery == nil {
+            signInFailureMessage = error?.localizedDescription
+                ?? AppLocalization.string("Unable to sign in to this account.")
+        }
+        return false
     }
 
     /// Removes a saved account entry.
@@ -710,13 +670,8 @@ final class WalletManager: ObservableObject {
                         await MessageStore.shared.destroyLocalStoreFiles()
                         await GroupChatService.shared.wipeLocalData(forWallet: address)
                     }
-                    ChatListSnapshotStore.clear(walletAddress: address)
-                    ContactsManager.shared.deletePersistedContacts(forWalletAddress: address)
-                    NextcloudService.shared.purgeStoredState(forWalletAddress: address)
-                    await KachatNameReminders.removeAll(forWallet: address)
-                    AddressBookManager.shared.removeAllData(forWalletAddress: address)
-                    GlobalNotificationCenter.removeAllData(forWalletAddress: address)
                 }
+                await removeLocalData(forAccount: account.publicAddress)
                 if currentWallet == nil {
                     await MessageStore.shared.setCurrentWallet(nil)
                     GroupChatService.shared.setCurrentWallet(nil)
@@ -740,16 +695,12 @@ final class WalletManager: ObservableObject {
         // Remove local message DB for the stored wallet, then clear local key material - on both
         // networks, since mainnet and testnet keep this account's data under different addresses.
         for address in Self.accountAddressVariants(account.publicAddress) {
-            await KachatNameReminders.removeAll(forWallet: address)
             await MessageStore.shared.setCurrentWallet(address)
             MessageStore.shared.clearAll()
             await MessageStore.shared.destroyLocalStoreFiles()
             await GroupChatService.shared.wipeLocalData(forWallet: address)
-            ChatListSnapshotStore.clear(walletAddress: address)
-            NextcloudService.shared.purgeStoredState(forWalletAddress: address)
-            AddressBookManager.shared.removeAllData(forWalletAddress: address)
-            GlobalNotificationCenter.removeAllData(forWalletAddress: address)
         }
+        await removeLocalData(forAccount: account.publicAddress)
 
         do {
             for address in Self.accountAddressVariants(account.publicAddress) {
@@ -780,6 +731,42 @@ final class WalletManager: ObservableObject {
         SharedDataManager.syncWalletAddressForExtension()
         NotificationCenter.default.post(name: .settingsDidChange, object: nil)
         SharedDataManager.setPrivateKeyAvailable(false)
+    }
+
+    /// What every account removal erases besides its keys, messages and groups, on both network
+    /// encodings - one list, so no removal path leaves a different part behind. Nextcloud's app
+    /// password is revoked with the stored login before that login is deleted.
+    private func removeLocalData(forAccount address: String) async {
+        removeSpendingData(forAccount: address)
+        for variant in Self.accountAddressVariants(address) {
+            ChatListSnapshotStore.clear(walletAddress: variant)
+            ContactsManager.shared.deletePersistedContacts(forWalletAddress: variant)
+            await NextcloudService.shared.revokeAndPurgeStoredState(forWalletAddress: variant)
+            await KachatNameReminders.removeAll(forWallet: variant)
+            AddressBookManager.shared.removeAllData(forWalletAddress: variant)
+            GlobalNotificationCenter.removeAllData(forWalletAddress: variant)
+        }
+    }
+
+    /// The keys-missing screen's Remove (`WalletRecoveryView`): the account whose record is here
+    /// but whose keys aren't, removed the way the sign-in screen's Delete removes it - its
+    /// messages, groups, contacts and notifications on both networks, not just the record.
+    func removeAccountWithoutKeys(_ wallet: Wallet) async {
+        // Only while its account is still the one in the active slot with no keys behind it: a
+        // recovery left over from before an import (or keys back since) would otherwise erase a
+        // working account's keys.
+        let stored = try? keychainService.loadWallet()
+        guard case .missing = keychainService.keyMaterialStatus(),
+              let stored, Self.isSameAccount(stored.publicAddress, wallet.publicAddress) else {
+            walletNeedingKeyRecovery = nil
+            error = .keychainError(AppLocalization.string("This account's keys are on this phone again, so nothing was removed."))
+            return
+        }
+        cachedPrivateKey = nil
+        // files the account first, whatever the list holds, so the removal finds it
+        updateSavedAccounts(from: wallet)
+        guard let account = savedAccounts.first else { return }
+        await removeSavedAccount(account)
     }
 
     /// Settings > Delete Account: the signed-in account, removed the way the sign-in screen's
@@ -1000,7 +987,7 @@ final class WalletManager: ObservableObject {
             // Same key = same account, on whichever network: switching to testnet re-encodes
             // the address (`walletOnCurrentNetwork`) and must not list the account twice.
             savedAccounts.removeAll {
-                $0.publicAddress == summary.publicAddress
+                Self.isSameAccount($0.publicAddress, summary.publicAddress)
                     || (!summary.publicKey.isEmpty && $0.publicKey == summary.publicKey)
             }
             savedAccounts.insert(summary, at: 0)
@@ -1053,7 +1040,7 @@ final class WalletManager: ObservableObject {
     }
 
     private func removeSavedAccountFromStorage(_ account: SavedAccountSummary) {
-        savedAccounts.removeAll { $0.publicAddress == account.publicAddress }
+        savedAccounts.removeAll { Self.isSameAccount($0.publicAddress, account.publicAddress) }
         hasStoredWallet = !savedAccounts.isEmpty
         if savedAccounts.isEmpty {
             UserDefaults.standard.removeObject(forKey: savedAccountsKey)
@@ -1104,7 +1091,7 @@ final class WalletManager: ObservableObject {
             return stored
         }
         let inherited = (try? keychainService.loadWallet())
-            .flatMap { $0.publicAddress == address ? $0.createdAt : nil }
+            .flatMap { Self.isSameAccount($0.publicAddress, address) ? $0.createdAt : nil }
         let date = inherited ?? Date()
         UserDefaults.standard.set(date, forKey: key)
         return date
@@ -1774,6 +1761,10 @@ final class WalletManager: ObservableObject {
     /// not make a key), nothing is left behind: a record with no keys is the state the
     /// recovery screen exists for, and it used to be written before the keys were even tried.
     private func saveWallet(_ wallet: Wallet, seedPhrase: SeedPhrase, privateKey: Data) async throws {
+        // The slot's previous account is put back on a failure, not deleted: it may be another
+        // account (filed as a snapshot a moment ago, but signed in from this slot) or this same
+        // account re-entered, and either way deleting left it with no keys.
+        let previousSlot = activeSlotContents()
         do {
             try keychainService.saveSeedPhrase(seedPhrase)
             // Private key is derived once by the caller (deriveKeysFromSeed) and passed in, rather
@@ -1782,11 +1773,56 @@ final class WalletManager: ObservableObject {
             try keychainService.saveAccountSnapshot(wallet: wallet, seedPhrase: seedPhrase, privateKey: privateKey)
             try keychainService.saveWallet(wallet)
         } catch {
-            try? keychainService.deleteSeedPhrase()
-            try? keychainService.deletePrivateKey()
-            try? keychainService.deleteAccountSnapshot(publicAddress: wallet.publicAddress)
+            if let previousSlot {
+                restoreActiveSlot(previousSlot)
+                if !Self.isSameAccount(previousSlot.wallet.publicAddress, wallet.publicAddress) {
+                    try? keychainService.deleteAccountSnapshot(publicAddress: wallet.publicAddress)
+                }
+            } else {
+                try? keychainService.deleteSeedPhrase()
+                try? keychainService.deletePrivateKey()
+                try? keychainService.deleteAccountSnapshot(publicAddress: wallet.publicAddress)
+            }
             throw error
         }
+    }
+
+    /// The active keychain slot's record and keys, all three or nothing.
+    private func activeSlotContents() -> (wallet: Wallet, seedPhrase: SeedPhrase, privateKey: Data)? {
+        guard let wallet = try? keychainService.loadWallet(),
+              let seedPhrase = try? keychainService.loadSeedPhrase(),
+              let privateKey = try? keychainService.loadPrivateKey() else { return nil }
+        return (wallet, seedPhrase, privateKey)
+    }
+
+    /// Puts back what `activeSlotContents` read, after a write that failed part-way.
+    private func restoreActiveSlot(_ slot: (wallet: Wallet, seedPhrase: SeedPhrase, privateKey: Data)) {
+        do {
+            try keychainService.saveSeedPhrase(slot.seedPhrase)
+            try keychainService.savePrivateKey(slot.privateKey)
+            try keychainService.saveWallet(slot.wallet)
+        } catch {
+            AppLog.log("[WalletManager] Failed to restore the active account's keys: %@", error.localizedDescription)
+        }
+    }
+
+    /// The stored record has no keys behind it: puts them back from this account's snapshot, when
+    /// one filed on this phone can still be read. False when there is none.
+    private func restoreKeysFromSnapshot(for wallet: Wallet) -> Bool {
+        for address in Self.accountAddressVariants(wallet.publicAddress) {
+            guard let snapshot = try? keychainService.loadAccountSnapshot(publicAddress: address) else { continue }
+            do {
+                try keychainService.saveSeedPhrase(snapshot.seedPhrase)
+                try keychainService.savePrivateKey(snapshot.privateKey)
+                AppLog.log("%@", "[WalletManager] Restored missing keys from this account's snapshot")
+                return true
+            } catch {
+                try? keychainService.deleteSeedPhrase()
+                try? keychainService.deletePrivateKey()
+                return false
+            }
+        }
+        return false
     }
 
     func saveWalletOnly(_ wallet: Wallet) async throws {

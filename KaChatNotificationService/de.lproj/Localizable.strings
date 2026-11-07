@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "Neue Nachrichtenanfrage";
 "%@ wants to chat with you." = "%@ möchte mit dir chatten.";
-"New offer on %@" = "Neues Angebot für %@";
-"%@ offered for it." = "%@ wurden dafür geboten.";
-"Someone made an offer for it." = "Jemand hat ein Angebot dafür gemacht.";
-"%@ sold" = "%@ verkauft";
-"%@ was paid to you." = "%@ wurden an dich gezahlt.";
-"Your listing was bought." = "Dein Angebot wurde gekauft.";
-"Offer accepted" = "Angebot angenommen";
-"%@ is yours now." = "%@ gehört jetzt dir.";
-"Renew %@" = "%@ verlängern";
-"Renewal is open: renew now to keep it." = "Die Verlängerung ist offen: Verlängere jetzt, um den Namen zu behalten.";
-"%@ expires soon" = "%@ läuft bald ab";
-"%d days left to renew it." = "Noch %d Tage zum Verlängern.";
-"1 day left to renew it." = "Noch 1 Tag zum Verlängern.";
-"%@ has expired" = "%@ ist abgelaufen";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "Verlängere ihn bald, um ihn zu behalten.";
-"Renew it soon or anyone can claim it." = "Verlängere ihn bald, sonst kann ihn jeder beanspruchen.";
-"Offer on %@ declined" = "Angebot für %@ abgelehnt";
-"The owner declined it. The KAS is back with you." = "Der Inhaber hat es abgelehnt. Die KAS sind wieder bei dir.";
-"Offer on %@ expired" = "Angebot für %@ abgelaufen";
-"Nobody accepted it in time. The KAS is back with you." = "Niemand hat es rechtzeitig angenommen. Die KAS sind wieder bei dir.";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ gehört dir nicht mehr";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "Er ist abgelaufen und wurde nicht verlängert, daher steht er jetzt im Marktplatz für alle bereit. Deine Kaution kommt zu dir zurück, sobald ihn jemand beansprucht.";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "Hat dir %@ KAS gesendet";

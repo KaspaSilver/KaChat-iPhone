@@ -865,7 +865,17 @@ struct MessageTimeLine<Status: View>: View {
 
 struct DeliveryStatusLabel: View {
     enum Status {
-        case pending, sent, failed, warning
+        /// `unconfirmed`: our send whose outcome is unknown. It may have landed, so no Retry.
+        case pending, sent, failed, warning, unconfirmed
+
+        init(_ status: ChatMessage.DeliveryStatus, isOutgoing: Bool) {
+            switch status {
+            case .sent: self = .sent
+            case .pending: self = .pending
+            case .failed: self = .failed
+            case .warning: self = isOutgoing ? .unconfirmed : .warning
+            }
+        }
     }
 
     let status: Status
@@ -879,14 +889,14 @@ struct DeliveryStatusLabel: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Failed to send. Tap to retry.")
         } else {
-            content.accessibilityLabel(accessibilityText)
+            content.accessibilityLabel(Text(LocalizedStringKey(accessibilityText)))
         }
     }
 
     private var content: some View {
         HStack(spacing: 3) {
             Image(systemName: icon)
-            Text(text)
+            Text(LocalizedStringKey(text))
         }
         .font(.caption2)
         .foregroundColor(color)
@@ -898,6 +908,7 @@ struct DeliveryStatusLabel: View {
         case .pending: return "clock"
         case .failed: return "exclamationmark.circle.fill"
         case .warning: return "exclamationmark.circle.fill"
+        case .unconfirmed: return "questionmark.circle"
         }
     }
 
@@ -907,6 +918,7 @@ struct DeliveryStatusLabel: View {
         case .pending: return "Sending"
         case .failed: return retry == nil ? "Failed" : "Failed · Tap to retry"
         case .warning: return "Needs attention"
+        case .unconfirmed: return "Not confirmed"
         }
     }
 
@@ -915,7 +927,7 @@ struct DeliveryStatusLabel: View {
         case .sent: return compact ? .secondary : .green
         case .pending: return .secondary
         case .failed: return .red
-        case .warning: return .orange
+        case .warning, .unconfirmed: return .orange
         }
     }
 
@@ -925,6 +937,7 @@ struct DeliveryStatusLabel: View {
         case .pending: return "Sending"
         case .failed: return "Failed to send"
         case .warning: return "Needs attention"
+        case .unconfirmed: return "Not confirmed yet. It may still go through."
         }
     }
 }

@@ -14,6 +14,7 @@ private struct SharedRecentRecord: Codable {
     let address: String
     let alias: String
     let lastUsedMs: Int64
+    var walletAddress: String?
 }
 
 private struct ShareContact: Identifiable, Hashable {
@@ -119,16 +120,13 @@ private enum ShareStore {
             uniquingKeysWith: { first, _ in first }
         )
 
-        // Recents are one list for both networks; show only the running network's chats (the
-        // app's wallet address says which), so a mainnet chat can't be a share target on testnet.
+        // Only the signed-in account's own chats: recents are one list for every account, and a
+        // share to another account's chat would be sent from this one, linking the two on chain.
+        // Signed out, there are none. Entries from before they named their account aren't shown.
         let walletAddress = sharedDefaults?.string(forKey: walletAddressKey)?.lowercased() ?? ""
-        let onTestnet = walletAddress.hasPrefix("kaspatest:")
+        guard !walletAddress.isEmpty else { return [] }
         return decoded
-            .filter { record in
-                let address = record.address.lowercased()
-                guard !walletAddress.isEmpty, address.hasPrefix("kaspa") else { return true }
-                return address.hasPrefix("kaspatest:") == onTestnet
-            }
+            .filter { $0.walletAddress?.lowercased() == walletAddress }
             .sorted { $0.lastUsedMs > $1.lastUsedMs }
             .map { record in
                 let syncedAlias = contactAliases[record.address]?
@@ -172,7 +170,9 @@ private enum ShareStore {
             text: cleaned,
             image: storedImage,
             createdAtMs: nowMs,
-            autoSend: autoSend
+            autoSend: autoSend,
+            // "" when signed out: the app then sends it from no account rather than whichever signs in
+            walletAddress: sharedDefaults?.string(forKey: walletAddressKey) ?? ""
         )
 
         shares.append(share)

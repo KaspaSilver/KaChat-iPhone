@@ -312,34 +312,6 @@
 /* 5.2: Message Requests, Private chats */
 "New message request" = "नया मैसेज अनुरोध";
 "%@ wants to chat with you." = "%@ आपसे चैट करना चाहते हैं।";
-"New offer on %@" = "%@ पर नया ऑफ़र";
-"%@ offered for it." = "इसके लिए %@ का ऑफ़र मिला।";
-"Someone made an offer for it." = "किसी ने इसके लिए ऑफ़र दिया।";
-"%@ sold" = "%@ बिक गया";
-"%@ was paid to you." = "आपको %@ का भुगतान हुआ।";
-"Your listing was bought." = "आपका बिक्री वाला नाम खरीद लिया गया।";
-"Offer accepted" = "ऑफ़र स्वीकार हुआ";
-"%@ is yours now." = "%@ अब आपका है।";
-"Renew %@" = "%@ नवीनीकृत करें";
-"Renewal is open: renew now to keep it." = "नवीनीकरण खुला है: इसे रखने के लिए अभी नवीनीकृत करें।";
-"%@ expires soon" = "%@ जल्द समाप्त होगा";
-"%d days left to renew it." = "नवीनीकरण के लिए %d दिन बचे हैं।";
-"1 day left to renew it." = "नवीनीकरण के लिए 1 दिन बचा है।";
-"%@ has expired" = "%@ समाप्त हो गया";
-
-/* .kachat pushes: period-neutral wording, lapsed, declined and expired offers */
-"Renew it soon to keep it." = "इसे रखने के लिए जल्द नवीनीकृत करें।";
-"Renew it soon or anyone can claim it." = "जल्द नवीनीकृत करें वरना कोई भी इसे ले सकता है।";
-"Offer on %@ declined" = "%@ पर ऑफ़र अस्वीकृत";
-"The owner declined it. The KAS is back with you." = "मालिक ने इसे अस्वीकार किया। KAS आपके पास वापस आ गए।";
-"Offer on %@ expired" = "%@ पर ऑफ़र समाप्त";
-"Nobody accepted it in time. The KAS is back with you." = "किसी ने समय पर स्वीकार नहीं किया। KAS आपके पास वापस आ गए।";
-
-/* .kachat name lapsed: moved to Reclaimable */
-
-/* .kachat: name past grace is available to anyone */
-"%@ is no longer yours" = "%@ अब आपका नहीं है";
-"It expired and wasn't renewed, so it's now available to anyone in the marketplace. Your bond comes back to you when someone claims it." = "इसकी अवधि समाप्त हो गई और इसे नवीनीकृत नहीं किया गया, इसलिए अब यह मार्केटप्लेस में किसी के भी लिए उपलब्ध है। कोई इसे लेगा तो आपकी जमानत आपको वापस मिल जाएगी।";
 
 /* Push body for an incoming chat payment (title = who sent it) */
 "Sent you %@ KAS" = "आपको %@ KAS भेजे";

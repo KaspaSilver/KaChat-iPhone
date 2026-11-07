@@ -135,7 +135,6 @@
 		KFAS00010001000000000002 /* KaspaFiatAmountState.swift in Sources */ = {isa = PBXBuildFile; fileRef = KFAS00010001000000000001 /* KaspaFiatAmountState.swift */; };
 		KFPOLICY000100010001 /* KaspaFeePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = KFPOLICY000100010002 /* KaspaFeePolicy.swift */; };
 		KNAV00010001000100000001 /* KNSAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = KNAV000100010000000001 /* KNSAvatarView.swift */; };
-		KNSPROB0000000000000001 /* KNSCreateProfileFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = KNSPROA0000000000000001 /* KNSCreateProfileFlowView.swift */; };
 		L10N000300000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = L10N000200000001 /* Localizable.strings */; };
 		SIRI000300000001 /* AppIntentVocabulary.plist in Resources */ = {isa = PBXBuildFile; fileRef = SIRI000200000001 /* AppIntentVocabulary.plist */; };
 		LPRVB0000000000000001 /* LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPRVA0000000000000001 /* LinkPreviewService.swift */; };
@@ -352,7 +351,6 @@
 		KFAS00010001000000000001 /* KaspaFiatAmountState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaspaFiatAmountState.swift; sourceTree = "<group>"; };
 		KFPOLICY000100010002 /* KaspaFeePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaspaFeePolicy.swift; sourceTree = "<group>"; };
 		KNAV000100010000000001 /* KNSAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KNSAvatarView.swift; sourceTree = "<group>"; };
-		KNSPROA0000000000000001 /* KNSCreateProfileFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KNSCreateProfileFlowView.swift; sourceTree = "<group>"; };
 		L10N000100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		SIRI000100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = en; path = en.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
 		SIRI000100000002 /* ar-EG */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "ar-EG"; path = "ar-EG.lproj/AppIntentVocabulary.plist"; sourceTree = "<group>"; };
@@ -750,7 +748,6 @@
 				AB0B00032E8F000100000001 /* AddressBookView.swift */,
 				SA0001A0000000000000001 /* ManageAddressesView.swift */,
 				WV0001A0000000000000001 /* WalletView.swift */,
-				KNSPROA0000000000000001 /* KNSCreateProfileFlowView.swift */,
 			);
 			path = Contacts;
 			sourceTree = "<group>";
@@ -1205,7 +1202,6 @@
 				4D3D20032F72000300000002 /* MessageImageSharePayload.swift in Sources */,
 				4D3D20042F72000400000002 /* ChatImageAttachmentLoader.swift in Sources */,
 				E810001B2D4C00010000000E /* ContactsView.swift in Sources */,
-				KNSPROB0000000000000001 /* KNSCreateProfileFlowView.swift in Sources */,
 				LPRVB0000000000000001 /* LinkPreviewService.swift in Sources */,
 				LPRVD0000000000000001 /* LinkPreviewCardView.swift in Sources */,
 				NC0002B0000000000000001 /* NextcloudPickerView.swift in Sources */,

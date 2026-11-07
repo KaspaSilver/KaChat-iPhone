@@ -333,17 +333,22 @@ the only cloud copies that exist; iOS keeps nothing in iCloud, and on iOS Nextcl
 (m/44'/111111'/0'/0/0). Any device holding the seed derives the same key; nothing else can
 read the archive.
 
-**Plaintext** is the existing ChatHistoryArchive JSON, schema unchanged, including
-`desktopState` and any foreign keys.
+**Plaintext** depends on the file: the older clients' `kachat-backup.json` and an exported chat
+archive hold the ChatHistoryArchive JSON, schema unchanged, including `desktopState` and any foreign
+keys; iOS's `kachat-contacts.json` holds the Address Book export JSON (NEXTCLOUD_SYNC.md, "Contacts
+only").
 
 **Phantom rows**: a message whose `txId` is blank or carries a provisional `pending_` id
 never reached the chain; exporters MUST NOT emit such rows, and mergers MUST drop them when
 encountered in an existing file (they can never be connected to their delivered selves and
 otherwise live in the union forever).
 
-**Readers**: if the parsed top level has `kachatEncryptedBackup == 1`, decrypt then parse;
-otherwise treat as a legacy plaintext archive and parse as-is. Legacy files stay restorable
-indefinitely; writers ALWAYS encrypt. Merge-on-upload becomes download, decrypt (if
+**Readers**: if the parsed top level has `kachatEncryptedBackup == 1`, decrypt then parse.
+Writers ALWAYS encrypt. iOS refuses anything else: a plaintext `kachat-contacts.json` is never read
+or overwritten, and a chat archive imported from a file must be an envelope, because nothing in a
+plaintext archive is checked against the chain or a key. (Older clients may still read a legacy
+plaintext `kachat-backup.json`.) For `kachat-contacts.json` the merge and overwrite rules are
+NEXTCLOUD_SYNC.md's "Contacts only", not the archive merge below. Merge-on-upload becomes download, decrypt (if
 enveloped), merge, encrypt, upload. `walletHint` lets a device skip a foreign wallet's file
 without decrypting; the decrypted archive's own `walletAddress` is still validated as today.
 A failed decrypt (wrong seed, corrupt file) aborts before any upload, never overwrites.
@@ -381,8 +386,8 @@ original, with a small "edited" mark. Rules, identical on every platform:
   blanks one that arrives anyway (1:1 and groups, where the server cannot see inside).
 
 Reference implementation: `MessageEditCodec` in `Models.swift`; interception in
-`ChatService.addMessageToConversation`, `GroupChatService` (next to the reaction branch) and
-`PublicChatService` (scan, indexer page and sweep paths).
+`ChatService.addMessageToConversation` and `GroupChatService` (next to the reaction branch). Public
+chats left the iOS app; clients that still have them intercept edits on every room path too.
 
 ## Chat Payments From a Spending Address (`payment_notice`)
 

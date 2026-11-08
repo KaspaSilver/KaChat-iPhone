@@ -1177,11 +1177,14 @@ struct KaChatInternalLinkCardView: View {
     var onDoubleTap: (() -> Void)?
 
     @EnvironmentObject private var settingsViewModel: SettingsViewModel
+    /// A KaPost link's post, once the indexer has it (`KaPostPreviewLoader`).
+    @State private var kaPostPreview: KaPostPreview?
 
     private var iconName: String {
         switch match.link {
         case .profile: return "person.crop.circle"
         case .paymentRequest: return "arrow.up.circle"
+        case .kaPost: return "text.bubble"
         }
     }
 
@@ -1189,6 +1192,7 @@ struct KaChatInternalLinkCardView: View {
         switch match.link {
         case .profile: return "KaChat Profile"
         case .paymentRequest: return "Payment Request"
+        case .kaPost: return "KaPost"
         }
     }
 
@@ -1201,6 +1205,15 @@ struct KaChatInternalLinkCardView: View {
             return ContactsManager.shared.displayName(for: address)
         case .paymentRequest(let request):
             return "\(request.amountText) \(KaspaUnit.symbol)"
+        case .kaPost:
+            // the poster, named the way a profile card names them
+            if let author = kaPostPreview?.authorAddress {
+                if let domain = KNSService.shared.identityInfo(for: author)?.primaryDomain {
+                    return domain
+                }
+                return ContactsManager.shared.displayName(for: author)
+            }
+            return AppLocalization.string("A post on KaPost")
         }
     }
 
@@ -1219,6 +1232,8 @@ struct KaChatInternalLinkCardView: View {
             }
             lines.append(action)
             return lines.joined(separator: "\n")
+        case .kaPost:
+            return kaPostPreview?.text ?? AppLocalization.string("Tap to open it in KaPost.")
         }
     }
 
@@ -1274,13 +1289,27 @@ struct KaChatInternalLinkCardView: View {
         .onTapGesture(count: 2) { onDoubleTap?() }
         .onTapGesture { KaChatLinkRouter.open(match.link, fromChat: true) }
         .messageActions(title: "KaChat Link", preview: match.url.absoluteString) { linkActions }
+        .task(id: match.url) {
+            guard case .kaPost(let txId) = match.link else { return }
+            kaPostPreview = KaPostPreviewLoader.cached(txId)
+            if kaPostPreview == nil { kaPostPreview = await KaPostPreviewLoader.load(txId) }
+        }
+    }
+
+    private var isKaPost: Bool {
+        if case .kaPost = match.link { return true }
+        return false
     }
 
     private var linkActions: [MessageAction] {
         var actions: [MessageAction] = [
-            MessageAction(title: "Open in KaChat", subtitle: "Opens it right here in the app.", systemImage: "arrow.up.forward.app") {
-                KaChatLinkRouter.open(match.link, fromChat: true)
-            },
+            isKaPost
+                ? MessageAction(title: "Open in KaPost", subtitle: "Opens the post in the KaPost app.", systemImage: "arrow.up.forward.app") {
+                    KaChatLinkRouter.open(match.link, fromChat: true)
+                }
+                : MessageAction(title: "Open in KaChat", subtitle: "Opens it right here in the app.", systemImage: "arrow.up.forward.app") {
+                    KaChatLinkRouter.open(match.link, fromChat: true)
+                },
             .copyLink { UIPasteboard.general.string = match.url.absoluteString }
         ]
         if let explorerURL = settingsViewModel.settings.kaspaExplorer.txURL(for: txId) {

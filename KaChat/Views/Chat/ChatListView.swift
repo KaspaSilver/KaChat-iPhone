@@ -1834,6 +1834,8 @@ struct ConversationRow: View {
                 result = "Shared a KaChat profile"
             case .paymentRequest(let request):
                 result = KaspaUnit.label(String(format: AppLocalization.string("Payment request: %@ KAS"), request.amountText))
+            case .kaPost:
+                result = AppLocalization.string("Shared a KaPost")
             }
             Self.previewCache.setObject(result as NSString, forKey: key)
             return result

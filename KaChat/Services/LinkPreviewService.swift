@@ -13,6 +13,7 @@ import CryptoKit
 /// | Target         | Custom scheme                  | Universal link                                    |
 /// |----------------|--------------------------------|---------------------------------------------------|
 /// | Profile          | `kachat://profile/<address>`   | `https://kachat.app/u/<address>`                  |
+/// | KaPost post      | `kachat://kapost/<txid>` (or `kaposts://kapost/<txid>`) | `https://kachat.app/post/<txid>` |
 /// | Payment request  | `kachat://pay/<address>?amount=<KAS>&memo=<text>[&chat=1]&by=<address>&sig=<hex>` | `https://kachat.app/pay/<address>?…` |
 ///
 /// `<address>` is a full Kaspa address; in the universal form a mainnet address may drop its
@@ -21,12 +22,14 @@ import CryptoKit
 /// Everything a pasted link carries is attacker-controlled, so `parse` re-validates every
 /// address from scratch rather than trusting the URL's text.
 ///
-/// KaPosts (`/post/`, `kachat://kapost/`) and Public Chat room (`/broadcast/`,
-/// `kachat://broadcast/`) links are no longer internal: those features left the app on
-/// 2026-10-24, so such a link is an ordinary web link to kachat.app.
+/// A KaPost post link opens the post in KaPost (`KaPostHandoff`): KaPosts left KaChat on
+/// 2026-10-24 for its own app. Public Chat room links (`/broadcast/`, `kachat://broadcast/`)
+/// are no longer internal, so such a link is an ordinary web link to kachat.app.
 enum KaChatInternalLink: Equatable {
     /// Someone's KaChat profile: opens their User Info (yours too, for your own link).
     case profile(address: String)
+    /// A post on KaPost: opens it in the KaPost app (`KaPostHandoff`).
+    case kaPost(txId: String)
     /// A request to be paid: opens Send Kaspa with the address, amount and memo filled in
     /// (`PaymentRequest`).
     case paymentRequest(PaymentRequest)
@@ -55,6 +58,8 @@ enum KaChatInternalLink: Equatable {
             return "https://\(Self.universalLinkHost)/u/\(path)"
         case .paymentRequest(let request):
             return "https://\(Self.universalLinkHost)/pay/\(request.linkTail)"
+        case .kaPost(let txId):
+            return "https://\(Self.universalLinkHost)/post/\(txId)"
         }
     }
 
@@ -74,8 +79,13 @@ enum KaChatInternalLink: Equatable {
             switch host {
             case "profile": return profileLink(rawAddress: payload)
             case "pay": return PaymentRequest(rawAddress: payload, url: url).map { .paymentRequest($0) }
+            case "kapost": return kaPostLink(rawTxId: payload)
             default: return nil
             }
+        case "kaposts":
+            // KaPost's own scheme: only its post links are ours to recognize.
+            guard url.host?.lowercased() == "kapost", parts.count == 1, let payload = parts.first else { return nil }
+            return kaPostLink(rawTxId: payload)
         case "http", "https":
             var host = url.host?.lowercased() ?? ""
             if host.hasPrefix("www.") { host.removeFirst(4) }
@@ -83,11 +93,21 @@ enum KaChatInternalLink: Equatable {
             switch parts[0].lowercased() {
             case "u": return profileLink(rawAddress: parts[1])
             case "pay": return PaymentRequest(rawAddress: parts[1], url: url).map { .paymentRequest($0) }
+            case "post": return kaPostLink(rawTxId: parts[1])
             default: return nil
             }
         default:
             return nil
         }
+    }
+
+    /// A post id is attacker-controlled too: letters, digits, "-" and "_" only, of a sane length
+    /// (KaPost's own rule), so nothing else rides into the `kaposts://` link it opens.
+    private static func kaPostLink(rawTxId: String) -> KaChatInternalLink? {
+        let id = rawTxId.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard id.count >= 8, id.count <= 128 else { return nil }
+        guard id.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") }) else { return nil }
+        return .kaPost(txId: id)
     }
 
     /// A pasted address is attacker-controlled like everything else in a link: it has to be a
@@ -120,7 +140,7 @@ enum KaChatInternalLink: Equatable {
     /// universal form is matched here too so it is claimed as INTERNAL before the generic
     /// preview path can fetch it over the network.
     private static let pattern =
-        #"(?:kachat://(?:profile|pay)/|https?://(?:www\.)?kachat\.app/(?:u|pay)/)[^\s<>"']+"#
+        #"(?:kachat://(?:profile|pay|kapost)/|kaposts://kapost/|https?://(?:www\.)?kachat\.app/(?:u|pay|post)/)[^\s<>"']+"#
 
     private static let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
 
@@ -152,7 +172,7 @@ enum KaChatInternalLink: Equatable {
         // Cheap bail-out before paying for the regex: neither form can appear without one of
         // these two literals, and the overwhelming majority of messages contain neither.
         let lowered = text.lowercased()
-        guard lowered.contains("kachat://") || lowered.contains(universalLinkHost) else { return nil }
+        guard lowered.contains("kachat://") || lowered.contains("kaposts://") || lowered.contains(universalLinkHost) else { return nil }
         guard let regex else { return nil }
         let ns = text as NSString
         let full = NSRange(location: 0, length: ns.length)
@@ -353,6 +373,99 @@ struct PaymentRequest: Equatable, Identifiable {
         }
         let cleaned = String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespacesAndNewlines)
         return String(cleaned.prefix(memoLimit))
+    }
+}
+
+/// What a KaPost link's card shows once the post is found: who posted it and what it says.
+struct KaPostPreview: Equatable {
+    /// The poster's address on the network the app runs on, nil if their key didn't read.
+    let authorAddress: String?
+    let text: String
+}
+
+/// Looks the post a KaPost link names up on the KaChat indexer (`get-post?id=`, the lookup KaPost
+/// itself uses), for the link's card in a chat. One answer per post per run, shared by every card;
+/// a post not found is asked again after five minutes at most.
+@MainActor
+enum KaPostPreviewLoader {
+    private static var cache: [String: KaPostPreview] = [:]
+    private static var misses: [String: Date] = [:]
+    private static var inFlight: [String: Task<KaPostPreview?, Never>] = [:]
+    /// The indexer wants a requester key, which only marks per-reader fields (your vote). A fixed
+    /// placeholder keeps who is reading the link out of the request.
+    private nonisolated static let placeholderRequester = "02" + String(repeating: "0", count: 64)
+    /// As much as the card can show, and what the link site puts in its preview.
+    private nonisolated static let textLimit = 300
+
+    static func cached(_ txId: String) -> KaPostPreview? { cache[txId] }
+
+    static func load(_ txId: String) async -> KaPostPreview? {
+        if let hit = cache[txId] { return hit }
+        if let missed = misses[txId], Date().timeIntervalSince(missed) < 300 { return nil }
+        if let running = inFlight[txId] { return await running.value }
+        let base = AppSettings.load().indexerURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let task = Task { () -> KaPostPreview? in
+            guard let found = await fetch(txId, base: base) else { return nil }
+            return KaPostPreview(authorAddress: found.authorKey.flatMap(authorAddress), text: found.text)
+        }
+        inFlight[txId] = task
+        let result = await task.value
+        inFlight[txId] = nil
+        if let result { cache[txId] = result } else { misses[txId] = Date() }
+        return result
+    }
+
+    private struct Response: Decodable {
+        struct Post: Decodable {
+            let userPublicKey: String?
+            let postContent: String
+        }
+        let post: Post
+    }
+
+    private nonisolated static func fetch(_ txId: String, base: String) async -> (authorKey: String?, text: String)? {
+        guard !base.isEmpty, var components = URLComponents(string: base) else { return nil }
+        let path = components.path.hasSuffix("/") ? String(components.path.dropLast()) : components.path
+        components.path = path + "/get-post"
+        components.queryItems = [
+            URLQueryItem(name: "id", value: txId),
+            URLQueryItem(name: "requesterPubkey", value: placeholderRequester),
+        ]
+        guard let url = components.url else { return nil }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 15
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let post = try? JSONDecoder().decode(Response.self, from: data).post,
+              let bytes = Data(base64Encoded: post.postContent),
+              let raw = String(data: bytes, encoding: .utf8) else { return nil }
+        let text = cleanText(raw)
+        guard !text.isEmpty else { return nil }
+        return (post.userPublicKey, text)
+    }
+
+    /// Someone else's text, shown in a small card: one paragraph (line breaks become spaces), no
+    /// control or direction marks (KaPost's invisible marker among them), at most `textLimit`.
+    private nonisolated static func cleanText(_ raw: String) -> String {
+        let flattened = raw.components(separatedBy: .newlines).joined(separator: " ")
+        let scalars = flattened.unicodeScalars.filter { scalar in
+            let category = scalar.properties.generalCategory
+            if category == .control || category == .format { return false }
+            switch scalar.value {
+            case 0x200B...0x200F, 0x202A...0x202E, 0x2060...0x2069, 0xFEFF: return false
+            default: return true
+            }
+        }
+        let cleaned = String(String.UnicodeScalarView(scalars)).trimmingCharacters(in: .whitespacesAndNewlines)
+        return cleaned.count > textLimit ? String(cleaned.prefix(textLimit)) + "…" : cleaned
+    }
+
+    /// A poster's compressed public key (66 hex) as their address: posts are signed with the key
+    /// a chatting address is made of.
+    private static func authorAddress(_ hex: String) -> String? {
+        guard hex.count == 66, let key = Data(hexString: hex), key.count == 33 else { return nil }
+        let address = KaspaAddress(hrp: "kaspa", type: .pubKey, payload: Data(Array(key.dropFirst()))).address
+        return KaspaAddress.onActiveNetwork(address)
     }
 }
 

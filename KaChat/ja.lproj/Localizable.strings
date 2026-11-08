@@ -1803,3 +1803,6 @@
 "Failed · Tap to retry" = "失敗 · タップして再試行";
 "Needs attention" = "要確認";
 "Failed to send" = "送信に失敗しました";
+"A post on KaPost" = "KaPost の投稿";
+"Tap to open it in KaPost." = "タップして KaPost で開きます。";
+"Shared a KaPost" = "KaPost の投稿を共有しました";

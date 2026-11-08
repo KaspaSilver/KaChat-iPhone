@@ -4,7 +4,7 @@ Every link the apps hand out is `https://kachat.app/...`:
 
 | Link | Written by | Opens in the app as |
 |---|---|---|
-| `https://kachat.app/post/<txid>` | KaPosts share sheet (iOS, Android, desktop) | the post's thread |
+| `https://kachat.app/post/<txid>` | KaPosts share sheet (iOS, Android, desktop) | the post's thread. In KaChat (tapped in a chat, or opened from outside) it goes straight to the post in KaPost (`kaposts://kapost/<txid>`), or to the install page without KaPost |
 | `https://kachat.app/broadcast/<room>` | broadcast room invite | the room |
 | `https://kachat.app/u/<address>` | the share button beside the Profile title, and Share in User Info | that person's User Info screen (name, avatar, profile, Open Chat) |
 | `https://kachat.app/pay/<address>?amount=<KAS>&memo=<text>[&chat=1]&by=<address>&sig=<hex>` | Chats > + > Request Payment (Copy / Share) | Send Kaspa with the address (locked), amount and memo filled in, and who asked |

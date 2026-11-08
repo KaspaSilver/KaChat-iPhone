@@ -395,6 +395,19 @@ enum KaPayHandoff {
     }
 }
 
+/// A KaPost post link (`KaChatInternalLink.kaPost`), tapped in a chat or opened from outside the
+/// app, goes straight to that post in KaPost through its own scheme. Without KaPost installed,
+/// the install page all the apps share opens to get it.
+enum KaPostHandoff {
+    @MainActor
+    static func open(txId: String) {
+        guard let url = URL(string: "kaposts://kapost/\(txId)") else { return }
+        UIApplication.shared.open(url) { opened in
+            if !opened { UIApplication.shared.open(KaPayHandoff.installURL) }
+        }
+    }
+}
+
 /// Pasting a payment request anywhere in KaChat opens Send Kaspa with it. Only text that is the
 /// link and nothing else, and only someone else's request: your own pastes as text, so you can
 /// send it to the person who should pay.

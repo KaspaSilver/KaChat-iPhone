@@ -1060,6 +1060,8 @@ enum KaChatLinkRouter {
             openProfile(address: address)
         case .paymentRequest(let request):
             openPaymentRequest(request, fromChat: fromChat)
+        case .kaPost(let txId):
+            KaPostHandoff.open(txId: txId)
         }
     }
 

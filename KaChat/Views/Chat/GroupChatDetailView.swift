@@ -241,7 +241,6 @@ struct GroupChatDetailView: View {
     @State private var isEstimatingFee = false
     @State private var feeEstimateLength: Int?
     @State private var feeEstimateTask: Task<Void, Never>?
-    @State private var feeShimmerPhase: CGFloat = -1
     /// User-set fee, from tapping the fee pill - see ChatDetailView.feeOverrideSompi's doc comment.
     @State private var feeOverrideSompi: UInt64?
     @State private var showFeeEditor = false
@@ -1165,7 +1164,7 @@ struct GroupChatDetailView: View {
         .background(glassBackground(cornerRadius: 14))
         .overlay {
             if isEstimatingFee {
-                FeeShimmerOverlay(phase: feeShimmerPhase)
+                FeeShimmerOverlay()
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .allowsHitTesting(false)
             }
@@ -1175,12 +1174,6 @@ struct GroupChatDetailView: View {
             guard !isEstimatingFee, let currentFee = feeOverrideSompi ?? feeEstimateSompi else { return }
             feeEditorText = formatKaspaExact(currentFee)
             showFeeEditor = true
-        }
-        .onAppear {
-            updateFeeShimmer()
-        }
-        .onChange(of: isEstimatingFee) { _ in
-            updateFeeShimmer()
         }
     }
 
@@ -1197,17 +1190,6 @@ struct GroupChatDetailView: View {
 
     private func formatKaspaExact(_ sompi: UInt64) -> String {
         String(format: "%.8f", Double(sompi) / 100_000_000.0)
-    }
-
-    private func updateFeeShimmer() {
-        if isEstimatingFee {
-            feeShimmerPhase = -1
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
-                feeShimmerPhase = 1
-            }
-        } else {
-            feeShimmerPhase = -1
-        }
     }
 
     /// While typing (`force` false): waits for a 0.6 s pause, and skips the estimate while the

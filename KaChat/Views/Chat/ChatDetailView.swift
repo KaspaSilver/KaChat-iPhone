@@ -371,7 +371,6 @@ struct ChatDetailView: View {
     /// M4A from that would silently re-cap a long Nextcloud recording.
     @State private var nextcloudOriginalRecordingURL: URL?
     @State private var recordingFeeTask: Task<Void, Never>?
-    @State private var feeShimmerPhase: CGFloat = -1
     @State private var previewPlayer: AVAudioPlayer?
     @State private var previewTimer: Timer?
     @State private var previewIsPlaying = false
@@ -2927,7 +2926,7 @@ struct ChatDetailView: View {
         .background(glassBackground(cornerRadius: 14))
         .overlay {
             if isEstimatingFee {
-                FeeShimmerOverlay(phase: feeShimmerPhase)
+                FeeShimmerOverlay()
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .allowsHitTesting(false)
             }
@@ -2937,12 +2936,6 @@ struct ChatDetailView: View {
             guard !isEstimatingFee, let currentFee = feeOverrideSompi ?? feeEstimateSompi ?? recordingFeeSompi else { return }
             feeEditorText = formatKaspaExact(currentFee)
             showFeeEditor = true
-        }
-        .onAppear {
-            updateFeeShimmer()
-        }
-        .onChange(of: isEstimatingFee) { _ in
-            updateFeeShimmer()
         }
     }
 
@@ -3565,17 +3558,6 @@ struct ChatDetailView: View {
         )
         .padding(.horizontal)
         .padding(.bottom, 4)
-    }
-
-    private func updateFeeShimmer() {
-        if isEstimatingFee {
-            feeShimmerPhase = -1
-            withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
-                feeShimmerPhase = 1
-            }
-        } else {
-            feeShimmerPhase = -1
-        }
     }
 
     private func clearFeeEstimationState() {

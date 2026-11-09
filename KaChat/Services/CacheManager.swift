@@ -137,19 +137,19 @@ final class CacheManager: ObservableObject {
         case .webResponses:
             URLCache.shared.removeAllCachedResponses()
         case .profiles:
-            await emptyDirectories(directories(for: category))
+            await emptyDirectories(for: category)
             // The in-memory half has to go too, or the screen keeps showing what was just
             // deleted from disk until the app is relaunched.
             await resetProfilesInMemory()
         case .temporaryFiles:
-            await emptyDirectories(directories(for: category))
+            await emptyDirectories(for: category)
         }
         await refreshSizes()
     }
 
     func clearAll() async {
         for category in Category.allCases where category != .webResponses {
-            await emptyDirectories(directories(for: category))
+            await emptyDirectories(for: category)
         }
         URLCache.shared.removeAllCachedResponses()
         await resetProfilesInMemory()
@@ -163,27 +163,37 @@ final class CacheManager: ObservableObject {
         KachatNamesRegistry.shared.clearProfileCache()
     }
 
+    /// tmp is shared with whatever the app is doing right now: a voice note being encoded, a file
+    /// waiting on a share sheet. Clearing leaves anything written within the last hour.
+    private func minimumAge(for category: Category) -> TimeInterval {
+        category == .temporaryFiles ? 60 * 60 : 0
+    }
+
     /// Removes the CONTENTS, not the directory: services hold their directory URL from init, so
     /// deleting the folder itself would leave them writing into a path that no longer exists.
-    private func emptyDirectories(_ urls: [URL]) async {
+    private func emptyDirectories(for category: Category) async {
+        let urls = directories(for: category)
+        let cutoff = Date().addingTimeInterval(-minimumAge(for: category))
         await Task.detached(priority: .utility) {
             let fileManager = FileManager.default
             for url in urls {
                 guard let contents = try? fileManager.contentsOfDirectory(
-                    at: url, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]
+                    at: url, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]
                 ) else { continue }
                 for item in contents {
+                    let modified = (try? item.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+                    guard modified <= cutoff else { continue }
                     try? fileManager.removeItem(at: item)
                 }
             }
         }.value
     }
 
-    /// Audio the app wrote to tmp for playback, encoding or sharing and could not clean up
+    /// Audio and diagnostics exports the app wrote to tmp and could not clean up
     /// (killed mid-way, a share sheet that never completed). Anything of ours older than a day
     /// is nobody's any more. Runs once per launch, off the main thread.
     nonisolated static func sweepStaleTempFiles() {
-        let prefixes = ["kasia-audio", "kachat-voice", "kachat-broadcast-voice", "broadcast_rec_", "broadcast_voice_"]
+        let prefixes = ["kasia-audio", "kachat-voice", "kachat-broadcast-voice", "broadcast_rec_", "broadcast_voice_", "kasia-diagnostics-"]
         let cutoff = Date().addingTimeInterval(-24 * 60 * 60)
         let directory = FileManager.default.temporaryDirectory
         guard let items = try? FileManager.default.contentsOfDirectory(

@@ -602,7 +602,7 @@ struct SettingsView: View {
     private func importChatHistoryArchive(result: Result<URL, Error>) async {
         switch result {
         case .failure(let error):
-            showToast("Failed to open archive: \(error.localizedDescription)", style: .error)
+            showToast(String(format: AppLocalization.string("Failed to open archive: %@"), error.localizedDescription), style: .error)
         case .success(let fileURL):
             guard !restoreCoordinator.isRunning else { return }
 
@@ -618,7 +618,7 @@ struct SettingsView: View {
                 restoreCoordinator.startLocalRestore(data: data)
             } catch {
                 AppLog.log("[Settings] Failed to read chat history archive: %@", error.localizedDescription)
-                showToast("Failed to open archive: \(error.localizedDescription)", style: .error)
+                showToast(String(format: AppLocalization.string("Failed to open archive: %@"), error.localizedDescription), style: .error)
             }
         }
     }
@@ -1001,7 +1001,7 @@ struct DiagnosticsSettingsPage: View {
         .navigationTitle("Diagnostics")
         .navigationBarTitleDisplayMode(.inline)
         .toast(message: toastMessage, style: toastStyle)
-        .sheet(isPresented: $showDiagnosticsShareSheet) {
+        .sheet(isPresented: $showDiagnosticsShareSheet, onDismiss: removeDiagnosticsFiles) {
             if let diagnosticsArchiveURL {
                 DiagnosticsShareSheet(fileURL: diagnosticsArchiveURL)
             }
@@ -1050,8 +1050,19 @@ struct DiagnosticsSettingsPage: View {
             showDiagnosticsShareSheet = true
         } catch {
             AppLog.log("[Settings] Failed to export diagnostics: %@", error.localizedDescription)
+            try? FileManager.default.removeItem(at: tempDir)
+            try? FileManager.default.removeItem(at: zipURL)
             showToast("Failed to export diagnostics.", style: .error)
         }
+    }
+
+    /// The export holds the app logs and device details, so it lasts only as long as the share
+    /// sheet that needs it. `CacheManager.sweepStaleTempFiles` catches one left by a kill.
+    private func removeDiagnosticsFiles() {
+        guard let zipURL = diagnosticsArchiveURL else { return }
+        diagnosticsArchiveURL = nil
+        try? FileManager.default.removeItem(at: zipURL)
+        try? FileManager.default.removeItem(at: zipURL.deletingPathExtension())
     }
 
     private func buildDiagnosticsArchive() async -> DiagnosticsArchive {
@@ -3718,7 +3729,7 @@ struct ChatRestoreProgressModal: View {
                 .animation(.easeInOut(duration: 0.25), value: coordinator.fraction)
 
             HStack {
-                Text(coordinator.stageText)
+                Text(AppLocalization.string(coordinator.stageText))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
@@ -3917,7 +3928,7 @@ final class IncomingResyncCoordinator: ObservableObject {
             advance(to: 0.22, stage: "Re-fetching payments...")
         case .syncingChats(let done, let total):
             let f = total > 0 ? Double(done) / Double(total) : 1.0
-            advance(to: 0.30 + 0.65 * f, stage: "Re-syncing... \(done) of \(total) chats")
+            advance(to: 0.30 + 0.65 * f, stage: String(format: AppLocalization.string("Re-syncing... %lld of %lld chats"), done, total))
         case .finalizing:
             advance(to: 0.96, stage: "Finishing up...")
         }
@@ -3978,7 +3989,7 @@ struct IncomingResyncProgressModal: View {
                 .animation(.easeInOut(duration: 0.25), value: coordinator.fraction)
 
             HStack {
-                Text(coordinator.stageText)
+                Text(AppLocalization.string(coordinator.stageText))
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
@@ -4267,9 +4278,9 @@ struct CacheSettingsPage: View {
         .task { await cache.refreshSizes() }
         .sheet(item: $pendingClear) { category in
             ConfirmActionSheet(
-                title: "Clear \(category.title)?",
+                title: String(format: AppLocalization.string("Clear %@?"), category.title),
                 confirmTitle: "Clear",
-                confirmSubtitle: "\(CacheManager.formatted(cache.sizes[category] ?? 0)) freed. \(category.detail)",
+                confirmSubtitle: String(format: AppLocalization.string("%@ freed. %@"), CacheManager.formatted(cache.sizes[category] ?? 0), category.detail),
                 confirmSystemImage: "trash"
             ) {
                 Task { await cache.clear(category) }
@@ -4279,7 +4290,7 @@ struct CacheSettingsPage: View {
             ConfirmActionSheet(
                 title: "Clear All Cache?",
                 confirmTitle: "Clear All",
-                confirmSubtitle: "Frees \(CacheManager.formatted(cache.totalBytes)). Your messages, contacts and keys are not touched.",
+                confirmSubtitle: String(format: AppLocalization.string("Frees %@. Your messages, contacts and keys are not touched."), CacheManager.formatted(cache.totalBytes)),
                 confirmSystemImage: "trash"
             ) {
                 Task { await cache.clearAll() }

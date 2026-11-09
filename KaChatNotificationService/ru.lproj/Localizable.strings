@@ -318,3 +318,8 @@
 "Sent you a payment" = "Отправил вам платёж";
 "Requested for payment" = "Запрошена оплата";
 "You were invited to \"%@\"" = "Вас пригласили в «%@»";
+
+/* Undecryptable group push */
+"Group chat" = "Групповой чат";
+"Group update" = "Обновление группы";
+"New group message" = "Новое сообщение в группе";

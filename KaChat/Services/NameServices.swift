@@ -385,6 +385,10 @@ final class NameServicesClient: ObservableObject {
         if wanted == .kachat, results.contains(where: { $0.tld == .kachat && $0.notLive }) || !NameServiceTLD.kachat.isLive {
             return String(localized: ".kachat names aren't live on this network yet")
         }
+        // Couldn't be checked is not "no such name".
+        if let failed = results.first(where: { $0.tld == wanted && $0.failed }) {
+            return String(localized: "Couldn't look up \(failed.display) right now. Try again in a moment.")
+        }
         return String(localized: "No \(wanted.suffix) domain found")
     }
 
@@ -403,6 +407,8 @@ final class NameServicesClient: ObservableObject {
         do {
             switch try await registry.lookup(canonical) {
             case .registered(let n) where n.status(graceMs: registry.graceMs) != .lapsed:
+                guard n.name == canonical else { throw KachatNames.Failure("the indexer answered for another name") }
+                try await registry.confirmOnChain(n)
                 return NameResolution(tld: .kachat, display: display, address: KachatNamesRegistry.address(of: n.owner), failed: false)
             default:
                 return NameResolution(tld: .kachat, display: display, address: nil, failed: false)

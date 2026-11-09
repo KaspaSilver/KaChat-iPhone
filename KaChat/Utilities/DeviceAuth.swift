@@ -67,11 +67,11 @@ enum DeviceAuth {
         passcodeAlertWindow = window
 
         let alert = UIAlertController(
-            title: "Passcode Required",
-            message: "Set a passcode on this iPhone (Settings > Face ID & Passcode) to send Kaspa, delete an account, or view secret keys in KaChat.",
+            title: AppLocalization.string("Passcode Required"),
+            message: AppLocalization.string("Set a passcode on this iPhone (Settings > Face ID & Passcode) to send Kaspa, delete an account, or view secret keys in KaChat."),
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+        alert.addAction(UIAlertAction(title: AppLocalization.string("OK"), style: .default) { _ in
             passcodeAlertWindow?.isHidden = true
             passcodeAlertWindow = nil
         })

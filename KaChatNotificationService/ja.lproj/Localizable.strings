@@ -318,3 +318,8 @@
 "Sent you a payment" = "支払いを送ってきました";
 "Requested for payment" = "支払いをリクエストしました";
 "You were invited to \"%@\"" = "「%@」に招待されました";
+
+/* Undecryptable group push */
+"Group chat" = "グループチャット";
+"Group update" = "グループの更新";
+"New group message" = "新しいグループメッセージ";

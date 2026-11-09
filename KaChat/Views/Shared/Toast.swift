@@ -31,7 +31,9 @@ struct ToastBanner: View {
         HStack(spacing: 8) {
             Image(systemName: style.iconName)
                 .foregroundColor(style.iconColor)
-            Text(message)
+            // Looked up, not shown verbatim: `Text(String)` skips Localizable.strings. A message
+            // with no translation, or one the caller already resolved, shows as written.
+            Text(AppLocalization.string(message))
                 .font(.subheadline)
                 .foregroundColor(.primary)
         }
@@ -73,7 +75,7 @@ extension String {
     /// Every address-copy confirmation across the app must use this so the wording and the
     /// shortened form cannot drift between screens.
     var addressCopiedToastText: String {
-        "Address \(addressToastShortened) copied"
+        String(format: AppLocalization.string("Address %@ copied"), addressToastShortened)
     }
 
     /// Standard shortened form used inside the copy toast: the "kaspa:"/"kaspatest:" prefix,

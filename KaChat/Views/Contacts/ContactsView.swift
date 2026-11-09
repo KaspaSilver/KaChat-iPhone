@@ -326,7 +326,10 @@ struct ProfileView: View {
                     settingPrimaryDomainId: settingPrimaryDomainId,
                     setPrimaryError: $setPrimaryMessage,
                     onSetPrimary: { domain in
-                        Task { await setPrimaryDomain(domain) }
+                        // an on-chain change of what the name says about you, like sending it
+                        DeviceAuth.authenticate(reason: AppLocalization.string("Confirm setting this primary name")) {
+                            Task { await setPrimaryDomain(domain) }
+                        }
                     },
                     onTransferComplete: { result in
                         Haptics.success()
@@ -2738,7 +2741,8 @@ struct KNSDomainSendView: View {
     private func commitCustomFee() {
         defer { isEditingFee = false }
         guard let sompi = KaspaUnit.sompi(fromUserText: customFeeText) else { return }
-        customFeeSompi = sompi
+        // The reveal pays this out of the commit's 2 KAS: held to what it can carry.
+        customFeeSompi = min(sompi, KNSDomainTransferService.maxPriorityFeeSompi)
     }
 
     private func send() {
@@ -2883,26 +2887,6 @@ struct ChattingAddressManageView: View {
                     .font(.title3.weight(.semibold))
             }
             .padding(.top, 12)
-
-
-            // What used to be two unlabelled glyphs in the navigation bar. A pair of icons has
-            // room for no words at all, so neither said what it did, and there was nowhere to put
-            // a third thing. Same button and same sheet as Manage Addresses' own Address Actions.
-            Button {
-                Haptics.impact(.light)
-                showAddressActions = true
-            } label: {
-                Text("Address Actions")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundColor(.black)
-                    .background(Capsule().fill(Color.accentColor))
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal)
-            .padding(.top, 12)
             .padding(.bottom, 8)
 
             // Right above what it switches, the way Chats has it.
@@ -2920,17 +2904,45 @@ struct ChattingAddressManageView: View {
         }
         .navigationTitle("Chatting Address")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                AddressOptionsButton { showAddressActions = true }
+            }
+        }
         .sheet(isPresented: $showAddressActions, onDismiss: {
             let next = afterAddressActions
             afterAddressActions = nil
             next?()
         }) {
-            addressActionsSheet
-                .presentationDetents([.height(330)])
+            let sheet = AddressActionsSheet(
+                explorerURL: settingsViewModel.settings.kaspaExplorer.addressURL(for: address),
+                onViewPrivateKey: {
+                    afterAddressActions = {
+                        if settingsViewModel.settings.biometricSeedPhraseEnabled {
+                            DeviceAuth.authenticate(reason: "Unlock to view this address's private key") {
+                                showPrivateKeySheet = true
+                            }
+                        } else {
+                            showPrivateKeySheet = true
+                        }
+                    }
+                    showAddressActions = false
+                },
+                onViewPublicKey: {
+                    afterAddressActions = { showPublicKeySheet = true }
+                    showAddressActions = false
+                },
+                onViewInExplorer: { url in
+                    showAddressActions = false
+                    UIApplication.shared.open(url)
+                }
+            )
+            sheet
+                .presentationDetents([.height(sheet.height)])
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showPublicKeySheet) {
-            ChattingAddressPublicKeyView(address: address)
+            AddressPublicKeyView(address: address, note: "This is the public half of your chatting address. It identifies you and cannot spend anything.")
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 12) {
@@ -3014,59 +3026,6 @@ struct ChattingAddressManageView: View {
             await loadTransactions()
             await loadUtxos()
         }
-    }
-
-    /// The half sheet behind "Address Actions". Same shape as Manage Addresses' and Cold
-    /// Storage's sheets of the same name, so all three read as the same object.
-    private var addressActionsSheet: some View {
-        VStack(spacing: 0) {
-            Text("Address Actions")
-                .font(.headline)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
-
-            VStack(spacing: 12) {
-                ActionSheetRow(
-                    title: "View Private Key",
-                    subtitle: "The key that spends this address. Never share it.",
-                    systemImage: "key.fill"
-                ) {
-                    afterAddressActions = {
-                        if settingsViewModel.settings.biometricSeedPhraseEnabled {
-                            DeviceAuth.authenticate(reason: "Unlock to view this address's private key") {
-                                showPrivateKeySheet = true
-                            }
-                        } else {
-                            showPrivateKeySheet = true
-                        }
-                    }
-                    showAddressActions = false
-                }
-                ActionSheetRow(
-                    title: "View Public Key",
-                    subtitle: "The public half of this address, for anyone who asks for it.",
-                    systemImage: "number"
-                ) {
-                    afterAddressActions = { showPublicKeySheet = true }
-                    showAddressActions = false
-                }
-                if let url = settingsViewModel.settings.kaspaExplorer.addressURL(for: address) {
-                    ActionSheetRow(
-                        title: "View in Explorer",
-                        subtitle: "Opens this address on your chosen block explorer.",
-                        systemImage: "globe"
-                    ) {
-                        showAddressActions = false
-                        UIApplication.shared.open(url)
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.bottom, 20)
     }
 
     private var transactionsList: some View {
@@ -3417,13 +3376,14 @@ private struct ChattingAddressPrivateKeyView: View {
     }
 }
 
-/// The chatting address's public key, from the Address Actions sheet.
+/// An address's public key, from the Address Actions sheet.
 ///
 /// Nothing is derived or unlocked to show this: a Kaspa P2PK address IS its public key in bech32,
 /// so this decodes the address the screen already has. No reveal gate and no clipboard expiry
 /// either - unlike the private key alongside it, this is a value you hand out on purpose.
-private struct ChattingAddressPublicKeyView: View {
+struct AddressPublicKeyView: View {
     let address: String
+    let note: LocalizedStringKey
     @Environment(\.dismiss) private var dismiss
 
     @State private var toastMessage: String?
@@ -3442,7 +3402,7 @@ private struct ChattingAddressPublicKeyView: View {
                     Label("Safe to share", systemImage: "checkmark.seal.fill")
                         .font(.headline)
                         .foregroundColor(.accentColor)
-                    Text("This is the public half of your chatting address. It identifies you and cannot spend anything.")
+                    Text(note)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -3917,7 +3877,14 @@ struct WithdrawKaspaView: View {
                 let index = source.spendingIndex
                 let recipient = effectiveAddress
                 let coins = manualUtxos
+                let request = activeRequest
                 func estimate(extra: UInt64) async throws -> SendFeeEstimate {
+                    // A request to a chatting address goes out as a chat payment (see `send`),
+                    // its memo encrypted inside: priced as that, not as a plain transfer.
+                    if let request, request.toChattingAddress, request.address.lowercased() == recipient.lowercased() {
+                        let contact = await contactsManager.getContact(byAddress: recipient) ?? Contact(address: recipient)
+                        return try await chatService.estimatePaymentFee(to: contact, amountSompi: amountSompi, note: request.memo, sourceSpendingIndex: index, manualUtxos: coins, extraFeeSompi: extra)
+                    }
                     if let index {
                         return try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: recipient, amountSompi: amountSompi, manualUtxos: coins, extraFeeSompi: extra)
                     }
@@ -4360,6 +4327,12 @@ struct WithdrawKaspaView: View {
     /// Fills in a payment request: the address (locked), the exact amount and the memo.
     private func apply(_ request: PaymentRequest) {
         activeRequest = request
+        // The request's amount is the amount: a Max from before it, or one still being worked
+        // out, must not replace it when the speed, From or coins change.
+        usedMax = false
+        maxCapped = false
+        maxRequest = UUID()
+        isEstimatingMax = false
         addressInput = request.address
         isValidAddress = KaspaAddress.isValidOnActiveNetwork(request.address)
         // the exact amount is what's sent; the field shows it in whichever unit it is in
@@ -4511,7 +4484,8 @@ struct WithdrawKaspaView: View {
                     // it lands in your chat with them like any payment from the chat.
                     let paid = try await chatService.sendPayment(
                         to: contact, amountSompi: amountSompi, note: request.memo,
-                        extraFeeSompi: tipSompi, sourceSpendingIndex: spendingIndex, manualUtxos: manualUtxos
+                        extraFeeSompi: tipSompi, sourceSpendingIndex: spendingIndex, manualUtxos: manualUtxos,
+                        expectedFeeSompi: expectedFee
                     )
                     // nil means deferred (no confirmed inputs yet): the retry timer owns it and
                     // the bubble is already in the chat, but nothing has been sent to confirm.

@@ -36,6 +36,11 @@ struct LinkPreviewCardView: View {
     /// link's server - when the user explicitly taps it. A URL that already resolved this
     /// session shows its cached result either way, since no new fetch is involved.
     var autoFetch: Bool = true
+    /// The 1:1 photos rule (`ContactsManager.photosUnlockDate`): a card can show the linked
+    /// site's picture, or the shared photo itself, so until that unlocks nothing is fetched and
+    /// the card is the same tile a hidden photo gets.
+    var photosBlocked: Bool = false
+    var blockedSenderName: String = ""
 
     @State private var preview: LinkPreviewData?
     @State private var hasFinishedLoading: Bool
@@ -47,7 +52,7 @@ struct LinkPreviewCardView: View {
     @Environment(\.openURL) private var openURL
     @EnvironmentObject private var settingsViewModel: SettingsViewModel
 
-    init(url: URL, txId: String, fallbackText: String? = nil, onSelect: (() -> Void)? = nil, onDoubleTap: (() -> Void)? = nil, isOutgoing: Bool = false, autoFetch: Bool = true) {
+    init(url: URL, txId: String, fallbackText: String? = nil, onSelect: (() -> Void)? = nil, onDoubleTap: (() -> Void)? = nil, isOutgoing: Bool = false, autoFetch: Bool = true, photosBlocked: Bool = false, blockedSenderName: String = "") {
         self.url = url
         self.txId = txId
         self.fallbackText = fallbackText
@@ -55,6 +60,8 @@ struct LinkPreviewCardView: View {
         self.onDoubleTap = onDoubleTap
         self.isOutgoing = isOutgoing
         self.autoFetch = autoFetch
+        self.photosBlocked = photosBlocked
+        self.blockedSenderName = blockedSenderName
         // If this exact URL was already resolved earlier (e.g. scrolled past once already, or
         // another row with the same link), seed state with the final result immediately instead
         // of starting in the "loading" state and waiting for `.task` to come back - avoids a
@@ -85,7 +92,9 @@ struct LinkPreviewCardView: View {
             // `cardBody`, and started again the moment *any* unconditional view - even a plain
             // debug label - was added). `Color.clear` sized to zero keeps a stable, real view
             // identity for `.task` to attach to without taking up any visible space.
-            if hasFinishedLoading, let preview {
+            if photosBlocked {
+                hiddenPhotoTile
+            } else if hasFinishedLoading, let preview {
                 cardBody(preview)
             } else if hasFinishedLoading, let fallbackText {
                 fallbackBubble(fallbackText)
@@ -99,12 +108,13 @@ struct LinkPreviewCardView: View {
         // `loadRequested` is part of the id so tapping the gated placeholder re-runs this task
         // and performs the on-demand fetch (a `.task(id:)` body only re-executes when its id
         // changes).
-        .task(id: "\(url.absoluteString)|\(loadRequested)") {
+        .task(id: "\(url.absoluteString)|\(loadRequested)|\(photosBlocked)") {
             // Already seeded synchronously from the cache in `init` - skip re-running the fetch
             // (which would flip `hasFinishedLoading` false then true again, causing exactly the
             // late height-change flicker this seeding exists to avoid). Non-`autoFetch` cards
-            // additionally wait for an explicit tap before fetching anything.
-            guard !hasFinishedLoading, autoFetch || loadRequested else { return }
+            // additionally wait for an explicit tap before fetching anything. Blocked photos
+            // fetch nothing, tap or no tap; lifting the block re-runs this (it's in the id).
+            guard !photosBlocked, !hasFinishedLoading, autoFetch || loadRequested else { return }
             preview = await LinkPreviewService.shared.preview(for: url)
             hasFinishedLoading = true
         }
@@ -181,6 +191,27 @@ struct LinkPreviewCardView: View {
                 .frame(maxWidth: 260)
                 .messageActions(title: "Link", preview: url.absoluteString) { menuActions() }
         }
+    }
+
+    /// `LazyImageBubble.hiddenBubble`'s tile: no URL, no tap target.
+    private var hiddenPhotoTile: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "eye.slash")
+                .font(.scaled(size: 24, weight: .regular))
+                .foregroundColor(.secondary)
+            Text("\(blockedSenderName) sent a photo")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            Text("It shows 10 minutes after you have both sent a message.")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(12)
+        .frame(width: 220, height: 160)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     /// Stand-in for a Nextcloud share the server no longer serves. Deliberately carries no URL,
@@ -405,10 +436,10 @@ struct LinkPreviewCardView: View {
 
 /// The media-bubble poster: shows the share's actual image at its real aspect ratio (no crop,
 /// no text chrome). Load order: the server's small `/preview` thumbnail; if the server can't
-/// render one (HEIC without ImageMagick, MOV without ffmpeg), fall back to the PUBLIC
-/// `/download` endpoint — decoding the original locally for images (iOS reads HEIC natively)
-/// or grabbing a stream frame for videos. Both fallbacks are recipient-safe: public share
-/// endpoints need no credentials.
+/// render one (MOV without ffmpeg), grab a stream frame from the PUBLIC `/download` endpoint
+/// for videos, which needs no credentials. An image with no thumbnail stays a placeholder: its
+/// original is only fetched when tapped (`NextcloudMediaViewerView`), so an unopened message
+/// can't pull 25 MB down just by being on screen.
 private struct NextcloudPosterImage: View {
     let previewURL: URL?
     let downloadURL: URL?
@@ -446,17 +477,12 @@ private struct NextcloudPosterImage: View {
 
             if let previewURL,
                let data = await LinkPreviewService.shared.imageData(previewURL, referer: referer),
-               let image = UIImage(data: data) {
+               let image = await decodedPreviewImage(data, maxPixelSize: 1_024) {
                 uiImage = image
                 return
             }
             guard let downloadURL else { return }
             switch kind {
-            case .image:
-                if let data = await LinkPreviewService.shared.imageData(downloadURL, referer: referer, maxBytes: 25_000_000),
-                   let original = UIImage(data: data) {
-                    uiImage = await original.byPreparingThumbnail(ofSize: CGSize(width: 640, height: 640)) ?? original
-                }
             case .video:
                 let generator = AVAssetImageGenerator(asset: AVURLAsset(url: downloadURL))
                 generator.appliesPreferredTrackTransform = true
@@ -470,13 +496,20 @@ private struct NextcloudPosterImage: View {
                     }
                 }
                 if let frame { uiImage = frame }
-            case .audio, .pdf, .file:
-                // Attachment-card kinds never mount this poster view (they render an icon
-                // card, not a media bubble) — nothing to fall back to.
+            case .image, .audio, .pdf, .file:
+                // An image's original waits for a tap (see above). Attachment-card kinds never
+                // mount this poster view (they render an icon card, not a media bubble).
                 break
             }
         }
     }
+}
+
+/// Off the main thread: whatever the bytes turn out to be, the chat keeps scrolling.
+private func decodedPreviewImage(_ data: Data, maxPixelSize: Int) async -> UIImage? {
+    await Task.detached(priority: .userInitiated) {
+        ImageDownsampler.image(from: data, maxPixelSize: maxPixelSize)
+    }.value
 }
 
 /// What the full-screen Nextcloud viewer should show — set when a Nextcloud media card is tapped.
@@ -580,7 +613,7 @@ private struct NextcloudMediaViewerView: View {
                         target.downloadURL,
                         referer: target.shareURL,
                         maxBytes: Self.fullImageMaxBytes
-                    ), let loaded = UIImage(data: data) {
+                    ), let loaded = await decodedPreviewImage(data, maxPixelSize: 4_096) {
                         image = loaded
                     } else {
                         loadFailed = true
@@ -644,7 +677,7 @@ private struct LinkPreviewImage: View {
         .task(id: imageURL) {
             guard !finished else { return }
             if let data = await LinkPreviewService.shared.imageData(imageURL, referer: referer),
-               let image = UIImage(data: data) {
+               let image = await decodedPreviewImage(data, maxPixelSize: 1_024) {
                 uiImage = image
             }
             finished = true

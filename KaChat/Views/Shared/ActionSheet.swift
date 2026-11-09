@@ -235,6 +235,78 @@ struct ReactionsSheet: View {
 }
 
 /// Identifiable wrapper so a plain txId can drive `.sheet(item:)`.
+/// The options button at the top right of every address page (the chatting address and each
+/// spending address). Opens `AddressActionsSheet`.
+struct AddressOptionsButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.impact(.light)
+            action()
+        } label: {
+            Image(systemName: "ellipsis")
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(.regularMaterial))
+        }
+        .accessibilityLabel(Text("Address Actions"))
+    }
+}
+
+/// The same half sheet on every address page. A row that opens another screen closes this
+/// sheet first and opens it from `onDismiss`, as a sheet presented while another is still
+/// closing can be dropped.
+struct AddressActionsSheet: View {
+    var showsPublicKey = true
+    let explorerURL: URL?
+    let onViewPrivateKey: () -> Void
+    let onViewPublicKey: () -> Void
+    let onViewInExplorer: (URL) -> Void
+
+    /// Fits however many rows are showing.
+    var height: CGFloat { (showsPublicKey ? 250 : 170) + (explorerURL == nil ? 0 : 80) }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text("Address Actions")
+                .font(.headline)
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+
+            VStack(spacing: 12) {
+                ActionSheetRow(
+                    title: "View Private Key",
+                    subtitle: "The key that spends this address. Never share it.",
+                    systemImage: "key.fill",
+                    action: onViewPrivateKey
+                )
+                if showsPublicKey {
+                    ActionSheetRow(
+                        title: "View Public Key",
+                        subtitle: "The public half of this address, for anyone who asks for it.",
+                        systemImage: "number",
+                        action: onViewPublicKey
+                    )
+                }
+                if let explorerURL {
+                    ActionSheetRow(
+                        title: "View in Explorer",
+                        subtitle: "Opens this address on your chosen block explorer.",
+                        systemImage: "globe"
+                    ) {
+                        onViewInExplorer(explorerURL)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.bottom, 20)
+    }
+}
+
 struct ReactionsSheetTarget: Identifiable {
     let txId: String
     var id: String { txId }
@@ -400,7 +472,7 @@ struct ConfirmActionSheet: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Text(title)
+            Text(AppLocalization.string(title))
                 .font(.headline)
                 .multilineTextAlignment(.center)
                 .padding(.top, 20)
@@ -683,7 +755,7 @@ struct MessageAction: Identifiable {
         }
     }
     static func reactions(count: Int, _ action: @escaping () -> Void) -> MessageAction {
-        MessageAction(title: "Reactions (\(count))", subtitle: "Who reacted, and with what.", systemImage: "heart", action: action)
+        MessageAction(title: String(format: AppLocalization.string("Reactions (%lld)"), count), subtitle: "Who reacted, and with what.", systemImage: "heart", action: action)
     }
     static func retry(_ action: @escaping () -> Void) -> MessageAction {
         MessageAction(title: "Retry Send", subtitle: "Sends this message again.", systemImage: "arrow.clockwise", action: action)
@@ -710,7 +782,7 @@ struct MessageActionsSheet: View {
     var body: some View {
         VStack(spacing: 12) {
             VStack(spacing: 4) {
-                Text(request.title)
+                Text(AppLocalization.string(request.title))
                     .font(.headline)
                 if let preview = request.preview?.trimmingCharacters(in: .whitespacesAndNewlines), !preview.isEmpty {
                     Text(preview)

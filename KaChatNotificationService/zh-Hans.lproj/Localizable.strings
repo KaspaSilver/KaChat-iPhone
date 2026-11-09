@@ -318,3 +318,8 @@
 "Sent you a payment" = "向你发送了一笔付款";
 "Requested for payment" = "请求付款";
 "You were invited to \"%@\"" = "你被邀请加入“%@”";
+
+/* Undecryptable group push */
+"Group chat" = "群聊";
+"Group update" = "群组更新";
+"New group message" = "新群组消息";

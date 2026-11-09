@@ -836,7 +836,7 @@ struct ManageAddressesView: View {
             // showToast auto-dismisses on the standard timer and replaces (never stacks or
             // extends) any toast a rapid earlier press put up. The old direct assignment
             // here never scheduled a dismissal, so the success toast lingered indefinitely.
-            showToast("Address #\(WalletManager.addressNumber(forIndex: index)) is ready.")
+            showToast(String(format: AppLocalization.string("Address #%d is ready."), locale: AppLocalization.locale, WalletManager.addressNumber(forIndex: index)))
             Task { await loadEntries() }
         }
     }
@@ -1012,6 +1012,8 @@ struct SpendingAddressWithdrawView: View {
     @State private var feeDraft = ""
 
     @State private var manualUtxos: [UTXO]?
+    /// `manualUtxos` came from Coin Control, not from Compound pinning its one-transaction chunk.
+    @State private var coinsPickedByHand = false
     @State private var showCoinControl = false
 
     private var amountSompi: UInt64? {
@@ -1275,6 +1277,7 @@ struct SpendingAddressWithdrawView: View {
                     chosenSource = picked
                     // Coin control and the fee belong to the address they were set for.
                     manualUtxos = nil
+                    coinsPickedByHand = false
                     customExtraFeeSompi = nil
                     errorMessage = nil
                 }
@@ -1282,6 +1285,7 @@ struct SpendingAddressWithdrawView: View {
             .sheet(isPresented: $showCoinControl) {
                 CoinControlView(fromAddress: source.address, initialSelection: manualUtxos) { selection in
                     manualUtxos = selection
+                    coinsPickedByHand = selection?.isEmpty == false
                     if isCompoundMode { setMaxAmount() }
                 }
             }
@@ -1384,6 +1388,8 @@ struct SpendingAddressWithdrawView: View {
         let coins = manualUtxos
         let preloaded = preloadedUtxos
         let compound = isCompoundMode
+        // A Compound consolidates the coins picked in Coin Control when there are any.
+        let pickedCoins = compound && coinsPickedByHand ? coins : nil
         Task {
             do {
                 // The speed's extra is priced from what Max sends, never from the typed amount's
@@ -1392,7 +1398,10 @@ struct SpendingAddressWithdrawView: View {
                 if customExtra == nil, multiplier > 1 {
                     let provisionalAmount: UInt64
                     let provisionalCoins: [UTXO]?
-                    if compound {
+                    if pickedCoins != nil {
+                        provisionalAmount = try await chatService.estimateMaxSpendingAddressAmount(index: index, toAddress: recipient, manualUtxos: pickedCoins, availableUtxos: preloaded).amountSompi
+                        provisionalCoins = pickedCoins
+                    } else if compound {
                         let chunk = try await chatService.maxConsolidatableChunk(index: index, availableUtxos: preloaded)
                         provisionalAmount = chunk.amountSompi
                         provisionalCoins = chunk.utxos
@@ -1403,7 +1412,15 @@ struct SpendingAddressWithdrawView: View {
                     let base = try await chatService.estimateSpendingAddressWithdrawalFee(index: index, toAddress: recipient, amountSompi: provisionalAmount, manualUtxos: provisionalCoins, availableUtxos: compound ? preloaded : [])
                     tipSompi = base.networkFee * (multiplier - 1)
                 }
-                if isCompoundMode {
+                if pickedCoins != nil {
+                    let result = try await chatService.estimateMaxSpendingAddressAmount(index: index, toAddress: recipient, manualUtxos: pickedCoins, extraFeeSompi: tipSompi, availableUtxos: preloaded)
+                    await MainActor.run {
+                        guard maxRequest == request else { return }
+                        amountInput = fiatAmountState.setMaxKas(Double(result.amountSompi) / 100_000_000.0, priceInCurrency: priceModel.currentPriceUsd)
+                        maxSetAmount = amountInput
+                        isEstimatingMax = false
+                    }
+                } else if isCompoundMode {
                     // Consolidation is bounded by Kaspa's per-transaction mass cap, so estimate the
                     // max over only the UTXOs that fit ONE transaction (largest-first) and pin the
                     // send to exactly those inputs. This is why "Max" works even when the address has
@@ -1810,6 +1827,11 @@ private struct SpendingAddressPrivateKeyView: View {
 struct SpendingAddressTransactionHistoryView: View {
     let entry: SpendingAddressEntry
 
+    @State private var showAddressActions = false
+    @State private var showPublicKeySheet = false
+    /// What a row of the options sheet opens next, run from its onDismiss.
+    @State private var afterAddressActions: (() -> Void)?
+
     /// The tapped transaction, while its action chooser is up.
     @State private var transactionActionTarget: KaspaFullTransactionResponse?
 
@@ -1877,14 +1899,21 @@ struct SpendingAddressTransactionHistoryView: View {
         .navigationTitle(entry.displayLabel)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // A single ToolbarItem with both icons inside an HStack (rather than two separate
-            // ToolbarItems) so left-to-right order (Export, then Explorer) is guaranteed - but
-            // each icon draws its own circular glass background explicitly, so they read as two
-            // distinct pills with a gap between them instead of iOS's automatic toolbar-item
-            // grouping merging adjacent trailing items into one shared pill shape.
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 10) {
-                    Button {
+                AddressOptionsButton { showAddressActions = true }
+            }
+        }
+        .sheet(isPresented: $showAddressActions, onDismiss: {
+            let next = afterAddressActions
+            afterAddressActions = nil
+            next?()
+        }) {
+            let sheet = AddressActionsSheet(
+                // A quantum address keeps its key hidden until it spends: that's the point of it.
+                showsPublicKey: !WalletManager.isQuantumIndex(entry.index),
+                explorerURL: settingsViewModel.settings.kaspaExplorer.addressURL(for: entry.address),
+                onViewPrivateKey: {
+                    afterAddressActions = {
                         if settingsViewModel.settings.biometricSpendingKeyEnabled {
                             DeviceAuth.authenticate(reason: "Unlock to view this address's private key") {
                                 showPrivateKeySheet = true
@@ -1892,20 +1921,24 @@ struct SpendingAddressTransactionHistoryView: View {
                         } else {
                             showPrivateKeySheet = true
                         }
-                    } label: {
-                        Image(systemName: "square.and.arrow.up.on.square")
-                            .frame(width: 32, height: 32)
-                            .background(Circle().fill(.regularMaterial))
                     }
-                    if let url = settingsViewModel.settings.kaspaExplorer.addressURL(for: entry.address) {
-                        Link(destination: url) {
-                            Image(systemName: "globe")
-                                .frame(width: 32, height: 32)
-                                .background(Circle().fill(.regularMaterial))
-                        }
-                    }
+                    showAddressActions = false
+                },
+                onViewPublicKey: {
+                    afterAddressActions = { showPublicKeySheet = true }
+                    showAddressActions = false
+                },
+                onViewInExplorer: { url in
+                    showAddressActions = false
+                    UIApplication.shared.open(url)
                 }
-            }
+            )
+            sheet
+                .presentationDetents([.height(sheet.height)])
+                .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showPublicKeySheet) {
+            AddressPublicKeyView(address: entry.address, note: "This is the public half of this address. It cannot spend anything.")
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 12) {

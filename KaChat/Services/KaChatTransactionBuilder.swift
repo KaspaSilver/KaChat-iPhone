@@ -968,12 +968,14 @@ struct KasiaTransactionBuilder {
             throw KasiaError.invalidAddress
         }
 
+        // Priced at the change's own script, as `buildPaymentTx` does: a fresh quantum slot's
+        // P2SH script is a byte longer than the funding address's P2PK.
         let selection = try selectUtxosForPayment(
             utxos: utxos,
             amount: commitAmountSompi,
             payload: Data(),
             recipientScriptPubKey: commitScriptPubKey,
-            senderScriptPubKey: fundingScriptPubKey
+            senderScriptPubKey: changeScriptPubKey
         )
 
         var outputs: [KaspaRpcTransactionOutput] = [
@@ -1359,12 +1361,16 @@ struct KasiaTransactionBuilder {
         var total: UInt64 = 0
         // Funds were enough but no shape fit without giving away real change - see below.
         var blockedByStorageMass = false
+        // The first set that pays by folding its change into the fee, and that total fee. Held
+        // back while the remaining coins are tried: another coin can keep the change instead.
+        var folded: (selection: PaymentSelection, totalFee: UInt64)?
 
         for utxo in sorted {
             // Refuse to build an over-mass transaction: if we've hit the input cap and still
             // haven't covered the amount, more inputs would exceed Kaspa's mass limit and the node
             // would reject the tx. Fail with a clear, actionable message instead.
             if selected.count >= maxInputsPerTransaction {
+                if let folded { return folded.selection }
                 throw KasiaError.networkError("This send needs more than \(maxInputsPerTransaction) inputs. Compound (consolidate) this address's UTXOs first, then try again.")
             }
             selected.append(utxo)
@@ -1398,6 +1404,8 @@ struct KasiaTransactionBuilder {
             if total - amount >= feeWithChange {
                 let change = total - amount - feeWithChange
                 if fitsStorageMass(inputAmounts: selected.map(\.amount), outputAmounts: [amount, change]) {
+                    // a coin added just to keep a few sompi of change must not cost more than them
+                    if let folded, folded.totalFee <= feeWithChange { return folded.selection }
                     return PaymentSelection(utxos: selected, change: change, emitChange: true)
                 }
             }
@@ -1416,12 +1424,18 @@ struct KasiaTransactionBuilder {
                 // Another coin lowers that mass, so keep adding before giving up.
                 if change <= maxFoldedChangeSompi,
                    fitsStorageMass(inputAmounts: selected.map(\.amount), outputAmounts: [amount]) {
-                    return PaymentSelection(utxos: selected, change: change, emitChange: false)
+                    // Not yet: coins of 10.05 and 5 KAS sending 10 would hand 0.05 KAS to the
+                    // miners here, where adding the 5 KAS coin keeps it as change.
+                    if folded == nil {
+                        folded = (PaymentSelection(utxos: selected, change: change, emitChange: false), total - amount)
+                    }
+                } else {
+                    blockedByStorageMass = true
                 }
-                blockedByStorageMass = true
             }
         }
 
+        if let folded { return folded.selection }
         if blockedByStorageMass {
             throw KasiaError.networkError(smallSendMassMessage)
         }

@@ -2138,7 +2138,6 @@ enum KasNameText {
 struct AppSettings: Codable {
     var messageRetention: MessageRetention
     var networkType: NetworkType
-    var autoAddContacts: Bool
     var notificationMode: NotificationMode
     var notificationPermissionRequested: Bool
     var incomingNotificationSoundEnabled: Bool
@@ -2148,8 +2147,6 @@ struct AppSettings: Codable {
     /// receives Kaspa from an external source. Gates both the live
     /// UTXO-subscription path and the foreground catch-up diff (see AddressActivityNotifier).
     var addressActivityNotificationsEnabled: Bool
-    var messagePollInterval: TimeInterval
-    var liveUpdatesEnabled: Bool
     /// Chats > Higher quality photos: on-chain photos use the largest size one transaction
     /// carries (`ImagePrep.highQualityChatTargetBytes`) instead of the default, for a higher fee.
     var higherQualityPhotos: Bool
@@ -2336,14 +2333,11 @@ struct AppSettings: Codable {
         AppSettings(
             messageRetention: .forever,
             networkType: .mainnet,
-            autoAddContacts: true,
             notificationMode: .remotePush,
             notificationPermissionRequested: false,
             incomingNotificationSoundEnabled: true,
             incomingNotificationVibrationEnabled: true,
             addressActivityNotificationsEnabled: true,
-            messagePollInterval: 10.0,
-            liveUpdatesEnabled: false,
             showFeeEstimate: true,
             quickReactionEmojis: defaultQuickReactionEmojis,
             appearance: .system,
@@ -2372,14 +2366,11 @@ struct AppSettings: Codable {
     enum CodingKeys: String, CodingKey {
         case messageRetention
         case networkType
-        case autoAddContacts
         case notificationMode
         case notificationPermissionRequested
         case incomingNotificationSoundEnabled
         case incomingNotificationVibrationEnabled
         case addressActivityNotificationsEnabled
-        case messagePollInterval
-        case liveUpdatesEnabled
         case higherQualityPhotos
         case showFeeEstimate
         case quickReactionEmojis
@@ -2416,14 +2407,11 @@ struct AppSettings: Codable {
     init(
         messageRetention: MessageRetention,
         networkType: NetworkType,
-        autoAddContacts: Bool,
         notificationMode: NotificationMode,
         notificationPermissionRequested: Bool = false,
         incomingNotificationSoundEnabled: Bool = true,
         incomingNotificationVibrationEnabled: Bool = true,
         addressActivityNotificationsEnabled: Bool = true,
-        messagePollInterval: TimeInterval,
-        liveUpdatesEnabled: Bool,
         higherQualityPhotos: Bool = false,
         showFeeEstimate: Bool = true,
         quickReactionEmojis: [String]? = nil,
@@ -2448,15 +2436,11 @@ struct AppSettings: Codable {
     ) {
         self.messageRetention = messageRetention
         self.networkType = networkType
-        // Auto-add contacts is always enabled.
-        self.autoAddContacts = true
         self.notificationMode = notificationMode
         self.notificationPermissionRequested = notificationPermissionRequested
         self.incomingNotificationSoundEnabled = incomingNotificationSoundEnabled
         self.incomingNotificationVibrationEnabled = incomingNotificationVibrationEnabled
         self.addressActivityNotificationsEnabled = addressActivityNotificationsEnabled
-        self.messagePollInterval = messagePollInterval
-        self.liveUpdatesEnabled = liveUpdatesEnabled
         self.higherQualityPhotos = higherQualityPhotos
         self.showFeeEstimate = showFeeEstimate
         self.quickReactionEmojis = quickReactionEmojis
@@ -2486,8 +2470,6 @@ struct AppSettings: Codable {
         // Settings > Connection Settings > Testnet (5.2) makes testnet selectable again; it had
         // been forced to mainnet since August 2026.
         networkType = try container.decodeIfPresent(NetworkType.self, forKey: .networkType) ?? .mainnet
-        // Ignore persisted value and keep this feature always enabled.
-        autoAddContacts = true
         if let storedModeRaw = try container.decodeIfPresent(String.self, forKey: .notificationMode) {
             switch storedModeRaw {
             case NotificationMode.disabled.rawValue:
@@ -2513,11 +2495,9 @@ struct AppSettings: Codable {
         notificationPermissionRequested = try container.decodeIfPresent(Bool.self, forKey: .notificationPermissionRequested) ?? false
         incomingNotificationSoundEnabled = try container.decodeIfPresent(Bool.self, forKey: .incomingNotificationSoundEnabled) ?? true
         incomingNotificationVibrationEnabled = try container.decodeIfPresent(Bool.self, forKey: .incomingNotificationVibrationEnabled) ?? true
-        addressActivityNotificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .addressActivityNotificationsEnabled) ?? true
         // Defaults ON, and an older settings file with no such key decodes as ON - a switch
         // appearing for the first time must not silently mute anything.
-        messagePollInterval = try container.decodeIfPresent(TimeInterval.self, forKey: .messagePollInterval) ?? 10.0
-        liveUpdatesEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveUpdatesEnabled) ?? false
+        addressActivityNotificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .addressActivityNotificationsEnabled) ?? true
         higherQualityPhotos = try container.decodeIfPresent(Bool.self, forKey: .higherQualityPhotos) ?? false
         showFeeEstimate = try container.decodeIfPresent(Bool.self, forKey: .showFeeEstimate) ?? true
         quickReactionEmojis = try container.decodeIfPresent([String].self, forKey: .quickReactionEmojis)
@@ -2597,15 +2577,11 @@ struct AppSettings: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(messageRetention, forKey: .messageRetention)
         try container.encode(networkType, forKey: .networkType)
-        // Persist as enabled for forward/backward compatibility.
-        try container.encode(true, forKey: .autoAddContacts)
         try container.encode(notificationMode, forKey: .notificationMode)
         try container.encode(notificationPermissionRequested, forKey: .notificationPermissionRequested)
         try container.encode(incomingNotificationSoundEnabled, forKey: .incomingNotificationSoundEnabled)
         try container.encode(incomingNotificationVibrationEnabled, forKey: .incomingNotificationVibrationEnabled)
         try container.encode(addressActivityNotificationsEnabled, forKey: .addressActivityNotificationsEnabled)
-        try container.encode(messagePollInterval, forKey: .messagePollInterval)
-        try container.encode(liveUpdatesEnabled, forKey: .liveUpdatesEnabled)
         try container.encode(higherQualityPhotos, forKey: .higherQualityPhotos)
         try container.encode(showFeeEstimate, forKey: .showFeeEstimate)
         try container.encodeIfPresent(quickReactionEmojis, forKey: .quickReactionEmojis)

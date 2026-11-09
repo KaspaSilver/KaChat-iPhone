@@ -264,6 +264,9 @@ final class AddressActivityNotifier: ObservableObject {
             retries: 4,
             delayNs: 1_500_000_000
         )
+        // Those retries can run ~12s: if the account changed meanwhile, this receive isn't the
+        // current account's news. Left unmarked, so the catch-up finds it on the way back.
+        guard WalletManager.shared.currentWallet?.publicAddress == walletAddress else { return }
         if let fullTx {
             let inputAddresses = (fullTx.inputs ?? [])
                 .compactMap { $0.previousOutpointAddress }
@@ -315,6 +318,7 @@ final class AddressActivityNotifier: ObservableObject {
             pageSize: 10,
             maxTransactions: 10
         )
+        guard WalletManager.shared.currentWallet?.publicAddress == walletAddress else { return }
         // the chatting address: only plain transfers newer than what was already looked at
         let floorKey = chattingCatchUpFloorKey(walletAddress)
         let floor = UInt64(max(0, UserDefaults.standard.double(forKey: floorKey)))

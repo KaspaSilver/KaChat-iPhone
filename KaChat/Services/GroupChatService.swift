@@ -96,6 +96,11 @@ final class GroupChatService: ObservableObject {
     private var indexerLiveDeliveryAvailable = false {
         didSet { if oldValue != indexerLiveDeliveryAvailable { updateScanningStateIfNeeded() } }
     }
+    /// The indexer stopped answering: the node's block stream carries groups until it's back,
+    /// on an expensive connection too, since nothing else can.
+    private var indexerIsDown = false {
+        didSet { if oldValue != indexerIsDown { updateScanningStateIfNeeded() } }
+    }
     /// Two cursors: the open group's fast poll must not move the one the all-groups pass
     /// reads from, or messages in other groups between the two would be skipped.
     private var openGroupSinceBlockTime: UInt64 = 0
@@ -143,6 +148,7 @@ final class GroupChatService: ObservableObject {
         cursor: ReferenceWritableKeyPath<GroupChatService, UInt64>
     ) async {
         guard let wallet = WalletManager.shared.currentWallet else { return }
+        if await KasiaAPIClient.shared.shouldSkipIndexer() { return }
         let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
         if self[keyPath: cursor] == 0 { self[keyPath: cursor] = nowMs - Self.livePollStartLookbackMs }
         let since = self[keyPath: cursor] > Self.livePollRewindMs ? self[keyPath: cursor] - Self.livePollRewindMs : 0
@@ -243,6 +249,17 @@ final class GroupChatService: ObservableObject {
     @Published private(set) var groupMutedMembers: [String: Set<String>] = [:]
     private let groupMutedMembersKey = "kachat_group_muted_members"
     private let groupMemberStatusesKey = "kachat_group_member_statuses"
+    /// Group id -> people the admin took out of it (`recordFormerMembers`).
+    private var groupFormerMembers: [String: [FormerGroupMember]] = [:]
+    private let groupFormerMembersKey = "kachat_group_former_members"
+    private static let maxFormerMembersPerGroup = 64
+    /// A removal's lane is read for this long after this device learned of it: long enough for
+    /// the catch-up that found the removal to have read that lane past it.
+    private static let formerMemberLaneMs: UInt64 = 30 * 24 * 60 * 60 * 1000
+    /// Admin only. Group id -> members still owed a signed root (`resendSignedRootsToLegacyGroups`).
+    private var groupSignedRootOutbox: [String: [String]] = [:]
+    private let groupSignedRootOutboxKey = "kachat_group_signed_root_outbox"
+    private var isResendingSignedRoots = false
     private let groupInviteAnswersKey = "kachat_group_invite_answers"
 
     /// Groups where "Only notify if I am mentioned" is on - enforced in the Notification Service
@@ -374,6 +391,15 @@ final class GroupChatService: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.updateScanningStateIfNeeded()
+            }
+            .store(in: &cancellables)
+        // The indexer going down moves live delivery to the block stream, and back when it recovers.
+        NotificationCenter.default.publisher(for: .indexerAvailabilityChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] note in
+                guard let self, let down = note.userInfo?["down"] as? Bool else { return }
+                if down { self.indexerLiveDeliveryAvailable = false }
+                self.indexerIsDown = down
             }
             .store(in: &cancellables)
         // Block streaming is disabled on expensive (cellular/metered) paths - re-evaluate when
@@ -948,6 +974,10 @@ final class GroupChatService: ObservableObject {
         keychain.setGroupBagWallet(walletAddress)
         // Another wallet's store: what this one handled says nothing about it.
         handledGroupTxIds.removeAll()
+        chainCatchUpCursors.removeAll()
+        chainControlProofs.removeAll()
+        groupFormerMembers = loadScoped(groupFormerMembersKey) ?? [:]
+        groupSignedRootOutbox = loadScoped(groupSignedRootOutboxKey) ?? [:]
         loadGroupCatchUpCursors()
         loadGroupLastReadAt()
         loadGroupHiddenMembers()
@@ -980,6 +1010,8 @@ final class GroupChatService: ObservableObject {
                 // per message, every group, inline).
                 Task { [weak self] in
                     guard let self else { return }
+                    // First, so nothing past the setting is decrypted and shown only to go.
+                    await self.store.applyRetentionInBackground(SettingsViewModel.loadSettings().messageRetention)
                     for group in self.groups {
                         guard self.currentWalletAddress == targetWallet else { return }
                         // The same window the 1:1 side trims to. Every group used to be loaded in
@@ -1023,6 +1055,10 @@ final class GroupChatService: ObservableObject {
         }
         store.clearAll()
         handledGroupTxIds.removeAll()
+        chainCatchUpCursors.removeAll()
+        chainControlProofs.removeAll()
+        groupFormerMembers = [:]
+        groupSignedRootOutbox = [:]
         groups = []
         groupInvites = []
         saveGroupInvites()
@@ -1036,7 +1072,7 @@ final class GroupChatService: ObservableObject {
         groupDeepBackfilled = []
         // The two one-shots go too: left behind, restoring this account would skip marking its
         // groups read and stop their history walk at the first page.
-        for baseKey in [groupMemberStatusesKey, groupInviteAnswersKey, groupCatchUpCursorsKey, groupLastReadAtKey, groupHiddenMembersKey, groupMutedMembersKey, groupMentionsOnlyNotificationsKey, groupSilentNotificationsKey, groupImportReadSeededKey, groupDeepBackfilledKey] {
+        for baseKey in [groupMemberStatusesKey, groupFormerMembersKey, groupSignedRootOutboxKey, groupInviteAnswersKey, groupCatchUpCursorsKey, groupLastReadAtKey, groupHiddenMembersKey, groupMutedMembersKey, groupMentionsOnlyNotificationsKey, groupSilentNotificationsKey, groupImportReadSeededKey, groupDeepBackfilledKey] {
             if let key = scopedDefaultsKey(baseKey) {
                 UserDefaults.standard.removeObject(forKey: key)
             }
@@ -1390,6 +1426,7 @@ final class GroupChatService: ObservableObject {
         let admin = store.group(id: groupId)?.adminXOnlyPubKeyHex
         try? keychain.deleteGroupBag(groupId: groupId)
         store.deleteGroup(id: groupId)
+        forgetFormerMembers(ofGroup: groupId)
         // Its messages are gone from the store; a re-join must be able to store them again.
         handledGroupTxIds.removeAll()
         groups.removeAll { $0.id == groupId }
@@ -1582,6 +1619,7 @@ final class GroupChatService: ObservableObject {
         store.upsertGroup(group)
         groups = store.allGroups()
         SharedDataManager.syncGroupsForExtension()
+        recordFormerMembers(groupId: groupId, oldMembers: previousRoster, newMembers: roster, lastEpoch: newEpoch - 1, removedAt: 0)
         // iMessage-style membership lines for the admin (other members get theirs when they
         // receive the rotated root — see applyRootPayload).
         insertMembershipSystemMessages(groupId: groupId, oldMembers: previousRoster, newMembers: roster)
@@ -2055,7 +2093,7 @@ final class GroupChatService: ObservableObject {
         do {
             let txId: String
             do {
-                let (t, _) = try await chatService.submitSpendingMessageCoins(tx, spent: spentUtxos, allowOrphan: usesUnconfirmedInputs)
+                let (t, _) = try await NodePoolService.shared.submitTransaction(tx, allowOrphan: usesUnconfirmedInputs)
                 txId = t
             } catch {
                 // A hedged submit can land on a node that briefly lags the DAG tip and rejects a tx
@@ -2064,7 +2102,7 @@ final class GroupChatService: ObservableObject {
                 // (sub-second) — rather than surfacing kaspad's raw rejection with no recovery. This
                 // is the same recovery the 1:1/Android send paths use; the group path lacked it.
                 if !usesUnconfirmedInputs, Self.isOrphanRejection(error) {
-                    let (t, _) = try await chatService.submitSpendingMessageCoins(tx, spent: spentUtxos, allowOrphan: true)
+                    let (t, _) = try await NodePoolService.shared.submitTransaction(tx, allowOrphan: true)
                     txId = t
                 } else {
                     throw error
@@ -2348,7 +2386,7 @@ final class GroupChatService: ObservableObject {
         // the fallback for an indexer without the `since` reads, not the primary path.
         let shouldScan = hasActiveWallet
             && !groups.isEmpty
-            && !NetworkEpochMonitor.shared.isExpensivePath
+            && (!NetworkEpochMonitor.shared.isExpensivePath || indexerIsDown)
             && NodePoolService.shared.activeNodeCount > 0
             && !indexerLiveDeliveryAvailable
         guard shouldScan != isScanningActive else { return }
@@ -2384,7 +2422,8 @@ final class GroupChatService: ObservableObject {
     /// A block-scan candidate extracted OFF the main actor - only what the MainActor ingest needs.
     private enum BlockScanHit {
         case gcomm(parsed: GroupCipher.ParsedGroupMessage, txId: String, blockTime: Int64)
-        case gctl(payload: String, senderAddress: String, blockTime: Int64)
+        /// `senderAddress` is only what the first output claims, so `txId` comes along to prove it.
+        case gctl(payload: String, senderAddress: String, txId: String, blockTime: Int64)
     }
 
     /// One serial lane for all block parsing - bounds concurrency to a single off-main worker.
@@ -2419,7 +2458,7 @@ final class GroupChatService: ObservableObject {
                 let hrp = AppSettings.load().networkType == .mainnet ? "kaspa" : "kaspatest"
                 guard let scriptData = CryptoUtils.hexToData(tx.firstOutputScriptHex),
                       let senderAddress = KaspaAddress.address(fromScriptPublicKey: scriptData, hrp: hrp) else { continue }
-                hits.append(.gctl(payload: Self.normalizeControlPayload(payloadString), senderAddress: senderAddress, blockTime: blockTime))
+                hits.append(.gctl(payload: Self.normalizeControlPayload(payloadString), senderAddress: senderAddress, txId: txId, blockTime: blockTime))
             }
         }
         return hits
@@ -2433,8 +2472,8 @@ final class GroupChatService: ObservableObject {
             switch hit {
             case .gcomm(let parsed, let txId, let blockTime):
                 handleIncomingGroupMessage(parsed, txId: txId, blockTime: blockTime)
-            case .gctl(let payload, let senderAddress, let blockTime):
-                handleIncomingControlMessage(payload, senderAddress: senderAddress, blockTime: blockTime > 0 ? UInt64(blockTime) : 0)
+            case .gctl(let payload, let senderAddress, let txId, let blockTime):
+                handleIncomingControlMessage(payload, senderAddress: senderAddress, blockTime: blockTime > 0 ? UInt64(blockTime) : 0, blockScanTxId: txId)
             }
         }
     }
@@ -2467,7 +2506,11 @@ final class GroupChatService: ObservableObject {
             // Found the group. Verify sender identity: pubkey -> address -> in roster -> hashes to senderId.
             let hrp = AppSettings.load().networkType == .mainnet ? "kaspa" : "kaspatest"
             let senderAddress = KaspaAddress(hrp: hrp, type: .pubKey, payload: parsed.senderPubKey).address
-            guard !senderAddress.isEmpty, group.members.contains(where: { $0.address == senderAddress }) else {
+            // Someone since removed still counts for what they sent while they were in: a device
+            // that catches up late would otherwise lose it.
+            guard !senderAddress.isEmpty,
+                  group.members.contains(where: { $0.address == senderAddress })
+                    || wasMember(senderAddress, ofGroup: group.id, atEpoch: parsed.epoch, blockTime: blockTime) else {
                 AppLog.log("[GroupChatService] Rejected gcomm for group %@: sender %@ not in roster %@",
                            String(group.id.prefix(12)), senderAddress, group.members.map { $0.address }.joined(separator: ","))
                 refreshRejections?.senderNotInRoster += 1
@@ -2498,6 +2541,18 @@ final class GroupChatService: ObservableObject {
                 return
             }
 
+            // Everything above passes for a copy of someone's payload in a new transaction too:
+            // the signature doesn't cover the transaction. Each message id counts once, and it's
+            // written down here, before any of the branches below acts on it.
+            guard store.claimMessageId(
+                groupId: group.id, senderIdHex: parsed.senderId.hexString, epoch: parsed.epoch,
+                msgIdHex: parsed.msgId.hexString, txId: txId, blockTime: blockTime
+            ) else {
+                AppLog.log("[GroupChatService] Dropped a replay in group %@: tx %@", String(group.id.prefix(12)), txId)
+                markGroupTxHandled(txId)
+                return
+            }
+
             // Someone answering their invite: updates the member list, never a bubble.
             if let status = GroupMemberStatusCodec.parse(plaintext) {
                 applyMemberStatus(status, address: senderAddress, groupId: group.id, txId: txId, blockTime: UInt64(max(0, blockTime)))
@@ -2516,7 +2571,7 @@ final class GroupChatService: ObservableObject {
             // An edit changes the message it names - if the editor sent it - and is never a
             // bubble. Judged against the group's own messages (the store has them all).
             if let edit = MessageEditCodec.parse(plaintext) {
-                if let target = (groupMessages[group.id] ?? []).first(where: { $0.txId == edit.targetTxId }),
+                if let target = groupMessage(txId: edit.targetTxId, groupId: group.id, gid: gid, bag: bag),
                    target.senderAddress == senderAddress, MessageEditCodec.isEditable(target.content) {
                     let snapshot = MessageEditSnapshot(targetTxId: edit.targetTxId, text: edit.text, editTxId: txId, blockTime: blockTime, deliveryStatus: .sent)
                     applyLocalGroupEdit(snapshot, groupId: group.id)
@@ -2547,6 +2602,13 @@ final class GroupChatService: ObservableObject {
                     removeLocalGroupReaction(targetTxId: reaction.targetTxId, groupId: group.id, reactorAddress: senderAddress)
                     store.removeGroupReaction(targetTxId: reaction.targetTxId, reactorAddress: senderAddress)
                 }
+                markGroupTxHandled(txId)
+                return
+            }
+
+            // Past the Message retention setting it isn't kept, even if a walk of the whole
+            // stream (a repair, a restore) brings it back.
+            if blockTime > 0, let cutoff = ChatService.shared.messageRetentionCutoffMs(), UInt64(blockTime) < cutoff {
                 markGroupTxHandled(txId)
                 return
             }
@@ -2610,6 +2672,14 @@ final class GroupChatService: ObservableObject {
         }
     }
 
+    /// The in-memory list, or the store for one outside its window (only the open thread holds a
+    /// group's whole history).
+    private func groupMessage(txId: String, groupId: String, gid: Data, bag: GroupBag) -> GroupMessage? {
+        if let loaded = groupMessages[groupId]?.first(where: { $0.txId == txId }) { return loaded }
+        guard let row = store.message(txId: txId, groupId: groupId) else { return nil }
+        return Self.decryptGroupRows([row], groupId: groupId, gid: gid, bag: bag).first
+    }
+
     /// Recipient-addressed gctl (`kchat:1:gctl:{recipient_xonly_pubkey}:{encrypted}`) is only
     /// relevant to the live block-scan path here - the indexer already strips this routing prefix
     /// from `message_payload` in REST catch-up responses (see docs/GROUP_CHAT_API.md), so catch-up
@@ -2633,7 +2703,7 @@ final class GroupChatService: ObservableObject {
         return gctlPrefix + parts[1]
     }
 
-    private func handleIncomingControlMessage(_ payloadString: String, senderAddress: String, blockTime: UInt64 = 0) {
+    private func handleIncomingControlMessage(_ payloadString: String, senderAddress: String, blockTime: UInt64 = 0, blockScanTxId: String? = nil) {
         guard let wallet = WalletManager.shared.currentWallet, let privateKey = WalletManager.shared.getPrivateKey() else { return }
         // Normally we ignore our own echoed controls — EXCEPT the self-addressed recovery root
         // (sender == us, carries group_seed), which is exactly how a seedless import rebuilds an
@@ -2711,6 +2781,19 @@ final class GroupChatService: ObservableObject {
                     AppLog.log("[GroupChatService] Refused a root for %@ sent by someone other than its admin", String(rootPayload.groupId.prefix(12)))
                     return
                 }
+                // From the block scan that sender is only the first output, which whoever built
+                // the transaction picks, and this root's roster rests on it. The inputs settle
+                // it; if they can't yet, catch-up delivers the root again.
+                if let blockScanTxId, !isSelfSent {
+                    let claimedSender = senderAddress
+                    let myAddress = wallet.publicAddress
+                    Task { [weak self] in
+                        guard await ChatService.shared.provenSender(of: blockScanTxId, expected: claimedSender, myAddress: myAddress) == .proven,
+                              WalletManager.shared.currentWallet?.publicAddress == myAddress else { return }
+                        self?.handleIncomingControlMessage(payloadString, senderAddress: claimedSender, blockTime: blockTime)
+                    }
+                    return
+                }
             }
             let isNewGroup = store.group(id: rootPayload.groupId) == nil
             // Nobody joins a group by being added to it: a group this device doesn't hold waits in
@@ -2723,7 +2806,7 @@ final class GroupChatService: ObservableObject {
                 holdGroupInvite(rootPayload, blockTime: blockTime)
                 return
             }
-            completeJoin(from: rootPayload)
+            completeJoin(from: rootPayload, blockTime: blockTime)
             if isNewGroup { seedImportReadMarker(forRediscovered: rootPayload.groupId, inviteBlockTime: blockTime) }
         }
         // gctl_epoch is an advance-notice heads-up only (spec: state updates on gctl_root
@@ -2740,6 +2823,9 @@ final class GroupChatService: ObservableObject {
             .filter { invite in invite.rejected != true && !groups.contains { $0.id == invite.groupId } }
             .sorted { $0.invitedAt > $1.invitedAt }
     }
+
+    private static let maxPendingGroupInvites = 50
+    private static let maxPendingGroupInvitesPerAdmin = 5
 
     private func holdGroupInvite(_ payload: GroupCipher.GroupRootPayload, blockTime: UInt64) {
         guard !isGroupTombstoned(payload.groupId, adminSigningPub: payload.adminSigningPub),
@@ -2767,6 +2853,14 @@ final class GroupChatService: ObservableObject {
             let adminAddress = KaspaAddress(hrp: hrp, type: .pubKey, payload: Data(hexString: payload.adminSigningPub) ?? Data()).address
             // Someone you rejected stays ignored, in groups too.
             guard includesMe, !adminAddress.isEmpty, !ChatService.shared.isChatBlocked(adminAddress) else { return }
+            // Anyone can name you in a root for the price of a transaction, and each one sits in
+            // the Keychain and in Message Requests until it's answered.
+            let waiting = groupInvites.filter { $0.rejected != true }
+            guard waiting.count < Self.maxPendingGroupInvites,
+                  waiting.filter({ $0.adminAddress == adminAddress }).count < Self.maxPendingGroupInvitesPerAdmin else {
+                AppLog.log("[GroupChatService] Too many group invites waiting; dropped one from %@", String(adminAddress.suffix(10)))
+                return
+            }
             groupInvites.append(PendingGroupInvite(adminAddress: adminAddress, invitedAt: blockTime, roots: [payload]))
         }
         saveGroupInvites()
@@ -2971,6 +3065,7 @@ final class GroupChatService: ObservableObject {
     private func deleteLocalGroupForTombstone(_ groupId: String) {
         try? keychain.deleteGroupBag(groupId: groupId)
         store.deleteGroup(id: groupId)
+        forgetFormerMembers(ofGroup: groupId)
         // Its messages are gone from the store; a re-join must be able to store them again.
         handledGroupTxIds.removeAll()
         groups.removeAll { $0.id == groupId }
@@ -2979,7 +3074,7 @@ final class GroupChatService: ObservableObject {
         updateScanningStateIfNeeded()
     }
 
-    private func completeJoin(from payload: GroupCipher.GroupRootPayload) {
+    private func completeJoin(from payload: GroupCipher.GroupRootPayload, blockTime: UInt64 = 0) {
         // A tombstoned group must never be re-added — this makes a delete survive a seedless
         // re-import against the recovery invite.
         if isGroupTombstoned(payload.groupId, adminSigningPub: payload.adminSigningPub) { return }
@@ -3021,7 +3116,7 @@ final class GroupChatService: ObservableObject {
             applyRootPayload(keysOnly)
             return
         }
-        applyRootPayload(payload)
+        applyRootPayload(payload, blockTime: blockTime)
     }
 
     /// Records a retired epoch's root without touching the current epoch. Non-admins have no
@@ -3040,7 +3135,7 @@ final class GroupChatService: ObservableObject {
         AppLog.log("[GroupChatService] Archived epoch %llu root for a group whose bag is newer", epoch)
     }
 
-    private func applyRootPayload(_ payload: GroupCipher.GroupRootPayload) {
+    private func applyRootPayload(_ payload: GroupCipher.GroupRootPayload, blockTime: UInt64 = 0) {
         // A group with no keys has lost them, and the first root back may be an old one from the
         // walk that restores them: what's stored is no baseline to report membership changes from.
         let hadKeys = (try? keychain.loadGroupBag(groupId: payload.groupId)) != nil
@@ -3120,6 +3215,7 @@ final class GroupChatService: ObservableObject {
             groupMessages[group.id] = []
         }
         if let prev = previousRosterForDiff {
+            recordFormerMembers(groupId: group.id, oldMembers: prev, newMembers: members, lastEpoch: payload.epoch > 0 ? payload.epoch - 1 : 0, removedAt: blockTime)
             insertMembershipSystemMessages(groupId: group.id, oldMembers: prev, newMembers: members)
         }
         // Rename line for members (the admin emits its own in renameGroup); "You" on the admin's
@@ -3168,9 +3264,17 @@ final class GroupChatService: ObservableObject {
         }
         await publishGroupAnswers()
 
+        // Not while the indexer is down: what's missed is read from the chain instead.
+        if await KasiaAPIClient.shared.shouldSkipIndexer() {
+            await catchUpGroupsFromChain()
+            return
+        }
+
         let restoringKeys = prepareToRestoreMissingGroupKeys()
 
         await catchUpGroupControlByRecipient(recipientAddress: wallet.publicAddress)
+        // after the catch-up: an admin's second device must not sign a roster it hasn't updated
+        await resendSignedRootsToLegacyGroups()
 
         // Pass 1 - CONTROL first. gctl carries epoch advances + the new epoch's root (and roster
         // changes). A non-admin who was offline when the admin added/removed a member holds no root
@@ -3187,8 +3291,8 @@ final class GroupChatService: ObservableObject {
             guard let bag = try? keychain.loadGroupBag(groupId: group.id),
                   let blindingKey = Data(hexString: bag.blindingKey) else { continue }
 
-            let blindedIds: [String] = group.members.compactMap { member in
-                guard let memberPubKey = Data(hexString: member.xOnlyPubKeyHex) else { return nil }
+            let blindedIds: [String] = catchUpLanePubKeys(for: group).compactMap { pubKeyHex in
+                guard let memberPubKey = Data(hexString: pubKeyHex) else { return nil }
                 return GroupCipher.deriveBlindedGroupId(blindingKey: blindingKey, memberXOnlyPubKey: memberPubKey).hexString
             }
             // Every member in one request where the indexer serves the batched endpoint
@@ -3199,6 +3303,12 @@ final class GroupChatService: ObservableObject {
             }
         }
 
+        // The indexer went down during this pass.
+        if await KasiaAPIClient.shared.isIndexerDown {
+            await catchUpGroupsFromChain()
+            return
+        }
+
         // Groups and their history are both in hand now, so a seed re-import's rediscovered
         // groups can be marked read in one pass.
         seedImportReadMarkersIfNeeded()
@@ -3207,6 +3317,172 @@ final class GroupChatService: ObservableObject {
         // A restored group went off the push watch list while its keys were missing.
         if restoringKeys.contains(where: { !isGroupKeyMissing($0) }) {
             await PushNotificationManager.shared.updateWatchedAddresses()
+        }
+    }
+
+    /// How far back the chain is read for groups while the indexer is down.
+    private static let chainCatchUpLookbackMs: UInt64 = 3 * 24 * 60 * 60 * 1000
+    /// Address -> newest row read from its chain history. In memory only: when the indexer's back
+    /// it serves the outage window anyway.
+    private var chainCatchUpCursors: [String: UInt64] = [:]
+    /// `gctl` txid -> whether its sender was proven, once known.
+    private var chainControlProofs: [String: Bool] = [:]
+    private var isCatchingUpFromChain = false
+
+    /// The catch-up with the indexer down: every `gcomm` and `gctl` is a transaction from its
+    /// author to themselves, so each admin's and member's own history holds them. Control first,
+    /// for the same reason as `performCatchUpSync`. The indexer's cursors stay where they are, so
+    /// it serves the same window again when it's back, and the ingest dedupes by txId. Invites to
+    /// groups this wallet doesn't know yet can't be found this way: those come from the block stream.
+    ///
+    /// Each address keeps its own cursor at the newest row seen, so a pass during an outage asks
+    /// only for what's new, instead of re-reading days of history for every member, every time.
+    private func catchUpGroupsFromChain() async {
+        guard !isCatchingUpFromChain, let wallet = WalletManager.shared.currentWallet else { return }
+        isCatchingUpFromChain = true
+        defer { isCatchingUpFromChain = false }
+        let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
+        let rewound = allGroupsSinceBlockTime > Self.livePollRewindMs ? allGroupsSinceBlockTime - Self.livePollRewindMs : 0
+        let since = max(rewound, nowMs - Self.chainCatchUpLookbackMs)
+        let admins = Set(groups.map(\.adminAddress).filter { !$0.isEmpty })
+        let members = Set(groups.flatMap { group in
+            group.members.map(\.address) + recentFormerMembers(of: group.id).map(\.address)
+        }).subtracting(admins)
+        for address in Array(admins) + Array(members) {
+            guard WalletManager.shared.currentWallet?.publicAddress == wallet.publicAddress else { return }
+            let from = max(since, chainCatchUpCursors[address] ?? 0)
+            guard let history = try? await KasiaAPIClient.shared.chainTransactions(address: address, since: from) else { continue }
+            var newestSeen = from
+            for tx in history {
+                let isControl = tx.payloadHex.hasPrefix(Self.gctlPrefixHex) || tx.payloadHex.hasPrefix(Self.legacyGctlPrefixHex)
+                let isMessage = tx.payloadHex.hasPrefix(Self.gcommPrefixHex) || tx.payloadHex.hasPrefix(Self.legacyGcommPrefixHex)
+                if tx.senders.contains(address.lowercased()), isControl || isMessage,
+                   let bytes = Data(hexString: tx.payloadHex),
+                   let payload = String(data: bytes, encoding: .utf8) {
+                    if isControl {
+                        let proof = await chainControlProof(txId: tx.txId, sender: address, walletAddress: wallet.publicAddress)
+                        guard WalletManager.shared.currentWallet?.publicAddress == wallet.publicAddress else { return }
+                        // Not listed yet, or the REST API is struggling: stop this address here, so
+                        // the next pass starts from this row. Order matters for control.
+                        if proof == .unknown { break }
+                        if proof == .proven {
+                            handleIncomingControlMessage(Self.normalizeControlPayload(payload), senderAddress: address, blockTime: tx.blockTime)
+                        }
+                    } else if let parsed = GroupCipher.parseGroupMessagePayload(payload) {
+                        handleIncomingGroupMessage(parsed, txId: tx.txId, blockTime: Int64(clamping: tx.blockTime))
+                    }
+                }
+                // Capped at now: one row claiming a far-future time would freeze the cursor.
+                newestSeen = max(newestSeen, min(tx.blockTime, nowMs))
+            }
+            chainCatchUpCursors[address] = newestSeen
+        }
+    }
+
+    /// Whether a `gctl` row really came from `sender`: the history's sender list is only what the
+    /// REST API reports. Remembered per transaction, so a pass doesn't check a row twice. Your own
+    /// rows aren't asked about: `provenSender` proves someone else's inputs, and those rows
+    /// authenticate themselves (a recovery root re-derives its seed, the rest are signed).
+    private func chainControlProof(txId: String, sender: String, walletAddress: String) async -> ChatService.SenderProof {
+        if sender.lowercased() == walletAddress.lowercased() { return .proven }
+        if let known = chainControlProofs[txId] { return known ? .proven : .forged }
+        let proof = await ChatService.shared.provenSender(of: txId, expected: sender, myAddress: walletAddress)
+        if proof != .unknown {
+            if chainControlProofs.count >= 20_000 { chainControlProofs.removeAll(keepingCapacity: true) }
+            chainControlProofs[txId] = proof == .proven
+        }
+        return proof
+    }
+
+    // MARK: - Former members
+
+    /// Keeps who a root (or this admin) just took out of a group, so a device catching up late can
+    /// still accept what they said while they were in. A rejoiner's entry stays: the roster check
+    /// passes first, and removing them again replaces it.
+    private func recordFormerMembers(groupId: String, oldMembers: [GroupMember], newMembers: [GroupMember], lastEpoch: UInt64, removedAt: UInt64) {
+        let current = Set(newMembers.map(\.address))
+        let removed = oldMembers.filter { !current.contains($0.address) }
+        guard !removed.isEmpty else { return }
+        let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
+        var former = groupFormerMembers[groupId] ?? []
+        former.removeAll { entry in removed.contains { $0.address == entry.address } }
+        former += removed.map {
+            FormerGroupMember(address: $0.address, xOnlyPubKeyHex: $0.xOnlyPubKeyHex, lastEpoch: lastEpoch, removedAt: removedAt > 0 ? removedAt : nowMs, recordedAt: nowMs)
+        }
+        groupFormerMembers[groupId] = Array(former.suffix(Self.maxFormerMembersPerGroup))
+        saveScoped(groupFormerMembersKey, groupFormerMembers)
+    }
+
+    private func forgetFormerMembers(ofGroup groupId: String) {
+        guard groupFormerMembers.removeValue(forKey: groupId) != nil else { return }
+        saveScoped(groupFormerMembersKey, groupFormerMembers)
+    }
+
+    /// Whether `address` was in this group for `epoch` when this block was made. A block time at or
+    /// after the removal doesn't count: they keep the old epoch's key, and could still sign with it.
+    private func wasMember(_ address: String, ofGroup groupId: String, atEpoch epoch: UInt64, blockTime: Int64) -> Bool {
+        guard blockTime > 0, let former = groupFormerMembers[groupId]?.first(where: { $0.address == address }) else { return false }
+        return epoch <= former.lastEpoch && UInt64(blockTime) < former.removedAt
+    }
+
+    private func recentFormerMembers(of groupId: String) -> [FormerGroupMember] {
+        let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
+        return (groupFormerMembers[groupId] ?? []).filter { nowMs < $0.recordedAt + Self.formerMemberLaneMs }
+    }
+
+    /// The people whose lanes a catch-up reads: the roster, and anyone only lately gone from it.
+    private func catchUpLanePubKeys(for group: GroupChat) -> [String] {
+        group.members.map(\.xOnlyPubKeyHex) + recentFormerMembers(of: group.id).map(\.xOnlyPubKeyHex)
+    }
+
+    // MARK: - Signed rosters for older groups
+
+    /// Rosters on groups made before signed rosters are only as good as the delivery that brought
+    /// them. Once per such group, the admin sends every member a root with a signed roster
+    /// (`completeJoin` then holds them to it). A send that fails is tried again by the next
+    /// catch-up, for that member only: the outbox is written before the first send, because
+    /// the send itself sets `rosterVersion`, which is what marks a group as already done.
+    private func resendSignedRootsToLegacyGroups() async {
+        guard !isResendingSignedRoots,
+              let wallet = WalletManager.shared.currentWallet,
+              let privateKey = WalletManager.shared.getPrivateKey() else { return }
+        isResendingSignedRoots = true
+        defer { isResendingSignedRoots = false }
+
+        for group in groups where group.isAdmin {
+            guard let bag = try? keychain.loadGroupBag(groupId: group.id),
+                  bag.groupSeed != nil, bag.rosterVersion == nil, groupSignedRootOutbox[group.id] == nil else { continue }
+            groupSignedRootOutbox[group.id] = group.members.map(\.address).filter { $0 != wallet.publicAddress }
+            saveScoped(groupSignedRootOutboxKey, groupSignedRootOutbox)
+            // The same account's other devices are held to it too.
+            try? await sendSelfRootControlMessage(group: group, bag: bag, privateKey: privateKey)
+            guard WalletManager.shared.currentWallet?.publicAddress == wallet.publicAddress else { return }
+        }
+
+        for (groupId, owed) in groupSignedRootOutbox {
+            guard let group = groups.first(where: { $0.id == groupId }), group.isAdmin,
+                  let bag = try? keychain.loadGroupBag(groupId: groupId) else {
+                groupSignedRootOutbox.removeValue(forKey: groupId)
+                saveScoped(groupSignedRootOutboxKey, groupSignedRootOutbox)
+                continue
+            }
+            // Someone removed since then isn't owed anything.
+            var remaining = owed.filter { address in group.members.contains { $0.address == address } }
+            while let address = remaining.first {
+                do {
+                    try await sendRootControlMessage(group: group, bag: bag, to: address, privateKey: privateKey)
+                } catch {
+                    break
+                }
+                guard WalletManager.shared.currentWallet?.publicAddress == wallet.publicAddress else { return }
+                remaining.removeFirst()
+                groupSignedRootOutbox[groupId] = remaining
+                saveScoped(groupSignedRootOutboxKey, groupSignedRootOutbox)
+            }
+            if remaining.isEmpty {
+                groupSignedRootOutbox.removeValue(forKey: groupId)
+                saveScoped(groupSignedRootOutboxKey, groupSignedRootOutbox)
+            }
         }
     }
 
@@ -3365,10 +3641,12 @@ final class GroupChatService: ObservableObject {
             refreshProgress = GroupRefreshProgress(groupId: groupId, phase: .finished(recovered: 0, rejections: refreshRejections ?? GroupRefreshRejections()))
             return
         }
-        let total = refreshed.members.count
-        for (index, member) in refreshed.members.enumerated() {
+        // Everyone ever removed too: this is the walk for finding what was missed.
+        let lanePubKeys = refreshed.members.map(\.xOnlyPubKeyHex) + (groupFormerMembers[groupId] ?? []).map(\.xOnlyPubKeyHex)
+        let total = lanePubKeys.count
+        for (index, pubKeyHex) in lanePubKeys.enumerated() {
             refreshProgress = GroupRefreshProgress(groupId: groupId, phase: .messages(done: index, total: total))
-            guard let memberPubKey = Data(hexString: member.xOnlyPubKeyHex) else { continue }
+            guard let memberPubKey = Data(hexString: pubKeyHex) else { continue }
             let blindedGroupId = GroupCipher.deriveBlindedGroupId(blindingKey: blindingKey, memberXOnlyPubKey: memberPubKey)
             await catchUpGroupMessages(groupId: groupId, blindedGroupIdHex: blindedGroupId.hexString)
         }
@@ -3621,6 +3899,19 @@ final class GroupChatService: ObservableObject {
         let key = try P256K.Schnorr.PrivateKey(dataRepresentation: privateKey)
         return Data(key.xonly.bytes)
     }
+}
+
+/// Someone taken out of a group, for telling what they sent while they were in from what they send
+/// after (`GroupChatService.wasMember`). Stored per wallet in `UserDefaults`, like member statuses.
+struct FormerGroupMember: Codable {
+    let address: String
+    let xOnlyPubKeyHex: String
+    /// The last epoch they held the key for.
+    let lastEpoch: UInt64
+    /// Block time (ms) of the root that took them out.
+    let removedAt: UInt64
+    /// When this device learned of it (ms): only how long their lane is still read.
+    let recordedAt: UInt64
 }
 
 /// A group you were added to and haven't answered. It holds every root received so far, in the

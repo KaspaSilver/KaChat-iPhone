@@ -887,7 +887,11 @@ private actor KNSProfileImageCache {
         }
 
         do {
-            let (data, response) = try await session.data(for: request)
+            // The URL is whatever the profile's owner set, so the size is theirs too.
+            let reader = CappedResponseReader(limit: Self.maxDownloadBytes, onOverflow: .fail)
+            let cappedSession = URLSession(configuration: session.configuration, delegate: reader, delegateQueue: nil)
+            defer { cappedSession.finishTasksAndInvalidate() }
+            let (data, response) = try await reader.read(request, using: cappedSession)
             guard let http = response as? HTTPURLResponse else {
                 return nil
             }
@@ -983,26 +987,16 @@ private actor KNSProfileImageCache {
         return (attributes?[.size] as? NSNumber)?.int64Value ?? 0
     }
 
-    /// Full decode when `maxPixelSize` is nil; otherwise an ImageIO thumbnail, which decodes
-    /// straight to the target size instead of materialising the full bitmap and scaling it
-    /// (same approach as `MessageBubbleView`'s photo thumbnails). Falls back to a plain decode
-    /// for formats ImageIO won't thumbnail.
+    /// A profile picture or banner is never drawn larger than the screen.
+    private static let maxDecodedPixelSize = 2_048
+    /// The most a profile picture or banner downloads: past this it's not one.
+    private static let maxDownloadBytes = 10_000_000
+
+    /// An ImageIO thumbnail, which decodes straight to the target size instead of materialising
+    /// the full bitmap and scaling it (same approach as `MessageBubbleView`'s photo thumbnails).
+    /// Nil `maxPixelSize` is the full-size image, still held to `maxDecodedPixelSize`.
     private static func decodeImage(_ data: Data, maxPixelSize: Int?) -> UIImage? {
-        guard let maxPixelSize else { return UIImage(data: data) }
-        let sourceOptions = [kCGImageSourceShouldCache: false] as CFDictionary
-        guard let source = CGImageSourceCreateWithData(data as CFData, sourceOptions) else {
-            return UIImage(data: data)
-        }
-        let options = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceShouldCacheImmediately: true,
-            kCGImageSourceThumbnailMaxPixelSize: max(1, maxPixelSize)
-        ] as CFDictionary
-        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options) else {
-            return UIImage(data: data)
-        }
-        return UIImage(cgImage: cgImage)
+        ImageDownsampler.image(from: data, maxPixelSize: maxPixelSize ?? maxDecodedPixelSize)
     }
 
     private func loadManifestIfNeeded() async {

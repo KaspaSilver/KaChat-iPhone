@@ -318,3 +318,8 @@
 "Sent you a payment" = "שלח לך תשלום";
 "Requested for payment" = "בקשת תשלום";
 "You were invited to \"%@\"" = "התקבלה הזמנה אל \"%@\"";
+
+/* Undecryptable group push */
+"Group chat" = "צ'אט קבוצתי";
+"Group update" = "עדכון קבוצה";
+"New group message" = "הודעה קבוצתית חדשה";

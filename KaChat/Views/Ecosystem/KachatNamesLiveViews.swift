@@ -657,8 +657,12 @@ struct KachatLiveProfileEditor: View {
             bioIn = KachatSourceInput(stored: p.bio, .bio)
             linktree = KachatNames.Profile.linktreeUsername(p.linktree)
         }
-        if let key = KachatNamesRegistry.keyOf(address) {
-            activeNames = ((try? await registry.names(owner: key, includeInactive: false)) ?? []).map(\.name)
+        if let key = KachatNamesRegistry.keyOf(address),
+           let held = try? await registry.names(owner: key, includeInactive: false) {
+            activeNames = held.map(\.name)
+        } else if let pn = p?.primaryName {
+            // the names can't be read right now: saving must not drop the primary name
+            activeNames = [pn]
         }
         if let pn = p?.primaryName, activeNames.contains(pn) { primary = pn }
         loaded = true
@@ -934,7 +938,8 @@ struct KachatOwnedNamesList: View {
            let own = try? await KachatNamesActions.shared.ownNamesAndOffers(heldOnly: true) {
             names = own.names
         } else {
-            names = (try? await registry.heldNames(owner: key)) ?? []
+            // a failed read keeps what's shown
+            if let held = try? await registry.heldNames(owner: key) { names = held }
         }
         loaded = true
     }

@@ -2152,7 +2152,7 @@ struct ChatDetailView: View {
     private var inputFieldWithState: some View {
         Group {
             if isDeclined {
-                disabledTextField(placeholder: "Conversation declined")
+                disabledTextField(placeholder: AppLocalization.string("Conversation declined"))
             } else {
                 inputField
             }
@@ -3647,6 +3647,8 @@ struct ChatDetailView: View {
         guard !isSending else { return }
         let extraFee = paymentExtraFeeSompi
         let manualUtxos = paymentManualUtxos
+        // what the Review showed: a send rebuilt at the swipe that would pay more doesn't go
+        let expectedFee = paymentTotalFeeSompi
         isSending = true
         Task {
             do {
@@ -3659,7 +3661,8 @@ struct ChatDetailView: View {
                     note: note,
                     extraFeeSompi: extraFee,
                     sourceSpendingIndex: paymentFrom.spendingIndex,
-                    manualUtxos: manualUtxos
+                    manualUtxos: manualUtxos,
+                    expectedFeeSompi: expectedFee
                 )
                 await MainActor.run {
                     amountText = ""
@@ -3687,6 +3690,8 @@ struct ChatDetailView: View {
                     // Shown under "Failed" on the swipe-up screen (which plays the error
                     // haptic), and on the form after Try Again.
                     self.paymentError = displayErrorMessage(error)
+                    // nothing went out; Try Again goes back to a Review with the fee of today's coins
+                    if error is SendFeeChangedError { schedulePaymentFee(for: amountText) }
                 }
             }
             await MainActor.run {

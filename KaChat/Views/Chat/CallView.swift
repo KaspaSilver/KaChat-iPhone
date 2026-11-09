@@ -122,7 +122,7 @@ struct CallConfirmationSheets: ViewModifier {
             VStack(spacing: 12) {
                 ActionSheetRow(
                     title: "Enable calls",
-                    subtitle: "Saves this for \(name) and lets you call now.",
+                    subtitle: String(format: AppLocalization.string("Saves this for %@ and lets you call now."), locale: AppLocalization.locale, name),
                     systemImage: "phone.badge.checkmark"
                 ) {
                     var updated = contact
@@ -385,7 +385,7 @@ struct CallView: View {
                     .frame(height: tileHeight)
                 videoTile(track: call.isCameraOff ? nil : call.localVideoTrack,
                           name: "You",
-                          placeholder: "Camera off",
+                          placeholder: AppLocalization.string("Camera off"),
                           address: nil,
                           // Ringing: no WebRTC track yet, so the camera itself fills the tile.
                           livePreview: !call.isCameraOff && call.localVideoTrack == nil && call.phase == .ringingOut)
@@ -402,7 +402,7 @@ struct CallView: View {
     private var remotePlaceholder: String {
         switch call.phase {
         case .ringingOut: return "calling\u{2026}"
-        case .connected: return "Camera off"
+        case .connected: return AppLocalization.string("Camera off")
         default: return call.statusDetail ?? "Connecting\u{2026}"
         }
     }

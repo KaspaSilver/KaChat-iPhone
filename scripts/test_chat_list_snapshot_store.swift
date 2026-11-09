@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 @main
@@ -38,6 +39,7 @@ struct ChatListSnapshotStoreTest {
             unreadCount: 3
         )
 
+        ChatListSnapshotStore.setSealing((walletAddress: walletAddress, key: SymmetricKey(size: .bits256)))
         ChatListSnapshotStore.save([conversation], walletAddress: walletAddress, directory: directory)
         let loaded = ChatListSnapshotStore.load(walletAddress: walletAddress, directory: directory)
 

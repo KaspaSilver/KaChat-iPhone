@@ -20,6 +20,7 @@ final class GroupStore {
     private static let indexSpecs: [CoreDataIndexBuilder.Spec] = [
         .init(entityName: CDGroupMessage.entityName, attributes: ["groupId", "blockTime"]),
         .init(entityName: CDGroupMessage.entityName, attributes: ["txId"]),
+        .init(entityName: CDGroupMessage.entityName, attributes: ["groupId", "senderIdHex", "msgIdHex"]),
         .init(entityName: CDGroupReaction.entityName, attributes: ["groupId"]),
         .init(entityName: CDGroupReaction.entityName, attributes: ["targetTxId"]),
     ]
@@ -120,6 +121,9 @@ final class GroupStore {
             let reactionRequest = NSFetchRequest<NSFetchRequestResult>(entityName: CDGroupReaction.entityName)
             reactionRequest.predicate = NSPredicate(format: "groupId == %@", id)
             _ = try? context.execute(NSBatchDeleteRequest(fetchRequest: reactionRequest))
+            let seenRequest = NSFetchRequest<NSFetchRequestResult>(entityName: CDGroupSeenMessageId.entityName)
+            seenRequest.predicate = NSPredicate(format: "groupId == %@", id)
+            _ = try? context.execute(NSBatchDeleteRequest(fetchRequest: seenRequest))
             save(context)
         }
     }
@@ -248,6 +252,61 @@ final class GroupStore {
         return inserted
     }
 
+    /// Claims (group, sender, epoch, msg_id) for `txId` before its message, edit, reaction or
+    /// status is applied. The signature covers those four and not the transaction, so anyone can
+    /// put the same bytes in a new transaction, for a fresh block time and txId. False when the
+    /// id already belongs to another transaction: that's the replay. A local `pending_` copy is
+    /// no claim, so a send that went out after all still replaces its failed row.
+    ///
+    /// Kept after a message is deleted or pruned, or the same bytes could bring it back.
+    func claimMessageId(groupId: String, senderIdHex: String, epoch: UInt64, msgIdHex: String, txId: String, blockTime: Int64) -> Bool {
+        guard isLoaded else { return true }
+        let key = "\(groupId)|\(senderIdHex)|\(epoch)|\(msgIdHex)"
+        let context = viewContext
+        var claimed = true
+        context.performAndWait {
+            let request = NSFetchRequest<CDGroupSeenMessageId>(entityName: CDGroupSeenMessageId.entityName)
+            request.predicate = NSPredicate(format: "messageKey == %@", key)
+            request.fetchLimit = 1
+            if let seen = (try? context.fetch(request))?.first {
+                claimed = seen.txId == txId
+                return
+            }
+            // Messages stored before this table existed have no entry of their own.
+            let rowRequest = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
+            rowRequest.predicate = NSPredicate(
+                format: "groupId == %@ AND senderIdHex == %@ AND epoch == %lld AND msgIdHex == %@ AND NOT (txId BEGINSWITH %@)",
+                groupId, senderIdHex, Int64(truncatingIfNeeded: epoch), msgIdHex, "pending_"
+            )
+            rowRequest.fetchLimit = 1
+            if let stored = (try? context.fetch(rowRequest))?.first, stored.txId != txId {
+                claimed = false
+                return
+            }
+            let seen = CDGroupSeenMessageId(context: context)
+            seen.messageKey = key
+            seen.groupId = groupId
+            seen.txId = txId
+            seen.blockTime = blockTime
+            save(context)
+        }
+        return claimed
+    }
+
+    /// One stored message, for what's outside the window the in-memory list holds.
+    func message(txId: String, groupId: String) -> CDGroupMessageSnapshot? {
+        guard isLoaded else { return nil }
+        let context = viewContext
+        var result: CDGroupMessageSnapshot?
+        context.performAndWait {
+            let request = NSFetchRequest<CDGroupMessage>(entityName: CDGroupMessage.entityName)
+            request.predicate = NSPredicate(format: "txId == %@ AND groupId == %@", txId, groupId)
+            request.fetchLimit = 1
+            result = (try? context.fetch(request))?.first.map(Self.makeSnapshot)
+        }
+        return result
+    }
+
     /// Replace an optimistic `pending_<uuid>` row with the real confirmed txId.
     func resolvePendingMessage(pendingId: String, realId: String, blockTime: Int64) {
         let context = viewContext
@@ -374,23 +433,56 @@ final class GroupStore {
                 request.sortDescriptors = [NSSortDescriptor(key: "blockTime", ascending: !newestFirst)]
                 if let newestLimit { request.fetchLimit = newestLimit }
                 let rows = (try? context.fetch(request)) ?? []
-                var result = rows.map { row in
-                    CDGroupMessageSnapshot(
-                        txId: row.txId,
-                        groupId: row.groupId,
-                        senderAddress: row.senderAddress,
-                        senderIdHex: row.senderIdHex,
-                        epoch: row.epoch < 0 ? 0 : UInt64(row.epoch),
-                        msgIdHex: row.msgIdHex,
-                        contentEncrypted: row.contentEncrypted ?? Data(),
-                        blockTime: row.blockTime,
-                        isOutgoing: row.isOutgoing,
-                        deliveryStatus: ChatMessage.DeliveryStatus(rawValue: row.deliveryStatus ?? "") ?? .sent,
-                        isImportedPlaintext: row.epoch < 0
-                    )
-                }
+                var result = rows.map(Self.makeSnapshot)
                 if newestFirst { result.reverse() }
                 continuation.resume(returning: result)
+            }
+        }
+    }
+
+    private static func makeSnapshot(from row: CDGroupMessage) -> CDGroupMessageSnapshot {
+        CDGroupMessageSnapshot(
+            txId: row.txId,
+            groupId: row.groupId,
+            senderAddress: row.senderAddress,
+            senderIdHex: row.senderIdHex,
+            epoch: row.epoch < 0 ? 0 : UInt64(row.epoch),
+            msgIdHex: row.msgIdHex,
+            contentEncrypted: row.contentEncrypted ?? Data(),
+            blockTime: row.blockTime,
+            isOutgoing: row.isOutgoing,
+            deliveryStatus: ChatMessage.DeliveryStatus(rawValue: row.deliveryStatus ?? "") ?? .sent,
+            isImportedPlaintext: row.epoch < 0
+        )
+    }
+
+    // MARK: - Retention
+
+    /// Deletes this wallet's group messages, edits and reactions older than the Message retention
+    /// setting, the same cutoff `MessageStore.applyRetention` uses for 1:1 chats. Off the main
+    /// thread. The groups themselves and the seen message ids stay (see `claimMessageId`).
+    func applyRetentionInBackground(_ retention: MessageRetention) async {
+        guard isLoaded, let days = retention.days else { return }
+        let cutoffMs = Int64(Date().addingTimeInterval(TimeInterval(-days * 86_400)).timeIntervalSince1970 * 1000)
+        let viewContext = self.viewContext
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            container.performBackgroundTask { context in
+                for entityName in [CDGroupMessage.entityName, CDGroupMessageEdit.entityName, CDGroupReaction.entityName] {
+                    let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+                    fetch.predicate = NSPredicate(format: "blockTime < %lld", cutoffMs)
+                    let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetch)
+                    deleteRequest.resultType = .resultTypeObjectIDs
+                    do {
+                        let result = try context.execute(deleteRequest) as? NSBatchDeleteResult
+                        let objectIds = result?.result as? [NSManagedObjectID] ?? []
+                        if !objectIds.isEmpty {
+                            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: [NSDeletedObjectsKey: objectIds], into: [viewContext])
+                        }
+                    } catch {
+                        AppLog.log("[GroupStore] Failed to apply retention: %@", error.localizedDescription)
+                    }
+                }
+                continuation.resume()
             }
         }
     }
@@ -568,7 +660,7 @@ final class GroupStore {
         guard isLoaded else { return }
         let context = viewContext
         context.performAndWait {
-            for entityName in [CDGroupMessage.entityName, CDGroup.entityName, CDGroupReaction.entityName] {
+            for entityName in [CDGroupMessage.entityName, CDGroup.entityName, CDGroupReaction.entityName, CDGroupSeenMessageId.entityName] {
                 let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
                 let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
                 _ = try? context.execute(deleteRequest)
@@ -637,7 +729,8 @@ final class GroupStore {
         // wallet load. Lightweight migration adds the index to existing stores.
         messageEntity.indexes = [
             makeIndex(name: "byGroupAndTime", on: messageEntity, attributes: ["groupId", "blockTime"]),
-            makeIndex(name: "byTxId", on: messageEntity, attributes: ["txId"])
+            makeIndex(name: "byTxId", on: messageEntity, attributes: ["txId"]),
+            makeIndex(name: "byMsgId", on: messageEntity, attributes: ["groupId", "senderIdHex", "msgIdHex"])
         ]
 
         let reactionEntity = NSEntityDescription()
@@ -680,7 +773,23 @@ final class GroupStore {
             makeIndex(name: "byGroup", on: editEntity, attributes: ["groupId"])
         ]
 
-        model.entities = [groupEntity, messageEntity, reactionEntity, editEntity]
+        // CDGroupSeenMessageId: every message id this device has applied (see `claimMessageId`).
+        // New entity → lightweight migration.
+        let seenEntity = NSEntityDescription()
+        seenEntity.name = CDGroupSeenMessageId.entityName
+        seenEntity.managedObjectClassName = NSStringFromClass(CDGroupSeenMessageId.self)
+        seenEntity.properties = [
+            makeAttribute(name: "messageKey", type: .stringAttributeType, optional: false, defaultValue: ""),
+            makeAttribute(name: "groupId", type: .stringAttributeType, optional: false, defaultValue: ""),
+            makeAttribute(name: "txId", type: .stringAttributeType, optional: false, defaultValue: ""),
+            makeAttribute(name: "blockTime", type: .integer64AttributeType, optional: false, defaultValue: 0)
+        ]
+        seenEntity.indexes = [
+            makeIndex(name: "byKey", on: seenEntity, attributes: ["messageKey"]),
+            makeIndex(name: "byGroup", on: seenEntity, attributes: ["groupId"])
+        ]
+
+        model.entities = [groupEntity, messageEntity, reactionEntity, editEntity, seenEntity]
         return model
     }
 
@@ -764,6 +873,16 @@ final class CDGroupReaction: NSManagedObject {
     @NSManaged var blockTime: Int64
     @NSManaged var deliveryStatus: String?
     @NSManaged var failedAction: String?
+}
+
+@objc(CDGroupSeenMessageId)
+final class CDGroupSeenMessageId: NSManagedObject {
+    static let entityName = "CDGroupSeenMessageId"
+
+    @NSManaged var messageKey: String
+    @NSManaged var groupId: String
+    @NSManaged var txId: String
+    @NSManaged var blockTime: Int64
 }
 
 @objc(CDGroupMessageEdit)

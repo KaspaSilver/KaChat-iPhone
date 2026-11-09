@@ -570,9 +570,20 @@ class NotificationService: UNNotificationServiceExtension {
                 addPendingMessage(txId: txId, sender: "group", type: messageType)
                 return
             }
+            // Someone you rejected stays ignored (the app drops the invite too), and one admin
+            // can't fill the lock screen by inviting you to many groups: one banner a day each.
+            if isBlockedGroupAdmin(control.adminSigningPub) || !claimGroupInviteBannerSlot(adminSigningPub: control.adminSigningPub) {
+                suppressGroupNotification(content)
+                addPendingMessage(txId: txId, sender: "group", type: messageType)
+                return
+            }
             content.title = NSLocalizedString("New message request", comment: "Push title for the first message from someone new")
             let format = NSLocalizedString("You were invited to \"%@\"", comment: "Push body for being invited to a group")
-            content.body = String(format: format, control.name)
+            // The name is the inviter's, unbounded and signed by nobody who has to care.
+            let groupName = control.name.count > Self.maxGroupInviteNameLength
+                ? String(control.name.prefix(Self.maxGroupInviteNameLength)) + "\u{2026}"
+                : control.name
+            content.body = String(format: format, groupName)
             // Tapping opens Message Requests (KaChatApp's didReceive): there's no group to open yet.
             content.threadIdentifier = "group_requests"
             content.sound = defaultSoundEnabled ? .default : nil
@@ -585,6 +596,82 @@ class NotificationService: UNNotificationServiceExtension {
         markGroupPushHandled(txId: txId)
         addPendingMessage(txId: txId, sender: "group", type: messageType)
         contentHandler?(content)
+    }
+
+    private static let maxGroupInviteNameLength = 60
+    /// How long one admin's invite banner holds off their next, and how many admins are remembered.
+    private static let groupInviteBannerInterval: TimeInterval = 24 * 60 * 60
+    private static let groupInviteBannerAdminLimit = 500
+
+    /// Whether this invite's admin is on the app's blocked list. The list is by address, so the
+    /// admin's address is worked out from the signing key the root was verified against.
+    private func isBlockedGroupAdmin(_ adminSigningPub: String) -> Bool {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier),
+              let wallet = getWalletAddress() else { return false }
+        // Lists written for another account don't apply to this one.
+        if let listsWallet = defaults.string(forKey: "chat_requests_wallet"), listsWallet != wallet { return false }
+        guard let hrp = Self.addressNetwork(wallet),
+              let address = Self.kaspaAddress(xOnlyPublicKeyHex: adminSigningPub, hrp: hrp) else { return false }
+        return Set(defaults.stringArray(forKey: "chat_blocked_addresses") ?? []).contains(address)
+    }
+
+    /// True the first time an admin may ring this account today. Per wallet, like the message
+    /// request record, so another account on this phone still gets its own first banner.
+    private func claimGroupInviteBannerSlot(adminSigningPub: String) -> Bool {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier),
+              let wallet = getWalletAddress() else { return true }
+        let key = "group_invite_banner_admins"
+        let entry = "\(wallet.lowercased())|\(adminSigningPub)"
+        let now = Date().timeIntervalSince1970
+        var rung = defaults.dictionary(forKey: key) as? [String: Double] ?? [:]
+        if let last = rung[entry], now - last < Self.groupInviteBannerInterval { return false }
+        rung[entry] = now
+        if rung.count > Self.groupInviteBannerAdminLimit {
+            for oldest in rung.sorted(by: { $0.value < $1.value }).prefix(rung.count - Self.groupInviteBannerAdminLimit) {
+                rung.removeValue(forKey: oldest.key)
+            }
+        }
+        defaults.set(rung, forKey: key)
+        return true
+    }
+
+    /// A schnorr public key's Kaspa address (version 0, then the key, in Kaspa's bech32). The
+    /// extension doesn't compile the app's `Bech32`, like `Models.swift` (see `formatAddress`).
+    private static func kaspaAddress(xOnlyPublicKeyHex: String, hrp: String) -> String? {
+        guard let key = Data(hexString: xOnlyPublicKeyHex), key.count == 32 else { return nil }
+        var values: [UInt8] = []
+        var accumulator: UInt32 = 0
+        var bits = 0
+        for byte in [UInt8(0)] + Array(key) {
+            accumulator = (accumulator << 8) | UInt32(byte)
+            bits += 8
+            while bits >= 5 {
+                bits -= 5
+                values.append(UInt8((accumulator >> UInt32(bits)) & 31))
+            }
+        }
+        if bits > 0 { values.append(UInt8((accumulator << UInt32(5 - bits)) & 31)) }
+
+        let generator: [UInt64] = [0x98f2bc8e61, 0x79b76d99e2, 0xf33e5fb3c4, 0xae2eabe2a8, 0x1e4f43e470]
+        var checksumInput = hrp.utf8.map { $0 & 0x1f }
+        checksumInput.append(0)
+        checksumInput.append(contentsOf: values)
+        checksumInput.append(contentsOf: [UInt8](repeating: 0, count: 8))
+        var check: UInt64 = 1
+        for value in checksumInput {
+            let top = check >> 35
+            check = ((check & 0x07ffffffff) << 5) ^ UInt64(value)
+            for index in 0..<5 where (top >> UInt64(index)) & 1 == 1 {
+                check ^= generator[index]
+            }
+        }
+        check ^= 1
+        for index in 0..<8 {
+            values.append(UInt8((check >> UInt64(5 * (7 - index))) & 31))
+        }
+
+        let charset = Array("qpzry9x8gf2tvdw0s3jn54khce6mua7l")
+        return hrp + ":" + String(values.map { charset[Int($0)] })
     }
 
     /// Records a 1:1 push's txId in the App Group so the main app's own ingest of the same
@@ -2088,6 +2175,7 @@ private struct NotificationGroupCipher {
     }
 
     static func verify(_ signature: Data, message: Data, xOnlyPublicKey: Data) -> Bool {
+        guard xOnlyPublicKey.count == 32 else { return false }
         guard let schnorrSig = try? P256K.Schnorr.SchnorrSignature(dataRepresentation: signature) else {
             return false
         }

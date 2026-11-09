@@ -336,19 +336,17 @@ struct NFCCardBackupView: View {
     }
 }
 
-/// A PIN or passphrase entry, shown as typed so a mistake is caught before it costs a PIN try. It
-/// never offers to save the value or autofill it. A PIN field only takes digits, up to the PIN's length.
+/// A PIN or passphrase entry, hidden until its eye is tapped, which still lets a mistake be caught
+/// before it costs a PIN try. It never offers to save the value (`RevealableSecureField`). A PIN
+/// field only takes digits, up to the PIN's length.
 struct NFCCardSecretField: View {
     let title: LocalizedStringKey
     @Binding var text: String
     let isNumeric: Bool
 
     var body: some View {
-        TextField(title, text: $text)
+        RevealableSecureField(title, text: $text)
             .keyboardType(isNumeric ? .numberPad : .default)
-            .textContentType(nil)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
             .onChange(of: text) { value in
                 guard isNumeric else { return }
                 let digits = String(value.filter { $0.isASCII && $0.isNumber }.prefix(NFCCard.pinLength))

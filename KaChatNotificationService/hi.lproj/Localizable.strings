@@ -318,3 +318,8 @@
 "Sent you a payment" = "आपको एक भुगतान भेजा";
 "Requested for payment" = "भुगतान का अनुरोध किया";
 "You were invited to \"%@\"" = "आपको \"%@\" में आमंत्रित किया गया";
+
+/* Undecryptable group push */
+"Group chat" = "समूह चैट";
+"Group update" = "समूह अपडेट";
+"New group message" = "नया समूह संदेश";

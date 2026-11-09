@@ -42,11 +42,12 @@ extension ChatService {
                                  memo: trimmedMemo.isEmpty ? nil : trimmedMemo)
         )
         guard !payload.isEmpty else { return }
+        let owner = WalletManager.shared.currentWallet?.publicAddress
         Task { @MainActor [weak self] in
             guard let self else { return }
             do {
                 _ = try await self.enqueueOutgoingTxOperation {
-                    try await self.sendEnvelopeInternal(to: contact, payload: payload)
+                    try await self.sendEnvelopeInternal(to: contact, payload: payload, owner: owner)
                 }
                 AppLog.log("[ChatService] Sent payment_notice for %@", String(txId.prefix(12)))
             } catch {
@@ -102,11 +103,12 @@ extension ChatService {
         sendingUnsentNotices = true
         defer { sendingUnsentNotices = false }
         var left: [UnsentPaymentNotice] = []
+        let owner = WalletManager.shared.currentWallet?.publicAddress
         for notice in pending {
             guard let contact = contactsManager.getContact(byAddress: notice.contactAddress) else { continue }
             do {
                 _ = try await enqueueOutgoingTxOperation {
-                    try await self.sendEnvelopeInternal(to: contact, payload: notice.payload)
+                    try await self.sendEnvelopeInternal(to: contact, payload: notice.payload, owner: owner)
                 }
                 AppLog.log("[ChatService] Sent a kept payment_notice for %@", String(notice.txId.prefix(12)))
             } catch {

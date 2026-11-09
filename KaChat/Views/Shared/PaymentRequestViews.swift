@@ -448,10 +448,9 @@ struct PaymentRequestSummary: View {
             Divider().padding(.vertical, 4)
 
             if let creator = request.creator {
-                // Who made it - checked against the signature in the link when it was opened.
-                Label("Requested by", systemImage: "checkmark.seal.fill")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(.green)
+                // Who made it - the address was checked against the signature in the link when
+                // it was opened; the name on the card has its own check below.
+                RequestedByHeader(creator: creator)
                 AddressResolutionCard(address: creator)
                 if creator.lowercased() != request.address.lowercased() {
                     Text("Signed by their chatting address. The payment goes to the address above.")
@@ -470,6 +469,38 @@ struct PaymentRequestSummary: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(.regularMaterial)
         )
+    }
+}
+
+/// "Requested by", above the requester's card. The signature proves the address and says nothing
+/// about the name the card shows, which is the registry's answer for that address (possibly a
+/// cached one), so the green check waits for the name itself to resolve back to this address.
+private struct RequestedByHeader: View {
+    let creator: String
+
+    /// re-renders when the creator's .kachat identity lands (`cachedIdentity` fills in the background)
+    @ObservedObject private var kachatRegistry = KachatNamesRegistry.shared
+    @State private var verifiedName: String?
+
+    private var shownName: String? {
+        kachatRegistry.cachedIdentity(for: creator)?.label
+    }
+
+    var body: some View {
+        let isVerified = shownName != nil && verifiedName == shownName
+        Label("Requested by", systemImage: isVerified ? "checkmark.seal.fill" : "person.crop.circle")
+            .font(.caption.weight(.semibold))
+            .foregroundColor(isVerified ? .green : .secondary)
+            .task(id: shownName) { await verify(shownName) }
+    }
+
+    private func verify(_ name: String?) async {
+        verifiedName = nil
+        guard let name, let owner = KachatNamesRegistry.keyOf(creator),
+              case .registered(let info)? = try? await kachatRegistry.lookup(name),
+              info.owner == owner, info.status(graceMs: kachatRegistry.graceMs) != .lapsed,
+              !Task.isCancelled else { return }
+        verifiedName = name
     }
 }
 

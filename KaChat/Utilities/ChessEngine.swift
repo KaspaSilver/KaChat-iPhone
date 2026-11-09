@@ -85,15 +85,17 @@ struct ChessSquare: Equatable, Hashable {
         self.rank = rank
     }
 
+    /// Exactly what `algebraic` writes, ASCII lowercase "a1"..."h8" and nothing else: a move off
+    /// the wire that only some clients could read (a Unicode digit, say) would split the two boards.
     init?(algebraic: String) {
-        let chars = Array(algebraic.lowercased())
-        guard chars.count == 2,
-              let fileAscii = chars[0].asciiValue, fileAscii >= 97, fileAscii <= 104,
-              let rankDigit = chars[1].wholeNumberValue, rankDigit >= 1, rankDigit <= 8 else {
+        let bytes = Array(algebraic.utf8)
+        guard bytes.count == 2,
+              (97...104).contains(bytes[0]),
+              (49...56).contains(bytes[1]) else {
             return nil
         }
-        self.file = Int(fileAscii) - 97
-        self.rank = rankDigit - 1
+        self.file = Int(bytes[0]) - 97
+        self.rank = Int(bytes[1]) - 49
     }
 }
 

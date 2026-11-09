@@ -155,6 +155,7 @@ enum GroupCipher {
 
     /// Raw Schnorr verify, matching KasiaTransactionBuilder's tx-verification pattern.
     static func verify(_ signature: Data, message: Data, xOnlyPublicKey: Data) -> Bool {
+        guard xOnlyPublicKey.count == 32 else { return false }
         guard let schnorrSig = try? P256K.Schnorr.SchnorrSignature(dataRepresentation: signature) else {
             return false
         }

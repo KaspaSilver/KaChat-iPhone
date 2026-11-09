@@ -1587,6 +1587,8 @@ struct ChatListView: View {
                 } else {
                     AppLog.log("[ChatListView] Notification permission granted")
                 }
+                // Push registration has been waiting on this answer, whichever it was.
+                PushNotificationManager.shared.permissionPromptFinished()
             }
         }
     }

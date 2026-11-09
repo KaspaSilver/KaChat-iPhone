@@ -268,6 +268,8 @@ extension ChatService {
     func startForegroundContactSweep() {
         if let task = foregroundSweepTask, !task.isCancelled { return }
         guard WalletManager.shared.currentWallet != nil else { return }
+        // Runs on app-active and wallet load: a KNS commit left without its reveal gets finished.
+        Task { @MainActor in await KNSRevealRecovery.resumeIfNeeded() }
         AppLog.log("[ChatService] Foreground contact sweep started (%.0fs, cap %d)",
                    currentForegroundSweepBaseInterval, foregroundSweepMaxContacts)
         foregroundSweepTask = Task { @MainActor [weak self] in
@@ -1012,6 +1014,17 @@ extension ChatService {
         return try await operationTask.value
     }
 
+    /// A queued send runs when its turn comes, and the person may have switched accounts since:
+    /// it is refused rather than signed with the new account's key. Its row went with the old
+    /// account's messages, where the leftover check fails it at the next launch
+    /// (`failPendingSendsFromBeforeThisRun`).
+    func refuseIfAccountChanged(ownerAddress: String?, currentAddress: String, pendingTxId: String?, contactAddress: String) throws {
+        guard let ownerAddress, ownerAddress != currentAddress else { return }
+        AppLog.log("[ChatService] Refused a queued send: the account changed")
+        if let pendingTxId { markPendingMessageFailed(pendingTxId, contactAddress: contactAddress) }
+        throw KasiaError.networkError(AppLocalization.string("Not sent: you switched accounts before this went out."))
+    }
+
     func isNoConfirmedInputsError(_ error: Error) -> Bool {
         let localizedNoSpendableFunds = noSpendableFundsYetMessage().lowercased()
         if case let KasiaError.networkError(message) = error {
@@ -1117,12 +1130,7 @@ extension ChatService {
         )
 
         let usesUnconfirmedInputs = compaction.selectedUtxos.contains { $0.blockDaaScore == 0 }
-        let submitted = try await submitSpendingMessageCoins(
-            compaction.transaction,
-            spent: compaction.selectedUtxos,
-            allowOrphan: usesUnconfirmedInputs,
-            rpcManager: rpcManager
-        )
+        let submitted = try await rpcManager.submitTransaction(compaction.transaction, allowOrphan: usesUnconfirmedInputs)
         reserveMessageOutpoints(compaction.selectedUtxos)
         consumePendingUtxos(compaction.selectedUtxos)
         addPendingOutputs(from: compaction.transaction, txId: submitted.txId, senderScriptPubKey: senderScriptPubKey)
@@ -1408,7 +1416,8 @@ extension ChatService {
                 messageType: messageType,
                 pendingTxId: pendingTxId,
                 pendingMessageId: pendingMessage.id,
-                feeOverride: feeOverride
+                feeOverride: feeOverride,
+                ownerAddress: wallet.publicAddress
             )
         }
         if !isCallEnvelope { replyingTo = nil }
@@ -1522,13 +1531,22 @@ extension ChatService {
         guard message.isOutgoing, message.deliveryStatus != .warning else { return }
         switch message.messageType {
         case .contextual, .audio:
+            // Pending from this moment, before the queue reaches it: a second tap finds nothing
+            // left to retry, where the row used to stay Failed and post twice.
+            guard let row = conversations.first(where: { $0.contact.address == contact.address })?
+                .messages.first(where: { $0.id == message.id }),
+                  row.txId == message.txId, row.deliveryStatus == .failed else { return }
+            resetPendingMessage(message.txId, contactAddress: contact.address)
+            saveMessages()
+            let ownerAddress = WalletManager.shared.currentWallet?.publicAddress
             try await enqueueOutgoingTxOperation {
                 try await self.sendMessageInternal(
                     to: contact,
                     content: message.content,
                     messageType: message.messageType,
                     pendingTxId: message.txId,
-                    pendingMessageId: message.id
+                    pendingMessageId: message.id,
+                    ownerAddress: ownerAddress
                 )
             }
         case .handshake:
@@ -1547,10 +1565,24 @@ extension ChatService {
         pendingTxId: String?,
         pendingMessageId: UUID? = nil,
         spendableFundsRetryAttempt: Int = 0,
-        feeOverride: UInt64? = nil
+        feeOverride: UInt64? = nil,
+        /// The account this send was queued under: it never signs as another one.
+        ownerAddress: String? = nil
     ) async throws {
         guard let wallet = WalletManager.shared.currentWallet else {
             throw KasiaError.walletNotFound
+        }
+        try refuseIfAccountChanged(ownerAddress: ownerAddress, currentAddress: wallet.publicAddress, pendingTxId: pendingTxId, contactAddress: contact.address)
+
+        // By the time the queue gets here the row may be Sent, Not confirmed or deleted: nothing
+        // to send, and sending anyway could post it twice.
+        if let pendingTxId {
+            let row = conversations.first(where: { $0.contact.address == contact.address })?
+                .messages.first(where: { $0.txId == pendingTxId })
+            guard let row, row.deliveryStatus == .pending || row.deliveryStatus == .failed else {
+                AppLog.log("[ChatService] Queued send %@ has nothing left to send", String(pendingTxId.prefix(12)))
+                return
+            }
         }
 
         guard let privateKey = WalletManager.shared.getPrivateKey() else {
@@ -1760,12 +1792,7 @@ extension ChatService {
             let txId: String
             let endpoint: String
             do {
-                let submitted = try await submitSpendingMessageCoins(
-                    transaction,
-                    spent: spentUtxos,
-                    allowOrphan: usesUnconfirmedInputs,
-                    rpcManager: rpcManager
-                )
+                let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: usesUnconfirmedInputs)
                 txId = submitted.txId
                 endpoint = submitted.endpoint
             } catch {
@@ -1800,12 +1827,7 @@ extension ChatService {
                 transaction = confirmedOnlyTransaction
                 spentUtxos = spentMessageUtxos(from: transaction, candidates: confirmedOnlyUtxos)
 
-                let submitted = try await submitSpendingMessageCoins(
-                    transaction,
-                    spent: spentUtxos,
-                    allowOrphan: false,
-                    rpcManager: rpcManager
-                )
+                let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: false)
                 txId = submitted.txId
                 endpoint = submitted.endpoint
             }
@@ -1918,7 +1940,8 @@ extension ChatService {
                     messageType: messageType,
                     pendingTxId: activePendingTxId,
                     pendingMessageId: activePendingMessageId,
-                    spendableFundsRetryAttempt: retryNumber
+                    spendableFundsRetryAttempt: retryNumber,
+                    ownerAddress: ownerAddress ?? wallet.publicAddress
                 )
                 return
             }
@@ -2374,7 +2397,8 @@ extension ChatService {
                             content: message.content,
                             messageType: messageType,
                             pendingTxId: retryPendingTxId,
-                            pendingMessageId: retryPendingMessageId
+                            pendingMessageId: retryPendingMessageId,
+                            ownerAddress: owner
                         )
                     case .payment:
                         guard let paymentAmountSompi else { return }
@@ -2385,7 +2409,8 @@ extension ChatService {
                             pendingTxId: retryPendingTxId,
                             extraFeeSompi: paymentExtraFeeSompi,
                             sourceSpendingIndex: paymentSourceIndex,
-                            manualUtxos: paymentManualUtxos
+                            manualUtxos: paymentManualUtxos,
+                            ownerAddress: owner
                         )
                     case .handshake:
                         let isResponse = handshakeIsResponse ?? self.shouldRetryHandshakeAsResponse(for: contact.address)
@@ -2416,10 +2441,13 @@ extension ChatService {
         /// Send KAS sheet's Available pill). nil = the primary, as always.
         sourceSpendingIndex: Int? = nil,
         /// Coin control: spend only these coins of the source address. nil = automatic.
-        manualUtxos: [UTXO]? = nil
+        manualUtxos: [UTXO]? = nil,
+        /// The fee the Review showed (as in `sendWithdrawal`). nil holds it to nothing.
+        expectedFeeSompi: UInt64? = nil
     ) async throws -> String? {
         // Paying someone is reaching out to them, like writing to them.
         acceptChat(contact.address)
+        let ownerAddress = WalletManager.shared.currentWallet?.publicAddress
         return try await enqueueOutgoingTxOperation {
             try await self.sendPaymentInternal(
                 to: contact,
@@ -2428,10 +2456,16 @@ extension ChatService {
                 pendingTxId: pendingTxId,
                 extraFeeSompi: extraFeeSompi,
                 sourceSpendingIndex: sourceSpendingIndex,
-                manualUtxos: manualUtxos
+                manualUtxos: manualUtxos,
+                expectedFeeSompi: expectedFeeSompi,
+                ownerAddress: ownerAddress
             )
         }
     }
+
+    /// How many times a payment waiting for confirmed coins is tried again (about 8 minutes, the
+    /// delays doubling to a minute) before it is marked Failed.
+    static let maxDeferredPaymentRetries = 12
 
     @discardableResult
     func sendPaymentInternal(
@@ -2442,13 +2476,26 @@ extension ChatService {
         /// Extra priority fee (Fast/Priority tiers) on top of the computed base fee.
         extraFeeSompi: UInt64 = 0,
         sourceSpendingIndex: Int? = nil,
-        manualUtxos: [UTXO]? = nil
+        manualUtxos: [UTXO]? = nil,
+        /// The Review's fee, nil for a deferred retry: no Review is on screen to go back to.
+        expectedFeeSompi: UInt64? = nil,
+        /// The account this payment was queued under: it never signs as another one.
+        ownerAddress: String? = nil
     ) async throws -> String? {
         guard amountSompi > 0 else {
             throw KasiaError.networkError("Amount must be greater than zero")
         }
         guard let wallet = WalletManager.shared.currentWallet else {
             throw KasiaError.walletNotFound
+        }
+        try refuseIfAccountChanged(ownerAddress: ownerAddress, currentAddress: wallet.publicAddress, pendingTxId: pendingTxId, contactAddress: contact.address)
+        // Before any bubble exists: thrown after one, it stayed on Sending for good.
+        if let reason = KaspaAddress.otherNetworkReason(contact.address) {
+            if let pendingTxId {
+                markPendingMessageFailed(pendingTxId, contactAddress: contact.address)
+                saveMessages()
+            }
+            throw KasiaError.networkError(reason)
         }
         // FUNDING SOURCE - keyed on the per-account Chats Payment Privacy toggle:
         //
@@ -2558,7 +2605,6 @@ extension ChatService {
         markOutgoingAttemptSubmitting(messageId: pendingMessageId)
 
         // Paid to the contact's chatting address (the memo is encrypted to its key).
-        if let reason = KaspaAddress.otherNetworkReason(contact.address) { throw KasiaError.networkError(reason) }
         let destinationAddress = contact.address
 
         do {
@@ -2635,17 +2681,11 @@ extension ChatService {
                 )
             }
 
+            try checkFeeAgainstReview(tx, spending: spendable, expectedFeeSompi: expectedFeeSompi)
+
             // Submit via RPC manager
             AppLog.log("[ChatService] Submitting payment via RPC manager...")
-            let txId: String
-            let endpoint: String
-            do {
-                (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
-            } catch let unknown as SendOutcomeUnknownError {
-                // It may have landed: its coins stay out of the next message and send.
-                recordPlainSend(tx, spent: spendable, txId: nil, changeScriptPubKey: nil)
-                throw unknown
-            }
+            let (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false, escalateOrphan: false)
             AppLog.log("[ChatService] Payment submitted: \(txId) via \(endpoint)")
             if fromChattingAddress, let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: sourceAddress) {
                 // Chatting-address-funded payment (privacy OFF) spends from the SAME UTXO set
@@ -2728,7 +2768,19 @@ extension ChatService {
                 throw error
             }
 
-            if isNoConfirmedInputsError(error) {
+            if error is SendFeeChangedError {
+                // Nothing went out and the Review shows the new fee: the next swipe makes its own
+                // bubble, so this one goes rather than staying behind as a Failed payment.
+                markOutgoingAttemptFailed(messageId: pendingMessageId, pendingTxId: activePendingTxId)
+                removePendingOutgoing(contactAddress: contact.address, pendingTxId: activePendingTxId)
+                clearNoInputRetryState(for: activePendingTxId)
+                deleteMessages([activePendingTxId], from: contact)
+                saveMessages()
+                throw error
+            }
+
+            if isNoConfirmedInputsError(error),
+               (noInputRetryCounts[activePendingTxId] ?? 0) < Self.maxDeferredPaymentRetries {
                 let delay = nextNoInputRetryDelay(for: activePendingTxId)
                 AppLog.log(
                     "[ChatService] Payment deferred retry %@ in %.0fs (no confirmed inputs)",
@@ -2804,7 +2856,7 @@ extension ChatService {
             var resolvedManualUtxos: [UTXO]?
             if let manualUtxos, !manualUtxos.isEmpty {
                 func outpointKey(_ utxo: UTXO) -> String { "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)" }
-                let spendableByOutpoint = Dictionary(uniqueKeysWithValues: spendable.map { (outpointKey($0), $0) })
+                let spendableByOutpoint = Dictionary(spendable.map { (outpointKey($0), $0) }, uniquingKeysWith: { first, _ in first })
                 let resolved = manualUtxos.compactMap { spendableByOutpoint[outpointKey($0)] }
                 guard !resolved.isEmpty else {
                     throw KasiaError.networkError("Selected UTXOs are no longer available - please reselect")
@@ -2824,15 +2876,7 @@ extension ChatService {
 
             try self.checkFeeAgainstReview(tx, spending: spendable, expectedFeeSompi: expectedFeeSompi)
             AppLog.log("[ChatService] Submitting withdrawal via RPC manager...")
-            let txId: String
-            let endpoint: String
-            do {
-                (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
-            } catch let unknown as SendOutcomeUnknownError {
-                // It may have landed: its coins stay out of the next send and the next message.
-                self.recordPlainSend(tx, spent: spendable, txId: nil, changeScriptPubKey: nil)
-                throw unknown
-            }
+            let (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false, escalateOrphan: false)
             AppLog.log("[ChatService] Withdrawal submitted: \(txId) via \(endpoint)")
             // The same bookkeeping a message or a chat payment does: the node lists these coins
             // until the spend is in a block, so without it the next send or message (signed by
@@ -2937,11 +2981,10 @@ extension ChatService {
         }
     }
 
-    /// After a plain send, or one whose outcome is unknown: its coins are reserved so neither the
-    /// next send nor the next message picks them again, and the UTXO cache is dropped. With a
-    /// `txId` and `changeScriptPubKey` (the chatting address), its outputs back there are offered
-    /// to the next message the way a message's own change is. Callers pass nil for an unknown
-    /// outcome, since a message chained on a transaction that never landed would never land either.
+    /// After a plain send: its coins are reserved so neither the next send nor the next message
+    /// picks them again, and the UTXO cache is dropped. With a `txId` and `changeScriptPubKey`
+    /// (the chatting address), its outputs back there are offered to the next message the way a
+    /// message's own change is.
     func recordPlainSend(_ tx: KaspaRpcTransaction, spent candidates: [UTXO], txId: String?, changeScriptPubKey: Data?) {
         let spentUtxos = spentMessageUtxos(from: tx, candidates: candidates)
         reserveMessageOutpoints(spentUtxos)
@@ -2950,23 +2993,6 @@ extension ChatService {
             addPendingOutputs(from: tx, txId: txId, senderScriptPubKey: changeScriptPubKey)
         }
         invalidateUtxoCache()
-    }
-
-    /// Submits a transaction spending the chatting address's coins. When its outcome is unknown
-    /// (it may have landed) the coins it spent stay reserved, so the next message or send can't
-    /// spend them again, and the unknown outcome is passed on.
-    func submitSpendingMessageCoins(
-        _ tx: KaspaRpcTransaction,
-        spent candidates: [UTXO],
-        allowOrphan: Bool,
-        rpcManager: NodePoolService = .shared
-    ) async throws -> (txId: String, endpoint: String) {
-        do {
-            return try await rpcManager.submitTransaction(tx, allowOrphan: allowOrphan)
-        } catch let unknown as SendOutcomeUnknownError {
-            recordPlainSend(tx, spent: candidates, txId: nil, changeScriptPubKey: nil)
-            throw unknown
-        }
     }
 
     /// Within this of the Review's fee a rebuilt send still goes out.
@@ -2998,9 +3024,10 @@ extension ChatService {
     /// Sends a plain KAS transfer from a specific spending-chain address (Manage Addresses'
     /// per-row Withdraw action).
     ///
-    /// For a NON-primary index the change stays on the same address: that is a scoped,
+    /// For a NON-primary legacy index the change stays on the same address: that is a scoped,
     /// explicit single-address operation, and the row's own balance is what the user is
-    /// managing. The primary is different. A send from it puts its change on a fresh index and
+    /// managing. (A non-primary quantum source's change goes to a fresh slot, its key being
+    /// revealed by the spend, but the primary stays where it is.) The primary is different. A send from it puts its change on a fresh index and
     /// rotates the primary to that index - exactly what a chat payment does - so the address
     /// you spend from and hand out next has never been used before. This path used to leave
     /// the primary sitting on the address it had just spent from. The old primary keeps
@@ -3033,11 +3060,12 @@ extension ChatService {
         var freshChangeIndex: Int?
         var changeAddress: String?
         let isSelfSend = toAddress.lowercased() == fromAddress.lowercased()
+        let isPrimarySource = index == WalletManager.shared.currentSpendingAddressIndex
         // A quantum source's change must NEVER return to it - the spend reveals its key, and
         // change back would park funds on a revealed address (KIP-22). A legacy primary keeps
         // rotating as before; both rotate onto a fresh quantum slot now. A self-send (Compound)
         // still consolidates into the address itself, shield off.
-        if !isSelfSend, WalletManager.isQuantumIndex(index) || index == WalletManager.shared.currentSpendingAddressIndex {
+        if !isSelfSend, WalletManager.isQuantumIndex(index) || isPrimarySource {
             if let slot = await WalletManager.shared.verifiedFreshQuantumSlot() {
                 freshChangeIndex = slot.index
                 changeAddress = slot.address
@@ -3078,7 +3106,7 @@ extension ChatService {
             var resolvedManualUtxos: [UTXO]?
             if let manualUtxos, !manualUtxos.isEmpty {
                 func outpointKey(_ utxo: UTXO) -> String { "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)" }
-                let spendableByOutpoint = Dictionary(uniqueKeysWithValues: spendable.map { (outpointKey($0), $0) })
+                let spendableByOutpoint = Dictionary(spendable.map { (outpointKey($0), $0) }, uniquingKeysWith: { first, _ in first })
                 let resolved = manualUtxos.compactMap { spendableByOutpoint[outpointKey($0)] }
                 guard !resolved.isEmpty else {
                     throw KasiaError.networkError("Selected UTXOs are no longer available - please reselect")
@@ -3111,10 +3139,9 @@ extension ChatService {
             let txId: String
             let endpoint: String
             do {
-                (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false)
+                (txId, endpoint) = try await rpcManager.submitTransaction(tx, allowOrphan: false, escalateOrphan: false)
             } catch let unknown as SendOutcomeUnknownError {
                 // It may have landed: its change may be on the fresh address, and its key on chain.
-                self.recordPlainSend(tx, spent: spendable, txId: nil, changeScriptPubKey: nil)
                 if WalletManager.isQuantumIndex(index) {
                     WalletManager.shared.markQuantumAddressSpent(fromAddress, owner: owner)
                 }
@@ -3132,9 +3159,14 @@ extension ChatService {
                 WalletManager.shared.markQuantumAddressSpent(fromAddress, owner: owner)
             }
             if let freshChangeIndex {
-                // The primary follows its change onto the fresh address. Manage Addresses
-                // listens for this and moves its star at once.
-                await WalletManager.shared.setActiveSpendingAddress(freshChangeIndex, owner: owner)
+                if isPrimarySource {
+                    // The primary follows its change onto the fresh address. Manage Addresses
+                    // listens for this and moves its star at once.
+                    await WalletManager.shared.setActiveSpendingAddress(freshChangeIndex, owner: owner)
+                } else {
+                    // Spent from some other address: its change is listed, the primary stays.
+                    await WalletManager.shared.revealSpendingAddress(at: freshChangeIndex, owner: owner)
+                }
             }
             return txId
         }
@@ -3232,11 +3264,23 @@ extension ChatService {
         }
         let resolvedManualUtxos = try resolveReviewSelection(manualUtxos, against: spendable)
 
+        // Change is priced at the script the send will put it on (`sendFromSpendingAddress`): a
+        // legacy primary's goes to a fresh quantum slot, a byte longer than its own P2PK, which
+        // costs more than `reviewFeeMarginSompi` and had every such send refused at the swipe.
+        // No slot derivable: the send keeps the change on the source, and so does this.
+        var changeScriptPubKey = senderScriptPubKey
+        if toAddress.lowercased() != fromAddress.lowercased(), !WalletManager.isQuantumIndex(index),
+           index == WalletManager.shared.currentSpendingAddressIndex,
+           let slotAddress = WalletManager.shared.spendingAddress(at: WalletManager.shared.nextFreshQuantumIndex()),
+           let slotScript = KaspaAddress.scriptPublicKey(from: slotAddress) {
+            changeScriptPubKey = slotScript
+        }
+
         return try KasiaTransactionBuilder.estimatePlainTransferFee(
             utxos: spendable,
             amount: amountSompi,
             recipientScriptPubKey: recipientScriptPubKey,
-            senderScriptPubKey: senderScriptPubKey,
+            senderScriptPubKey: changeScriptPubKey,
             manualUtxos: resolvedManualUtxos,
             extraFeeSompi: extraFeeSompi,
             virtualDaaScore: vds,
@@ -3312,7 +3356,7 @@ extension ChatService {
     private func resolveManualUtxos(_ manualUtxos: [UTXO]?, against spendable: [UTXO]) -> [UTXO]? {
         guard let manualUtxos, !manualUtxos.isEmpty else { return nil }
         func outpointKey(_ utxo: UTXO) -> String { "\(utxo.outpoint.transactionId):\(utxo.outpoint.index)" }
-        let spendableByOutpoint = Dictionary(uniqueKeysWithValues: spendable.map { (outpointKey($0), $0) })
+        let spendableByOutpoint = Dictionary(spendable.map { (outpointKey($0), $0) }, uniquingKeysWith: { first, _ in first })
         let resolved = manualUtxos.compactMap { spendableByOutpoint[outpointKey($0)] }
         return resolved.isEmpty ? nil : resolved
     }
@@ -3760,12 +3804,7 @@ extension ChatService {
                 utxos: handshakeUtxos
             )
 
-            let (txId, endpoint) = try await submitSpendingMessageCoins(
-                transaction,
-                spent: handshakeUtxos,
-                allowOrphan: false,
-                rpcManager: rpcManager
-            )
+            let (txId, endpoint) = try await rpcManager.submitTransaction(transaction, allowOrphan: false)
             // Its coins stay out of the next message until the node shows them spent.
             recordPlainSend(transaction, spent: handshakeUtxos, txId: nil, changeScriptPubKey: nil)
             AppLog.log("[ChatService] Handshake submitted: \(txId) via \(endpoint)")
@@ -4115,7 +4154,9 @@ extension ChatService {
     func inboxSupported() async -> Bool {
         let base = apiClient.currentBaseURL ?? ""
         if let known = inboxSupportByIndexer[base] { return known }
-        guard let answer = await apiClient.probeInboxSupport() else { return false }
+        // Not reachable: the default indexer files inbox tags, and a first message sent untagged
+        // would never reach someone who has no chat with us yet.
+        guard let answer = await apiClient.probeInboxSupport() else { return base == AppSettings.defaultIndexerURL }
         inboxSupportByIndexer[base] = answer
         return answer
     }
@@ -4159,15 +4200,6 @@ extension ChatService {
             tag: InboxTag.compute(for: wallet),
             blockTime: since
         ), isActiveWallet(wallet) else { return }
-        // The cursor moves to the newest entry - but never past one whose sender the indexer
-        // hasn't resolved yet (it answers with an empty sender until the spent input is known):
-        // that entry is asked for again next time, or its sender would never be found.
-        let unresolvedTimes = found.filter { $0.sender.isEmpty }.compactMap(\.blockTime)
-        let resolvedNewest = found.filter { !$0.sender.isEmpty }.compactMap(\.blockTime).max()
-        let nextCursor = unresolvedTimes.min().map { min($0 > 0 ? $0 - 1 : 0, resolvedNewest ?? 0) } ?? resolvedNewest
-        if let nextCursor, nextCursor > since {
-            updateChatRequests { $0.inboxCursor = nextCursor }
-        }
         var senders: [String] = []
         for message in found {
             let sender = message.sender
@@ -4177,11 +4209,117 @@ extension ChatService {
         }
         // Someone already known is fetched by the ordinary sweep (it has their aliases); only a
         // new sender needs their whole history pulled once.
+        var unfetchedTimes: [UInt64] = []
         for sender in senders where routingStates[sender] == nil {
             guard isActiveWallet(wallet) else { return }
             _ = contactsManager.getOrCreateContact(address: sender)
-            await syncContactHistoryFromGenesis(sender)
+            if await !pullNewSenderHistory(sender, wallet: wallet) {
+                unfetchedTimes += found.filter { $0.sender == sender }.compactMap(\.blockTime)
+            }
         }
+        guard isActiveWallet(wallet) else { return }
+        // The cursor moves to the newest entry - but never past one whose sender the indexer
+        // hasn't resolved yet (it answers with an empty sender until the spent input is known),
+        // nor one whose sender's history didn't come in: those are asked for again next time,
+        // or that sender would never be found. Moved only now, after the fetches.
+        let heldBackTimes = found.filter { $0.sender.isEmpty }.compactMap(\.blockTime) + unfetchedTimes
+        let resolvedNewest = found.filter { !$0.sender.isEmpty }.compactMap(\.blockTime).max()
+        let nextCursor = heldBackTimes.min().map { min($0 > 0 ? $0 - 1 : 0, resolvedNewest ?? 0) } ?? resolvedNewest
+        if let nextCursor, nextCursor > since {
+            updateChatRequests { $0.inboxCursor = nextCursor }
+        }
+    }
+
+    /// `syncContactHistoryFromGenesis`, saying whether the history came in. When it didn't, the
+    /// routing state it made is taken back: an entry there marks the sender as already known,
+    /// and `syncInbox` would then never pull them again.
+    private func pullNewSenderHistory(_ sender: String, wallet: String) async -> Bool {
+        await configureAPIIfNeeded()
+        guard isConfigured, apiClient.hasIndexer else { return false }
+        let privateKey = WalletManager.shared.getPrivateKey()
+        ensureRoutingState(for: sender, privateKey: privateKey)
+        await addContactToUtxoSubscription(sender)
+        let completed = await fetchContextualMessagesForActive(
+            contactAddress: sender,
+            myAddress: wallet,
+            privateKey: privateKey,
+            fallbackSince: 0,
+            nowMs: currentTimeMs(),
+            forceExactBlockTime: true
+        )
+        guard completed else {
+            if isActiveWallet(wallet) {
+                routingStates.removeValue(forKey: sender)
+                saveRoutingStates()
+            }
+            return false
+        }
+        saveMessages()
+        return true
+    }
+
+    /// With the indexer down nothing can look an inbox tag up, so someone writing for the first
+    /// time would go unseen: their address isn't subscribed to. Until it's back, every block from
+    /// the node is checked for a first-contact message tagged for this wallet.
+    func refreshInboxBlockScan() async {
+        let wallet = await apiClient.isIndexerDown ? WalletManager.shared.currentWallet?.publicAddress : nil
+        guard wallet != inboxBlockScanWallet else { return }
+        if let handler = inboxBlockScanHandlerId {
+            BlockScanRegistry.shared.remove(handler)
+            inboxBlockScanHandlerId = nil
+        }
+        inboxBlockScanWallet = wallet
+        guard let wallet else {
+            await NodePoolService.shared.unsubscribeBlockAdded(client: "inbox-scan")
+            return
+        }
+        let tagged = Data((ContextualPayloadFormat.dmPrefix + InboxTag.compute(for: wallet) + ":").utf8).hexString
+        inboxBlockScanHandlerId = NodePoolService.shared.addBlockHandler { [weak self] block in
+            for tx in block.transactions where tx.payloadHex.hasPrefix(tagged) {
+                Task { @MainActor [weak self] in await self?.ingestInboxBlockHit(tx, wallet: wallet) }
+            }
+        }
+        await NodePoolService.shared.subscribeBlockAdded(client: "inbox-scan")
+    }
+
+    /// The indexer is back: it serves the outage window again, so anything the chain's history
+    /// didn't have comes in now. Messages already here are dropped by txId.
+    func catchUpAfterIndexerOutage(downSinceMs: UInt64) async {
+        let margin: UInt64 = 10 * 60 * 1000
+        rewindAllSyncCursors(to: downSinceMs > margin ? downSinceMs - margin : 0)
+        await maybeRunCatchUpSync(trigger: .indexerRecovered, force: true)
+    }
+
+    private static let inboxProofRetries = 3
+
+    /// The first output only claims who wrote it; the input's signature has to prove it before
+    /// a contact and a Message Request exist for them.
+    private func ingestInboxBlockHit(_ tx: ScannedBlock.Transaction, wallet: String) async {
+        guard isActiveWallet(wallet), await findLocalMessage(txId: tx.txId) == nil,
+              !(await inFlightResolveTracker.contains(tx.txId)) else { return }
+        await inFlightResolveTracker.insert(tx.txId)
+        defer { Task { await inFlightResolveTracker.remove(tx.txId) } }
+        let hrp = currentSettings.networkType == .mainnet ? "kaspa" : "kaspatest"
+        guard let script = Data(hexString: tx.firstOutputScriptHex),
+              let sender = KaspaAddress.address(fromScriptPublicKey: script, hrp: hrp),
+              sender.lowercased() != wallet.lowercased(), !isChatBlocked(sender) else { return }
+        // `.unknown` is the REST server not listing the new transaction yet, not a bad signature:
+        // asked again a few times, or a first message from someone new would be lost for good.
+        var proof = await provenSender(of: tx.txId, expected: sender, myAddress: wallet)
+        var attempt = 0
+        while proof == .unknown, attempt < Self.inboxProofRetries, isActiveWallet(wallet) {
+            attempt += 1
+            try? await Task.sleep(nanoseconds: UInt64(attempt) * 3_000_000_000)
+            proof = await provenSender(of: tx.txId, expected: sender, myAddress: wallet)
+        }
+        guard proof == .proven, isActiveWallet(wallet) else { return }
+        let isNewSender = routingStates[sender] == nil
+        _ = contactsManager.getOrCreateContact(address: sender)
+        if let privateKey = WalletManager.shared.getPrivateKey(),
+           let text = await decryptContextualMessageFromRawPayload(tx.payloadHex, privateKey: privateKey) {
+            await addMessageFromPush(txId: tx.txId, sender: sender, content: text, timestamp: tx.blockTime)
+        }
+        if isNewSender { await syncContactHistoryFromGenesis(sender) }
     }
 
     func pushEligibleConversationAddresses(settings: AppSettings? = nil) -> [String] {
@@ -4487,7 +4625,7 @@ extension ChatService {
                 senderPrivateKey: privateKey,
                 utxos: utxos
             )
-            let txId = try await submitSpendingMessageCoins(stashTx, spent: utxos, allowOrphan: allowOrphan)
+            let txId = try await NodePoolService.shared.submitTransaction(stashTx, allowOrphan: allowOrphan)
             recordPlainSend(stashTx, spent: utxos, txId: nil, changeScriptPubKey: nil)
             AppLog.log("%@", "[ChatService] Self-stash handshake submitted: \(txId)")
         } catch {
@@ -4561,12 +4699,7 @@ extension ChatService {
                             senderPrivateKey: privateKey,
                             utxos: first
                         )
-                    let (txId, endpoint) = try await submitSpendingMessageCoins(
-                        stashTx,
-                        spent: first,
-                        allowOrphan: false,
-                        rpcManager: rpcManager
-                    )
+                    let (txId, endpoint) = try await rpcManager.submitTransaction(stashTx, allowOrphan: false)
                     recordPlainSend(stashTx, spent: first, txId: nil, changeScriptPubKey: nil)
                     AppLog.log("[ChatService] Self-stash submitted: \(txId) via \(endpoint)")
                     succeeded.append(job)
@@ -4748,7 +4881,33 @@ extension ChatService {
                 return
             }
 
-            // Do not match by content; duplicates are allowed. Pending promotion is handled by queue order.
+            // Pending rows are never matched by content (duplicates are allowed): promotion is
+            // by queue order. A Failed row has no place in that queue, and the seed reads sent
+            // messages now, so its own copy is known by its content. A live send of the same
+            // text is the likelier source and goes first. No match inserts a new row.
+            guard !content.isEmpty,
+                  !conversation.messages.contains(where: {
+                      $0.isOutgoing && $0.deliveryStatus == .pending && $0.messageType == messageType && $0.content == content
+                  }),
+                  let failed = conversation.messages
+                      .filter({ $0.isOutgoing && $0.deliveryStatus == .failed && $0.messageType == messageType && $0.content == content })
+                      .sorted(by: Self.isMessageOrderedBefore)
+                      .first,
+                  let failedIndex = conversation.messages.firstIndex(where: { $0.id == failed.id }) else { return }
+            conversation.messages[failedIndex] = ChatMessage(
+                id: failed.id,
+                txId: newTxId,
+                senderAddress: failed.senderAddress,
+                receiverAddress: failed.receiverAddress,
+                content: failed.content,
+                timestamp: failed.timestamp,
+                blockTime: failed.blockTime,
+                acceptingBlock: failed.acceptingBlock ?? "mempool",
+                isOutgoing: failed.isOutgoing,
+                messageType: failed.messageType,
+                deliveryStatus: .sent
+            )
+            didUpdate = true
         }
 
         return didUpdate
@@ -4844,10 +5003,12 @@ extension ChatService {
         var didUpdate = false
         var oldPendingTxId: String?
         updateConversation(at: convIndex) { conversation in
-            // A Not confirmed row already carries its own transaction id: only its own copy
-            // settles it (`settleUnconfirmedSend`), never another message's.
+            // Pending rows only. A Not confirmed row already carries its own transaction id: only
+            // its own copy settles it (`settleUnconfirmedSend`). A Failed row is settled by its
+            // content (`updateOutgoingPendingMessageIfMatch`), never by being the oldest: this
+            // used to turn it into Sent on another message's transaction.
             let candidates = conversation.messages
-                .filter { $0.isOutgoing && $0.deliveryStatus != .sent && $0.deliveryStatus != .warning && $0.messageType == messageType }
+                .filter { $0.isOutgoing && $0.deliveryStatus == .pending && $0.messageType == messageType }
                 .sorted(by: Self.isMessageOrderedBefore)
             guard let candidate = candidates.first,
                   let msgIndex = conversation.messages.firstIndex(where: { $0.id == candidate.id }) else { return }
@@ -4880,7 +5041,7 @@ extension ChatService {
 
     func markConversationAsRead(_ conversation: Conversation) async {
         Self.clearDeliveredNotifications(threadIdentifier: conversation.contact.address)
-        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+        if conversations.contains(where: { $0.id == conversation.id }) {
             // Use both in-memory window and persistent store cursor so pagination does not
             // block read marker advancement.
             let lastInMemoryIncoming = conversation.messages
@@ -4890,6 +5051,9 @@ extension ChatService {
             let inMemoryBlockTime = Int64(lastInMemoryIncoming?.blockTime ?? 0)
             let storeBlockTime = storeCursor?.blockTime ?? 0
 
+            // Found again after the await: the list can reorder or shrink meanwhile, and an index
+            // kept across it could clear another chat's unread count.
+            guard let index = conversations.firstIndex(where: { $0.contact.address == conversation.contact.address }) else { return }
             updateConversation(at: index, persist: false) { updated in
                 updated.unreadCount = 0
             }

@@ -318,3 +318,8 @@
 "Sent you a payment" = "Hat dir eine Zahlung gesendet";
 "Requested for payment" = "Zahlung angefordert";
 "You were invited to \"%@\"" = "Du wurdest zu „%@“ eingeladen";
+
+/* Undecryptable group push */
+"Group chat" = "Gruppenchat";
+"Group update" = "Gruppenaktualisierung";
+"New group message" = "Neue Gruppennachricht";

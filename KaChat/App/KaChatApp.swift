@@ -206,6 +206,8 @@ struct KaChatApp: App {
             // Flush any pending read status updates to the store before backgrounding
             appDelegate.beginBackgroundFlushIfNeeded()
             ReadStatusSyncManager.shared.flushPendingUpdates()
+            // And the messages themselves: a debounced save could otherwise die with the app.
+            ChatService.shared.flushMessageStoreForBackground()
             // Flush the debounced chat-list snapshot write immediately too, rather than leaving
             // it in-flight for a 300ms timer that iOS could suspend the process before firing.
             ChatService.shared.chatListSnapshotPersistTask?.cancel()
@@ -407,9 +409,11 @@ struct KaChatApp: App {
                     object: nil,
                     userInfo: ["contactAddress": share.contactAddress]
                 )
+                var textSent = false
                 do {
                     if !cleanedText.isEmpty {
                         try await chatService.sendMessage(to: contact, content: cleanedText)
+                        textSent = true
                     }
                     if let image = share.image {
                         try await sendSharedImage(image, to: contact)
@@ -418,11 +422,24 @@ struct KaChatApp: App {
                     AppLog.log("[Share] Auto-send failed for %@: %@",
                           String(share.contactAddress.suffix(10)),
                           error.localizedDescription)
-                    // Don't lose the message: fall back to staging it as the chat's draft so
-                    // the user can retry with one tap.
-                    if !cleanedText.isEmpty {
+                    // Don't lose what didn't go: fall back to staging it in the chat's composer
+                    // so the user can retry with one tap. The image is the last send, so it's
+                    // unsent whichever one threw. Text already sent isn't drafted again.
+                    if !cleanedText.isEmpty && !textSent {
                         chatService.setDraft(cleanedText, for: share.contactAddress)
                     }
+                    if let image = share.image,
+                       let fileURL = SharedDataManager.outboundShareImageFileURL(for: image),
+                       let imageData = try? Data(contentsOf: fileURL) {
+                        chatService.stagePendingShareImage(imageData, for: share.contactAddress)
+                    }
+                    // The chat is already open from the post above, and only reads the composer
+                    // pre-fill while handling this notification.
+                    NotificationCenter.default.post(
+                        name: .openChat,
+                        object: nil,
+                        userInfo: ["contactAddress": share.contactAddress]
+                    )
                 }
             } else {
                 // Pre-fill path: land the user in the chat with the shared content staged in the
@@ -892,12 +909,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                     userInfo: ["groupId": groupId]
                 )
             }
-        } else if threadIdentifier == "group_requests" {
-            // An invite: answered in Message Requests, on Chats.
+        } else if threadIdentifier == "group_requests" || threadIdentifier == "message_requests" {
+            // An invite, or a first message from someone new: both are answered in Message
+            // Requests, on Chats. Neither is a contact address, so the last branch can't take them.
             Task { @MainActor in
                 GroupChatService.shared.pendingGroupListNavigation = true
                 GroupChatService.shared.pendingMessageRequestsOpen = true
             }
+            NotificationCenter.default.post(name: .openGroup, object: nil, userInfo: [:])
         } else if threadIdentifier == "group" {
             // Undecryptable group push: NotificationService's `deliverGroupFallback` can only
             // tag it with the bare "group" thread id (it never learned WHICH group), so there's

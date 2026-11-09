@@ -318,3 +318,8 @@
 "Sent you a payment" = "Size bir ödeme gönderdi";
 "Requested for payment" = "Ödeme istendi";
 "You were invited to \"%@\"" = "\"%@\" grubuna davet edildin";
+
+/* Undecryptable group push */
+"Group chat" = "Grup sohbeti";
+"Group update" = "Grup güncellemesi";
+"New group message" = "Yeni grup mesajı";

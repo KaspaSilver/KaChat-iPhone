@@ -199,6 +199,10 @@ extension ChatService {
 
             // Skip if we already have this transaction
             if let existing = await findLocalMessage(txId: txId) {
+                // Its own coins on the network: a Not confirmed row is Sent after all.
+                if existing.isOutgoing, existing.deliveryStatus == .warning {
+                    settleUnconfirmedSend(txId: txId, contactAddress: existing.receiverAddress)
+                }
                 if !(existing.isOutgoing && existing.messageType == .payment) {
                     continue
                 }
@@ -1458,6 +1462,8 @@ extension ChatService {
                 return
             }
             await MainActor.run {
+                // A wallet switch may have happened during the awaits above.
+                guard isActiveWallet(myAddress) else { return }
                 let nowMs = UInt64(Date().timeIntervalSince1970 * 1000)
                 AppLog.log("[ChatService] Decrypted message from %@ via fast resolve", String(contactAddress.suffix(10)))
 

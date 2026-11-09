@@ -606,19 +606,24 @@ final class NodePoolService: ObservableObject {
     /// Sent, or with an unknown outcome, its inputs are reserved (`ChatService.reserveSpentOutpoints`)
     /// so no other send, from any part of the app, picks those coins again before the node shows
     /// them spent.
-    func submitTransaction(_ transaction: KaspaRpcTransaction, allowOrphan: Bool = false) async throws -> (txId: String, endpoint: String) {
+    ///
+    /// `escalateOrphan: false` stops it resubmitting with `allowOrphan: true` after orphan
+    /// rejections, for sends that move money and must not sit in a node's orphan pool.
+    func submitTransaction(_ transaction: KaspaRpcTransaction, allowOrphan: Bool = false, escalateOrphan: Bool = true) async throws -> (txId: String, endpoint: String) {
         let spent = transaction.inputs.map(\.previousOutpoint)
         do {
-            let sent = try await submitTransactionLookingUp(transaction, allowOrphan: allowOrphan)
+            let sent = try await submitTransactionLookingUp(transaction, allowOrphan: allowOrphan, escalateOrphan: escalateOrphan)
             ChatService.shared.reserveSpentOutpoints(spent)
             return sent
         } catch let unknown as SendOutcomeUnknownError {
-            ChatService.shared.reserveSpentOutpoints(spent)
+            // Coins are deliberately not held: a resend then picks the same ones, so at most one
+            // of the two can land. Held, it would pick others and both could pay.
+            ChatService.shared.invalidateUtxoCache()
             throw unknown
         }
     }
 
-    private func submitTransactionLookingUp(_ transaction: KaspaRpcTransaction, allowOrphan: Bool) async throws -> (txId: String, endpoint: String) {
+    private func submitTransactionLookingUp(_ transaction: KaspaRpcTransaction, allowOrphan: Bool, escalateOrphan: Bool) async throws -> (txId: String, endpoint: String) {
         do {
             return try await submitRpcTransaction(transaction.toProtobuf(), allowOrphan: allowOrphan)
         } catch {
@@ -635,12 +640,14 @@ final class NodePoolService: ObservableObject {
                 } catch {
                     answerLost = answerLost || error is SubmitAnswerLostError
                 }
-                do {
-                    let sent = try await submitRpcTransaction(transaction.toProtobuf(), allowOrphan: true)
-                    AppLog.log("[NodePool] %@ submitted as an orphan: its parent hadn't reached that node yet", String(sent.txId.prefix(12)))
-                    return sent
-                } catch {
-                    answerLost = answerLost || error is SubmitAnswerLostError
+                if escalateOrphan {
+                    do {
+                        let sent = try await submitRpcTransaction(transaction.toProtobuf(), allowOrphan: true)
+                        AppLog.log("[NodePool] %@ submitted as an orphan: its parent hadn't reached that node yet", String(sent.txId.prefix(12)))
+                        return sent
+                    } catch {
+                        answerLost = answerLost || error is SubmitAnswerLostError
+                    }
                 }
             }
             let txId = KasiaTransactionBuilder.computeTransactionId(transaction)
@@ -666,7 +673,8 @@ final class NodePoolService: ObservableObject {
             ChatService.shared.reserveSpentOutpoints(spent)
             return sent
         } catch let unknown as SendOutcomeUnknownError {
-            ChatService.shared.reserveSpentOutpoints(spent)
+            // not held, for the reason in `submitTransaction`
+            ChatService.shared.invalidateUtxoCache()
             throw unknown
         }
     }
@@ -972,6 +980,13 @@ final class NodePoolService: ObservableObject {
 
         if utxoResponse.hasError && !utxoResponse.error.message.isEmpty {
             throw KasiaError.networkError(utxoResponse.error.message)
+        }
+
+        // Responses are matched by type alone, so coins for addresses not asked about are a crossed
+        // or broken answer: refused, and the next node asked.
+        let requested = Set(addresses.map { $0.lowercased() })
+        guard utxoResponse.entries.allSatisfy({ $0.address.isEmpty || requested.contains($0.address.lowercased()) }) else {
+            throw KasiaError.networkError("UTXO response for addresses not requested")
         }
 
         return try utxoResponse.entries.compactMap { entry -> UTXO? in

@@ -15,9 +15,8 @@ import P256K
 /// same external/receive chain shape so gap-limit discovery behaves like normal BIP44 wallet
 /// recovery).
 ///
-/// Reconstructed after this file's original implementation was accidentally lost to an
-/// uncommitted-work-discarding `git checkout` earlier in development (see conversation) -
-/// rebuilt from every call site's exact usage, cross-checked against `Wallet`'s own
+/// Reconstructed after this file's original implementation was lost to a `git checkout` that
+/// discarded uncommitted work early in development: rebuilt from every call site's exact usage, cross-checked against `Wallet`'s own
 /// `spendingAddressIndex`/`maxSpendingAddressIndex`/`effective*` fields (which survived, since
 /// they live in Models.swift, a file the bad checkout never touched) rather than guessed from
 /// scratch. An initial guess (a change=1 branch under account 0) didn't match - this account-1
@@ -75,6 +74,13 @@ extension WalletManager {
     private func setMaxQuantumAddressIndex(_ value: Int, owner: String? = nil) {
         guard let key = spendingDefaultsKey("qmaxIndex", owner: owner),
               value > quantumMaxIndex(owner: owner) else { return }
+        // The end passing over the Receive QR's slot, picked but not shown yet, doesn't list it.
+        if let receiveKey = spendingDefaultsKey("receiveIndex", owner: owner),
+           let receiveIndex = UserDefaults.standard.object(forKey: receiveKey) as? Int,
+           receiveIndex > Self.quantumIndexBase + quantumMaxIndex(owner: owner),
+           receiveIndex < Self.quantumIndexBase + value {
+            setHiddenIndices(hiddenIndices(owner: owner).union([receiveIndex]), owner: owner)
+        }
         UserDefaults.standard.set(value, forKey: key)
     }
 
@@ -435,8 +441,16 @@ extension WalletManager {
         guard let owner = currentWallet?.publicAddress, let chainKey = quantumChainKey() else { return nil }
         let index = await verifiedFreshQuantumIndex(owner: owner, chainKey: chainKey)
         guard let address = quantumAddress(at: index, chainKey: chainKey, owner: owner) else { return nil }
+        Self.quantumSlotsHandedOut.insert(Self.handedOutKey(owner: owner, index: index))
         return (index, address)
     }
+
+    /// Slots given to a send's change or a payment request in this run. A slot only joins the
+    /// chain once its send is accepted, and until the chain shows it, a probe still calls it
+    /// unused: this is what keeps the Receive QR off it meanwhile.
+    private static var quantumSlotsHandedOut: Set<String> = []
+
+    private static func handedOutKey(owner: String, index: Int) -> String { "\(owner):\(index)" }
 
     /// The probe for one account, taken when it starts (IOS-109, the sweep's rule from IOS-107):
     /// its slots are derived from that account's chain node and a used slot raises THAT
@@ -457,11 +471,19 @@ extension WalletManager {
     }
 
     func nextFreshQuantumIndex() -> Int {
-        Self.quantumIndexBase + maxQuantumAddressIndex + 1
+        guard let owner = currentWallet?.publicAddress else { return Self.quantumIndexBase + maxQuantumAddressIndex + 1 }
+        return nextFreshQuantumIndex(owner: owner)
     }
 
+    /// One past the chain's end, and past the Receive QR's slot when that is further on: warming
+    /// the QR picks a slot without listing it, so the chain's end doesn't cover it, and change or
+    /// a request must never be handed the address the QR gives out.
     private func nextFreshQuantumIndex(owner: String) -> Int {
-        Self.quantumIndexBase + quantumMaxIndex(owner: owner) + 1
+        let pastChainEnd = Self.quantumIndexBase + quantumMaxIndex(owner: owner) + 1
+        guard let key = spendingDefaultsKey("receiveIndex", owner: owner),
+              let receiveIndex = UserDefaults.standard.object(forKey: key) as? Int,
+              receiveIndex >= pastChainEnd else { return pastChainEnd }
+        return receiveIndex + 1
     }
 
     /// False once `owner` is neither the active account nor a saved one (it was removed).
@@ -492,7 +514,8 @@ extension WalletManager {
     /// Reusing an address across payments links them to each other and to you, so the QR must
     /// never hand out one that has already appeared on chain. Three rules, in order:
     ///
-    /// 1. The address it handed out last time, while that is still unused. It does NOT mint a new
+    /// 1. The address it handed out last time, while that is still unused, its key unrevealed and
+    ///    no send's change has been given it. It does NOT mint a new
     ///    address per tap - an unused address is still unused the second time you open the sheet,
     ///    and minting one per tap would balloon the address list and lengthen every future
     ///    gap-limit scan for no privacy gained.
@@ -522,13 +545,17 @@ extension WalletManager {
         // legacy pointer, even unused, carries its key in the address itself (P2PK), so the QR
         // moves to the quantum chain the first time it is opened after the upgrade.
         if let index = receiveAddressIndex, Self.isQuantumIndex(index), let address = spendingAddress(at: index),
-           await ChatService.shared.spendingAddressUsedState(address) != true {
+           !isQuantumAddressSpentLocally(address),
+           await ChatService.shared.spendingAddressUsedState(address) != true,
+           !Self.quantumSlotsHandedOut.contains(Self.handedOutKey(owner: owner, index: index)) {
             chosen = (index, address)
         } else {
             // Rule 2: the lowest quantum slot never used (recycling a hidden unused one), else a
             // brand-new slot past the chain's end.
-            let index = await lowestUnusedQuantumAddress()
+            var index = await lowestUnusedQuantumAddress()
             guard currentWallet?.publicAddress == owner else { return nil }
+            // a send picked this same slot while the probe above was out
+            while Self.quantumSlotsHandedOut.contains(Self.handedOutKey(owner: owner, index: index)) { index += 1 }
             guard let address = spendingAddress(at: index) else { return currentSpendingAddress() }
             receiveAddressIndex = index
             chosen = (index, address)
@@ -549,6 +576,7 @@ extension WalletManager {
             guard entry.hidden else { continue }
             if entry.isCurrent { continue }
             if entry.balanceSompi > 0 { continue }
+            if isQuantumAddressSpentLocally(entry.address) { continue }
             if await ChatService.shared.spendingAddressUsedState(entry.address) == false {
                 return entry.index
             }
@@ -628,6 +656,7 @@ extension WalletManager {
             let index = Self.quantumIndexBase + base + offset
             guard let address = quantumAddress(at: index, chainKey: chainKey, owner: owner) else { return [] }
             result.append((index: index, address: address))
+            Self.quantumSlotsHandedOut.insert(Self.handedOutKey(owner: owner, index: index))
         }
         guard accountStillSaved(owner) else { return [] }
         setMaxQuantumAddressIndex(base + count - 1, owner: owner)
@@ -914,10 +943,17 @@ extension WalletManager {
             }
         }
 
-        let allUtxos = (try? await NodePoolService.shared.getUtxosByAddresses(Array(addressesByIndex.values))) ?? []
         var balanceByAddress: [String: UInt64] = [:]
-        for utxo in allUtxos {
-            balanceByAddress[utxo.address, default: 0] += utxo.amount
+        if let allUtxos = try? await NodePoolService.shared.getUtxosByAddresses(Array(addressesByIndex.values)) {
+            for utxo in allUtxos {
+                balanceByAddress[utxo.address, default: 0] += utxo.amount
+            }
+        } else {
+            // A failed read says nothing about the balances: what was last saved stands, rather
+            // than every row showing 0 and Manage Addresses saving those zeros over it.
+            for entry in cachedSpendingAddressList() {
+                balanceByAddress[entry.address] = entry.balanceSompi
+            }
         }
 
         return addressesByIndex.keys.sorted().map { index in
@@ -1125,6 +1161,10 @@ extension WalletManager {
 
         matchCount += await discoverQuantumAddresses(account: account)
 
+        // Addresses found: the Wallet screen's Spending total was read without them.
+        if matchCount > 0 {
+            NotificationCenter.default.post(name: .ownAddressUtxoActivity, object: nil)
+        }
         return matchCount
     }
 

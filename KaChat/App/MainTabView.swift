@@ -52,7 +52,7 @@ struct MainTabView: View {
             ForEach(AppTab.dock) { tab in
                 tabContent(for: tab)
                     .tabItem {
-                        Label(tab.label, systemImage: tab.icon)
+                        Label(LocalizedStringKey(tab.label), systemImage: tab.icon)
                     }
                     // Profile hosts the notification bell and shows a dot while it holds
                     // anything unread; Chats shows its unread message count.
@@ -312,7 +312,7 @@ private struct InitialSyncProgressModal: View {
                     ProgressView().controlSize(.large)
                     Text("Setting up your account")
                         .font(.headline)
-                    Text(chatService.initialSyncPhase?.label ?? "Starting")
+                    Text(AppLocalization.string(chatService.initialSyncPhase?.label ?? "Starting"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

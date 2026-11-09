@@ -1,70 +1,43 @@
 "#" = "#";
-"$" = "$";
-"%@ can be inscribed." = "%@ dapat diinskripsi.";
 "%@ copied to clipboard." = "%@ disalin ke papan klip.";
 "%@ transferred to %@." = "%@ ditransfer ke %@.";
 "%@ updated." = "%@ diperbarui.";
 "1 year" = "1 tahun";
 "12 words" = "12 kata";
-"24 words (recommended)" = "24 kata (disarankan)";
 "30 days" = "30 hari";
 "90 days" = "90 hari";
 "About" = "Tentang";
 "Accept" = "Terima";
-"Account" = "Akun";
 "Account Name" = "Nama Akun";
 "Actions" = "Tindakan";
 "Active" = "Aktif";
-"Active = in use, Verified = ready, Profiled = checked, Other = candidates/suspect" = "Aktif = digunakan, Terverifikasi = siap, Terprofil = diperiksa, Lainnya = kandidat/dicurigai";
 "Active Nodes" = "Node Aktif";
 "Add" = "Tambah";
-"Add Address" = "Tambah Alamat";
 "Add Contact" = "Tambah Kontak";
-"Add Custom Endpoint" = "Tambah Endpoint Kustom";
 "Added" = "Ditambahkan";
 "Address" = "Alamat";
 "Address Actions" = "Tindakan Alamat";
-"Address copied to clipboard." = "Alamat disalin ke papan klip.";
 "Adjust Network Fee" = "Sesuaikan Biaya Jaringan";
 "Admin" = "Admin";
 "All Nodes" = "Semua Node";
-"All discovered nodes sorted by state and latency. Nodes are deduplicated by host:port." = "Semua node yang ditemukan diurutkan berdasarkan status dan latensi. Node dide-duplikasi menurut host:port.";
-"Always Hide" = "Selalu Sembunyikan";
-"Always Show" = "Selalu Tampilkan";
-"Always shown" = "Selalu ditampilkan";
 "Anyone with your 12 or 24 words can access your account. Never share them with anyone." = "Siapa pun yang memiliki 12 atau 24 kata Anda dapat mengakses akun Anda. Jangan pernah membagikannya kepada siapa pun.";
-"Archive" = "Arsipkan";
-"Archived Chats" = "Obrolan Diarsipkan";
 "Asset ID" = "ID Aset";
 "Audio" = "Audio";
-"Audio ready" = "Audio siap";
 "Auto Search for Nodes" = "Cari Node Otomatis";
-"Autocreate system contacts" = "Buat kontak sistem otomatis";
-"Automatic hides photos from contacts you haven't added or messaged yet, until you tap to reveal them." = "Otomatis menyembunyikan foto dari kontak yang belum Anda tambahkan atau kirimi pesan, sampai Anda mengetuk untuk melihatnya.";
 "Avatar" = "Avatar";
 "Balance" = "Saldo";
 "Balance copied to clipboard." = "Saldo disalin ke papan klip.";
-"Balanced" = "Seimbang";
 "Banner" = "Banner";
 "Best" = "Terbaik";
 "Bio" = "Bio";
 "Camera" = "Kamera";
 "Camera Access Required" = "Akses Kamera Diperlukan";
 "Cancel" = "Batal";
-"Change" = "Ubah";
 "Chat History" = "Riwayat Obrolan";
-"Chat Info" = "Info Obrolan";
 "User Info" = "Info Pengguna";
-"Chat archived." = "Obrolan diarsipkan.";
 "Chats" = "Obrolan";
 "Chatting Address" = "Alamat Obrolan";
-"Chatting address" = "Alamat obrolan";
-"Chatting vs. Spending Address" = "Alamat Obrolan vs. Alamat Pengeluaran";
-"Check Again" = "Periksa Lagi";
-"Checking availability..." = "Memeriksa ketersediaan...";
-"Checking your chatting address balance..." = "Memeriksa saldo alamat obrolan Anda...";
 "Chess" = "Catur";
-"Choose Address" = "Pilih Alamat";
 "Choose Avatar" = "Pilih Avatar";
 "Choose Banner" = "Pilih Banner";
 "Choose Photo" = "Pilih Foto";
@@ -73,7 +46,6 @@
 "Choose a conversation on the left" = "Pilih percakapan di sebelah kiri";
 "Clear" = "Hapus";
 "Clear Connection Pool" = "Kosongkan Kumpulan Koneksi";
-"Clear Link" = "Hapus Tautan";
 "Clear connection pool?" = "Kosongkan kumpulan koneksi?";
 "Close" = "Tutup";
 "Confirm" = "Konfirmasi";
@@ -85,14 +57,9 @@
 "Connection Settings" = "Pengaturan Koneksi";
 "Connection Status" = "Status Koneksi";
 "Connectivity might be limited. Using HTTP/1.1 and decreased pagination for indexer requests." = "Konektivitas mungkin terbatas. Menggunakan HTTP/1.1 dan pembatasan paginasi untuk permintaan pengindeks.";
-"Consolidate to Primary" = "Konsolidasikan ke Utama";
 "Contact has requested permission to communicate" = "Kontak telah meminta izin untuk berkomunikasi";
 "Contacts" = "Kontak";
-"Contacts access is required." = "Akses kontak diperlukan.";
-"Contacts permission denied. Sync disabled." = "Izin kontak ditolak. Sinkronisasi dinonaktifkan.";
 "Continue" = "Lanjutkan";
-"Continue to App" = "Lanjutkan ke Aplikasi";
-"Controls how much photos are compressed before sending. Higher quality looks clearer but costs a larger fee and takes longer to send; lower quality sends faster and cheaper but looks more compressed. This only affects photos you send - not ones you receive." = "Mengontrol seberapa banyak foto dikompresi sebelum dikirim. Kualitas tinggi tampak lebih jelas tetapi membutuhkan biaya lebih besar dan waktu kirim lebih lama; kualitas rendah terkirim lebih cepat dan hemat tetapi lebih terkompresi. Ini hanya memengaruhi foto yang Anda kirim.";
 "Copy Address" = "Salin Alamat";
 "Copy File Name" = "Salin Nama File";
 "Copy Link" = "Salin Tautan";
@@ -100,243 +67,139 @@
 "Copy Private Key Hex" = "Salin Hex Kunci Privat";
 "Copy 12 or 24 Words" = "Salin 12 atau 24 Kata";
 "Copy Transaction ID" = "Salin ID Transaksi";
-"Copy to Clipboard" = "Salin ke Papan Klip";
 "Could not encode selected image" = "Tidak dapat mengenkode gambar yang dipilih";
 "Could not initialize image encoder" = "Tidak dapat menginisialisasi enkoder gambar";
 "Could not load selected image" = "Tidak dapat memuat gambar yang dipilih";
 "Could not process selected image" = "Tidak dapat memproses gambar yang dipilih";
 "Couldn't Rename Group" = "Gagal Mengubah Nama Grup";
 "Country" = "Negara";
-"Create Account" = "Buat Akun";
-"Create KNS Profile" = "Buat Profil KNS";
 "Create New Account" = "Buat Akun Baru";
 "Create chat" = "Buat obrolan";
 "Created" = "Dibuat";
 "Currency" = "Mata Uang";
-"Current balance" = "Saldo saat ini";
-"Custom Endpoint" = "Endpoint Kustom";
 "DPI" = "DPI";
-"Danger Zone" = "Zona Bahaya";
-"Data Saver" = "Penghemat Data";
 "Decline" = "Tolak";
 "Default" = "Default";
-"Default follows Settings > Notifications. Off disables notifications for this contact." = "Default mengikuti Pengaturan > Pemberitahuan. Mati menonaktifkan pemberitahuan untuk kontak ini.";
 "Delete" = "Hapus";
 "Delete Account" = "Hapus Akun";
 "Delete Group" = "Hapus Grup";
 "Diagnostics" = "Diagnostik";
-"Disable" = "Nonaktifkan";
-"Disable Real-Time Updates" = "Nonaktifkan Pembaruan Real-Time";
 "Disabled" = "Dinonaktifkan";
 "Discord user id" = "ID Pengguna Discord";
 "Discover Addresses" = "Temukan Alamat";
-"Discover new peers" = "Temukan peer baru";
 "Distance" = "Jarak";
 "Domain" = "Domain";
-"Domain transfer unavailable." = "Transfer domain tidak tersedia.";
 "Domains" = "Domain";
-"Donate" = "Donasi";
 "Done" = "Selesai";
 "Edit KNS Profile" = "Edit Profil KNS";
 "Emoji picker" = "Pemilih emoji";
-"Enabling remote push..." = "Mengaktifkan push jarak jauh...";
 "Encoding…" = "Mengenkode…";
-"Enter a Kaspa address (kaspa:...)" = "Masukkan alamat Kaspa (kaspa:...)";
-"Enter a Kaspa address (kaspa:...) or KNS domain name (e.g., alice.kas)" = "Masukkan alamat Kaspa (kaspa:...) atau nama domain KNS (mis. alice.kas)";
-"Enter a Kaspa address or a `.kas` domain." = "Masukkan alamat Kaspa atau domain `.kas`.";
 "Enter a new name for this saved account." = "Masukkan nama baru untuk akun tersimpan ini.";
 "Enter a node address you trust" = "Masukkan alamat node yang Anda percayai";
-"Enter a trusted node (host:port for plaintext, or grpcs://host for TLS-secured nodes like Kaspium's) and tap Save to always connect to it instead of automatic discovery. Doesn't affect the Indexer/KNS/REST API URLs above." = "Masukkan node tepercaya (host:port untuk teks biasa, atau grpcs://host untuk node aman TLS seperti milik Kaspium) dan ketuk Simpan untuk selalu terhubung ke node tersebut alih-alih pencarian otomatis. Tidak memengaruhi URL Indexer/KNS/REST API di atas.";
-"Enter your 12 or 24 word seed phrase to restore your account. Separate each word with a space." = "Masukkan 12 atau 24 kata frasa pemulihan untuk memulihkan akun Anda. Pisahkan setiap kata dengan spasi.";
 "Error" = "Kesalahan";
-"Estimate fees while composing" = "Perkirakan biaya saat menulis pesan";
-"Every member will see the new name." = "Setiap anggota akan melihat nama baru.";
 "Explorer" = "Penjelajah";
 "Export Chat History" = "Ekspor Riwayat Obrolan";
 "Export Diagnostics Archive" = "Ekspor Arsip Diagnostik";
-"Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "Mengekspor info aplikasi/perangkat, pengaturan koneksi, jumlah pesan lokal, dan log aplikasi terkini dalam format zip — untuk bantuan pemecahan masalah. Tidak menyertakan kunci privat, frasa pemulihan, atau isi pesan terdekripsi.";
 "Failed to Send" = "Gagal Mengirim";
 "Failed to export diagnostics." = "Gagal mengekspor diagnostik.";
-"Failed to link system contact." = "Gagal menautkan kontak sistem.";
-"Failed updates" = "Pembaruan yang gagal";
 "Fee" = "Biaya";
-"Fee unavailable" = "Biaya tidak tersedia";
 "Finish" = "Selesai";
-"First let's create your identity with a domain name" = "Pertama mari buat identitas Anda dengan nama domain";
 "From" = "Dari";
 "Fund Your Chatting Address" = "Isi Saldo Alamat Obrolan Anda";
-"Generate Account" = "Buat Akun";
-"Generate New Address" = "Buat Alamat Baru";
 "Generate New Spending Address" = "Buat Alamat Pengeluaran Baru";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "Buat di bawah ini untuk mulai mengirim pembayaran dari alamat terpisah dari alamat yang Anda gunakan untuk mengobrol.";
 "Give this address a label to help you recognize it." = "Beri label alamat ini untuk membantu Anda mengenalinya.";
 "Group Info" = "Info Grup";
-"Group Name" = "Nama Grup";
-"Hidden Addresses" = "Alamat Tersembunyi";
 "Hidden Users" = "Pengguna Tersembunyi";
-"Hide" = "Sembunyikan";
 "Hide User" = "Sembunyikan Pengguna";
-"Hide auto-created payment chats" = "Sembunyikan obrolan pembayaran otomatis";
-"High" = "Tinggi";
-"High Transaction Traffic" = "Lalu Lintas Transaksi Tinggi";
 "How KaChat Uses Kaspa" = "Cara KaChat Menggunakan Kaspa";
-"I Agree" = "Saya Setuju";
-"I already have a domain somewhere else" = "Saya sudah memiliki domain di tempat lain";
-"I have written down my seed phrase and stored it securely" = "Saya telah mencatat frasa pemulihan saya dan menyimpannya dengan aman";
 "IP Address Book" = "Buku Alamat IP";
 "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee." = "Jika jaringan sedang sibuk, Cepat atau Prioritas membayar biaya lebih tinggi agar konfirmasi lebih cepat. Ketuk jumlah biaya untuk mengatur biaya kustom.";
-"If the network is busy, Fast or Priority pays a higher fee to help your withdrawal confirm sooner. Tap the fee amount to set a custom fee." = "Jika jaringan sedang sibuk, Cepat atau Prioritas membayar biaya lebih tinggi agar penarikan Anda lebih cepat dikonfirmasi. Ketuk jumlah biaya untuk mengatur biaya kustom.";
 "If the network is busy, a higher fee can help your transaction confirm faster." = "Jika jaringan sedang sibuk, biaya lebih tinggi dapat membantu transaksi Anda terkonfirmasi lebih cepat.";
 "Import" = "Impor";
 "Import Account" = "Impor Akun";
 "Import Chat History" = "Impor Riwayat Obrolan";
 "Import Existing Account" = "Impor Akun yang Ada";
-"Import Your Account" = "Impor Akun Anda";
-"Important" = "Penting";
 "Incoming Notifications" = "Pemberitahuan Masuk";
 "Indexer" = "Pengindeks (Indexer)";
 "Indexer URL" = "URL Pengindeks";
 "Info" = "Info";
-"Inscribe" = "Inskripsi";
-"Inscribe Domain" = "Inskripsi Domain";
-"Inscribe New Domain" = "Inskripsi Domain Baru";
-"Inscribe submitted for %@." = "Inskripsi diajukan untuk %@.";
-"Invalid domain label" = "Label domain tidak valid";
-"Invalid recipient format." = "Format penerima tidak valid.";
-"It's ok, I already have a domain" = "Tidak apa-apa, saya sudah punya domain";
 "KAS" = "KAS";
-"KNS API URL" = "URL API KNS";
 "KNS Domains" = "Domain KNS";
 "KNS Profile" = "Profil KNS";
-"KNS Profile Pictures" = "Foto Profil KNS";
 "KNS asset id is missing." = "ID aset KNS tidak ada.";
 "KNS domain id is missing." = "ID domain KNS tidak ada.";
-"KNS domain resolution service" = "Layanan resolusi domain KNS";
-"KNS profile unavailable." = "Profil KNS tidak tersedia.";
 "KNS profile update failed." = "Pembaruan profil KNS gagal.";
 "KNS profile update failed: %@" = "Pembaruan profil KNS gagal: %@";
 "KNS profile updated." = "Profil KNS diperbarui.";
 "KaChat" = "KaChat";
-"KaChat Indexer" = "Pengindeks KaChat";
-"KaChat connects only to this node for sending and message scanning, and won't search for or fall back to other nodes. Clear, or edit and tap Save, to change it." = "KaChat hanya terhubung ke node ini untuk pengiriman dan pemindaian pesan, dan tidak akan mencari atau beralih ke node lain. Hapus, atau edit dan ketuk Simpan untuk mengubahnya.";
 "KaChat lets you send and receive messages on the Kaspa network itself. Kaspa is required to pay fees when sending your messages. The fee you pay goes to miners which secure the network." = "KaChat memungkinkan Anda mengirim dan menerima pesan di jaringan Kaspa itu sendiri. Kaspa diperlukan untuk membayar biaya saat mengirim pesan. Biaya yang Anda bayar diberikan kepada penambang yang mengamankan jaringan.";
 "KaChat needs to connect to a node. How would you like to connect?" = "KaChat perlu terhubung ke sebuah node. Bagaimana Anda ingin terhubung?";
-"Kaspa Address or KNS Domain" = "Alamat Kaspa atau Domain KNS";
 "Kaspa Explorer" = "Penjelajah Kaspa";
 "Kaspa Explorer API" = "API Penjelajah Kaspa";
-"Kaspa Name Service" = "Kaspa Name Service";
 "Kaspa Node" = "Node Kaspa";
 "Kaspa REST API URL" = "URL REST API Kaspa";
 "Keep forever" = "Simpan selamanya";
 "Last Message" = "Pesan Terakhir";
 "Last Sync" = "Sinkronisasi Terakhir";
 "Latency" = "Latensi";
-"Leave" = "Keluar";
-"Leave & Delete" = "Keluar & Hapus";
-"Let's add more details about yourself" = "Mari tambahkan lebih banyak detail tentang Anda";
 "Let's walk through the basics so you're ready to send your first message." = "Mari pelajari dasar-dasarnya agar Anda siap mengirim pesan pertama.";
-"Link System Contact" = "Tautkan Kontak Sistem";
-"Link from Contacts" = "Tautkan dari Kontak";
-"Linked" = "Ditautkan";
-"Linked to %@." = "Ditautkan ke %@.";
 "Listed" = "Terdaftar";
-"Loading balance..." = "Memuat saldo...";
-"Loading contacts..." = "Memuat kontak...";
-"Loading domains..." = "Memuat domain...";
-"Loading profile..." = "Memuat profil...";
 "Loading..." = "Memuat...";
 "Log Out" = "Keluar";
-"Longer retention means more messages stay cached on your device - this can slow the app down over time, especially for busy rooms." = "Retensi yang lebih panjang berarti lebih banyak pesan tersimpan di perangkat - ini dapat memperlambat aplikasi seiring waktu, terutama di ruang yang ramai.";
 "Manage Addresses" = "Kelola Alamat";
-"Manual endpoints have highest priority" = "Endpoint manual memiliki prioritas tertinggi";
-"Manual endpoints have highest priority and are never auto-removed" = "Endpoint manual memiliki prioritas tertinggi dan tidak pernah dihapus otomatis";
 "Mark as Read" = "Tandai sudah Dibaca";
 "Mark as Unread" = "Tandai belum Dibaca";
 "Max" = "Maks";
 "Members" = "Anggota";
-"Menu" = "Menu";
 "Message" = "Pesan";
-"Message Retention" = "Retensi Pesan";
-"Message indexer service for chat functionality" = "Layanan pengindeks pesan untuk fungsi obrolan";
 "Message retention" = "Retensi pesan";
-"Message sync appears incomplete under restricted network conditions. Consider wiping and re-syncing incoming messages on a normal connection." = "Sinkronisasi pesan tampak tidak lengkap pada kondisi jaringan terbatas. Pertimbangkan untuk menghapus dan menyinkronkan ulang pesan masuk pada koneksi normal.";
-"Mode" = "Mode";
 "More Info" = "Info Lainnya";
 "More options" = "Opsi lainnya";
 "Most taxing on the device, not as reliable - depends on where you live" = "Paling membebani perangkat, kurang andal - bergantung pada lokasi Anda";
 "Name" = "Nama";
-"Name (Optional)" = "Nama (Opsional)";
-"Name set to %@." = "Nama diatur ke %@.";
-"Name set to %@. Tap Save to apply." = "Nama diatur ke %@. Ketuk Simpan untuk menerapkan.";
-"Name updated." = "Nama diperbarui.";
-"Network" = "Jaringan";
 "Network Fee" = "Biaya Jaringan";
-"Never send Kaspa you intend to spend to this address — it's for chatting fees only." = "Jangan pernah mengirim Kaspa yang ingin Anda belanjakan ke alamat ini — ini hanya untuk biaya obrolan.";
 "New message" = "Pesan baru";
 "Next" = "Berikutnya";
 "No Conversations Yet" = "Belum Ada Percakapan";
-"No Group Chats Yet" = "Belum Ada Obrolan Grup";
 "No KNS profile changes detected." = "Tidak ada perubahan profil KNS yang terdeteksi.";
-"No Kaspa address in system contact" = "Tidak ada alamat Kaspa di kontak sistem";
 "No Sound" = "Tanpa Suara";
 "No Spending Addresses" = "Tidak Ada Alamat Pengeluaran";
 "No active account" = "Tidak ada akun aktif";
 "No active nodes" = "Tidak ada node aktif";
-"No archived chats" = "Tidak ada obrolan yang diarsipkan";
-"No contacts found." = "Kontak tidak ditemukan.";
 "No domains yet." = "Belum ada domain.";
 "No emoji found" = "Emoji tidak ditemukan";
-"No hidden addresses." = "Tidak ada alamat tersembunyi.";
-"No hidden senders" = "Tidak ada pengirim tersembunyi";
 "No hidden users in this group." = "Tidak ada pengguna tersembunyi di grup ini.";
 "No messages yet" = "Belum ada pesan";
 "No nodes discovered" = "Tidak ada node yang ditemukan";
-"No on-chain profile fields set." = "Tidak ada kolom profil on-chain yang diatur.";
-"No other addresses have a balance to consolidate." = "Tidak ada alamat lain yang memiliki saldo untuk dikonsolidasi.";
-"No other nodes" = "Tidak ada node lain";
 "No saved addresses" = "Tidak ada alamat tersimpan";
 "No spendable funds available yet. Wait for confirmations and try again." = "Belum ada dana yang dapat dibelanjakan. Tunggu konfirmasi dan coba lagi.";
-"No system contacts found." = "Tidak ada kontak sistem yang ditemukan.";
 "No transactions yet." = "Belum ada transaksi.";
-"No verified nodes" = "Tidak ada node terverifikasi";
-"Node Pool" = "Kumpulan Node";
 "Node endpoint copied." = "Endpoint node disalin.";
-"Nodes actively used for requests." = "Node yang aktif digunakan untuk permintaan.";
 "Not Now" = "Nanti Saja";
-"Not linked" = "Tidak ditautkan";
 "Not registered" = "Tidak terdaftar";
 "Notifications" = "Pemberitahuan";
 "Notifications Disabled" = "Pemberitahuan Dinonaktifkan";
-"Notifications are disabled." = "Pemberitahuan dinonaktifkan.";
 "OK" = "OK";
 "Off" = "Mati";
 "On-chain profile data available." = "Data profil on-chain tersedia.";
 "Open Chat" = "Buka Obrolan";
 "Open Link" = "Buka Tautan";
 "Open Settings" = "Buka Pengaturan";
-"Other" = "Lainnya";
-"Other Nodes" = "Node Lainnya";
 "Paste" = "Tempel";
-"Paste from Clipboard" = "Tempel dari Papan Klip";
-"Pay in Kaspa" = "Bayar dengan Kaspa";
 "Payment" = "Pembayaran";
 "Payment: %@ KAS — %@" = "Pembayaran: %@ KAS — %@";
-"Per Contact" = "Per Kontak";
 "Photo" = "Foto";
-"Photo Quality" = "Kualitas Foto";
-"Photo quality" = "Kualitas foto";
 "Planned spend %@ KAS, but available balance %@ KAS is less than required." = "Rencana pengeluaran %@ KAS, namun saldo tersedia %@ KAS kurang dari yang dibutuhkan.";
 "Play Chess" = "Main Catur";
 "Play sound" = "Putar suara";
 "Please check your network connection and try again." = "Silakan periksa koneksi jaringan Anda dan coba lagi.";
 "Please enable camera access in Settings to scan QR codes." = "Silakan aktifkan akses kamera di Pengaturan untuk memindai kode QR.";
-"Please enter exactly 12 or 24 words" = "Harap masukkan tepat 12 atau 24 kata";
 "Point camera at a QR code" = "Arahkan kamera ke kode QR";
 "Pool Health" = "Kesehatan Kumpulan";
 "Pool Status" = "Status Kumpulan";
 "Preparing profile update..." = "Menyiapkan pembaruan profil...";
 "Primary" = "Utama";
-"Primary Latency" = "Latensi Utama";
 "Primary domain set to %@." = "Domain utama diatur ke %@.";
 "Private key hex copied. Clipboard will clear in 30s." = "Hex kunci privat disalin. Papan klip akan dibersihkan dalam 30 detik.";
 "Private key unavailable." = "Kunci privat tidak tersedia.";
@@ -344,7 +207,6 @@
 "Processing banner..." = "Memproses banner...";
 "Profile" = "Profil";
 "Profiled" = "Terprofil";
-"Profiled, candidate, and suspect nodes. Showing first 20." = "Node terprofil, kandidat, dan dicurigai. Menampilkan 20 teratas.";
 "Promote pawn to:" = "Promosikan pion ke:";
 "Protocol" = "Protokol";
 "Push Indexer URL" = "URL Pengindeks Push";
@@ -352,82 +214,51 @@
 "Push Register" = "Daftar Push";
 "Push Registration" = "Pendaftaran Push";
 "Push subscription failed." = "Pendaftaran push gagal.";
-"REST API for transaction history and balance lookups" = "REST API untuk riwayat transaksi dan pengecekan saldo";
-"Rate" = "Nilai Tukar";
-"Read" = "Dibaca";
 "Receive Kaspa" = "Terima Kaspa";
-"Receive notifications when contacts send messages, even when the app is closed." = "Terima pemberitahuan saat kontak mengirim pesan, bahkan saat aplikasi ditutup.";
 "Received" = "Diterima";
-"Received %.8f KAS" = "Diterima %.8f KAS";
 "Received %@ KAS" = "Diterima %@ KAS";
 "Received %@ KAS — %@" = "Diterima %@ KAS — %@";
 "Received %@ domain" = "Menerima domain %@";
 "Received domain transfer" = "Menerima transfer domain";
 "Received payment" = "Menerima pembayaran";
-"Recipient" = "Penerima";
 "Recipient Address" = "Alamat Penerima";
-"Recipient is required" = "Penerima wajib diisi";
-"Recipient looks valid." = "Penerima tampak valid.";
 "Recommended" = "Disarankan";
 "Reconnect" = "Hubungkan Ulang";
-"Record voice message" = "Rekam pesan suara";
-"Recording..." = "Merekam...";
 "Redirect URL" = "URL Pengalihan";
 "Refresh Pool" = "Segarkan Kumpulan";
-"Refresh Pool Now" = "Segarkan Kumpulan Sekarang";
-"Refresh Status" = "Segarkan Status";
 "Remote push" = "Push jarak jauh";
 "Remove" = "Hapus";
 "Remove Avatar" = "Hapus Avatar";
 "Remove Banner" = "Hapus Banner";
-"Remove Saved Account" = "Hapus Akun Tersimpan";
-"Remove from Device" = "Hapus dari Perangkat";
 "Rename" = "Ubah Nama";
 "Rename Account" = "Ubah Nama Akun";
 "Rename Address" = "Ubah Nama Alamat";
 "Rename Group" = "Ubah Nama Grup";
 "Reply" = "Balas";
 "Request to communicate" = "Minta izin berkomunikasi";
-"Required for cross-device sync and backup of sent messages." = "Diperlukan untuk sinkronisasi lintas perangkat dan pencadangan pesan terkirim.";
-"Reserved domain: no revenue payment is required." = "Domain dipesan: tidak diperlukan pembayaran pendapatan.";
-"Reset to Defaults" = "Reset ke Bawaan Pabrik";
 "Resign" = "Menyerah";
-"Resolving KNS domain..." = "Menyelesaikan domain KNS...";
-"Retry %@" = "Coba lagi %@";
 "Retry Send" = "Coba Kirim Lagi";
 "Retry failed: %@" = "Coba lagi gagal: %@";
 "Retrying %@..." = "Mencoba ulang %@...";
 "Save" = "Simpan";
 "Save Audio" = "Simpan Audio";
-"Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above." = "Simpan alamat node Anda di sini, lalu ketuk salah satu untuk menyalin dan menempelkannya ke bidang Node Kaspa di atas.";
 "Saved Accounts" = "Akun Tersimpan";
 "Scan QR" = "Pindai QR";
 "Scan QR Code" = "Pindai Kode QR";
-"Scan to share account. Tap anywhere here to copy address." = "Pindai untuk membagikan akun. Ketuk di mana saja untuk menyalin alamat.";
 "Search chats" = "Cari obrolan";
-"Search contacts" = "Cari kontak";
 "Search emoji" = "Cari emoji";
 "Secure messaging on Kaspa BlockDAG" = "Perpesanan aman di Kaspa BlockDAG";
 "Security Warning" = "Peringatan Keamanan";
 "12 or 24 Words" = "12 atau 24 Kata";
-"Seed Phrase Length" = "Panjang Frasa Pemulihan";
 "Words copied. Clipboard will clear in 30s." = "Kata disalin. Papan klip akan dihapus dalam 30 detik.";
 "Select a chat" = "Pilih obrolan";
-"Select mainnet for real transactions or testnet for testing" = "Pilih mainnet untuk transaksi nyata atau testnet untuk pengujian";
 "Select the currency you'd like prices displayed in." = "Pilih mata uang yang ingin ditampilkan.";
 "Select the language you'd like to use in KaChat." = "Pilih bahasa yang ingin digunakan di KaChat.";
 "Selected data is not a valid image" = "Data yang dipilih bukan gambar yang valid";
 "Send" = "Kirim";
-"Send All Kaspa To Primary Spend Address" = "Kirim Semua Kaspa ke Alamat Pengeluaran Utama";
-"Send Anyway" = "Tetap Kirim";
-"Send Audio Message" = "Kirim Pesan Audio";
-"Send From This Address" = "Kirim dari Alamat Ini";
 "Send Handshake" = "Kirim Handshake";
 "Send KAS" = "Kirim KAS";
 "Send Kaspa" = "Kirim Kaspa";
-"Send Photo" = "Kirim Foto";
-"Send audio" = "Kirim audio";
-"Send message" = "Kirim pesan";
 "Sending less than 0.1 KAS may fail due to the network dust protection limit." = "Mengirim kurang dari 0,1 KAS dapat gagal karena batas perlindungan dust jaringan.";
 "Sending…" = "Mengirim…";
 "Sent" = "Terkirim";
@@ -435,93 +266,38 @@
 "Sent %@ KAS — %@" = "Terkirim %@ KAS — %@";
 "Sent %@ domain" = "Mengirim domain %@";
 "Sent domain transfer" = "Mengirim transfer domain";
-"Service fee" = "Biaya layanan";
-"Set %@ as primary" = "Atur %@ sebagai utama";
-"Set as Primary Address" = "Atur sebagai Alamat Utama";
-"Set per-contact notification mode in each chat's info screen: Off, No Sound, or Sound." = "Atur mode pemberitahuan per kontak di layar info obrolan: Mati, Tanpa Suara, atau Bersuara.";
 "Set primary failed: %@" = "Gagal mengatur utama: %@";
 "Settings" = "Pengaturan";
-"Setup Guide" = "Panduan Penyiapan";
-"Share QR" = "Bagikan QR";
 "Show More" = "Tampilkan Lebih Banyak";
-"Show Photo" = "Tampilkan Foto";
-"Show QR" = "Tampilkan QR";
 "Show QR Code" = "Tampilkan Kode QR";
-"Show Setup Guides" = "Tampilkan Panduan Penyiapan";
-"Show contact balance" = "Tampilkan saldo kontak";
 "Sign In Failed" = "Gagal Masuk";
 "Skip" = "Lewati";
-"Small Amount" = "Jumlah Kecil";
 "Something Went Wrong" = "Terjadi Kesalahan";
 "Sound" = "Suara";
 "Sound & Vibration" = "Suara & Getaran";
-"Spending Address" = "Alamat Pengeluaran";
 "Start a new chat by adding a contact" = "Mulai obrolan baru dengan menambahkan kontak";
-"Start a new group from the add-chat button" = "Mulai grup baru dari tombol tambah obrolan";
 "Started a conversation" = "Memulai percakapan";
-"Starting a Conversation" = "Memulai Percakapan";
 "Status" = "Status";
 "Storage" = "Penyimpanan";
-"Store encrypted messages in iCloud CloudKit" = "Simpan pesan terenkripsi di iCloud CloudKit";
-"Store this in a safe place. Anyone with these words can access your account." = "Simpan ini di tempat yang aman. Siapa pun dengan kata-kata ini dapat mengakses akun Anda.";
-"Submitting inscription..." = "Mengirimkan inskripsi...";
-"Submitting inscription... this could take a few minutes while it confirms on-chain." = "Mengirimkan inskripsi... ini mungkin membutuhkan beberapa menit saat konfirmasi di on-chain.";
-"Submitting transfer..." = "Mengirimkan transfer...";
 "Support Email" = "Email Dukungan";
 "Suspected" = "Dicurigai";
-"Switch direction" = "Tukar arah";
-"Sync system contacts" = "Sinkronkan kontak sistem";
-"Sync warning detected" = "Peringatan sinkronisasi terdeteksi";
-"Synced and ready for promotion to active." = "Tersinkronisasi dan siap diaktifkan.";
-"System Contact" = "Kontak Sistem";
-"System Contact Link" = "Tautan Kontak Sistem";
-"System contact unlinked." = "Kontak sistem diputuskan tautannya.";
-"Tap a node to copy host:port." = "Ketuk node untuk menyalin host:port.";
 "Tap send to record" = "Ketuk kirim untuk merekam";
-"Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "Ketuk untuk menyesuaikan. Jika jaringan sibuk, biaya lebih tinggi dapat mempercepat konfirmasi.";
 "Tap to reveal your 12 or 24 words" = "Ketuk untuk menampilkan 12 atau 24 kata Anda";
-"This account will be removed from this device." = "Akun ini akan dihapus dari perangkat ini.";
-"This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "Kontak ini akan ditautkan setelah dibuat. Anda tetap perlu memasukkan alamat Kaspa atau domain KNS.";
-"This could take a few minutes while it confirms on-chain." = "Ini dapat memakan waktu beberapa menit saat konfirmasi di on-chain.";
-"This deletes all local data and CloudKit message records. This cannot be undone." = "Ini akan menghapus semua data lokal dan catatan pesan CloudKit. Tindakan ini tidak dapat dibatalkan.";
-"This domain is not available." = "Domain ini tidak tersedia.";
-"This is a live check of your iCloud account, separate from local storage above." = "Ini adalah pemeriksaan langsung akun iCloud Anda, terpisah dari penyimpanan lokal.";
-"This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "Ini menghapus permanen semua pesan dengan mereka, termasuk dari iCloud, sehingga terhapus juga dari perangkat lain. Tidak dapat dibatalkan.";
-"This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "Ini menghapus semua pesan masuk secara lokal dan di iCloud, lalu menyinkronkannya kembali dari blockchain. Info akun dan pesan terkirim tetap terjaga.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "Ini menghapus node yang ditemukan, memutuskan sesi saat ini, dan mengulang pencarian.";
-"This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "Ini menghapus data akun lokal dan pesan. Sinkronisasi CloudKit dinonaktifkan saat pembersihan dan diaktifkan kembali setelahnya.";
 "This removes the group and its messages from this device. This cannot be undone, and other members won't be notified." = "Ini menghapus grup dan pesannya dari perangkat ini. Ini tidak dapat dibatalkan, dan anggota lain tidak akan diberi tahu.";
-"This signs out of your account, but keeps local wallet and message data on this device." = "Ini mengeluarkan akun Anda, namun tetap menyimpan data dompet dan pesan lokal di perangkat ini.";
-"This will permanently delete your account from this device. Make sure you have backed up your 12 or 24 words." = "Ini akan menghapus akun Anda secara permanen dari perangkat ini. Pastikan Anda telah mencadangkan 12 atau 24 kata Anda.";
-"To (Primary Address)" = "Ke (Alamat Utama)";
-"To chat with someone, press Create Chat and enter their Kaspa address or KNS domain. If you send a message, they will not see it unless you send a handshake first, or you both decide to message each other around the same time - doing the latter increases your privacy." = "Untuk mengobrol, tekan Buat Obrolan dan masukkan alamat Kaspa atau domain KNS mereka. Pesan Anda tidak akan terlihat kecuali Anda mengirim handshake terlebih dahulu, atau Anda berdua saling berkirim pesan di waktu bersamaan untuk privasi yang lebih tinggi.";
 "To receive notifications, please enable them in Settings." = "Untuk menerima pemberitahuan, silakan aktifkan di Pengaturan.";
 "Total" = "Total";
 "Total Balance" = "Total Saldo";
-"Transaction Sent" = "Transaksi Terkirim";
-"Transfer %@" = "Transfer %@";
-"Transfer Domain" = "Transfer Domain";
-"Transfer Your Domain" = "Transfer Domain Anda";
 "Transfer submitted for %@." = "Transfer diajukan untuk %@.";
-"Transfer your domain to this address so that your identity is connected to KaChat." = "Transfer domain Anda ke alamat ini agar identitas Anda terhubung ke KaChat.";
 "Try Again" = "Coba Lagi";
-"Unarchive" = "Batalkan Arsip";
 "Unhide" = "Tampilkan Kembali";
-"Unlink" = "Putuskan Tautan";
-"Unread" = "Belum Dibaca";
 "Updated %d/%d. Failed: %@." = "Diperbarui %d/%d. Gagal: %@.";
 "Updated %d/%d. Failed: %@. %@" = "Diperbarui %d/%d. Gagal: %@. %@";
 "Updating %@ (%d/%d)..." = "Memperbarui %@ (%d/%d)...";
 "Uploading avatar..." = "Mengunggah avatar...";
 "Uploading banner..." = "Mengunggah banner...";
 "Use Default" = "Gunakan Default";
-"Use lowercase letters, numbers, and hyphen." = "Gunakan huruf kecil, angka, dan tanda hubung.";
-"Used only for push registration and updates" = "Hanya digunakan untuk pendaftaran push dan pembaruan";
-"Used when a contact has no custom notification mode set." = "Digunakan saat kontak tidak memiliki mode pemberitahuan khusus.";
-"Uses your device contacts to match and enrich Kaspa contacts." = "Menggunakan kontak perangkat Anda untuk mencocokkan dan memperkaya kontak Kaspa.";
 "Verified" = "Terverifikasi";
-"Verified Nodes" = "Node Terverifikasi";
-"Verifying device..." = "Memverifikasi perangkat...";
 "Version" = "Versi";
 "Vibration" = "Getaran";
 "View Profile" = "Lihat Profil";
@@ -529,38 +305,14 @@
 "View 12 or 24 Words" = "Lihat 12 atau 24 Kata";
 "View in Explorer" = "Lihat di Penjelajah";
 "Voice message" = "Pesan suara";
-"Walk through setting up your domain, banner, avatar, and details step by step." = "Panduan langkah demi langkah untuk mengatur domain, banner, avatar, dan detail Anda.";
-"Wallet not available" = "Dompet tidak tersedia";
 "Wallet not available." = "Dompet tidak tersedia.";
-"Watching" = "Pantau";
 "Website" = "Situs Web";
 "Welcome Guide" = "Panduan Selamat Datang";
 "Welcome to KaChat" = "Selamat Datang di KaChat";
-"Welcome to KaChat!" = "Selamat Datang di KaChat!";
-"When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "Saat dinonaktifkan, pesan dari kontak ini akan diambil secara berkala bukan waktu nyata. Gunakan ini untuk kontak dengan transaksi tinggi guna menghemat baterai dan data.";
-"When on, you'll only get notified about messages that @mention you - other messages still show up in the chat, just silently." = "Saat aktif, Anda hanya akan diberi tahu tentang pesan yang menyebut (@mention) Anda - pesan lain tetap muncul tanpa suara.";
-"When you message someone new on KaChat, they won’t get a notification and your message stays hidden until they message you back or add as well. This protects against spam and increases your privacy. If you want them to be notified, click the hand icon to send a request to communicate which will cost 0.2 KAS. (Note: all non KaChat messaging apps will require a request to communicate)" = "Saat mengirim pesan ke orang baru di KaChat, mereka tidak mendapat notifikasi dan pesan Anda tersembunyi hingga mereka membalas. Untuk memberi tahu mereka, klik ikon tangan untuk mengirim permintaan komunikasi seharga 0.2 KAS.";
-"When you message someone new on KaChat, they won’t get a notification and your message stays hidden until they message you back or add as well. This protects against spam and increases your privacy. If you want them to be notified, hold the send button and slide up to request to communicate. This will cost 0.2 KAS. (Note: all non KaChat messaging apps will require a request to communicate)" = "Saat mengirim pesan ke orang baru di KaChat, mereka tidak mendapat notifikasi dan pesan Anda tersembunyi hingga mereka membalas. Untuk memberi tahu mereka, tahan tombol kirim lalu geser ke atas untuk mengirim permintaan komunikasi seharga 0.2 KAS.";
-"Wipe Account & Messages" = "Hapus Bersih Akun & Pesan";
-"Wipe Incoming Messages" = "Hapus Bersih Pesan Masuk";
-"Wipe Local & iCloud Data" = "Hapus Bersih Data Lokal & iCloud";
-"Wipe account & messages" = "Hapus bersih akun & pesan";
-"Wipe account & messages & iCloud" = "Hapus bersih akun & pesan & iCloud";
 "Wipe and re-sync incoming messages" = "Hapus bersih dan sinkronkan ulang pesan masuk";
-"Withdraw Kaspa" = "Tarik Kaspa";
-"Write Down Your Seed Phrase" = "Catat Frasa Pemulihan Anda";
 "X handle" = "Handle X";
-"You have now finished your KNS profile creation!" = "Anda telah menyelesaikan pembuatan profil KNS Anda!";
-"You will be shown a seed phrase. This is the only way to recover your account. Write it down and store it securely." = "Anda akan diperlihatkan frasa pemulihan. Ini adalah satu-satunya cara memulihkan akun Anda. Catat dan simpan dengan aman.";
-"Your public messaging identity. Fund it with a small amount to pay message fees and KNS profile creation fees - never send money here that you intend to spend." = "Identitas pesan publik Anda. Danai sedikit untuk biaya pesan dan pembuatan profil KNS - jangan simpan dana belanja di sini.";
-"available: %@ KAS" = "tersedia: %@ KAS";
-"fee: %@ sompi" = "biaya: %@ sompi";
 "fee: -- KAS" = "biaya: -- KAS";
-"fee: -- sompi" = "biaya: -- sompi";
-"fee: ---- sompi" = "biaya: ---- sompi";
 "fee: -------- KAS" = "biaya: -------- KAS";
-"kachat.kas" = "kachat.kas";
-"kaspa:... or alice.kas" = "kaspa:... atau alice.kas";
 "kaspasilver@gmail.com" = "kaspasilver@gmail.com";
 "name" = "nama";
 "–" = "–";
@@ -568,23 +320,16 @@
 "♟️" = "♟️";
 
 /* Message actions: translation (public chats), User Info share */
-"Translate" = "Terjemahkan";
-"Show Original" = "Tampilkan Asli";
-"Show Translation" = "Tampilkan Terjemahan";
 "Share" = "Bagikan";
-"Back to the text as it was sent." = "Kembali ke teks seperti saat dikirim.";
-"The translated text again." = "Teks terjemahan lagi.";
 
 /* 5.2: name services, .kachat, Connection Settings, testnet */
 "Kaspa Address or Domain" = "Alamat Kaspa atau domain";
 "Looking up domain..." = "Mencari domain...";
-"No domain found" = "Domain tidak ditemukan";
 "No %@ domain found" = "Domain %@ tidak ditemukan";
 "No domain" = "Tidak ada domain";
 "Other domains" = "Domain lain";
 "Couldn't check" = "Tidak dapat memeriksa";
 "Edit KaChat Profile" = "Edit Profil KaChat";
-".kachat names are coming. Once you claim one, your avatar, banner, bio and links are set here - and they're what KaChat shows for you everywhere." = "Nama .kachat segera hadir. Setelah kamu mengklaimnya, atur avatar, banner, bio, dan tautanmu di sini - itulah yang ditampilkan KaChat tentangmu di mana saja.";
 "None yet" = "Belum ada";
 ".kachat Name" = "Nama .kachat";
 "Customize Profile" = "Sesuaikan Profil";
@@ -593,34 +338,17 @@
 "Settling" = "Sedang dikonfirmasi";
 "Node" = "Node";
 "Message Indexer" = "Pengindeks Pesan";
-"Other Name Services" = "Layanan Nama Lain";
-"Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "Dipakai untuk menampilkan nama .k dan .kaspa yang dimiliki sebuah alamat. Nama .kachat milik KaChat akan diatur di sini setelah diluncurkan.";
 "Coming soon" = "Segera hadir";
 "Not available on this network" = "Tidak tersedia di jaringan ini";
-"No testnet indexer yet" = "Belum ada pengindeks testnet";
 "Testnet" = "Testnet";
-"Testnet is for testing only - testnet KAS has no value. On testnet your account uses its kaspatest: address, with its own balance and chats, and Connection Settings holds testnet values: the testnet explorer, automatic node discovery, and no KaChat indexers until testnet ones exist. Turning it off brings your mainnet settings back." = "Testnet hanya untuk pengujian - KAS testnet tidak bernilai. Di testnet akunmu memakai alamat kaspatest: dengan saldo dan obrolannya sendiri, dan Pengaturan Koneksi berisi nilai testnet: penjelajah testnet, penemuan node otomatis, dan tanpa pengindeks KaChat sampai ada untuk testnet. Mematikannya mengembalikan pengaturan mainnet-mu.";
 "Close KaChat completely and open it again to finish switching to Testnet." = "Tutup KaChat sepenuhnya lalu buka lagi untuk menyelesaikan peralihan ke Testnet.";
 "Close KaChat completely and open it again to finish switching back to Mainnet." = "Tutup KaChat sepenuhnya lalu buka lagi untuk menyelesaikan kembali ke Mainnet.";
-"Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "Pemindaian Otomatis menemukan dan terhubung ke node terbaik yang tersedia. Memilih node tertentu hanya terhubung ke node itu, tanpa beralih ke yang lain. Tidak memengaruhi pengindeks, domain, atau penjelajah di tab lain. Tambahkan alamatmu ke Buku Alamat IP di bawah untuk memilihnya di sini.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"Activity" = "Aktivitas";
 
 /* 5.2: range and section labels */
-"All-time only" = "Hanya sepanjang waktu";
-"Kinds marked \"All-time only\" aren't in this total yet." = "Jenis bertanda “Hanya sepanjang waktu” belum termasuk dalam total ini.";
 
 /* 5.2: .kachat setup guide */
-"Add a profile photo" = "Tambahkan foto profil";
-"Your avatar shows next to your name everywhere in KaChat." = "Avatarmu tampil di samping namamu di seluruh KaChat.";
-"Add a banner" = "Tambahkan banner";
-"A wide image across the top of your profile." = "Gambar lebar di bagian atas profilmu.";
-"Tell people about you" = "Ceritakan tentang dirimu";
-"A short bio and your links. All of it is optional." = "Bio singkat dan tautanmu. Semuanya opsional.";
-"That's the whole setup" = "Itu seluruh penyiapannya";
-".kachat names are coming soon. When they launch, this guide claims your name and saves your profile in one go." = "Nama .kachat segera hadir. Saat diluncurkan, panduan ini mengklaim namamu dan menyimpan profilmu sekaligus.";
-".kachat Profile Setup Guide" = "Panduan Penyiapan Profil .kachat";
 "The full first-run tour: wallet, chats, payments and more." = "Tur awal lengkap: dompet, obrolan, pembayaran, dan lainnya.";
 "Previous" = "Sebelumnya";
 "Email" = "Email";
@@ -644,12 +372,10 @@
 /* 5.2: an address's .kachat Domains tab */
 
 /* 5.2: move a portfolio transaction */
-"Moved to %@." = "Dipindahkan ke %@.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
 
 /* Day labels (message times, date dividers) */
-"Today" = "Hari ini";
 "Yesterday" = "Kemarin";
 
 /* 5.2: Portfolio transfers */
@@ -657,15 +383,11 @@
 /* Receive / chatting address QR text */
 
 /* 5.2: name discovery across services */
-"If these words already hold your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Jika kata-kata ini sudah menyimpan identitas Anda di alamat lain (domain .kas, .k, atau .kaspa, atau saldo obrolan), pilih di sini. Hanya alamat dengan saldo atau domain yang ditampilkan.";
 ".k and .kaspa Names (%lld)" = "Nama .k dan .kaspa (%lld)";
 
 /* 5.2: Message Requests, Private chats */
 "Message Requests" = "Permintaan Pesan";
-"People who wrote to you first" = "Orang yang lebih dulu menulis kepadamu";
-"Open a request to read it. Accept to reply and move it to your chats; Reject deletes it and stops that address reaching you until you write to them." = "Buka permintaan untuk membacanya. Terima untuk membalas dan memindahkannya ke obrolanmu; Tolak menghapusnya dan mencegah alamat itu menghubungimu sampai kamu menulis kepadanya.";
 "No message requests" = "Tidak ada permintaan pesan";
-"%@ wants to chat. Accept to reply - nothing is sent until you write back." = "%@ ingin mengobrol. Terima untuk membalas - tidak ada yang dikirim sampai kamu membalas.";
 "Reject" = "Tolak";
 "Reject this request?" = "Tolak permintaan ini?";
 "Their messages are deleted from this device, and this address can't reach you again until you write to them." = "Pesannya dihapus dari perangkat ini, dan alamat ini tidak bisa menghubungimu lagi sampai kamu menulis kepadanya.";
@@ -678,88 +400,45 @@
 "No new requests" = "Tidak ada permintaan baru";
 
 /* Welcome Guide: .kachat and Message Requests */
-"To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "Untuk mengobrol dengan seseorang, tekan Buat Obrolan dan masukkan alamat Kaspa atau nama .kachat mereka. Pesan pertamamu sampai sebagai Permintaan Pesan yang bisa mereka terima. Untuk privasi maksimal, aktifkan Obrolan Privat: tidak ada yang menghubungkan kalian di chain, dan mereka melihat pesanmu setelah juga memulai obrolan privat denganmu.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "Disarankan 50 Kaspa untuk memulai - cukup untuk mengklaim nama .kachat dan mengobrol untuk sementara. 5 Kaspa cukup untuk sekitar 2500 pesan.";
-"Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "Identitas pesan publikmu. Isi dengan sedikit dana untuk membayar biaya pesan dan nama .kachat-mu - jangan pernah mengirim uang ke sini yang ingin kamu belanjakan.";
 "Nextcloud is off while Testnet is on." = "Nextcloud nonaktif selama Testnet aktif.";
-"Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "Cadangan, sinkronisasi, media, dan panggilan lewat Nextcloud hanya berjalan di mainnet, jadi testnet tidak akan pernah menimpa cadangan mainnet Anda. Matikan Testnet di Pengaturan > Koneksi dan koneksi Nextcloud Anda kembali seperti semula.";
-"Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names come after an audit." = "Aktif di Testnet: nama, harga, dan pembayaran di sini memakai TKAS di testnet-10. Nama mainnet hadir setelah audit.";
-"Live on Testnet (testnet-10 registry)" = "Aktif di Testnet (registri testnet-10)";
 "Cancelled." = "Dibatalkan.";
 "Confirm this .kachat transaction" = "Konfirmasi transaksi .kachat ini";
-"Your balance" = "Saldo Anda";
-"It shows here once the network accepts it, usually within seconds." = "Ini muncul di sini setelah jaringan menerimanya, biasanya dalam hitungan detik.";
-"Cost" = "Biaya";
-"Make %@ your primary name?" = "Jadikan %@ nama utama Anda?";
 "Set as Primary" = "Jadikan Utama";
-"KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat menampilkannya sebagai nama Anda. Disimpan di catatan profil Anda di chain, dengan biaya jaringan.";
 "You" = "Anda";
-"Saved. Transaction %@" = "Tersimpan. Transaksi %@";
 "To" = "Kepada";
-"kaspatest:... or name.kachat" = "kaspatest:... atau name.kachat";
-"A testnet address, or a .kachat name - it's resolved to the address shown." = "Alamat testnet atau nama .kachat - diterjemahkan ke alamat yang ditampilkan.";
-"Enter an address or a .kachat name." = "Masukkan alamat atau nama .kachat.";
-"No active .kachat name by that name." = "Tidak ada nama .kachat aktif dengan nama itu.";
-"Your profile belongs to your address, not to a name: it stays the same when you buy, sell or let a name go." = "Profil Anda milik alamat Anda, bukan nama: tetap sama saat Anda membeli, menjual, atau melepas nama.";
-"https://... or ipfs://..." = "https://... atau ipfs://...";
-"Image links must start with https:// or ipfs://." = "Tautan gambar harus diawali https:// atau ipfs://.";
 "GitHub" = "GitHub";
 "Telegram" = "Telegram";
 "Discord" = "Discord";
-"Nostr" = "Nostr";
 "X" = "X";
 "Links" = "Tautan";
 "Primary name" = "Nama utama";
 "None" = "Tidak ada";
-"KaChat shows you by your primary name while you own it and it's active; otherwise by your oldest active name, or your address." = "KaChat menampilkan Anda dengan nama utama selama Anda memilikinya dan masih aktif; jika tidak, dengan nama aktif tertua Anda, atau alamat Anda.";
 "Save Profile" = "Simpan Profil";
-"Saving writes your profile to the chain from your address to itself, for a network fee. Profiles are public." = "Menyimpan akan menulis profil Anda ke chain dari alamat Anda ke dirinya sendiri, dengan biaya jaringan. Profil bersifat publik.";
-"Save your profile?" = "Simpan profil Anda?";
-"It's written to the chain for a network fee." = "Ditulis ke chain dengan biaya jaringan.";
-"Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "Profil bersifat publik dan ada di chain: siapa pun bisa membacanya, dan versi sebelumnya tetap terbaca setelah Anda mengubahnya. Ditulis dengan biaya jaringan.";
-"No testnet wallet is open." = "Tidak ada dompet testnet yang terbuka.";
 "This wallet's key does not match its address." = "Kunci dompet ini tidak cocok dengan alamatnya.";
-"Paste a profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite." = "Tempel tautan profil dari X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram atau LinkedIn, atau undangan server Discord.";
-"Paste your profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite. KaChat shows the picture that platform shows, so its moderation applies here too." = "Tempel tautan profil Anda dari X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram atau LinkedIn, atau undangan server Discord. KaChat menampilkan gambar yang ditampilkan platform itu, jadi moderasinya juga berlaku di sini.";
-"Banners come from an X or YouTube profile link, or a Discord server invite." = "Banner berasal dari tautan profil X atau YouTube, atau undangan server Discord.";
-"Looking up the picture..." = "Mencari gambar...";
-"No picture found for this link." = "Tidak ada gambar untuk tautan ini.";
-"No bio on this platform." = "Tidak ada bio di platform ini.";
 "Looking up the profile..." = "Mencari profil...";
-"Nothing found for this link." = "Tidak ada yang ditemukan untuk tautan ini.";
-"Social Profile" = "Profil Sosial";
-"Your avatar, banner and bio come from this profile, exactly as that platform shows them, so its moderation applies here too. Banners come from X, YouTube and Discord; bios from X, YouTube, Telegram, Twitch, Kick, GitHub and Discord." = "Avatar, banner, dan bio Anda berasal dari profil ini, persis seperti yang ditampilkan platform itu, jadi moderasinya juga berlaku di sini. Banner berasal dari X, YouTube, dan Discord; bio dari X, YouTube, Telegram, Twitch, Kick, GitHub, dan Discord.";
-"Only a Linktree link (linktr.ee/yourname) can be added." = "Hanya tautan Linktree (linktr.ee/namaanda) yang bisa ditambahkan.";
-"Add your Linktree to point people to your other accounts and websites." = "Tambahkan Linktree Anda untuk mengarahkan orang ke akun dan situs web Anda yang lain.";
 "From %@" = "Dari %@";
 "No avatar on this %@ profile." = "Profil %@ ini tidak punya avatar.";
 "No banner on this %@ profile." = "Profil %@ ini tidak punya banner.";
-"%@ doesn't share banners." = "%@ tidak membagikan banner.";
 "No bio on this %@ profile." = "Profil %@ ini tidak punya bio.";
-"%@ doesn't share bios." = "%@ tidak membagikan bio.";
 "Retry" = "Coba lagi";
 "Couldn't reach %@." = "Tidak dapat menjangkau %@.";
 "Account on" = "Akun di";
 "handle" = "handle";
 "invite" = "undangan";
 "username" = "nama pengguna";
-"Each piece comes from a social profile you link, exactly as that platform shows it, so its moderation applies here too. You can use one account for all three, or mix them." = "Setiap bagian berasal dari profil sosial yang Anda tautkan, persis seperti yang ditampilkan platform itu, jadi moderasinya juga berlaku di sini. Anda bisa memakai satu akun untuk ketiganya, atau mencampurnya.";
 "Enter your Linktree username: letters, numbers, dots, dashes or underscores." = "Masukkan nama pengguna Linktree Anda: huruf, angka, titik, tanda hubung, atau garis bawah.";
 "That doesn't look like a handle on this platform." = "Itu tidak tampak seperti handle di platform ini.";
 "Chatting address balance" = "Saldo alamat obrolan";
 "Balance after" = "Saldo setelahnya";
-"Balance change" = "Perubahan saldo";
 "Transaction sent" = "Transaksi terkirim";
-"Listed for sale" = "Dijual";
 "Profile saved" = "Profil disimpan";
 "Your Profile" = "Profil Anda";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "Disimpan on-chain dari alamat obrolan Anda ke dirinya sendiri.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "Profil bersifat publik dan on-chain: siapa pun bisa membacanya, dan versi sebelumnya tetap terbaca setelah Anda mengubahnya.";
 "Setting up" = "Sedang disiapkan";
-"The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "Registri .kachat di Testnet sedang ditingkatkan. Nama dibuka lagi di sini setelah registri baru aktif.";
 ".kachat Names" = "Nama .kachat";
-"This name isn't registered right now." = "Nama ini sedang tidak terdaftar.";
 "This network has no push service yet." = "Jaringan ini belum memiliki layanan notifikasi push.";
 "Voice Message" = "Pesan Suara";
 "Back" = "Kembali";
@@ -771,10 +450,8 @@
 "Pick an image and send it on chain, compressed to fit." = "Pilih gambar dan kirim on-chain, dikompres agar muat.";
 "Up to 10 seconds, sent on chain." = "Hingga 10 detik, dikirim on-chain.";
 "Take Photo via Nextcloud" = "Ambil Foto via Nextcloud";
-"Send Photo via Nextcloud" = "Kirim Foto via Nextcloud";
 "Record via Nextcloud" = "Rekam via Nextcloud";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "Kualitas penuh, atau video. Diunggah ke Nextcloud Anda; chat membawa tautannya.";
-"Full quality. Uploads to your Nextcloud; the chat carries the link." = "Kualitas penuh. Diunggah ke Nextcloud Anda; chat membawa tautannya.";
 "Up to 5 minutes. Uploads to your Nextcloud; the chat carries the link." = "Hingga 5 menit. Diunggah ke Nextcloud Anda; chat membawa tautannya.";
 "Send Kaspa to this contact." = "Kirim Kaspa ke kontak ini.";
 "Take a photo and send it." = "Ambil foto dan kirim.";
@@ -784,8 +461,6 @@
 "Take a photo and send it to the group." = "Ambil foto dan kirim ke grup.";
 "Pick an image from your library and send it to the group." = "Pilih gambar dari pustaka Anda dan kirim ke grup.";
 "Record a voice message and send it to the group." = "Rekam pesan suara dan kirim ke grup.";
-"\"File\" in a chat's + menu opens this folder first." = "\"File\" di menu + chat membuka folder ini terlebih dahulu.";
-"In a chat's + menu, Camera, Photo and Voice Message ask whether to send on chain or via Nextcloud. Via Nextcloud, the file uploads in full quality to this server's %@ folder and the chat carries a share link (voice messages up to 5 minutes). The message with the link stays end-to-end encrypted, but the file itself is stored unencrypted on your server and is reachable by anyone who has the unguessable link." = "Di menu + chat, Kamera, Foto, dan Pesan Suara menanyakan apakah dikirim on-chain atau via Nextcloud. Via Nextcloud, file diunggah dalam kualitas penuh ke folder %@ di server ini dan chat membawa tautan berbagi (pesan suara hingga 5 menit). Pesan berisi tautan tetap terenkripsi end-to-end, tetapi file itu sendiri disimpan tanpa enkripsi di server Anda dan dapat diakses siapa saja yang memiliki tautan yang tak bisa ditebak itu.";
 "to %@" = "ke %@";
 "Add a memo (encrypted)" = "Tambahkan catatan (terenkripsi)";
 "Switch between Kaspa and your currency" = "Beralih antara Kaspa dan mata uang Anda";
@@ -798,14 +473,7 @@
 "New" = "Baru";
 "New Chat" = "Obrolan Baru";
 "New Group Chat" = "Obrolan Grup Baru";
-"Fund Chatting Address" = "Isi Alamat Obrolan";
 "Message someone by their address or name." = "Kirim pesan ke seseorang lewat alamat atau namanya.";
-"Start an encrypted group with several people." = "Mulai grup terenkripsi dengan beberapa orang.";
-"Show the QR code to add Kaspa for sending messages." = "Menampilkan kode QR untuk menambah Kaspa guna mengirim pesan.";
-"Show a fresh address to get paid." = "Menampilkan alamat baru untuk menerima pembayaran.";
-"A fresh address, never used before. Kaspa sent here lands in this account and shows in your spending total. This address should be used for everything not related to chatting or domains." = "Alamat baru yang belum pernah dipakai. Kaspa yang dikirim ke sini masuk ke akun ini dan tampil di saldo belanja Anda. Gunakan alamat ini untuk semua hal yang tidak terkait obrolan atau domain.";
-"This address should be for chatting and domains only. 1 Kaspa is enough for about 500 interactions in the app. Domains cost from 35 to 4,000 Kaspa, depending on the name." = "Alamat ini hanya untuk obrolan dan domain. 1 Kaspa cukup untuk sekitar 500 interaksi di aplikasi. Harga domain berkisar 35 hingga 4.000 Kaspa, tergantung namanya.";
-"Profiles can be saved once .kachat launches on mainnet." = "Profil bisa disimpan setelah .kachat diluncurkan di mainnet.";
 "Pinned to the front" = "Disematkan di depan";
 "Unpinned" = "Sematan dilepas";
 "Coin Control" = "Kontrol koin";
@@ -817,9 +485,6 @@
 "Fast" = "Cepat";
 "Priority" = "Prioritas";
 "Resolved: %@" = "Ditemukan: %@";
-"Slide to Send" = "Geser untuk mengirim";
-"Slide to Consolidate" = "Geser untuk menggabungkan";
-"Send Kaspa from your spending address." = "Kirim Kaspa dari alamat pengeluaran Anda.";
 "Spending address is unlocking — go back and try again." = "Alamat pengeluaran sedang dibuka — kembali dan coba lagi.";
 "This address isn't in this wallet any more." = "Alamat ini sudah tidak ada di dompet ini.";
 "Send From" = "Kirim Dari";
@@ -830,13 +495,11 @@
 "Keeps it first in the row above your chats." = "Tetap pertama di baris atas obrolan Anda.";
 "Hold for options" = "Tahan untuk opsi";
 "This address is on a different network than the app." = "Alamat ini ada di jaringan yang berbeda dari aplikasi.";
-".kachat names aren't on mainnet yet. Your avatar, banner, bio and links save now; you can pick a primary name once names launch." = "Nama .kachat belum ada di mainnet. Avatar, banner, bio, dan tautan Anda tersimpan sekarang; Anda bisa memilih nama utama setelah nama diluncurkan.";
 "Claim Testnet Kaspa" = "Klaim Kaspa Testnet";
 "Waiting for the faucet's payment..." = "Menunggu pembayaran faucet...";
 "Claimed. You can claim again in %@." = "Sudah diklaim. Anda bisa klaim lagi dalam %@.";
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "Menyalin alamat obrolan Anda dan membuka faucet TN10: tempelkan, lewati pemeriksaan, lalu klaim jumlah maksimum.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "Alamat obrolan TN10 Anda sudah disalin. Tempelkan ke kolom alamat faucet.";
-"Expires in %@" = "Berakhir dalam %@";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
 
@@ -864,21 +527,12 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "Beberapa tautan belum bisa diperiksa dari ponsel ini sekarang. Tautan disimpan sesuai yang dimasukkan, dan aplikasi orang lain akan memuatnya saat bisa.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Goes to a fresh private address they shared" = "Dikirim ke alamat pribadi baru yang mereka bagikan";
-"Goes to their public chatting address" = "Dikirim ke alamat chat publik mereka";
 
 /* Profile bell: .kachat news and public chats */
-"%@ has expired" = "%@ sudah kedaluwarsa";
-"%@ KAS was paid to you." = "%@ KAS dibayarkan kepada Anda.";
-"%@ KAS offered for it." = "%@ KAS ditawarkan untuknya.";
-"The owner declined it. The KAS is back with you." = "Pemilik menolaknya. KAS sudah kembali kepada Anda.";
-"Nobody accepted it in time. The KAS is back with you." = "Tidak ada yang menerima tepat waktu. KAS sudah kembali kepada Anda.";
-"It can no longer be accepted. The KAS is back with you." = "Penawaran tidak bisa diterima lagi. KAS sudah kembali kepada Anda.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
 
 /* .kachat: Reclaim to Own */
-"Waiting for the old %@ to be cleared from the registry." = "Menunggu %@ lama dihapus dari registri.";
 
 /* .kachat: a released or reclaimed name */
 
@@ -889,7 +543,6 @@
 /* Create Account: name step and seed length step */
 "Create a name for your wallet" = "Buat nama untuk dompet Anda";
 "This name is only stored on this device, to tell your wallets apart. No one else will ever see it." = "Nama ini hanya disimpan di perangkat ini, untuk membedakan dompet-dompet Anda. Tidak ada orang lain yang akan melihatnya.";
-"The next screen shows your 12 or 24 words. They are the only way to recover your account: write them down and store them securely, and make sure no one can see your screen." = "Layar berikutnya menampilkan 12 atau 24 kata Anda. Ini satu-satunya cara memulihkan akun: tuliskan, simpan dengan aman, dan pastikan tidak ada yang melihat layar Anda.";
 
 /* Create Account: seed length step title */
 "Choose 12 or 24 words" = "Pilih 12 atau 24 kata";
@@ -904,17 +557,14 @@
 
 /* Onboarding: import length step and the seed phrase explainer */
 "How many words are you importing?" = "Berapa kata yang Anda impor?";
-"What is this?" = "Apa ini?";
 "What are my 12 or 24 words?" = "Apa itu 12 atau 24 kata saya?";
 "Your 12 or 24 words are ordinary words that work as the master key to your account. Your wallet, your chatting address and your messages all come from them." = "12 atau 24 kata Anda adalah kata-kata biasa yang berfungsi sebagai kunci utama akun Anda. Dompet, alamat obrolan, dan pesan Anda semuanya berasal darinya.";
 "Anyone who has these words can take everything in your account. If you lose them and lose this device, nobody can get your account back, not even KaChat." = "Siapa pun yang memiliki kata-kata ini dapat mengambil semua isi akun Anda. Jika Anda kehilangannya dan juga kehilangan perangkat ini, tidak ada yang bisa mengembalikan akun Anda, bahkan KaChat.";
 "Write the words on paper, in order, and keep them somewhere safe and private. Never type them into a website, send them in a chat, or keep them in a screenshot or cloud notes." = "Tulis kata-katanya di kertas secara berurutan dan simpan di tempat yang aman dan pribadi. Jangan pernah mengetiknya di situs web, mengirimnya lewat chat, atau menyimpannya di tangkapan layar atau catatan cloud.";
-"12 words are already very secure. 24 words add even more protection." = "12 kata sudah sangat aman. 24 kata menambah perlindungan lebih lagi.";
 
 /* Onboarding: seed phrase explainer page headings */
 "Anyone with it can take everything" = "Siapa pun yang memilikinya bisa mengambil semuanya";
 "How to keep it safe" = "Cara menyimpannya dengan aman";
-"12 or 24 words?" = "12 atau 24 kata?";
 
 /* Onboarding: seed phrase explainer page, first heading */
 "The short version" = "Singkatnya";
@@ -925,7 +575,6 @@
 "Web Responses" = "Respons web";
 "Temporary Files" = "File sementara";
 "Avatars, banners and bios of your profile and of the people you see. Loaded again when you next see them." = "Avatar, banner, dan bio profil Anda dan orang-orang yang Anda lihat. Dimuat lagi saat Anda melihatnya berikutnya.";
-"Photos copied from your device address book. Re-read from Contacts." = "Foto yang disalin dari buku alamat perangkat Anda. Dibaca ulang dari Kontak.";
 "Link previews and API responses held by the system's network cache." = "Pratinjau tautan dan respons API yang disimpan di cache jaringan sistem.";
 "Scratch files from sending photos and voice notes. Safe to remove at any time." = "File sementara dari pengiriman foto dan pesan suara. Aman dihapus kapan saja.";
 
@@ -936,40 +585,23 @@
 /* .kachat name screen: when an expired name's grace period ends */
 
 /* .kachat: names in grace keep resolving to their owner */
-"No .kachat name by that name." = "Tidak ada nama .kachat dengan nama itu.";
 
 /* Address Book (replaces syncing with the phone's Contacts) */
-"Address Book" = "Buku Alamat";
-"Addresses" = "Alamat";
 "Save a Kaspa address with a name you'll recognize." = "Simpan alamat Kaspa dengan nama yang Anda kenali.";
-"Add to Address Book" = "Tambahkan ke Buku Alamat";
 "Search names and addresses" = "Cari nama dan alamat";
-"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts." = "Simpan alamat Kaspa yang Anda pakai dengan nama yang mudah dikenali. Alamat itu tetap di KaChat, hanya untuk dompet ini, dan tidak pernah masuk ke Kontak ponsel Anda.";
 "Copied" = "Disalin";
 "Share Address" = "Bagikan Alamat";
 "Edit" = "Edit";
-"Delete from Address Book" = "Hapus dari Buku Alamat";
-"Delete %@ from your Address Book?" = "Hapus %@ dari Buku Alamat Anda?";
-"Not in your Address Book" = "Tidak ada di Buku Alamat Anda";
 "Note (optional)" = "Catatan (opsional)";
-"Saved in KaChat for this wallet only. Never added to your phone's Contacts." = "Disimpan di KaChat hanya untuk dompet ini. Tidak pernah ditambahkan ke Kontak ponsel Anda.";
-"Remove from Address Book" = "Hapus dari Buku Alamat";
-"Edit Address" = "Edit Alamat";
 "Open a wallet first." = "Buka dompet terlebih dahulu.";
 "Enter a name." = "Masukkan nama.";
 "Enter a valid Kaspa address." = "Masukkan alamat Kaspa yang valid.";
-"Saved to Address Book." = "Disimpan ke Buku Alamat.";
-"Removed from Address Book." = "Dihapus dari Buku Alamat.";
 
 /* Address Book photos */
 "Change Photo" = "Ganti Foto";
 "Remove Photo" = "Hapus Foto";
 "Couldn't use that photo." = "Foto itu tidak bisa digunakan.";
 "Without a photo of your own, this shows the avatar they set on their profile." = "Tanpa foto pilihan Anda, di sini tampil avatar yang mereka pasang di profilnya.";
-"Address Book Photos" = "Foto Buku Alamat";
-"Remove Address Book Photos" = "Hapus Foto Buku Alamat";
-"Remove Address Book Photos?" = "Hapus foto Buku Alamat?";
-"Photos you assigned to saved addresses, for every wallet on this device. They're kept until you remove them, and they're included in your chat backup." = "Foto yang Anda tetapkan untuk alamat tersimpan, untuk semua dompet di perangkat ini. Foto tetap ada sampai Anda menghapusnya, dan disertakan dalam cadangan obrolan.";
 "Frees %@. Saved addresses keep their names; they show the avatar their owner set instead." = "Membebaskan %@. Alamat tersimpan tetap memakai namanya dan menampilkan avatar yang dipasang pemiliknya.";
 
 /* Chat row: Address Book tile */
@@ -979,31 +611,20 @@
 /* New Chat / New Group: Address Book picker */
 "Add (%lld)" = "Tambah (%lld)";
 "Add Members" = "Tambah Anggota";
-"Pick people from your Address Book, or add anyone by Kaspa address or domain." = "Pilih orang dari Buku Alamat, atau tambahkan siapa saja lewat alamat Kaspa atau domain.";
 "Add people to the group. You control the membership as the group admin." = "Tambahkan orang ke grup. Sebagai admin grup, Anda yang mengatur keanggotaan.";
-"No members added yet. Add people from your Address Book or by address below." = "Belum ada anggota. Tambahkan orang dari Buku Alamat atau lewat alamat di bawah.";
 
 /* Address Book import / export */
-"Import or export" = "Impor atau ekspor";
-"Import or Export" = "Impor atau Ekspor";
 "Import File" = "Impor File";
 "Export File" = "Ekspor File";
-"Add addresses from an Address Book export." = "Tambahkan alamat dari ekspor Buku Alamat.";
-"Save this Address Book, with its photos, to a file." = "Simpan Buku Alamat ini, beserta fotonya, ke file.";
-"Pick an Address Book export from your Nextcloud." = "Pilih ekspor Buku Alamat dari Nextcloud Anda.";
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "Simpan ke folder KaChat di Nextcloud Anda, untuk diimpor di perangkat mana pun.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Hubungkan Nextcloud di Pengaturan > Penyimpanan agar bisa disimpan di sana dan diimpor di perangkat lain.";
 "Couldn't read that file." = "File itu tidak bisa dibaca.";
 "Nothing to export yet. Add a contact first." = "Belum ada yang bisa diekspor. Tambahkan kontak dulu.";
-"Nothing to export yet. Add an address first." = "Belum ada yang bisa diekspor. Tambahkan alamat dulu.";
 "Export failed. Couldn't write the file." = "Ekspor gagal. File tidak bisa ditulis.";
 "Already up to date. Every address in the file is saved." = "Sudah terbaru. Semua alamat di file sudah tersimpan.";
 "Imported: %lld added, %lld updated." = "Diimpor: %lld ditambahkan, %lld diperbarui.";
-"That file isn't a KaChat Address Book export." = "File itu bukan ekspor Buku Alamat KaChat.";
-"That Address Book export has no addresses." = "Ekspor itu tidak berisi alamat.";
 
 /* .kachat: fees, busy network, progress receipt */
-"Balance after: %@" = "Saldo setelahnya: %@";
 "Sent to the network" = "Dikirim ke jaringan";
 "In a block" = "Di dalam blok";
 "Updated in KaChat" = "Diperbarui di KaChat";
@@ -1028,9 +649,7 @@
 "Finds addresses holding a balance or a domain." = "Menemukan alamat yang punya saldo atau domain.";
 "Their profile, .kachat name and address." = "Profil, nama .kachat, dan alamatnya.";
 "KaChat Names Indexer URL" = "URL Pengindeks Nama KaChat";
-"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "Nama dan profil .kachat dibaca dari sini. Arahkan ke pengindeks Anda sendiri jika Anda menjalankannya. Jika tidak bisa menyajikan nama, nama dibaca langsung dari chain. Diselesaikan pertama, di mana pun Anda bisa mengetik alamat.";
 "Other Domains" = "Domain Lain";
-"Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "Dicari setelah .kachat, dan ditampilkan di Domain lain jika nama yang diketik juga ada di sana.";
 "If these words already hold your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "Jika kata-kata ini sudah menyimpan identitas Anda di alamat lain (domain .kachat, .kas, .k, atau .kaspa, atau saldo obrolan), pilih di sini. Hanya alamat dengan saldo atau domain yang ditampilkan.";
 ".kachat Names (%lld)" = "Nama .kachat (%lld)";
 ".kas Names (%lld)" = "Nama .kas (%lld)";
@@ -1038,8 +657,6 @@
 "Search contacts, or an address or domain" = "Cari kontak, alamat, atau domain";
 "You have no contacts yet. Paste an address or a domain above to invite someone." = "Anda belum punya kontak. Tempel alamat atau domain di atas untuk mengundang seseorang.";
 "No contacts match your search. Paste an address or a domain to invite someone new." = "Tidak ada kontak yang cocok. Tempel alamat atau domain untuk mengundang orang baru.";
-"No domain found by that name." = "Tidak ada domain dengan nama itu.";
-"%lld of your .kachat domains expired" = "%lld domain .kachat Anda kedaluwarsa";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "Nama .kachat belum aktif di jaringan ini";
@@ -1053,18 +670,12 @@
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = "Registri .kachat sedang ditingkatkan. Nama akan terbuka lagi di sini setelah registri baru aktif.";
 "No wallet is open." = "Tidak ada dompet yang terbuka.";
-"Live on Mainnet" = "Aktif di Mainnet";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
 
 /* .kachat: combining many small coins before a name transaction */
-"Not enough KAS on your chatting address for this." = "KAS di alamat chat Anda tidak cukup untuk ini.";
 
 /* .kachat mainnet launch countdown */
-"Days" = "Hari";
-"Hours" = "Jam";
-"Minutes" = "Menit";
-"Seconds" = "Detik";
 
 /* Kaspa Hub > KaChat Bots */
 "Block Reward Tracker" = "Pelacak Hadiah Blok";
@@ -1089,23 +700,18 @@
 
 /* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
 "Request Payment" = "Minta Pembayaran";
-"A link asking for an exact amount, with what it's for." = "Tautan yang meminta jumlah pasti, beserta keperluannya.";
 "Paid to" = "Dibayar ke";
 "The payment lands in your chat with whoever pays, with the memo." = "Pembayaran masuk ke obrolan Anda dengan pembayar, beserta catatannya.";
-"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "Dibayar ke alamat baru milik Anda. Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
 "What it's for (optional)" = "Untuk apa (opsional)";
 "Copy Payment Request" = "Salin Permintaan Pembayaran";
-"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "Siapa pun yang membuka atau menempelkannya di KaChat mendapat layar Kirim Kaspa yang sudah terisi.";
 "Requested" = "Diminta";
 "Paid as a chat payment: it shows in your chat with them." = "Dibayar sebagai pembayaran obrolan: muncul di obrolan Anda dengan mereka.";
 "Paid to their spending address." = "Dibayar ke alamat belanja mereka.";
 "Payment Request" = "Permintaan Pembayaran";
 "Payment request: %@ KAS" = "Permintaan pembayaran: %@ KAS";
-"Your payment request." = "Permintaan pembayaran Anda.";
 "Tap to pay." = "Ketuk untuk membayar.";
 
 /* Payment requests: who made it (signed by their chatting address) */
-"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "Siapa pun yang membuka atau menempelkannya di KaChat mendapat Kirim Kaspa yang sudah terisi, dan melihat bahwa itu dibuat dari alamat obrolan Anda (ditandatangani dengan kuncinya).";
 "Requested by" = "Diminta oleh";
 "Signed by their chatting address. The payment goes to the address above." = "Ditandatangani oleh alamat obrolan mereka. Pembayaran masuk ke alamat di atas.";
 "Not signed: who made this request can't be confirmed." = "Tidak ditandatangani: pembuat permintaan ini tidak bisa dipastikan.";
@@ -1131,7 +737,6 @@
 /* Request Payment: Fresh Address / Choose an Address */
 "Fresh Address" = "Alamat Baru";
 "Choose an Address" = "Pilih Alamat";
-"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "Dibayar ke alamat Anda yang benar-benar baru, belum pernah dipakai dan hanya untuk permintaan ini. Dibuat saat Anda menyalin, membagikan, atau mengirim permintaan. Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
 "The memo shows to whoever pays, but doesn't travel with the payment." = "Catatan terlihat oleh pembayar, tetapi tidak ikut terkirim bersama pembayaran.";
 "Pick which of your addresses gets paid." = "Pilih alamat Anda mana yang dibayar.";
 "Couldn't make a new address. Please try again." = "Tidak bisa membuat alamat baru. Coba lagi.";
@@ -1145,21 +750,14 @@
 "Checking" = "Memeriksa";
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
-"Send Kaspa from any of your addresses." = "Kirim Kaspa dari alamat Anda yang mana pun.";
 
 /* Address Visibility: Hide All; setup guide: Your Addresses */
-"Your Addresses" = "Alamat Anda";
-"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "Identitas pesan Anda. Pesan dan nama .kachat Anda dibayar dari sini, dan setiap pengiriman dimulai dari sini kecuali Anda memilih alamat lain.";
-"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "Alamat lain milik Anda untuk mengirim dan menerima Kaspa. Pilih salah satu di «Dari» pada pengiriman apa pun, atau buat yang baru di Kelola Alamat.";
 "Hide All" = "Sembunyikan Semua";
 "Hide All Addresses?" = "Sembunyikan semua alamat?";
 "Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "Kelola Alamat dimulai ulang hanya dengan alamat obrolan Anda. Tidak ada yang hilang: tampilkan lagi alamat mana pun di sini, dan Kaspa-nya tetap dihitung dalam total Anda.";
 
 /* Setup guide: Your Chatting Address step */
 "Your Chatting Address" = "Alamat Obrolan Anda";
-"Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "Identitas Anda di KaChat, hanya milik Anda. Orang mengirim pesan ke sini, nama .kachat dan profil Anda ada di sini, dan setiap pesan Anda dibayar dari sini. Semua aktivitasnya publik di jaringan Kaspa dan terkait dengan Anda.";
-"Everything Else" = "Selain Itu";
-"To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "Untuk menjaga privasi, gunakan alamat Anda yang lain untuk semua aktivitas lain di jaringan Kaspa. Terima Kaspa memberi Anda alamat baru, dan Kelola Alamat menampilkan semuanya.";
 
 /* .kachat Names guide (claim, how it works, make it yours, keep it) */
 "You're all set" = "Semua siap";
@@ -1171,14 +769,11 @@
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
 "Fund" = "Danai";
-"Copy address" = "Salin alamat";
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "Alamat Anda sendiri: %@";
 
 /* User Info: look the person's avatar, banner and bio up again now */
-"Rescan Profile" = "Pindai Ulang Profil";
-"Profile rescanned." = "Profil sudah dipindai ulang.";
 
 /* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "Alamat chat Anda tidak punya KAS untuk memberi tahu %@ tentang pembayaran ini, jadi mereka melihatnya sebagai pembayaran dari alamat tak dikenal, tanpa catatan. KaChat akan memberi tahu mereka setelah alamat chat Anda punya KAS.";
@@ -1186,8 +781,6 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 
 /* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
-"In the order %@ shows them." = "Sesuai urutan yang ditampilkan %@.";
-"Move %@ to %@" = "Pindahkan %@ ke %@";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
 
@@ -1208,7 +801,6 @@
 /* Edit KaChat Profile: Clear Profile */
 "Clear Profile" = "Hapus Profil";
 "Profile cleared" = "Profil dihapus";
-"Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "Menghapus menulis profil kosong ke chain dari alamat Anda ke dirinya sendiri, dengan biaya jaringan, sehingga KaChat tidak menampilkan apa pun lagi untuk alamat Anda.";
 
 /* KNS domain transfers and quantum-safe (script) addresses */
 "KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS tidak dapat memindahkan domain keluar dari alamat aman-kuantum: KNS mengenali pemilik domain dari kunci publik, dan alamat aman-kuantum menyembunyikan kuncinya.";
@@ -1227,20 +819,10 @@
 "Up to 25 seconds, sent on chain." = "Hingga 25 detik, dikirim di chain.";
 
 /* Chess leaderboard: this month / all time */
-"This month" = "Bulan ini";
-"All time" = "Sepanjang waktu";
-"Counted from %@." = "Dihitung sejak %@.";
 
 /* KaPosts: post activity cards */
 
 /* Group Chats tab */
-"Groups" = "Grup";
-"Group Chats" = "Obrolan Grup";
-"Search group chats" = "Cari obrolan grup";
-"Select a group chat" = "Pilih obrolan grup";
-"Choose a group on the left" = "Pilih grup di sebelah kiri";
-"Keeps it first in your group chats." = "Tetap pertama di obrolan grup Anda.";
-"Pinned" = "Disematkan";
 
 /* Nextcloud media waits in the composer while it uploads */
 "Uploading to Nextcloud…" = "Mengunggah ke Nextcloud…";
@@ -1267,10 +849,7 @@
 "Pin to Top Row" = "Sematkan di Baris Atas";
 "Moves it into the row above your chats." = "Memindahkannya ke baris di atas obrolan Anda.";
 "Moves it back into your chats list." = "Mengembalikannya ke daftar obrolan Anda.";
-"Moves it into the row above your group chats." = "Memindahkannya ke baris di atas obrolan grup Anda.";
-"Moves it back into your group chats list." = "Mengembalikannya ke daftar obrolan grup Anda.";
 "Pinned to the top row" = "Disematkan di baris atas";
-"Send and Receive" = "Kirim dan Terima";
 
 /* Send steps */
 "Who are you sending to?" = "Kamu mengirim ke siapa?";
@@ -1301,7 +880,6 @@
 "Removed from Contacts." = "Dihapus dari Kontak.";
 "Remove Contact Photos" = "Hapus Foto Kontak";
 "Remove Contact Photos?" = "Hapus foto kontak?";
-"Your contacts are in the same backup and sync between your devices the same way." = "Kontakmu ada di cadangan yang sama dan disinkronkan antarperangkat dengan cara yang sama.";
 "Pick people from your contacts, or add anyone by Kaspa address or domain." = "Pilih orang dari kontakmu, atau tambahkan siapa saja lewat alamat Kaspa atau domain.";
 "No members added yet. Add people from your contacts or by address below." = "Belum ada anggota. Tambahkan orang dari kontakmu atau lewat alamat di bawah.";
 "Add contacts from a contacts export." = "Tambahkan kontak dari ekspor kontak.";
@@ -1309,7 +887,6 @@
 "Pick a contacts export from your Nextcloud." = "Pilih ekspor kontak dari Nextcloud-mu.";
 "Delete Contact" = "Hapus Kontak";
 "Not in your contacts" = "Tidak ada di kontakmu";
-"Remove from Contacts" = "Hapus dari Kontak";
 "Add them in Contacts." = "Tambahkan di Kontak.";
 "That file isn't a KaChat contacts export." = "File itu bukan ekspor kontak KaChat.";
 "That contacts export has no contacts." = "Ekspor kontak itu tidak berisi kontak.";
@@ -1342,19 +919,7 @@
 "%@ reacted to your message" = "%@ bereaksi pada pesan Anda";
 "%1$@ reacted %2$@ to a message" = "%1$@ memberi reaksi %2$@ pada sebuah pesan";
 "%@ reacted to a message" = "%@ bereaksi pada sebuah pesan";
-"Do you already have a domain?" = "Apakah Anda sudah punya domain?";
-"A KNS domain is your name on Kaspa. If you own one already, you can bring it here instead of buying another." = "Domain KNS adalah nama Anda di Kaspa. Jika Anda sudah punya, Anda bisa membawanya ke sini tanpa perlu membeli lagi.";
-"Yes, I have one" = "Ya, saya punya";
-"No, I need one" = "Tidak, saya butuh";
-"Which domain should this profile use?" = "Domain mana yang harus dipakai profil ini?";
-"No domains on this address yet" = "Belum ada domain di alamat ini";
-"Go back and use Refresh once the transfer lands." = "Kembali dan gunakan Segarkan setelah transfer masuk.";
-"Send your domain here" = "Kirim domain Anda ke sini";
-"Transfer your domain to this address so your identity is connected to KaChat." = "Transfer domain Anda ke alamat ini agar identitas Anda terhubung ke KaChat.";
-"No domains on this address yet." = "Belum ada domain di alamat ini.";
-"%lld domain%@ found on this address." = "%lld domain%@ ditemukan di alamat ini.";
 "Checking..." = "Memeriksa...";
-"Refresh" = "Segarkan";
 "Couldn't Create Account" = "Tidak Dapat Membuat Akun";
 "App Settings" = "Pengaturan Aplikasi";
 "Account name" = "Nama akun";
@@ -1410,7 +975,6 @@
 "App password" = "Kata sandi aplikasi";
 "Connect" = "Hubungkan";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "Kata sandi aplikasi dihapus dari Keychain perangkat ini. Anda dapat menghubungkan kembali kapan saja.";
-"Restore" = "Pulihkan";
 "Restore Complete" = "Pemulihan Selesai";
 "Restore Failed" = "Pemulihan Gagal";
 "Restoring Backup" = "Memulihkan Cadangan";
@@ -1521,7 +1085,6 @@
 "%lld found so far" = "%lld ditemukan sejauh ini";
 "Close and Keep Scanning" = "Tutup dan Lanjutkan Memindai";
 "Contains domain" = "Mengandung domain";
-"%lld separate transactions will be sent, one per address. Fast or Priority pays a higher fee to help them confirm sooner. Tap the fee amount to set a custom fee, applied to each." = "%lld transaksi terpisah akan dikirim, satu per alamat. Cepat atau Prioritas membayar biaya lebih tinggi agar terkonfirmasi lebih cepat. Ketuk jumlah biaya untuk mengatur biaya kustom, yang berlaku untuk setiap transaksi.";
 "Tap anywhere to copy" = "Ketuk di mana saja untuk menyalin";
 "Anyone with this address's private key can spend its funds. Never share it with anyone." = "Siapa pun yang memiliki kunci privat alamat ini dapat membelanjakan dananya. Jangan pernah membagikannya kepada siapa pun.";
 "Tap to reveal private key" = "Ketuk untuk menampilkan kunci privat";
@@ -1760,7 +1323,6 @@
 "fee: %@ KAS" = "biaya: %@ KAS";
 "This permanently deletes every message in each selected chat from this device. This cannot be undone." = "Ini menghapus permanen semua pesan di setiap obrolan yang dipilih dari perangkat ini. Ini tidak dapat dibatalkan.";
 "Confirm sending Kaspa" = "Konfirmasi pengiriman Kaspa";
-"From:" = "Dari:";
 "Accepted your request to communicate" = "Menerima permintaan Anda untuk berkomunikasi";
 "Sent you a message" = "Mengirimi Anda pesan";
 "[Payment]" = "[Pembayaran]";
@@ -1771,7 +1333,6 @@
 "Group Invite" = "Undangan Grup";
 "Invited by %@" = "Diundang oleh %@";
 "People and groups waiting for you" = "Orang dan grup menunggu Anda";
-"You're not in this group unless you accept. Rejecting removes the invite." = "Anda tidak masuk grup ini kecuali menerima. Menolak akan menghapus undangan.";
 "Invited" = "Diundang";
 "Declined" = "Ditolak";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "Anda tidak masuk grup ini kecuali menerima. Jawaban Anda dikirim sebagai transaksi kecil terenkripsi, agar grup dan perangkat Anda yang lain mengetahuinya.";
@@ -1806,3 +1367,146 @@
 "A post on KaPost" = "Sebuah postingan di KaPost";
 "Tap to open it in KaPost." = "Ketuk untuk membukanya di KaPost.";
 "Shared a KaPost" = "Membagikan postingan KaPost";
+"Couldn't look up %@ right now. Try again in a moment." = "Tidak dapat mencari %@ saat ini. Coba lagi sebentar lagi.";
+
+/* Action sheets, toasts and progress text */
+"%@ freed. %@" = "%@ dikosongkan. %@";
+"1 | 1 Bullet" = "1 | 1 Bullet";
+"2 | 1 Bullet" = "2 | 1 Bullet";
+"3 | 2 Blitz" = "3 | 2 Blitz";
+"Address %@ copied" = "Alamat %@ disalin";
+"Address hidden. Re-enable it in Address Visibility." = "Alamat disembunyikan. Aktifkan lagi di Visibilitas Alamat.";
+"Address removed." = "Alamat dihapus.";
+"Asks to open an encrypted conversation." = "Meminta untuk membuka percakapan terenkripsi.";
+"Calls stay off for this contact." = "Panggilan tetap nonaktif untuk kontak ini.";
+"Casual" = "Santai";
+"Changes the text. Everyone sees the new version." = "Mengubah teks. Semua orang melihat versi barunya.";
+"Check off every address you want on the list, in one sitting." = "Centang sekaligus setiap alamat yang Anda inginkan di daftar.";
+"Clear %@?" = "Bersihkan %@?";
+"Clear All Cache?" = "Bersihkan Semua Cache?";
+"Clears the unread badge on this group." = "Menghapus lencana belum dibaca pada grup ini.";
+"Close this and stay in the chat." = "Tutup ini dan tetap di obrolan.";
+"Connecting for live updates" = "Menghubungkan untuk pembaruan langsung";
+"Copies the address to your clipboard." = "Menyalin alamat ke papan klip.";
+"Copies the name to your clipboard." = "Menyalin nama ke papan klip.";
+"Copies the text to your clipboard." = "Menyalin teks ke papan klip.";
+"Copy their Kaspa address." = "Salin alamat Kaspa mereka.";
+"Deletes this chat's messages from this device. The bot stays in the row." = "Menghapus pesan obrolan ini dari perangkat ini. Bot tetap di barisan.";
+"Downloading message history" = "Mengunduh riwayat pesan";
+"Enable calls" = "Aktifkan panggilan";
+"Failed to open archive: %@" = "Gagal membuka arsip: %@";
+"Finding your conversations" = "Mencari percakapan Anda";
+"Finished" = "Selesai";
+"Finishing up..." = "Menyelesaikan...";
+"Frees %@. Your messages, contacts and keys are not touched." = "Mengosongkan %@. Pesan, kontak, dan kunci Anda tidak tersentuh.";
+"Full screen, for scanning with another device." = "Layar penuh, untuk dipindai dengan perangkat lain.";
+"Get notified for their messages again." = "Dapatkan notifikasi lagi untuk pesan mereka.";
+"Gives this account a name of your own." = "Memberi akun ini nama pilihan Anda.";
+"Gives this address a label of your own." = "Memberi alamat ini label pilihan Anda.";
+"Go on to calling this person." = "Lanjutkan menelepon orang ini.";
+"Hide Address" = "Sembunyikan Alamat";
+"Invite this contact to a game on chain." = "Undang kontak ini bermain di on-chain.";
+"KaChat Link" = "Tautan KaChat";
+"Leave everything as it is." = "Biarkan semuanya seperti semula.";
+"Leave your messages as they are." = "Biarkan pesan Anda seperti semula.";
+"Link" = "Tautan";
+"Loading saved messages" = "Memuat pesan tersimpan";
+"Message them directly, one to one." = "Kirim pesan langsung kepada mereka, empat mata.";
+"Moves it back into your chats." = "Memindahkannya kembali ke obrolan Anda.";
+"Mute User" = "Bisukan Pengguna";
+"Nextcloud upload failed — sending on-chain instead" = "Unggahan Nextcloud gagal, mengirim on-chain sebagai gantinya";
+"No notification from this chat, whatever your app-wide setting says." = "Tidak ada notifikasi dari obrolan ini, apa pun pengaturan aplikasi Anda.";
+"No notification from this group, mentions included." = "Tidak ada notifikasi dari grup ini, termasuk sebutan.";
+"No timer." = "Tanpa pengatur waktu.";
+"Node address copied." = "Alamat node disalin.";
+"Not now" = "Jangan sekarang";
+"Notifications from this chat resume." = "Notifikasi dari obrolan ini berlanjut.";
+"Notifications from this group resume, including mentions." = "Notifikasi dari grup ini berlanjut, termasuk sebutan.";
+"One minute each, plus one second a move." = "Masing-masing satu menit, ditambah satu detik per langkah.";
+"Open in Explorer" = "Buka di Penjelajah";
+"Open in KaChat" = "Buka di KaChat";
+"Open in KaPost" = "Buka di KaPost";
+"Open your chat with them in payment mode." = "Buka obrolan Anda dengan mereka dalam mode pembayaran.";
+"Opens in your browser." = "Terbuka di peramban Anda.";
+"Opens it right here in the app." = "Membukanya di sini, dalam aplikasi.";
+"Opens the post in the KaPost app." = "Membuka postingan di aplikasi KaPost.";
+"Opens this address on your chosen block explorer." = "Membuka alamat ini di penjelajah blok pilihan Anda.";
+"Opens this transaction on the block explorer." = "Membuka transaksi ini di penjelajah blok.";
+"Original message isn't on this device yet - fetching it." = "Pesan asli belum ada di perangkat ini, sedang diambil.";
+"Original message not available." = "Pesan asli tidak tersedia.";
+"Pick several messages at once." = "Pilih beberapa pesan sekaligus.";
+"Pick which chats to wipe and re-sync. Everything else is left alone." = "Pilih obrolan yang akan dihapus dan disinkronkan ulang. Yang lain tidak tersentuh.";
+"Preparing messages..." = "Menyiapkan pesan...";
+"Preparing..." = "Menyiapkan...";
+"Private key copied. Clipboard will clear in 30s." = "Kunci pribadi disalin. Papan klip akan dibersihkan dalam 30 detik.";
+"Public key copied" = "Kunci publik disalin";
+"Puts the full address on the clipboard." = "Menaruh alamat lengkap di papan klip.";
+"Puts the unread badge back so you come across it again." = "Mengembalikan lencana belum dibaca agar Anda menemukannya lagi.";
+"Quotes this message above your reply." = "Mengutip pesan ini di atas balasan Anda.";
+"Re-fetching handshakes..." = "Mengambil ulang handshake...";
+"Re-fetching payments..." = "Mengambil ulang pembayaran...";
+"Re-syncing... %lld of %lld chats" = "Menyinkronkan ulang... %lld dari %lld obrolan";
+"Reactions (%lld)" = "Reaksi (%lld)";
+"Removed from address book. Still connected to this node." = "Dihapus dari buku alamat. Masih terhubung ke node ini.";
+"Removes every incoming message locally, then re-syncs them from the blockchain. Sent messages and account info are kept." = "Menghapus setiap pesan masuk secara lokal, lalu menyinkronkannya ulang dari blockchain. Pesan terkirim dan info akun tetap disimpan.";
+"Removes it from this list. Re-enable it in Address Visibility." = "Menghapusnya dari daftar ini. Aktifkan lagi di Visibilitas Alamat.";
+"Removes this account and its data from this device." = "Menghapus akun ini dan datanya dari perangkat ini.";
+"Removes this account and its local data from this device." = "Menghapus akun ini dan data lokalnya dari perangkat ini.";
+"Removes this chat and its messages from this device." = "Menghapus obrolan ini dan pesannya dari perangkat ini.";
+"Removes this group and its messages from this device." = "Menghapus grup ini dan pesannya dari perangkat ini.";
+"Reply to this message instead." = "Balas pesan ini saja.";
+"Reveals the next unused address in this wallet." = "Menampilkan alamat berikutnya yang belum digunakan di dompet ini.";
+"Rings them in KaChat; your Nextcloud carries the call." = "Menghubungi mereka di KaChat; Nextcloud Anda membawa panggilannya.";
+"Same, with your camera on from the start." = "Sama, dengan kamera menyala sejak awal.";
+"Saves or shares the recording as a file." = "Menyimpan atau membagikan rekaman sebagai file.";
+"Select Chats..." = "Pilih Obrolan...";
+"Sends this message again." = "Mengirim pesan ini lagi.";
+"Shared File" = "File Dibagikan";
+"Signs out of this account. Wallet and message data stay on this device." = "Keluar dari akun ini. Data dompet dan pesan tetap ada di perangkat ini.";
+"Silence" = "Bisukan";
+"Start a group with the people you choose." = "Mulai grup dengan orang yang Anda pilih.";
+"Starting" = "Memulai";
+"Stay on voice" = "Tetap suara";
+"Stop seeing their messages in this group. Undo it in Group Info." = "Berhenti melihat pesan mereka di grup ini. Urungkan di Info Grup.";
+"Switch to video" = "Beralih ke video";
+"The call carries on as it is, and they are told." = "Panggilan berlanjut seperti apa adanya, dan mereka diberi tahu.";
+"The key that spends this address. Never share it." = "Kunci yang membelanjakan dari alamat ini. Jangan pernah membagikannya.";
+"The passphrase shows too, if this account has one." = "Frasa sandi juga ditampilkan, jika akun ini memilikinya.";
+"The public half of this address, for anyone who asks for it." = "Bagian publik dari alamat ini, untuk siapa pun yang memintanya.";
+"Their messages still show, but never notify you." = "Pesan mereka tetap terlihat, tetapi tidak pernah memberi notifikasi.";
+"This address can't be hidden." = "Alamat ini tidak dapat disembunyikan.";
+"Three minutes each, plus two seconds a move." = "Masing-masing tiga menit, ditambah dua detik per langkah.";
+"Two minutes each, plus one second a move." = "Masing-masing dua menit, ditambah satu detik per langkah.";
+"Unmute User" = "Bunyikan Pengguna";
+"Unsilence" = "Bunyikan";
+"User hidden." = "Pengguna disembunyikan.";
+"User muted." = "Pengguna dibisukan.";
+"User unmuted." = "Pengguna dibunyikan kembali.";
+"Validating backup..." = "Memvalidasi cadangan...";
+"Video call" = "Panggilan video";
+"View 12 or 24 Words and Passphrase" = "Lihat 12 atau 24 Kata dan Frasa Sandi";
+"View Private Key" = "Lihat Kunci Pribadi";
+"View Public Key" = "Lihat Kunci Publik";
+"Voice call" = "Panggilan suara";
+"Who reacted, and with what." = "Siapa yang bereaksi, dan dengan apa.";
+"Wiping incoming messages..." = "Menghapus pesan masuk...";
+"Write down your 12 or 24 words before you delete." = "Tulis 12 atau 24 kata Anda sebelum menghapus.";
+"Yes, All Chats" = "Ya, Semua Obrolan";
+"Your camera turns on and the call moves to the speaker." = "Kamera Anda menyala dan panggilan beralih ke pengeras suara.";
+"Saves this for %@ and lets you call now." = "Menyimpan ini untuk %@ dan memungkinkan Anda menelepon sekarang.";
+"Camera off" = "Kamera mati";
+"Address #%d is ready." = "Alamat #%d sudah siap.";
+"Conversation declined" = "Percakapan ditolak";
+"Recents" = "Terbaru";
+"Restoring messages... %d of %d conversations" = "Memulihkan pesan... %d dari %d percakapan";
+"Deletes %@ (%@) and its local data from this device." = "Menghapus %@ (%@) dan data lokalnya dari perangkat ini.";
+"Passcode Required" = "Kode Sandi Diperlukan";
+"Set a passcode on this iPhone (Settings > Face ID & Passcode) to send Kaspa, delete an account, or view secret keys in KaChat." = "Atur kode sandi di iPhone ini (Pengaturan > Face ID & Kode Sandi) untuk mengirim Kaspa, menghapus akun, atau melihat kunci rahasia di KaChat.";
+"Waiting on opponent" = "Menunggu lawan";
+"Not sent: you switched accounts before this went out." = "Tidak terkirim: Anda berganti akun sebelum ini terkirim.";
+"The first of two transactions went through, but the second didn't. KaChat will finish it the next time it opens." = "Yang pertama dari dua transaksi berhasil, tetapi yang kedua tidak. KaChat akan menyelesaikannya saat dibuka berikutnya.";
+"A domain transfer's fee can be at most 1 KAS." = "Biaya transfer domain paling banyak 1 KAS.";
+"Confirm setting this primary name" = "Konfirmasi pengaturan nama utama ini";
+"This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "Kunci akun ini mungkin masih ada di ponsel ini, tetapi saat ini tidak dapat dibaca, jadi tidak ada yang diubah. Coba lagi sebentar lagi.";
+"Play It Again" = "Mainkan Lagi";
+"This is the public half of this address. It cannot spend anything." = "Ini adalah bagian publik dari alamat ini. Tidak dapat membelanjakan apa pun.";

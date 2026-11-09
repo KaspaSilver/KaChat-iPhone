@@ -318,3 +318,8 @@
 "Sent you a payment" = "Sent you a payment";
 "Requested for payment" = "Requested for payment";
 "You were invited to \"%@\"" = "You were invited to \"%@\"";
+
+/* Undecryptable group push */
+"Group chat" = "Group chat";
+"Group update" = "Group update";
+"New group message" = "New group message";

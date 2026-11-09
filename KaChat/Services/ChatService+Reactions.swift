@@ -47,10 +47,23 @@ extension ChatService {
     /// messages, this wallet its own - never the other way round, and never someone else's. A
     /// transaction id is public, so naming a message proves nothing about who sent it.
     func applyIncomingEdit(_ edit: MessageEditContent, editorAddress: String, contactAddress: String, editTxId: String, blockTime: Int64) {
-        guard let key = messageEncryptionKey() else { return }
-        let editorIsMe = editorAddress == WalletManager.shared.currentWallet?.publicAddress
+        guard let key = messageEncryptionKey(),
+              let owner = WalletManager.shared.currentWallet?.publicAddress else { return }
+        let editorIsMe = editorAddress == owner
         Task { @MainActor in
-            guard let target = await messageStore.fetchMessage(txId: edit.targetTxId, decryptionKey: key),
+            // A target from this same batch is only in memory until the batch has saved, which
+            // `findLocalMessage` covers; one later in the batch hasn't been read yet at all.
+            var found = await findLocalMessage(txId: edit.targetTxId)
+            if found == nil {
+                var waited = 0
+                while isSyncInProgress, waited < 60 {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    waited += 1
+                }
+                found = await findLocalMessage(txId: edit.targetTxId)
+            }
+            guard isActiveWallet(owner),
+                  let target = found,
                   target.isOutgoing == editorIsMe,
                   editorIsMe || target.senderAddress.lowercased() == editorAddress.lowercased(),
                   MessageEditCodec.isEditable(target.content) else { return }
@@ -64,7 +77,8 @@ extension ChatService {
     /// sent as an edit envelope through the same contextual-message pipeline as a reaction -
     /// never a visible bubble of its own. Sent (green check) or failed (red) follow.
     func sendEdit(to contact: Contact, target: ChatMessage, text: String) async throws {
-        guard let key = messageEncryptionKey() else { return }
+        guard let key = messageEncryptionKey(),
+              let owner = WalletManager.shared.currentWallet?.publicAddress else { return }
         let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.isEmpty, target.isOutgoing, MessageEditCodec.isEditable(target.content) else { return }
         editingMessage = nil
@@ -77,13 +91,16 @@ extension ChatService {
         guard !payload.isEmpty else { return }
         do {
             let txId = try await enqueueOutgoingTxOperation {
-                try await self.sendEnvelopeInternal(to: contact, payload: payload)
+                try await self.sendEnvelopeInternal(to: contact, payload: payload, owner: owner)
             }
+            // The queue and the send can outlast the account; its results don't go in the next one.
+            guard isActiveWallet(owner) else { return }
             applyLocalEdit(MessageEditSnapshot(targetTxId: target.txId, text: clean, editTxId: txId, blockTime: now, deliveryStatus: .sent))
             messageStore.upsertEdit(targetTxId: target.txId, contactAddress: contact.address, text: clean, editTxId: txId, blockTime: now, encryptionKey: key, deliveryStatus: nil)
             recordLocalSave()
         } catch {
             AppLog.log("[ChatService] Edit of %@ failed: %@", String(target.txId.prefix(12)), error.localizedDescription)
+            guard isActiveWallet(owner) else { throw error }
             applyLocalEdit(MessageEditSnapshot(targetTxId: target.txId, text: clean, editTxId: nil, blockTime: now, deliveryStatus: .failed))
             messageStore.upsertEdit(targetTxId: target.txId, contactAddress: contact.address, text: clean, editTxId: nil, blockTime: now, encryptionKey: key, deliveryStatus: "failed")
             recordLocalSave()
@@ -93,8 +110,11 @@ extension ChatService {
 
     /// One encrypted contextual message carrying an envelope (an edit, a payment notice), with no message
     /// row of its own - the same build/submit sequence as `sendReactionInternal`. Returns the txId.
-    func sendEnvelopeInternal(to contact: Contact, payload: String) async throws -> String {
+    /// `owner`: the account that asked. This runs from the send queue, possibly after a switch,
+    /// and must then be refused rather than signed by whichever account is active by now.
+    func sendEnvelopeInternal(to contact: Contact, payload: String, owner: String? = nil) async throws -> String {
         guard let wallet = WalletManager.shared.currentWallet else { throw KasiaError.walletNotFound }
+        if let owner, wallet.publicAddress != owner { throw KasiaError.walletNotFound }
         guard let privateKey = WalletManager.shared.getPrivateKey() else { throw KasiaError.keychainError("Could not get private key") }
         guard let recipientPublicKey = KaspaAddress.publicKey(from: contact.address) else { throw KasiaError.invalidAddress }
         guard let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: wallet.publicAddress) else { throw KasiaError.invalidAddress }
@@ -115,7 +135,7 @@ extension ChatService {
         )
         let spentUtxos = spentMessageUtxos(from: transaction, candidates: candidateUtxos)
         let usesUnconfirmedInputs = spentUtxos.contains { $0.blockDaaScore == 0 }
-        let submitted = try await submitSpendingMessageCoins(transaction, spent: spentUtxos, allowOrphan: usesUnconfirmedInputs, rpcManager: rpcManager)
+        let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: usesUnconfirmedInputs)
         reserveMessageOutpoints(spentUtxos)
         consumePendingUtxos(spentUtxos)
         addPendingOutputs(from: transaction, txId: submitted.txId, senderScriptPubKey: senderScriptPubKey)
@@ -161,8 +181,8 @@ extension ChatService {
     /// actual send happens in the background via the same contextual-message pipeline any other
     /// message uses.
     func sendReaction(to contact: Contact, targetTxId: String, emoji: String, action: String) async throws {
-        guard let key = messageEncryptionKey() else { return }
-        let myAddress = WalletManager.shared.currentWallet?.publicAddress ?? ""
+        guard let key = messageEncryptionKey(),
+              let myAddress = WalletManager.shared.currentWallet?.publicAddress else { return }
         let blockTime = Int64(Date().timeIntervalSince1970 * 1000)
 
         if action == "add" {
@@ -197,6 +217,7 @@ extension ChatService {
             // re-attempts the removal; for a failed "add" the optimistic reaction is kept, flagged.
             AppLog.log("[ChatService] Reaction %@ %@ on %@ failed: %@",
                        action, emoji, String(targetTxId.prefix(12)), error.localizedDescription)
+            guard isActiveWallet(myAddress) else { throw error }
             applyLocalReaction(targetTxId: targetTxId, reactorAddress: myAddress, emoji: emoji, deliveryStatus: .failed, failedAction: action)
             messageStore.upsertReaction(
                 targetTxId: targetTxId, reactorAddress: myAddress, contactAddress: contact.address,
@@ -226,6 +247,10 @@ extension ChatService {
         encryptionKey: SymmetricKey
     ) async throws {
         guard let wallet = WalletManager.shared.currentWallet else {
+            throw KasiaError.walletNotFound
+        }
+        // `reactorAddress` is the account that asked; the queue may run this after a switch.
+        guard wallet.publicAddress == reactorAddress else {
             throw KasiaError.walletNotFound
         }
         guard let privateKey = WalletManager.shared.getPrivateKey() else {
@@ -264,12 +289,13 @@ extension ChatService {
         )
         let spentUtxos = spentMessageUtxos(from: transaction, candidates: candidateUtxos)
         let usesUnconfirmedInputs = spentUtxos.contains { $0.blockDaaScore == 0 }
-        let submitted = try await submitSpendingMessageCoins(transaction, spent: spentUtxos, allowOrphan: usesUnconfirmedInputs, rpcManager: rpcManager)
+        let submitted = try await rpcManager.submitTransaction(transaction, allowOrphan: usesUnconfirmedInputs)
 
         reserveMessageOutpoints(spentUtxos)
         consumePendingUtxos(spentUtxos)
         addPendingOutputs(from: transaction, txId: submitted.txId, senderScriptPubKey: senderScriptPubKey)
 
+        guard isActiveWallet(reactorAddress) else { return }
         if action == "add" {
             // Success clears any prior failed flag (e.g. this was a Retry) both in memory and on disk.
             applyLocalReaction(targetTxId: targetTxId, reactorAddress: reactorAddress, emoji: emoji, deliveryStatus: .sent, failedAction: nil)

@@ -44,8 +44,8 @@ open KaChat.xcodeproj
 # Build from command line
 xcodebuild -project KaChat.xcodeproj -scheme KaChat -destination 'platform=iOS Simulator,name=iPhone 17' build
 
-# Run tests
-xcodebuild -project KaChat.xcodeproj -scheme KaChat -destination 'platform=iOS Simulator,name=iPhone 17' test
+# Tests: no command runs them. KaChatTests/ isn't in any target and the scheme's TestAction is
+# empty, so `xcodebuild ... test` has nothing to run.
 
 # Clean build
 xcodebuild -project KaChat.xcodeproj -scheme KaChat clean
@@ -97,16 +97,16 @@ The app uses MVVM architecture with global singleton services injected via Swift
 
 - **Kaspa Node (gRPC)**: Managed by `NodePoolService` (`NodePool/*`) for UTXO subscriptions, transaction submission, and peer discovery
 - **Kaspa REST API**: Configurable via Settings (default: `api.kaspa.org` mainnet / `api-tn10.kaspa.org` testnet - testnet means testnet-10, where the covenants and the node pool's testnet seeds are; the retired TN11 default migrates forward) for fetching transaction history, payments, and UTXO fallback
-- **Kasia Indexer (REST)**: Configurable via Settings (default: `indexer.kasia.fyi`) for message indexing and retrieval
-- **KNS API**: Configurable via Settings (default: `api.knsdomains.org`) for Kaspa Name Service domain resolution
+- **Kasia Indexer (REST)**: Configurable via Settings (default: `indexer.kachat.app`; testnet has no default) for message indexing and retrieval
+- **KNS API**: Fixed per network and read-only (`AppSettings.defaultKNSURL(for:)`: `api.knsdomains.org`, `/mainnet` or `/tn10`) for Kaspa Name Service domain resolution
 
 ### Connection Settings
 
-All network endpoints are configurable in Settings > Connection Settings:
+Network endpoints are in Settings > Connection Settings, all configurable but KNS:
 - **Network**: mainnet / testnet toggle
 - **Indexer URL**: Kasia message indexer endpoint
 - **KaChat Names Indexer URL** (Domains tab, `AppSettings.kachatNamesIndexerURL`): where `.kachat` names and profiles are read. Separate from the message indexer so a user can run their own names indexer; same KaChat indexer by default (`indexer.kachat.app`, `AppSettings.defaultIndexerURL`; saved `kachat.duckdns.org` defaults migrate forward as settings decode; testnet has no default indexer, so its chat, push and names fields start blank and the retired `tnkachat.duckdns.org` is cleared), and settings saved before it existed copy the message indexer. Falls back to the chain walker when it can't serve the registry.
-- **KNS URL**: Kaspa Name Service API endpoint
+- **KNS URL**: Kaspa Name Service API endpoint. Shown read-only: it follows the network (`AppSettings.knsBaseURL`)
 - **Kaspa REST API URL**: Block explorer API for transaction lookups
 
 Settings are stored in `AppSettings` struct with network-specific defaults and loaded via `AppSettings.load()` static method (safe to call from any context).
@@ -183,6 +183,8 @@ conversation level, so overlap is harmless:
    wallet switch / logout. Its loop also carries the group catch-up ride-along.
 4. **Remote push** (`PushNotificationManager`) and the **60s fallback poll**
    (`startFallbackPolling`), which runs only when the subscription is down and push is off.
+
+**With the indexer down** (`KasiaAPIClient.isIndexerDown`: three failures in a row at least five seconds apart, so one timeout or network handoff changes nothing; one cheap request a minute checks whether it's back, and on recovery the sync cursors rewind to the outage so the indexer serves that window again): path 1 needs no indexer, since the payload comes from the node's mempool or the Kaspa REST API. History reads (handshakes, messages by sender and alias, payments, self-stash) answer from the address's history on the Kaspa REST API in the indexer's own shapes (`fromIndexerOrChain`), because a node keeps no history by address. Groups go to the block stream, on cellular too, and catch up from each member's history (`catchUpGroupsFromChain`). First-contact messages come from the block stream (`refreshInboxBlockScan`), since only the indexer can look an inbox tag up. Push can't work without it: that's server-side, so nothing arrives while the app is closed.
 
 There is NO per-contact "realtime disabled" flag, spam detector, or per-contact 60s poll in the
 code (`realtimeUpdatesDisabled`, `noisyContactWarning`, `recordIrrelevantTxNotification` do not
@@ -404,8 +406,8 @@ Reading on.
 Settings' last row is Delete Account (`DeleteAccountSheet`, the warning the sign-in screen's
 Delete also shows; `WalletManager.deleteCurrentAccount`), and Log Out is the last row on Profile.
 Deleting removes the account,
-its messages, contacts and the bell's notifications from this device and revokes the app password
-KaChat made on Nextcloud; the encrypted files stay on the server.
+its messages, contacts and the bell's notifications from this device and revokes the Nextcloud app
+password the user pasted in when connecting; the encrypted files stay on the server.
 
 Incoming photos in a 1:1 chat have one rule and no setting (`ContactsManager.photosUnlockDate`):
 hidden until both sides have sent a message and 10 minutes have passed, with no way to reveal one
@@ -487,8 +489,8 @@ A payment request tapped in a chat (1:1 or group) is paid here, on Send Kaspa wi
 Someone else's request pasted or opened from a link outside a chat is paid in KaPay, KaChat's
 wallet app: `KaChatLinkRouter.openPaymentRequest` opens `kapay://pay/<same tail as kachat://pay/>`
 (`KaPayHandoff`, `Views/Shared/PaymentRequestViews.swift`). A chat-payment request (`chat=1`) is
-paid here instead, as an encrypted chat payment KaPay can't make. Without KaPay installed, the
-App Store opens (`KaPayHandoff.appStoreURL`: a search for KaPay until it is listed). Your own
+paid here instead, as an encrypted chat payment KaPay can't make. Without KaPay installed, its
+install page opens (`KaPayHandoff.installURL`, home.kachat.app/install/). Your own
 request shows here. KaPost follows the same rule.
 
 Every send has a **From** step: Chatting Address (the default) or Choose an Address

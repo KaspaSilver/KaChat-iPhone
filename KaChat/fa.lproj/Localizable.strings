@@ -1,70 +1,43 @@
 "#" = "#";
-"$" = "$";
-"%@ can be inscribed." = "%@ را می توان درج کرد.";
 "%@ copied to clipboard." = "%@ در کلیپ بورد کپی شد.";
 "%@ transferred to %@." = "%@ به %@ منتقل شد.";
 "%@ updated." = "%@ به روز شد.";
 "1 year" = "1 سال";
 "12 words" = "۱۲ کلمه";
-"24 words (recommended)" = "۲۴ کلمه (پیشنهادی)";
 "30 days" = "30 روز";
 "90 days" = "90 روز";
 "About" = "درباره";
 "Accept" = "پذیرش";
-"Account" = "حساب";
 "Account Name" = "نام حساب";
 "Actions" = "عملیات";
 "Active" = "فعال";
-"Active = in use, Verified = ready, Profiled = checked, Other = candidates/suspect" = "فعال = در حال استفاده، تایید شده = آماده، بررسی شده = فحص شده، سایر = کاندید/مشکوک";
 "Active Nodes" = "گره‌های فعال";
 "Add" = "افزودن";
-"Add Address" = "افزودن آدرس";
 "Add Contact" = "افزودن مخاطب";
-"Add Custom Endpoint" = "افزودن نقطه اتصال سفارشی";
 "Added" = "اضافه شد";
 "Address" = "آدرس";
 "Address Actions" = "عملیات آدرس";
-"Address copied to clipboard." = "آدرس در حافظه کپی شد.";
 "Adjust Network Fee" = "تنظیم کارمزد شبکه";
 "Admin" = "مدیر";
 "All Nodes" = "همه گره‌ها";
-"All discovered nodes sorted by state and latency. Nodes are deduplicated by host:port." = "همه گره‌های کشف‌شده بر اساس وضعیت و تاخیر مرتب شده‌اند. گره‌های تکراری بر اساس host:port حذف می‌شوند.";
-"Always Hide" = "همیشه پنهان کن";
-"Always Show" = "همیشه نمایش بده";
-"Always shown" = "همیشه نمایش داده می‌شود";
 "Anyone with your 12 or 24 words can access your account. Never share them with anyone." = "هر کسی که ۱۲ یا ۲۴ کلمه شما را داشته باشد می‌تواند به حسابتان دسترسی پیدا کند. هرگز آن‌ها را با کسی به اشتراک نگذارید.";
-"Archive" = "بایگانی";
-"Archived Chats" = "گفتگوهای بایگانی‌شده";
 "Asset ID" = "شناسه دارایی";
 "Audio" = "صدا";
-"Audio ready" = "صدا آماده است";
 "Auto Search for Nodes" = "جستجوی خودکار برای گره‌ها";
-"Autocreate system contacts" = "ایجاد خودکار مخاطبین سیستم";
-"Automatic hides photos from contacts you haven't added or messaged yet, until you tap to reveal them." = "حالت خودکار عکس‌های مخاطبینی را که هنوز اضافه یا با آن‌ها پیام‌رسانی نکرده‌اید پنهان می‌کند، تا زمانی که برای نمایش آن‌ها ضربه بزنید.";
 "Avatar" = "آواتار";
 "Balance" = "موجودی";
 "Balance copied to clipboard." = "موجودی در حافظه کپی شد.";
-"Balanced" = "متعادل";
 "Banner" = "بنر";
 "Best" = "بهترین";
 "Bio" = "بیوگرافی";
 "Camera" = "دوربین";
 "Camera Access Required" = "دسترسی به دوربین لازم است";
 "Cancel" = "لغو";
-"Change" = "تغییر";
 "Chat History" = "تاریخچه گفتگو";
-"Chat Info" = "اطلاعات گفتگو";
 "User Info" = "اطلاعات کاربر";
-"Chat archived." = "گفتگو بایگانی شد.";
 "Chats" = "گفتگوها";
 "Chatting Address" = "آدرس گفتگو";
-"Chatting address" = "آدرس گفتگو";
-"Chatting vs. Spending Address" = "آدرس گفتگو در برابر آدرس خرج کردن";
-"Check Again" = "بررسی مجدد";
-"Checking availability..." = "بررسی در دسترس بودن...";
-"Checking your chatting address balance..." = "در حال بررسی موجودی آدرس گفتگوی شما...";
 "Chess" = "شطرنج";
-"Choose Address" = "انتخاب آدرس";
 "Choose Avatar" = "آواتار را انتخاب کنید";
 "Choose Banner" = "بنر را انتخاب کنید";
 "Choose Photo" = "انتخاب عکس";
@@ -73,7 +46,6 @@
 "Choose a conversation on the left" = "یک مکالمه را در سمت چپ انتخاب کنید";
 "Clear" = "پاک کردن";
 "Clear Connection Pool" = "پاک کردن مجموعه اتصالات";
-"Clear Link" = "پاک کردن پیوند";
 "Clear connection pool?" = "مجموعه اتصالات پاک شود؟";
 "Close" = "بستن";
 "Confirm" = "تأیید";
@@ -85,14 +57,9 @@
 "Connection Settings" = "تنظیمات اتصال";
 "Connection Status" = "وضعیت اتصال";
 "Connectivity might be limited. Using HTTP/1.1 and decreased pagination for indexer requests." = "ممکن است اتصال محدود باشد. از HTTP/1.1 و صفحه‌بندی کمتر برای درخواست‌های ایندکسر استفاده می‌شود.";
-"Consolidate to Primary" = "ادغام به آدرس اصلی";
 "Contact has requested permission to communicate" = "مخاطب درخواست اجازه ارتباط داده است";
 "Contacts" = "مخاطبین";
-"Contacts access is required." = "دسترسی به مخاطبین لازم است.";
-"Contacts permission denied. Sync disabled." = "دسترسی به مخاطبین رد شد. همگام‌سازی غیرفعال شد.";
 "Continue" = "ادامه";
-"Continue to App" = "ادامه به برنامه";
-"Controls how much photos are compressed before sending. Higher quality looks clearer but costs a larger fee and takes longer to send; lower quality sends faster and cheaper but looks more compressed. This only affects photos you send - not ones you receive." = "میزان فشرده‌سازی عکس‌ها قبل از ارسال را کنترل می‌کند. کیفیت بالاتر واضح‌تر به نظر می‌رسد اما کارمزد بیشتری دارد و ارسال آن طولانی‌تر است؛ کیفیت پایین‌تر سریع‌تر و ارزان‌تر ارسال می‌شود اما فشرده‌تر به نظر می‌رسد. این فقط بر عکس‌هایی که ارسال می‌کنید تأثیر می‌گذارد، نه آن‌هایی که دریافت می‌کنید.";
 "Copy Address" = "کپی آدرس";
 "Copy File Name" = "کپی نام فایل";
 "Copy Link" = "کپی پیوند";
@@ -100,243 +67,139 @@
 "Copy Private Key Hex" = "کپی کلید خصوصی (Hex)";
 "Copy 12 or 24 Words" = "کپی ۱۲ یا ۲۴ کلمه";
 "Copy Transaction ID" = "کپی شناسه تراکنش";
-"Copy to Clipboard" = "کپی در حافظه";
 "Could not encode selected image" = "تصویر انتخاب شده رمزگذاری نشد";
 "Could not initialize image encoder" = "رمزگذار تصویر راه اندازی نشد";
 "Could not load selected image" = "تصویر انتخابی بارگیری نشد";
 "Could not process selected image" = "تصویر انتخابی پردازش نشد";
 "Couldn't Rename Group" = "تغییر نام گروه ممکن نشد";
 "Country" = "کشور";
-"Create Account" = "ایجاد حساب";
-"Create KNS Profile" = "ایجاد نمایه KNS";
 "Create New Account" = "ایجاد حساب جدید";
 "Create chat" = "ایجاد گفتگو";
 "Created" = "ایجاد شده";
 "Currency" = "واحد پول";
-"Current balance" = "موجودی فعلی";
-"Custom Endpoint" = "نقطه اتصال سفارشی";
 "DPI" = "DPI";
-"Danger Zone" = "منطقه خطر";
-"Data Saver" = "صرفه‌جویی در داده";
 "Decline" = "رد کردن";
 "Default" = "پیش‌فرض";
-"Default follows Settings > Notifications. Off disables notifications for this contact." = "پیش‌فرض از تنظیمات > اعلان‌ها پیروی می‌کند. خاموش، اعلان‌ها را برای این مخاطب غیرفعال می‌کند.";
 "Delete" = "حذف";
 "Delete Account" = "حذف حساب";
 "Delete Group" = "حذف گروه";
 "Diagnostics" = "تشخیص‌ها";
-"Disable" = "غیرفعال";
-"Disable Real-Time Updates" = "غیرفعال کردن به‌روزرسانی آنی";
 "Disabled" = "از کار افتاده است";
 "Discord user id" = "شناسه کاربر Discord";
 "Discover Addresses" = "کشف آدرس‌ها";
-"Discover new peers" = "کشف همتاهای جدید";
 "Distance" = "فاصله";
 "Domain" = "دامنه";
-"Domain transfer unavailable." = "انتقال دامنه در دسترس نیست.";
 "Domains" = "دامنه‌ها";
-"Donate" = "اهدا";
 "Done" = "انجام شد";
 "Edit KNS Profile" = "ویرایش KNS نمایه";
 "Emoji picker" = "انتخابگر ایموجی";
-"Enabling remote push..." = "در حال فعال‌سازی اعلان‌های فوری...";
 "Encoding…" = "در حال رمزگذاری…";
-"Enter a Kaspa address (kaspa:...)" = "یک آدرس کاسپا وارد کنید (kaspa:...)";
-"Enter a Kaspa address (kaspa:...) or KNS domain name (e.g., alice.kas)" = "یک آدرس Kaspa (kaspa:...) یا نام دامنه KNS (مثلا alice.kas) وارد کنید";
-"Enter a Kaspa address or a `.kas` domain." = "آدرس Kaspa یا دامنه `.kas` را وارد کنید.";
 "Enter a new name for this saved account." = "یک نام جدید برای این حساب ذخیره‌شده وارد کنید.";
 "Enter a node address you trust" = "آدرس گرهی که به آن اعتماد دارید را وارد کنید";
-"Enter a trusted node (host:port for plaintext, or grpcs://host for TLS-secured nodes like Kaspium's) and tap Save to always connect to it instead of automatic discovery. Doesn't affect the Indexer/KNS/REST API URLs above." = "یک گره مورد اعتماد وارد کنید (host:port برای متن ساده، یا grpcs://host برای گره‌های امن TLS مانند گره‌های Kaspium) و برای اتصال همیشگی به آن به‌جای کشف خودکار روی ذخیره ضربه بزنید. بر آدرس‌های URL نمایه‌ساز/KNS/REST API بالا تأثیری ندارد.";
-"Enter your 12 or 24 word seed phrase to restore your account. Separate each word with a space." = "عبارت بازیابی ۱۲ یا ۲۴ کلمه‌ای خود را برای بازیابی حسابتان وارد کنید. هر کلمه را با فاصله جدا کنید.";
 "Error" = "خطا";
-"Estimate fees while composing" = "تخمین کارمزد هنگام نوشتن";
-"Every member will see the new name." = "هر عضو نام جدید را خواهد دید.";
 "Explorer" = "کاوشگر";
 "Export Chat History" = "خروجی تاریخچه گفتگو";
 "Export Diagnostics Archive" = "خروجی بایگانی تشخیص‌ها";
-"Exports app/device info, connection settings, local message counts, and recent app logs as a zip — for troubleshooting with support. No private keys, seed phrases, or decrypted message content are included." = "اطلاعات برنامه/دستگاه، تنظیمات اتصال، تعداد پیام‌های محلی و گزارش‌های اخیر برنامه را به‌صورت فایل فشرده صادر می‌کند - برای عیب‌یابی با پشتیبانی. هیچ کلید خصوصی، عبارت بازیابی یا محتوای پیام رمزگشایی‌شده‌ای گنجانده نمی‌شود.";
 "Failed to Send" = "ارسال ناموفق";
 "Failed to export diagnostics." = "خروجی تشخیص‌ها ناموفق بود.";
-"Failed to link system contact." = "پیوند مخاطب سیستم ناموفق بود.";
-"Failed updates" = "به روز رسانی ناموفق";
 "Fee" = "هزینه";
-"Fee unavailable" = "هزینه در دسترس نیست";
 "Finish" = "پایان";
-"First let's create your identity with a domain name" = "ابتدا هویت شما را با یک نام دامنه ایجاد کنیم";
 "From" = "از";
 "Fund Your Chatting Address" = "آدرس چت خود را شارژ کنید";
-"Generate Account" = "تولید حساب";
-"Generate New Address" = "ایجاد آدرس جدید";
 "Generate New Spending Address" = "ایجاد آدرس خرج کردن جدید";
 "Generate one below to start sending payments from a separate address than the one you chat from." = "یکی را در زیر ایجاد کنید تا ارسال پرداخت‌ها را از آدرسی جدا از آدرسی که با آن گفتگو می‌کنید شروع کنید.";
 "Give this address a label to help you recognize it." = "به این آدرس برچسبی بدهید تا به شناسایی آن کمک کند.";
 "Group Info" = "اطلاعات گروه";
-"Group Name" = "نام گروه";
-"Hidden Addresses" = "آدرس‌های پنهان";
 "Hidden Users" = "کاربران پنهان";
-"Hide" = "پنهان کردن";
 "Hide User" = "پنهان کردن کاربر";
-"Hide auto-created payment chats" = "مخفی کردن گفتگوهای پرداخت خودکار";
-"High" = "بالا";
-"High Transaction Traffic" = "ترافیک بالای تراکنش";
 "How KaChat Uses Kaspa" = "KaChat چگونه از Kaspa استفاده می‌کند";
-"I Agree" = "موافقم";
-"I already have a domain somewhere else" = "من قبلاً یک دامنه در جای دیگری دارم";
-"I have written down my seed phrase and stored it securely" = "عبارت بازیابی خود را یادداشت کرده و به صورت امن ذخیره کرده‌ام";
 "IP Address Book" = "دفترچه آدرس IP";
 "If the network is busy, Fast or Priority pays a higher fee to help this confirm sooner. Tap the fee amount to set a custom fee." = "اگر شبکه شلوغ باشد، گزینه سریع یا اولویت‌دار کارمزد بالاتری می‌پردازد تا کمک کند این سریع‌تر تأیید شود. برای تنظیم کارمزد سفارشی روی مبلغ کارمزد ضربه بزنید.";
-"If the network is busy, Fast or Priority pays a higher fee to help your withdrawal confirm sooner. Tap the fee amount to set a custom fee." = "اگر شبکه شلوغ باشد، گزینه سریع یا اولویت‌دار کارمزد بالاتری می‌پردازد تا کمک کند برداشت شما سریع‌تر تأیید شود. برای تنظیم کارمزد سفارشی روی مبلغ کارمزد ضربه بزنید.";
 "If the network is busy, a higher fee can help your transaction confirm faster." = "اگر شبکه شلوغ باشد، کارمزد بالاتر می‌تواند به تأیید سریع‌تر تراکنش شما کمک کند.";
 "Import" = "وارد کردن";
 "Import Account" = "وارد کردن حساب";
 "Import Chat History" = "وارد کردن تاریخچه گفتگو";
 "Import Existing Account" = "وارد کردن حساب موجود";
-"Import Your Account" = "وارد کردن حساب شما";
-"Important" = "مهم";
 "Incoming Notifications" = "اعلان های دریافتی";
 "Indexer" = "نمایه‌ساز";
 "Indexer URL" = "آدرس ایندکسر";
 "Info" = "اطلاعات";
-"Inscribe" = "درج کنید";
-"Inscribe Domain" = "ثبت دامنه";
-"Inscribe New Domain" = "دامنه جدید را ثبت کنید";
-"Inscribe submitted for %@." = "Inscribe ارسال شده برای %@.";
-"Invalid domain label" = "برچسب دامنه نامعتبر است";
-"Invalid recipient format." = "قالب گیرنده نامعتبر است.";
-"It's ok, I already have a domain" = "مشکلی نیست، من قبلاً یک دامنه دارم";
 "KAS" = "KAS";
-"KNS API URL" = "آدرس KNS API";
 "KNS Domains" = "دامنه‌های KNS";
 "KNS Profile" = "KNS نمایه";
-"KNS Profile Pictures" = "تصاویر نمایه KNS";
 "KNS asset id is missing." = "شناسه دارایی KNS وجود ندارد.";
 "KNS domain id is missing." = "شناسه دامنه KNS وجود ندارد.";
-"KNS domain resolution service" = "سرویس تحلیل دامنه KNS";
-"KNS profile unavailable." = "نمایه KNS در دسترس نیست.";
 "KNS profile update failed." = "به‌روزرسانی نمایه KNS انجام نشد.";
 "KNS profile update failed: %@" = "به‌روزرسانی نمایه KNS انجام نشد: %@";
 "KNS profile updated." = "نمایه KNS به روز شد.";
 "KaChat" = "KaChat";
-"KaChat Indexer" = "ایندکسر KaChat";
-"KaChat connects only to this node for sending and message scanning, and won't search for or fall back to other nodes. Clear, or edit and tap Save, to change it." = "KaChat فقط برای ارسال و اسکن پیام‌ها به این گره متصل می‌شود و به دنبال گره‌های دیگر نمی‌گردد یا به آن‌ها بازنمی‌گردد. برای تغییر آن، پاک کنید یا ویرایش کرده و روی ذخیره ضربه بزنید.";
 "KaChat lets you send and receive messages on the Kaspa network itself. Kaspa is required to pay fees when sending your messages. The fee you pay goes to miners which secure the network." = "KaChat به شما امکان می‌دهد پیام‌ها را مستقیماً در شبکه Kaspa ارسال و دریافت کنید. برای پرداخت کارمزد هنگام ارسال پیام‌هایتان به Kaspa نیاز است. کارمزدی که می‌پردازید به استخراج‌کنندگانی می‌رسد که شبکه را ایمن نگه می‌دارند.";
 "KaChat needs to connect to a node. How would you like to connect?" = "KaChat باید به یک گره متصل شود. چگونه می‌خواهید متصل شوید؟";
-"Kaspa Address or KNS Domain" = "آدرس Kaspa یا دامنه KNS";
 "Kaspa Explorer" = "کاوشگر کاسپا";
 "Kaspa Explorer API" = "Kaspa Explorer API";
-"Kaspa Name Service" = "Kaspa Name Service";
 "Kaspa Node" = "گره کاسپا";
 "Kaspa REST API URL" = "آدرس Kaspa REST API";
 "Keep forever" = "برای همیشه نگه دارید";
 "Last Message" = "آخرین پیام";
 "Last Sync" = "آخرین همگام‌سازی";
 "Latency" = "تاخیر";
-"Leave" = "ترک کردن";
-"Leave & Delete" = "ترک کردن و حذف";
-"Let's add more details about yourself" = "بیایید جزئیات بیشتری درباره شما اضافه کنیم";
 "Let's walk through the basics so you're ready to send your first message." = "بیایید اصول اولیه را مرور کنیم تا برای ارسال اولین پیام خود آماده باشید.";
-"Link System Contact" = "لینک تماس با سیستم";
-"Link from Contacts" = "پیوند از مخاطبین";
-"Linked" = "پیوند شده";
-"Linked to %@." = "پیوند به %@.";
 "Listed" = "فهرست شده است";
-"Loading balance..." = "در حال بارگذاری موجودی...";
-"Loading contacts..." = "در حال بارگذاری مخاطبین...";
-"Loading domains..." = "در حال بارگذاری دامنه‌ها...";
-"Loading profile..." = "در حال بارگیری نمایه...";
 "Loading..." = "در حال بارگذاری...";
 "Log Out" = "خروج";
-"Longer retention means more messages stay cached on your device - this can slow the app down over time, especially for busy rooms." = "نگهداری طولانی‌تر یعنی پیام‌های بیشتری در حافظه پنهان دستگاه شما باقی می‌مانند - این می‌تواند با گذشت زمان برنامه را کند کند، به‌خصوص برای اتاق‌های شلوغ.";
 "Manage Addresses" = "مدیریت آدرس‌ها";
-"Manual endpoints have highest priority" = "نقاط اتصال دستی بالاترین اولویت را دارند";
-"Manual endpoints have highest priority and are never auto-removed" = "نقاط اتصال دستی بالاترین اولویت را دارند و هرگز به صورت خودکار حذف نمی‌شوند";
 "Mark as Read" = "علامت‌گذاری به‌عنوان خوانده‌شده";
 "Mark as Unread" = "علامت‌گذاری به‌عنوان خوانده‌نشده";
 "Max" = "حداکثر";
 "Members" = "اعضا";
-"Menu" = "منو";
 "Message" = "پیام";
-"Message Retention" = "نگهداری پیام";
-"Message indexer service for chat functionality" = "سرویس ایندکس پیام برای عملکرد گفتگو";
 "Message retention" = "حفظ پیام";
-"Message sync appears incomplete under restricted network conditions. Consider wiping and re-syncing incoming messages on a normal connection." = "به نظر می‌رسد همگام‌سازی پیام‌ها در شرایط شبکه محدود ناقص است. پیام‌های ورودی را پاک و روی اتصال عادی دوباره همگام‌سازی کنید.";
-"Mode" = "حالت";
 "More Info" = "اطلاعات بیشتر";
 "More options" = "گزینه‌های بیشتر";
 "Most taxing on the device, not as reliable - depends on where you live" = "سنگین‌ترین برای دستگاه، قابل اعتمادتر نیست - بستگی به محل زندگی شما دارد";
 "Name" = "نام";
-"Name (Optional)" = "نام (اختیاری)";
-"Name set to %@." = "نام روی %@ تنظیم شد.";
-"Name set to %@. Tap Save to apply." = "نام روی %@ تنظیم شد. برای اعمال روی ذخیره ضربه بزنید.";
-"Name updated." = "نام به‌روز شد.";
-"Network" = "شبکه";
 "Network Fee" = "کارمزد شبکه";
-"Never send Kaspa you intend to spend to this address — it's for chatting fees only." = "هرگز کاسپایی را که قصد خرج کردن آن را دارید به این آدرس ارسال نکنید - این فقط برای کارمزد گفتگو است.";
 "New message" = "پیام جدید";
 "Next" = "بعدی";
 "No Conversations Yet" = "هنوز گفتگویی وجود ندارد";
-"No Group Chats Yet" = "هنوز هیچ گفتگوی گروهی وجود ندارد";
 "No KNS profile changes detected." = "هیچ تغییر نمایه KNS شناسایی نشد.";
-"No Kaspa address in system contact" = "آدرس Kaspa در مخاطب سیستم وجود ندارد";
 "No Sound" = "بدون صدا";
 "No Spending Addresses" = "هیچ آدرس خرج کردنی وجود ندارد";
 "No active account" = "هیچ حساب فعالی وجود ندارد";
 "No active nodes" = "هیچ گره فعالی وجود ندارد";
-"No archived chats" = "هیچ گفتگوی بایگانی‌شده‌ای وجود ندارد";
-"No contacts found." = "مخاطبی یافت نشد.";
 "No domains yet." = "هنوز دامنه ای وجود ندارد.";
 "No emoji found" = "ایموجی‌ای پیدا نشد.";
-"No hidden addresses." = "هیچ آدرس پنهانی وجود ندارد.";
-"No hidden senders" = "هیچ فرستنده پنهانی وجود ندارد";
 "No hidden users in this group." = "هیچ کاربر پنهانی در این گروه وجود ندارد.";
 "No messages yet" = "هنوز پیامی وجود ندارد";
 "No nodes discovered" = "هیچ گره‌ای کشف نشد";
-"No on-chain profile fields set." = "فیلدهای نمایه روی زنجیره تنظیم نشده است.";
-"No other addresses have a balance to consolidate." = "هیچ آدرس دیگری موجودی برای ادغام ندارد.";
-"No other nodes" = "گره دیگری وجود ندارد";
 "No saved addresses" = "هیچ آدرس ذخیره‌شده‌ای وجود ندارد";
 "No spendable funds available yet. Wait for confirmations and try again." = "هنوز موجودی قابل خرج در دسترس نیست. منتظر تاییدها بمانید و دوباره تلاش کنید.";
-"No system contacts found." = "مخاطب سیستمی یافت نشد.";
 "No transactions yet." = "هنوز هیچ تراکنشی وجود ندارد.";
-"No verified nodes" = "هیچ گره تایید شده‌ای وجود ندارد";
-"Node Pool" = "مجموعه گره‌ها";
 "Node endpoint copied." = "نقطه اتصال گره کپی شد.";
-"Nodes actively used for requests." = "گره‌هایی که فعالانه برای درخواست‌ها استفاده می‌شوند.";
 "Not Now" = "الان نه";
-"Not linked" = "پیوند نشده";
 "Not registered" = "ثبت نشده";
 "Notifications" = "اعلان‌ها";
 "Notifications Disabled" = "اعلان‌ها غیرفعال";
-"Notifications are disabled." = "اعلان‌ها غیرفعال هستند.";
 "OK" = "تایید";
 "Off" = "خاموش";
 "On-chain profile data available." = "داده های نمایه روی زنجیره در دسترس است.";
 "Open Chat" = "باز کردن گفتگو";
 "Open Link" = "باز کردن پیوند";
 "Open Settings" = "باز کردن تنظیمات";
-"Other" = "سایر";
-"Other Nodes" = "گره‌های دیگر";
 "Paste" = "جای‌گذاری";
-"Paste from Clipboard" = "جای‌گذاری از حافظه";
-"Pay in Kaspa" = "پرداخت با کاسپا";
 "Payment" = "پرداخت";
 "Payment: %@ KAS — %@" = "پرداخت: %@ KAS — %@";
-"Per Contact" = "به ازای هر مخاطب";
 "Photo" = "عکس";
-"Photo Quality" = "کیفیت عکس";
-"Photo quality" = "کیفیت عکس";
 "Planned spend %@ KAS, but available balance %@ KAS is less than required." = "مقدار برنامه‌ریزی‌شده برای خرج %@ KAS است، اما موجودی قابل‌دسترس %@ KAS کمتر از مقدار لازم است.";
 "Play Chess" = "بازی شطرنج";
 "Play sound" = "پخش صدا";
 "Please check your network connection and try again." = "لطفا اتصال شبکه خود را بررسی کرده و دوباره تلاش کنید.";
 "Please enable camera access in Settings to scan QR codes." = "لطفا دسترسی دوربین را در تنظیمات فعال کنید تا بتوانید کدهای QR را اسکن کنید.";
-"Please enter exactly 12 or 24 words" = "لطفا دقیقا ۱۲ یا ۲۴ کلمه وارد کنید";
 "Point camera at a QR code" = "دوربین را به سمت کد QR بگیرید";
 "Pool Health" = "سلامت مجموعه";
 "Pool Status" = "وضعیت مجموعه";
 "Preparing profile update..." = "در حال آماده سازی به روز رسانی نمایه...";
 "Primary" = "اصلی";
-"Primary Latency" = "تاخیر اصلی";
 "Primary domain set to %@." = "دامنه اصلی روی %@ تنظیم شد.";
 "Private key hex copied. Clipboard will clear in 30s." = "کلید خصوصی (hex) کپی شد. حافظه در ۳۰ ثانیه پاک می‌شود.";
 "Private key unavailable." = "کلید خصوصی در دسترس نیست.";
@@ -344,7 +207,6 @@
 "Processing banner..." = "در حال پردازش بنر...";
 "Profile" = "نمایه";
 "Profiled" = "بررسی شده";
-"Profiled, candidate, and suspect nodes. Showing first 20." = "گره‌های بررسی‌شده، کاندید و مشکوک. نمایش ۲۰ مورد اول.";
 "Promote pawn to:" = "ارتقای سرباز به:";
 "Protocol" = "پروتکل";
 "Push Indexer URL" = "آدرس ایندکسر اعلان‌ها";
@@ -352,82 +214,51 @@
 "Push Register" = "ثبت پوش";
 "Push Registration" = "ثبت اعلان‌ها";
 "Push subscription failed." = "اشتراک اعلان‌ها ناموفق بود.";
-"REST API for transaction history and balance lookups" = "REST API برای تاریخچه تراکنش‌ها و استعلام موجودی";
-"Rate" = "نرخ";
-"Read" = "خوانده‌شده";
 "Receive Kaspa" = "دریافت Kaspa";
-"Receive notifications when contacts send messages, even when the app is closed." = "هنگام ارسال پیام توسط مخاطبین اعلان دریافت کنید، حتی وقتی برنامه بسته است.";
 "Received" = "دریافت کرد";
-"Received %.8f KAS" = "%.8f KAS دریافت شد";
 "Received %@ KAS" = "%@ KAS دریافت شد";
 "Received %@ KAS — %@" = "%@ KAS دریافت شد — %@";
 "Received %@ domain" = "دامنه %@ دریافت شد";
 "Received domain transfer" = "انتقال دامنه دریافت شد";
 "Received payment" = "پرداخت دریافت شد";
-"Recipient" = "گیرنده";
 "Recipient Address" = "آدرس گیرنده";
-"Recipient is required" = "دریافت کننده الزامی است";
-"Recipient looks valid." = "گیرنده معتبر به نظر می رسد.";
 "Recommended" = "توصیه‌شده";
 "Reconnect" = "اتصال مجدد";
-"Record voice message" = "ضبط پیام صوتی";
-"Recording..." = "در حال ضبط ...";
 "Redirect URL" = "تغییر مسیر URL";
 "Refresh Pool" = "بازخوانی مجموعه";
-"Refresh Pool Now" = "بازخوانی مجموعه اکنون";
-"Refresh Status" = "به‌روزرسانی وضعیت";
 "Remote push" = "فشار از راه دور";
 "Remove" = "حذف";
 "Remove Avatar" = "آواتار را حذف کنید";
 "Remove Banner" = "حذف بنر";
-"Remove Saved Account" = "حذف حساب ذخیره‌شده";
-"Remove from Device" = "حذف از دستگاه";
 "Rename" = "تغییر نام";
 "Rename Account" = "تغییر نام حساب";
 "Rename Address" = "تغییر نام آدرس";
 "Rename Group" = "تغییر نام گروه";
 "Reply" = "پاسخ";
 "Request to communicate" = "درخواست ارتباط";
-"Required for cross-device sync and backup of sent messages." = "برای همگام‌سازی بین دستگاه‌ها و پشتیبان‌گیری پیام‌های ارسالی لازم است.";
-"Reserved domain: no revenue payment is required." = "دامنه رزرو شده: نیازی به پرداخت درآمد نیست.";
-"Reset to Defaults" = "بازنشانی به پیش‌فرض";
 "Resign" = "تسلیم شدن";
-"Resolving KNS domain..." = "در حال تحلیل دامنه KNS...";
-"Retry %@" = "سعی مجدد %@";
 "Retry Send" = "تلاش مجدد ارسال";
 "Retry failed: %@" = "تلاش مجدد ناموفق بود: %@";
 "Retrying %@..." = "تلاش مجدد %@...";
 "Save" = "ذخیره";
 "Save Audio" = "ذخیره صدا";
-"Save your own node addresses here, then tap one to copy it and paste into the Kaspa Node field above." = "آدرس‌های گره خود را اینجا ذخیره کنید، سپس روی یکی ضربه بزنید تا آن را کپی کرده و در فیلد گره کاسپا در بالا بچسبانید.";
 "Saved Accounts" = "حساب‌های ذخیره‌شده";
 "Scan QR" = "اسکن QR";
 "Scan QR Code" = "اسکن کد QR";
-"Scan to share account. Tap anywhere here to copy address." = "برای اشتراک‌گذاری اسکن کنید. برای کپی آدرس هر جایی اینجا بزنید.";
 "Search chats" = "جستجوی گفتگوها";
-"Search contacts" = "جستجوی مخاطبین";
 "Search emoji" = "جستجوی ایموجی";
 "Secure messaging on Kaspa BlockDAG" = "پیام‌رسانی امن روی Kaspa BlockDAG";
 "Security Warning" = "هشدار امنیتی";
 "12 or 24 Words" = "۱۲ یا ۲۴ کلمه";
-"Seed Phrase Length" = "طول عبارت بازیابی";
 "Words copied. Clipboard will clear in 30s." = "کلمات کپی شد. کلیپ‌بورد تا ۳۰ ثانیه دیگر پاک می‌شود.";
 "Select a chat" = "یک چت را انتخاب کنید";
-"Select mainnet for real transactions or testnet for testing" = "mainnet را برای تراکنش‌های واقعی یا testnet را برای آزمایش انتخاب کنید";
 "Select the currency you'd like prices displayed in." = "واحد پولی که می‌خواهید قیمت‌ها به آن نمایش داده شوند را انتخاب کنید.";
 "Select the language you'd like to use in KaChat." = "زبانی که می‌خواهید در KaChat استفاده کنید را انتخاب کنید.";
 "Selected data is not a valid image" = "داده های انتخابی تصویر معتبری نیستند";
 "Send" = "ارسال";
-"Send All Kaspa To Primary Spend Address" = "ارسال تمام کاسپا به آدرس خرج کردن اصلی";
-"Send Anyway" = "ارسال در هر صورت";
-"Send Audio Message" = "ارسال پیام صوتی";
-"Send From This Address" = "ارسال از این آدرس";
 "Send Handshake" = "ارسال درخواست ارتباط";
 "Send KAS" = "ارسال KAS";
 "Send Kaspa" = "ارسال کاسپا";
-"Send Photo" = "ارسال عکس";
-"Send audio" = "ارسال صدا";
-"Send message" = "ارسال پیام";
 "Sending less than 0.1 KAS may fail due to the network dust protection limit." = "ارسال کمتر از 0.1 KAS ممکن است به دلیل محدودیت حفاظت از غبار شبکه ناموفق باشد.";
 "Sending…" = "در حال ارسال…";
 "Sent" = "ارسال شد";
@@ -435,93 +266,38 @@
 "Sent %@ KAS — %@" = "%@ KAS ارسال شد — %@";
 "Sent %@ domain" = "دامنه %@ ارسال شد";
 "Sent domain transfer" = "انتقال دامنه ارسال شد";
-"Service fee" = "هزینه خدمات";
-"Set %@ as primary" = "%@ را به عنوان اصلی تنظیم کنید";
-"Set as Primary Address" = "تنظیم به‌عنوان آدرس اصلی";
-"Set per-contact notification mode in each chat's info screen: Off, No Sound, or Sound." = "حالت اعلان هر مخاطب را در صفحه اطلاعات گفتگو تنظیم کنید: خاموش، بدون صدا، یا صدا.";
 "Set primary failed: %@" = "تنظیم اولیه ناموفق بود: %@";
 "Settings" = "تنظیمات";
-"Setup Guide" = "راهنمای راه‌اندازی";
-"Share QR" = "اشتراک QR";
 "Show More" = "نمایش بیشتر";
-"Show Photo" = "نمایش عکس";
-"Show QR" = "نمایش QR";
 "Show QR Code" = "نمایش کد QR";
-"Show Setup Guides" = "نمایش راهنماهای راه‌اندازی";
-"Show contact balance" = "نمایش موجودی مخاطب";
 "Sign In Failed" = "ورود ناموفق";
 "Skip" = "رد شدن";
-"Small Amount" = "مبلغ کوچک";
 "Something Went Wrong" = "مشکلی پیش آمد";
 "Sound" = "صدا";
 "Sound & Vibration" = "صدا و لرزش";
-"Spending Address" = "آدرس خرج کردن";
 "Start a new chat by adding a contact" = "با افزودن یک مخاطب گفتگوی جدیدی شروع کنید";
-"Start a new group from the add-chat button" = "یک گروه جدید از دکمه افزودن گفتگو شروع کنید";
 "Started a conversation" = "گفتگو را شروع کرد";
-"Starting a Conversation" = "شروع یک گفتگو";
 "Status" = "وضعیت";
 "Storage" = "فضای ذخیره‌سازی";
-"Store encrypted messages in iCloud CloudKit" = "ذخیره پیام‌های رمزنگاری‌شده در iCloud CloudKit";
-"Store this in a safe place. Anyone with these words can access your account." = "این را در جای امنی نگهداری کنید. هر کسی با این کلمات می‌تواند به حسابتان دسترسی پیدا کند.";
-"Submitting inscription..." = "در حال ارسال کتیبه ...";
-"Submitting inscription... this could take a few minutes while it confirms on-chain." = "در حال ارسال کتیبه... این ممکن است چند دقیقه طول بکشد تا در زنجیره تأیید شود.";
-"Submitting transfer..." = "در حال ارسال انتقال...";
 "Support Email" = "ایمیل پشتیبانی";
 "Suspected" = "مشکوک";
-"Switch direction" = "تغییر جهت";
-"Sync system contacts" = "همگام‌سازی مخاطبین سیستم";
-"Sync warning detected" = "هشدار همگام‌سازی شناسایی شد";
-"Synced and ready for promotion to active." = "همگام‌سازی شده و آماده ارتقا به فعال.";
-"System Contact" = "مخاطب سیستم";
-"System Contact Link" = "پیوند مخاطب سیستم";
-"System contact unlinked." = "پیوند مخاطب سیستم حذف شد.";
-"Tap a node to copy host:port." = "روی یک گره بزنید تا host:port کپی شود.";
 "Tap send to record" = "برای ضبط روی ارسال بزنید";
-"Tap to adjust. If the network is busy, a higher fee can help your transaction confirm faster." = "برای تنظیم ضربه بزنید. اگر شبکه شلوغ باشد، کارمزد بالاتر می‌تواند به تأیید سریع‌تر تراکنش شما کمک کند.";
 "Tap to reveal your 12 or 24 words" = "برای نمایش ۱۲ یا ۲۴ کلمه ضربه بزنید";
-"This account will be removed from this device." = "این حساب از این دستگاه حذف خواهد شد.";
-"This contact will be linked after it is created. You still need to enter a Kaspa address or KNS domain." = "این مخاطب پس از ایجاد پیوند خواهد شد. همچنان باید یک آدرس Kaspa یا دامنه KNS وارد کنید.";
-"This could take a few minutes while it confirms on-chain." = "این ممکن است چند دقیقه طول بکشد تا در زنجیره تأیید شود.";
-"This deletes all local data and CloudKit message records. This cannot be undone." = "این کار تمام داده‌های محلی و سوابق پیام CloudKit را حذف می‌کند. این عمل قابل بازگشت نیست.";
-"This domain is not available." = "این دامنه در دسترس نیست.";
-"This is a live check of your iCloud account, separate from local storage above." = "این یک بررسی زنده از حساب iCloud شماست، جدا از ذخیره‌سازی محلی بالا.";
-"This permanently deletes every message with them, including from iCloud, so it's removed from your other devices too. This cannot be undone." = "این تمام پیام‌ها با آن‌ها، از جمله از iCloud، را برای همیشه حذف می‌کند، بنابراین از دستگاه‌های دیگر شما نیز حذف می‌شود. این قابل بازگشت نیست.";
-"This removes all incoming messages locally and in iCloud, then re-syncs them from the blockchain. Your account info and sent messages are preserved." = "این کار تمام پیام‌های ورودی را به صورت محلی و در iCloud حذف می‌کند، سپس آن‌ها را از بلاکچین دوباره همگام‌سازی می‌کند. اطلاعات حساب و پیام‌های ارسالی شما حفظ می‌شوند.";
 "This removes discovered nodes, disconnects current sessions, and restarts discovery." = "این کار گره‌های کشف‌شده را حذف، جلسات فعلی را قطع و کشف را دوباره شروع می‌کند.";
-"This removes local account data and messages. CloudKit sync is disabled during the wipe and re-enabled afterward." = "این کار داده‌های محلی حساب و پیام‌ها را حذف می‌کند. همگام‌سازی CloudKit در حین پاک‌سازی غیرفعال و پس از آن دوباره فعال می‌شود.";
 "This removes the group and its messages from this device. This cannot be undone, and other members won't be notified." = "این گروه و پیام‌های آن را از این دستگاه حذف می‌کند. این قابل بازگشت نیست و سایر اعضا مطلع نخواهند شد.";
-"This signs out of your account, but keeps local wallet and message data on this device." = "این کار از حسابتان خارج می‌شود، اما داده‌های محلی کیف پول و پیام‌ها را در این دستگاه نگه می‌دارد.";
-"This will permanently delete your account from this device. Make sure you have backed up your 12 or 24 words." = "این کار حساب شما را برای همیشه از این دستگاه حذف می‌کند. مطمئن شوید از ۱۲ یا ۲۴ کلمه خود نسخه پشتیبان دارید.";
-"To (Primary Address)" = "به (آدرس اصلی)";
-"To chat with someone, press Create Chat and enter their Kaspa address or KNS domain. If you send a message, they will not see it unless you send a handshake first, or you both decide to message each other around the same time - doing the latter increases your privacy." = "برای گفتگو با کسی، روی ایجاد گفتگو ضربه بزنید و آدرس Kaspa یا دامنه KNS او را وارد کنید. اگر پیامی ارسال کنید، او آن را نخواهد دید مگر اینکه ابتدا یک دست‌دهی (handshake) ارسال کنید، یا هر دوی شما تقریباً همزمان تصمیم بگیرید به یکدیگر پیام دهید - گزینه دوم حریم خصوصی شما را افزایش می‌دهد.";
 "To receive notifications, please enable them in Settings." = "برای دریافت اعلان‌ها، لطفا آن‌ها را در تنظیمات فعال کنید.";
 "Total" = "کل";
 "Total Balance" = "موجودی کل";
-"Transaction Sent" = "تراکنش ارسال شد";
-"Transfer %@" = "انتقال %@";
-"Transfer Domain" = "انتقال دامنه";
-"Transfer Your Domain" = "دامنه خود را منتقل کنید";
 "Transfer submitted for %@." = "انتقال برای %@ ارسال شد.";
-"Transfer your domain to this address so that your identity is connected to KaChat." = "دامنه خود را به این آدرس منتقل کنید تا هویت شما به KaChat متصل شود.";
 "Try Again" = "تلاش مجدد";
-"Unarchive" = "خارج کردن از بایگانی";
 "Unhide" = "لغو پنهان‌سازی";
-"Unlink" = "حذف پیوند";
-"Unread" = "خوانده‌نشده";
 "Updated %d/%d. Failed: %@." = "به روز شد %d/%d. ناموفق: %@.";
 "Updated %d/%d. Failed: %@. %@" = "به روز شد %d/%d. ناموفق: %@. %@";
 "Updating %@ (%d/%d)..." = "در حال به روز رسانی %@ (%d/%d)...";
 "Uploading avatar..." = "در حال آپلود آواتار...";
 "Uploading banner..." = "در حال آپلود بنر...";
 "Use Default" = "استفاده از پیش‌فرض";
-"Use lowercase letters, numbers, and hyphen." = "از حروف کوچک، اعداد و خط فاصله استفاده کنید.";
-"Used only for push registration and updates" = "فقط برای ثبت اعلان‌ها و به‌روزرسانی‌ها استفاده می‌شود";
-"Used when a contact has no custom notification mode set." = "زمانی استفاده می‌شود که مخاطب حالت اعلان سفارشی تنظیم نکرده باشد.";
-"Uses your device contacts to match and enrich Kaspa contacts." = "از مخاطبین دستگاه شما برای تطبیق و غنی‌سازی مخاطبین Kaspa استفاده می‌کند.";
 "Verified" = "تایید شده";
-"Verified Nodes" = "گره‌های تایید شده";
-"Verifying device..." = "در حال تایید دستگاه...";
 "Version" = "نسخه";
 "Vibration" = "لرزش";
 "View Profile" = "مشاهده نمایه";
@@ -529,38 +305,14 @@
 "View 12 or 24 Words" = "مشاهده ۱۲ یا ۲۴ کلمه";
 "View in Explorer" = "مشاهده در کاوشگر";
 "Voice message" = "پیام صوتی";
-"Walk through setting up your domain, banner, avatar, and details step by step." = "شما را گام‌به‌گام در راه‌اندازی دامنه، بنر، آواتار و جزئیات خود راهنمایی می‌کند.";
-"Wallet not available" = "کیف پول در دسترس نیست";
 "Wallet not available." = "کیف پول در دسترس نیست";
-"Watching" = "در حال نظارت";
 "Website" = "وب‌سایت";
 "Welcome Guide" = "راهنمای خوش‌آمدگویی";
 "Welcome to KaChat" = "به KaChat خوش آمدید";
-"Welcome to KaChat!" = "به KaChat خوش آمدید!";
-"When disabled, messages from this contact will be fetched periodically instead of in real-time. Use this for contacts with high transaction volume to save battery and network usage." = "هنگام غیرفعال بودن، پیام‌های این مخاطب به صورت دوره‌ای به جای آنی دریافت می‌شوند. از این گزینه برای مخاطبین با حجم تراکنش بالا برای صرفه‌جویی در باتری و مصرف شبکه استفاده کنید.";
-"When on, you'll only get notified about messages that @mention you - other messages still show up in the chat, just silently." = "وقتی روشن باشد، فقط از پیام‌هایی که شما را با @ ذکر می‌کنند مطلع خواهید شد - پیام‌های دیگر همچنان در گفتگو نمایش داده می‌شوند، فقط بی‌صدا.";
-"When you message someone new on KaChat, they won’t get a notification and your message stays hidden until they message you back or add as well. This protects against spam and increases your privacy. If you want them to be notified, click the hand icon to send a request to communicate which will cost 0.2 KAS. (Note: all non KaChat messaging apps will require a request to communicate)" = "وقتی به شخص جدیدی در KaChat پیام می‌دهید، او اعلانی دریافت نمی‌کند و پیام شما پنهان می‌ماند تا زمانی که به شما پاسخ دهد یا شما را نیز اضافه کند. این از هرزنامه محافظت کرده و حریم خصوصی شما را افزایش می‌دهد. اگر می‌خواهید او مطلع شود، روی آیکون دست ضربه بزنید تا درخواست ارتباطی ارسال کنید که 0.2 KAS هزینه دارد. (توجه: تمام برنامه‌های پیام‌رسانی غیر از KaChat به درخواست ارتباط نیاز خواهند داشت)";
-"When you message someone new on KaChat, they won’t get a notification and your message stays hidden until they message you back or add as well. This protects against spam and increases your privacy. If you want them to be notified, hold the send button and slide up to request to communicate. This will cost 0.2 KAS. (Note: all non KaChat messaging apps will require a request to communicate)" = "وقتی در KaChat به کسی برای اولین بار پیام می‌دهید، او اعلانی دریافت نمی‌کند و پیام شما پنهان می‌ماند تا زمانی که او هم به شما پیام دهد یا شما را اضافه کند. این کار از هرزنامه جلوگیری می‌کند و حریم خصوصی شما را افزایش می‌دهد. اگر می‌خواهید به او اطلاع داده شود، دکمه ارسال را نگه دارید و به بالا بکشید تا درخواست ارتباط بدهید. هزینه این کار 0.2 KAS است. (توجه: تمام برنامه‌های پیام‌رسان غیر از KaChat نیاز به درخواست ارتباط خواهند داشت)";
-"Wipe Account & Messages" = "پاک کردن حساب و پیام‌ها";
-"Wipe Incoming Messages" = "پاک کردن پیام‌های ورودی";
-"Wipe Local & iCloud Data" = "پاک کردن داده‌های محلی و iCloud";
-"Wipe account & messages" = "پاک کردن حساب و پیام‌ها";
-"Wipe account & messages & iCloud" = "پاک کردن حساب، پیام‌ها و iCloud";
 "Wipe and re-sync incoming messages" = "پاک کردن و همگام‌سازی مجدد پیام‌های ورودی";
-"Withdraw Kaspa" = "برداشت کاسپا";
-"Write Down Your Seed Phrase" = "عبارت بازیابی خود را یادداشت کنید";
 "X handle" = "دسته X";
-"You have now finished your KNS profile creation!" = "شما اکنون ایجاد نمایه KNS خود را به پایان رساندید!";
-"You will be shown a seed phrase. This is the only way to recover your account. Write it down and store it securely." = "یک عبارت بازیابی به شما نمایش داده می‌شود. این تنها راه بازیابی حسابتان است. آن را یادداشت کرده و به صورت امن نگهداری کنید.";
-"Your public messaging identity. Fund it with a small amount to pay message fees and KNS profile creation fees - never send money here that you intend to spend." = "هویت پیام‌رسانی عمومی شما. آن را با مبلغ کمی شارژ کنید تا کارمزد پیام‌ها و کارمزد ایجاد نمایه KNS پرداخت شود - هرگز پولی که قصد خرج کردنش را دارید به اینجا ارسال نکنید.";
-"available: %@ KAS" = "موجودی در دسترس: %@ KAS";
-"fee: %@ sompi" = "کارمزد: %@ sompi";
 "fee: -- KAS" = "کارمزد: -- KAS";
-"fee: -- sompi" = "کارمزد: -- sompi";
-"fee: ---- sompi" = "کارمزد: ---- sompi";
 "fee: -------- KAS" = "کارمزد: -------- KAS";
-"kachat.kas" = "kachat.kas";
-"kaspa:... or alice.kas" = "kaspa:... یا alice.kas";
 "kaspasilver@gmail.com" = "kaspasilver@gmail.com";
 "name" = "نام";
 "–" = "–";
@@ -568,23 +320,16 @@
 "♟️" = "♟️";
 
 /* Message actions: translation (public chats), User Info share */
-"Translate" = "ترجمه";
-"Show Original" = "نمایش متن اصلی";
-"Show Translation" = "نمایش ترجمه";
 "Share" = "اشتراک‌گذاری";
-"Back to the text as it was sent." = "بازگشت به متن همان‌طور که فرستاده شد.";
-"The translated text again." = "دوباره متن ترجمه‌شده.";
 
 /* 5.2: name services, .kachat, Connection Settings, testnet */
 "Kaspa Address or Domain" = "آدرس Kaspa یا دامنه";
 "Looking up domain..." = "در حال یافتن دامنه...";
-"No domain found" = "دامنه‌ای پیدا نشد";
 "No %@ domain found" = "دامنه %@ پیدا نشد";
 "No domain" = "بدون دامنه";
 "Other domains" = "دامنه‌های دیگر";
 "Couldn't check" = "بررسی ممکن نشد";
 "Edit KaChat Profile" = "ویرایش نمایه KaChat";
-".kachat names are coming. Once you claim one, your avatar, banner, bio and links are set here - and they're what KaChat shows for you everywhere." = "نام‌های .kachat به‌زودی می‌آیند. وقتی یکی بگیرید، آواتار، بنر، معرفی و پیوندهایتان را اینجا تنظیم می‌کنید - و KaChat همه‌جا همین را از شما نشان می‌دهد.";
 "None yet" = "هنوز ندارد";
 ".kachat Name" = "نام .kachat";
 "Customize Profile" = "سفارشی‌سازی نمایه";
@@ -593,34 +338,17 @@
 "Settling" = "در حال تأیید";
 "Node" = "گره";
 "Message Indexer" = "نمایه‌ساز پیام";
-"Other Name Services" = "سرویس‌های نام دیگر";
-"Used to show the .k and .kaspa names an address owns. KaChat's own .kachat names will be set here once they launch." = "برای نمایش نام‌های .k و .kaspa که یک آدرس دارد به کار می‌رود. نام‌های .kachat خود KaChat پس از راه‌اندازی اینجا تنظیم می‌شوند.";
 "Coming soon" = "به‌زودی";
 "Not available on this network" = "در این شبکه در دسترس نیست";
-"No testnet indexer yet" = "هنوز نمایه‌ساز تست‌نت وجود ندارد";
 "Testnet" = "تست‌نت";
-"Testnet is for testing only - testnet KAS has no value. On testnet your account uses its kaspatest: address, with its own balance and chats, and Connection Settings holds testnet values: the testnet explorer, automatic node discovery, and no KaChat indexers until testnet ones exist. Turning it off brings your mainnet settings back." = "تست‌نت فقط برای آزمایش است - KAS تست‌نت ارزشی ندارد. در تست‌نت حساب شما از آدرس kaspatest: با موجودی و گفتگوهای جداگانه استفاده می‌کند و تنظیمات اتصال مقادیر تست‌نت را دارد: کاوشگر تست‌نت، کشف خودکار گره و بدون نمایه‌ساز KaChat تا زمانی که برای تست‌نت ساخته شود. خاموش کردن آن تنظیمات شبکه اصلی را برمی‌گرداند.";
 "Close KaChat completely and open it again to finish switching to Testnet." = "برای تکمیل تغییر به تست‌نت، KaChat را کاملاً ببندید و دوباره باز کنید.";
 "Close KaChat completely and open it again to finish switching back to Mainnet." = "برای تکمیل بازگشت به شبکه اصلی، KaChat را کاملاً ببندید و دوباره باز کنید.";
-"Automatic Scan discovers and connects to the best available nodes. Choosing a specific node connects only to it, without falling back to others. Doesn't affect the indexers, domains or explorer on the other tabs. Add custom addresses to the IP Address Book below to select them here." = "اسکن خودکار بهترین گره‌های موجود را پیدا کرده و به آن‌ها وصل می‌شود. انتخاب یک گره مشخص فقط به همان وصل می‌شود و به گره دیگری نمی‌رود. روی نمایه‌سازها، دامنه‌ها یا کاوشگر در زبانه‌های دیگر اثری ندارد. برای انتخاب در اینجا، آدرس‌های خود را به دفترچه آدرس IP زیر اضافه کنید.";
 
 /* 5.2: Kaspa Hub > .kachat marketplace */
-"Activity" = "فعالیت";
 
 /* 5.2: range and section labels */
-"All-time only" = "فقط کل زمان";
-"Kinds marked \"All-time only\" aren't in this total yet." = "انواعی که «فقط کل زمان» دارند هنوز در این مجموع نیستند.";
 
 /* 5.2: .kachat setup guide */
-"Add a profile photo" = "عکس نمایه اضافه کنید";
-"Your avatar shows next to your name everywhere in KaChat." = "آواتار شما در همه جای KaChat کنار نامتان نمایش داده می‌شود.";
-"Add a banner" = "بنر اضافه کنید";
-"A wide image across the top of your profile." = "تصویری عریض در بالای نمایه شما.";
-"Tell people about you" = "درباره خودتان بگویید";
-"A short bio and your links. All of it is optional." = "یک بیوگرافی کوتاه و پیوندهایتان. همه اختیاری است.";
-"That's the whole setup" = "راه‌اندازی همین بود";
-".kachat names are coming soon. When they launch, this guide claims your name and saves your profile in one go." = "نام‌های ‎.kachat به‌زودی می‌آیند. پس از راه‌اندازی، این راهنما نام شما را می‌گیرد و نمایه‌تان را یکجا ذخیره می‌کند.";
-".kachat Profile Setup Guide" = "راهنمای راه‌اندازی نمایه ‎.kachat";
 "The full first-run tour: wallet, chats, payments and more." = "معرفی کامل شروع کار: کیف پول، گفتگوها، پرداخت‌ها و بیشتر.";
 "Previous" = "قبلی";
 "Email" = "ایمیل";
@@ -644,12 +372,10 @@
 /* 5.2: an address's .kachat Domains tab */
 
 /* 5.2: move a portfolio transaction */
-"Moved to %@." = "به %@ منتقل شد.";
 
 /* 5.2: Portfolio realized P&L, fees, chatting address */
 
 /* Day labels (message times, date dividers) */
-"Today" = "امروز";
 "Yesterday" = "دیروز";
 
 /* 5.2: Portfolio transfers */
@@ -657,15 +383,11 @@
 /* Receive / chatting address QR text */
 
 /* 5.2: name discovery across services */
-"If these words already hold your identity at a different address - a domain (.kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "اگر این کلمات از قبل هویت شما را در آدرس دیگری دارند (دامنه ‎.kas، ‎.k یا ‎.kaspa یا موجودی گفتگو)، آن را اینجا انتخاب کنید. فقط آدرس‌های دارای موجودی یا دامنه نمایش داده می‌شوند.";
 ".k and .kaspa Names (%lld)" = "نام‌های .k و .kaspa (%lld)";
 
 /* 5.2: Message Requests, Private chats */
 "Message Requests" = "درخواست‌های پیام";
-"People who wrote to you first" = "کسانی که اول به شما پیام دادند";
-"Open a request to read it. Accept to reply and move it to your chats; Reject deletes it and stops that address reaching you until you write to them." = "یک درخواست را باز کنید تا بخوانید. پذیرفتن برای پاسخ و انتقال به گفتگوها؛ رد کردن آن را حذف می‌کند و تا وقتی خودتان پیام ندهید، آن نشانی نمی‌تواند به شما پیام دهد.";
 "No message requests" = "درخواست پیامی نیست";
-"%@ wants to chat. Accept to reply - nothing is sent until you write back." = "%@ می‌خواهد گفتگو کند. برای پاسخ بپذیرید - تا وقتی پاسخ ندهید چیزی ارسال نمی‌شود.";
 "Reject" = "رد کردن";
 "Reject this request?" = "این درخواست رد شود؟";
 "Their messages are deleted from this device, and this address can't reach you again until you write to them." = "پیام‌هایش از این دستگاه حذف می‌شود و این نشانی تا وقتی خودتان پیام ندهید نمی‌تواند دوباره به شما پیام دهد.";
@@ -678,88 +400,45 @@
 "No new requests" = "درخواست جدیدی نیست";
 
 /* Welcome Guide: .kachat and Message Requests */
-"To chat with someone, press Create Chat and enter their Kaspa address or .kachat name. Your first message reaches them as a Message Request they can accept. For the most privacy, turn on Private Chat: nothing links you on chain, and they see your messages once they start a private chat with you too." = "برای گفتگو با کسی، روی ایجاد گفتگو بزنید و نشانی Kaspa یا نام ‎.kachat او را وارد کنید. اولین پیام شما به‌صورت درخواست پیامی به او می‌رسد که می‌تواند بپذیرد. برای بیشترین حریم خصوصی، گفتگوی خصوصی را روشن کنید: روی زنجیره چیزی شما را به هم مرتبط نمی‌کند و او وقتی با شما گفتگوی خصوصی شروع کند پیام‌هایتان را می‌بیند.";
 "50 Kaspa is recommended to get started - enough to claim a .kachat name and chat for a while. 5 Kaspa is enough for about 2500 messages." = "برای شروع ۵۰ Kaspa توصیه می‌شود - کافی برای گرفتن یک نام ‎.kachat و مدتی گفتگو. ۵ Kaspa برای حدود ۲۵۰۰ پیام کافی است.";
-"Your public messaging identity. Fund it with a small amount to pay message fees and for your .kachat name - never send money here that you intend to spend." = "هویت عمومی پیام‌رسانی شما. مبلغ کمی واریز کنید تا کارمزد پیام‌ها و نام ‎.kachat شما پرداخت شود - هرگز پولی را که قصد خرج کردنش را دارید به اینجا نفرستید.";
 "Nextcloud is off while Testnet is on." = "تا وقتی شبکه آزمایشی روشن است، Nextcloud خاموش است.";
-"Backups, sync, media and calls through Nextcloud work on mainnet only, so testnet can never overwrite your mainnet backup. Turn off Testnet in Settings > Connection and your Nextcloud connection comes back as it was." = "پشتیبان‌گیری، همگام‌سازی، رسانه و تماس از طریق Nextcloud فقط در شبکه اصلی کار می‌کند، تا شبکه آزمایشی هرگز نسخه پشتیبان شبکه اصلی شما را بازنویسی نکند. شبکه آزمایشی را در تنظیمات > اتصال خاموش کنید تا اتصال Nextcloud شما همان‌طور که بود برگردد.";
-"Live on Testnet: names, prices and payments here use TKAS on testnet-10. Mainnet names come after an audit." = "فعال در تست‌نت: نام‌ها، قیمت‌ها و پرداخت‌ها اینجا با TKAS روی testnet-10 هستند. نام‌های شبکهٔ اصلی پس از ممیزی می‌آیند.";
-"Live on Testnet (testnet-10 registry)" = "فعال در تست‌نت (رجیستری testnet-10)";
 "Cancelled." = "لغو شد.";
 "Confirm this .kachat transaction" = "تأیید این تراکنش .kachat";
-"Your balance" = "موجودی شما";
-"It shows here once the network accepts it, usually within seconds." = "وقتی شبکه آن را پذیرفت اینجا نمایش داده می‌شود، معمولاً ظرف چند ثانیه.";
-"Cost" = "هزینه";
-"Make %@ your primary name?" = "%@ نام اصلی شما شود؟";
 "Set as Primary" = "تنظیم به‌عنوان اصلی";
-"KaChat shows it as your name. It's saved in your profile record on chain, for a network fee." = "KaChat آن را به‌عنوان نام شما نشان می‌دهد. با پرداخت کارمزد شبکه در رکورد پروفایل شما روی زنجیره ذخیره می‌شود.";
 "You" = "شما";
-"Saved. Transaction %@" = "ذخیره شد. تراکنش %@";
 "To" = "به";
-"kaspatest:... or name.kachat" = "kaspatest:... یا name.kachat";
-"A testnet address, or a .kachat name - it's resolved to the address shown." = "یک نشانی تست‌نت یا یک نام .kachat - به نشانی نمایش‌داده‌شده تبدیل می‌شود.";
-"Enter an address or a .kachat name." = "یک نشانی یا نام .kachat وارد کنید.";
-"No active .kachat name by that name." = "نام .kachat فعالی با این نام نیست.";
-"Your profile belongs to your address, not to a name: it stays the same when you buy, sell or let a name go." = "پروفایل شما متعلق به نشانی شماست، نه یک نام: وقتی نامی را می‌خرید، می‌فروشید یا رها می‌کنید، تغییری نمی‌کند.";
-"https://... or ipfs://..." = "https://... یا ipfs://...";
-"Image links must start with https:// or ipfs://." = "پیوند تصویر باید با https:// یا ipfs:// شروع شود.";
 "GitHub" = "GitHub";
 "Telegram" = "تلگرام";
 "Discord" = "دیسکورد";
-"Nostr" = "Nostr";
 "X" = "X";
 "Links" = "پیوندها";
 "Primary name" = "نام اصلی";
 "None" = "هیچ";
-"KaChat shows you by your primary name while you own it and it's active; otherwise by your oldest active name, or your address." = "تا وقتی نام اصلی مال شما و فعال است، KaChat شما را با آن نشان می‌دهد؛ وگرنه با قدیمی‌ترین نام فعال یا نشانی‌تان.";
 "Save Profile" = "ذخیرهٔ پروفایل";
-"Saving writes your profile to the chain from your address to itself, for a network fee. Profiles are public." = "ذخیره، پروفایل شما را از نشانی‌تان به خودش روی زنجیره می‌نویسد، با کارمزد شبکه. پروفایل‌ها عمومی‌اند.";
-"Save your profile?" = "پروفایل ذخیره شود؟";
-"It's written to the chain for a network fee." = "با کارمزد شبکه روی زنجیره نوشته می‌شود.";
-"Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them. It's written for a network fee." = "پروفایل‌ها عمومی و روی زنجیره‌اند: هر کسی می‌تواند بخواند و نسخه‌های قبلی پس از تغییر هم خواندنی می‌مانند. با کارمزد شبکه نوشته می‌شود.";
-"No testnet wallet is open." = "هیچ کیف‌پول تست‌نتی باز نیست.";
 "This wallet's key does not match its address." = "کلید این کیف‌پول با نشانی‌اش جور نیست.";
-"Paste a profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite." = "پیوند یک نمایه از X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram یا LinkedIn، یا دعوت‌نامهٔ یک سرور Discord را جای‌گذاری کنید.";
-"Paste your profile link from X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram or LinkedIn, or a Discord server invite. KaChat shows the picture that platform shows, so its moderation applies here too." = "پیوند نمایهٔ خود از X, YouTube, Facebook, Instagram, TikTok, Twitch, Kick, GitHub, Telegram یا LinkedIn، یا دعوت‌نامهٔ یک سرور Discord را جای‌گذاری کنید. KaChat همان تصویری را نشان می‌دهد که آن پلتفرم نشان می‌دهد، پس نظارت آن اینجا هم اعمال می‌شود.";
-"Banners come from an X or YouTube profile link, or a Discord server invite." = "بنرها از پیوند نمایهٔ X یا YouTube، یا دعوت‌نامهٔ سرور Discord می‌آیند.";
-"Looking up the picture..." = "در حال یافتن تصویر...";
-"No picture found for this link." = "تصویری برای این پیوند پیدا نشد.";
-"No bio on this platform." = "این پلتفرم بیوگرافی ندارد.";
 "Looking up the profile..." = "در حال یافتن نمایه...";
-"Nothing found for this link." = "چیزی برای این پیوند پیدا نشد.";
-"Social Profile" = "نمایهٔ اجتماعی";
-"Your avatar, banner and bio come from this profile, exactly as that platform shows them, so its moderation applies here too. Banners come from X, YouTube and Discord; bios from X, YouTube, Telegram, Twitch, Kick, GitHub and Discord." = "آواتار، بنر و بیوگرافی شما از این نمایه می‌آیند، دقیقاً همان‌طور که آن پلتفرم نشان می‌دهد، پس نظارت آن اینجا هم اعمال می‌شود. بنرها از X، YouTube و Discord و بیوگرافی‌ها از X, YouTube, Telegram, Twitch, Kick, GitHub و Discord می‌آیند.";
-"Only a Linktree link (linktr.ee/yourname) can be added." = "فقط پیوند Linktree (linktr.ee/yourname) قابل افزودن است.";
-"Add your Linktree to point people to your other accounts and websites." = "Linktree خود را اضافه کنید تا دیگران را به حساب‌ها و وب‌سایت‌های دیگرتان راهنمایی کنید.";
 "From %@" = "از %@";
 "No avatar on this %@ profile." = "این نمایهٔ %@ آواتار ندارد.";
 "No banner on this %@ profile." = "این نمایهٔ %@ بنر ندارد.";
-"%@ doesn't share banners." = "%@ بنر را به اشتراک نمی‌گذارد.";
 "No bio on this %@ profile." = "این نمایهٔ %@ بیوگرافی ندارد.";
-"%@ doesn't share bios." = "%@ بیوگرافی را به اشتراک نمی‌گذارد.";
 "Retry" = "تلاش دوباره";
 "Couldn't reach %@." = "دسترسی به %@ ممکن نشد.";
 "Account on" = "حساب در";
 "handle" = "شناسه";
 "invite" = "دعوت‌نامه";
 "username" = "نام کاربری";
-"Each piece comes from a social profile you link, exactly as that platform shows it, so its moderation applies here too. You can use one account for all three, or mix them." = "هر بخش از یک نمایهٔ اجتماعی که پیوند می‌دهید می‌آید، دقیقاً همان‌طور که آن پلتفرم نشان می‌دهد، پس نظارت آن اینجا هم اعمال می‌شود. می‌توانید یک حساب برای هر سه استفاده کنید یا آن‌ها را ترکیب کنید.";
 "Enter your Linktree username: letters, numbers, dots, dashes or underscores." = "نام کاربری Linktree خود را وارد کنید: حروف، اعداد، نقطه، خط تیره یا زیرخط.";
 "That doesn't look like a handle on this platform." = "این شبیه شناسه‌ای در این پلتفرم نیست.";
 "Chatting address balance" = "موجودی آدرس گفتگو";
 "Balance after" = "موجودی پس از آن";
-"Balance change" = "تغییر موجودی";
 "Transaction sent" = "تراکنش ارسال شد";
-"Listed for sale" = "برای فروش گذاشته شد";
 "Profile saved" = "نمایه ذخیره شد";
 "Your Profile" = "نمایهٔ شما";
 "Linktree" = "Linktree";
 "Saved on chain from your chatting address to itself." = "روی زنجیره از آدرس گفتگوی شما به خودش ذخیره می‌شود.";
 "Profiles are public and on chain: anyone can read them, and earlier versions stay readable after you change them." = "نمایه‌ها عمومی و روی زنجیره هستند: هر کسی می‌تواند آن‌ها را بخواند و نسخه‌های قبلی پس از تغییر هم خواندنی می‌مانند.";
 "Setting up" = "در حال راه‌اندازی";
-"The .kachat registry on Testnet is being upgraded. Names open here again once the new registry is live." = "رجیستری .kachat در تست‌نت در حال ارتقاست. نام‌ها به محض فعال شدن رجیستری جدید دوباره اینجا باز می‌شوند.";
 ".kachat Names" = "نام‌های .kachat";
-"This name isn't registered right now." = "این نام در حال حاضر ثبت نشده است.";
 "This network has no push service yet." = "این شبکه هنوز سرویس اعلان فوری ندارد.";
 "Voice Message" = "پیام صوتی";
 "Back" = "بازگشت";
@@ -771,10 +450,8 @@
 "Pick an image and send it on chain, compressed to fit." = "تصویری انتخاب کنید و روی زنجیره بفرستید، فشرده‌شده تا جا شود.";
 "Up to 10 seconds, sent on chain." = "تا ۱۰ ثانیه، روی زنجیره ارسال می‌شود.";
 "Take Photo via Nextcloud" = "گرفتن عکس از طریق Nextcloud";
-"Send Photo via Nextcloud" = "ارسال عکس از طریق Nextcloud";
 "Record via Nextcloud" = "ضبط از طریق Nextcloud";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "کیفیت کامل یا ویدیو. در Nextcloud شما بارگذاری می‌شود و گفتگو پیوند را می‌برد.";
-"Full quality. Uploads to your Nextcloud; the chat carries the link." = "کیفیت کامل. در Nextcloud شما بارگذاری می‌شود و گفتگو پیوند را می‌برد.";
 "Up to 5 minutes. Uploads to your Nextcloud; the chat carries the link." = "تا ۵ دقیقه. در Nextcloud شما بارگذاری می‌شود و گفتگو پیوند را می‌برد.";
 "Send Kaspa to this contact." = "برای این مخاطب Kaspa بفرستید.";
 "Take a photo and send it." = "عکس بگیرید و بفرستید.";
@@ -784,8 +461,6 @@
 "Take a photo and send it to the group." = "عکس بگیرید و برای گروه بفرستید.";
 "Pick an image from your library and send it to the group." = "تصویری از کتابخانه‌تان انتخاب کنید و برای گروه بفرستید.";
 "Record a voice message and send it to the group." = "پیام صوتی ضبط کنید و برای گروه بفرستید.";
-"\"File\" in a chat's + menu opens this folder first." = "«فایل» در منوی + گفتگو ابتدا این پوشه را باز می‌کند.";
-"In a chat's + menu, Camera, Photo and Voice Message ask whether to send on chain or via Nextcloud. Via Nextcloud, the file uploads in full quality to this server's %@ folder and the chat carries a share link (voice messages up to 5 minutes). The message with the link stays end-to-end encrypted, but the file itself is stored unencrypted on your server and is reachable by anyone who has the unguessable link." = "در منوی + گفتگو، دوربین، عکس و پیام صوتی هر بار می‌پرسند که روی زنجیره ارسال شود یا از طریق Nextcloud. از طریق Nextcloud، فایل با کیفیت کامل در پوشه %@ این سرور بارگذاری می‌شود و گفتگو یک پیوند اشتراک‌گذاری می‌برد (پیام‌های صوتی تا ۵ دقیقه). پیامِ حاوی پیوند رمزگذاری سرتاسری می‌ماند، اما خود فایل بدون رمزگذاری روی سرور شما ذخیره می‌شود و هر کسی که پیوندِ غیرقابل‌حدس را داشته باشد به آن دسترسی دارد.";
 "to %@" = "به %@";
 "Add a memo (encrypted)" = "افزودن یادداشت (رمزگذاری‌شده)";
 "Switch between Kaspa and your currency" = "جابه‌جایی بین Kaspa و ارز شما";
@@ -798,14 +473,7 @@
 "New" = "جدید";
 "New Chat" = "گفتگوی جدید";
 "New Group Chat" = "گفتگوی گروهی جدید";
-"Fund Chatting Address" = "شارژ آدرس گفتگو";
 "Message someone by their address or name." = "با آدرس یا نام به کسی پیام دهید.";
-"Start an encrypted group with several people." = "یک گروه رمزگذاری‌شده با چند نفر بسازید.";
-"Show the QR code to add Kaspa for sending messages." = "کد QR را برای افزودن Kaspa جهت ارسال پیام نشان می‌دهد.";
-"Show a fresh address to get paid." = "یک آدرس تازه برای دریافت پول نشان می‌دهد.";
-"A fresh address, never used before. Kaspa sent here lands in this account and shows in your spending total. This address should be used for everything not related to chatting or domains." = "یک آدرس تازه که هرگز استفاده نشده است. Kaspa ارسال‌شده به اینجا وارد این حساب می‌شود و در موجودی قابل خرج شما نمایش داده می‌شود. از این آدرس برای هر چیزی که به گفتگو یا دامنه مربوط نیست استفاده کنید.";
-"This address should be for chatting and domains only. 1 Kaspa is enough for about 500 interactions in the app. Domains cost from 35 to 4,000 Kaspa, depending on the name." = "این آدرس فقط برای گفتگو و دامنه‌هاست. ۱ Kaspa برای حدود ۵۰۰ تعامل در برنامه کافی است. قیمت دامنه‌ها بسته به نام از ۳۵ تا ۴٬۰۰۰ Kaspa است.";
-"Profiles can be saved once .kachat launches on mainnet." = "پس از راه‌اندازی ‎.kachat روی شبکه اصلی می‌توانید پروفایل را ذخیره کنید.";
 "Pinned to the front" = "به ابتدا سنجاق شد";
 "Unpinned" = "سنجاق برداشته شد";
 "Coin Control" = "کنترل کوین";
@@ -817,9 +485,6 @@
 "Fast" = "سریع";
 "Priority" = "اولویت‌دار";
 "Resolved: %@" = "پیدا شد: %@";
-"Slide to Send" = "برای ارسال بکشید";
-"Slide to Consolidate" = "برای ادغام بکشید";
-"Send Kaspa from your spending address." = "از آدرس خرج خود Kaspa بفرستید.";
 "Spending address is unlocking — go back and try again." = "آدرس خرج در حال باز شدن است — برگردید و دوباره امتحان کنید.";
 "This address isn't in this wallet any more." = "این آدرس دیگر در این کیف پول نیست.";
 "Send From" = "ارسال از";
@@ -830,13 +495,11 @@
 "Keeps it first in the row above your chats." = "در ردیف بالای گفتگوهایتان اول می‌ماند.";
 "Hold for options" = "برای گزینه‌ها نگه دارید";
 "This address is on a different network than the app." = "این نشانی روی شبکه‌ای غیر از شبکهٔ برنامه است.";
-".kachat names aren't on mainnet yet. Your avatar, banner, bio and links save now; you can pick a primary name once names launch." = "نام‌های .kachat هنوز روی شبکهٔ اصلی نیستند. آواتار، بنر، بیوگرافی و پیوندهای شما همین حالا ذخیره می‌شوند؛ پس از راه‌اندازی نام‌ها می‌توانید نام اصلی را انتخاب کنید.";
 "Claim Testnet Kaspa" = "دریافت کاسپای تست‌نت";
 "Waiting for the faucet's payment..." = "در انتظار پرداخت فاست...";
 "Claimed. You can claim again in %@." = "دریافت شد. %@ دیگر می‌توانید دوباره دریافت کنید.";
 "Copies your chatting address and opens the TN10 faucet: paste it, pass the check and claim the most it offers." = "نشانی گفتگوی شما را کپی می‌کند و فاست TN10 را باز می‌کند: آن را بچسبانید، از بررسی عبور کنید و بیشترین مقدار را دریافت کنید.";
 "Your TN10 chatting address is copied. Paste it into the faucet's address field." = "نشانی گفتگوی TN10 شما کپی شد. آن را در کادر نشانی فاست بچسبانید.";
-"Expires in %@" = "%@ دیگر منقضی می‌شود";
 
 /* .kachat registry v3: prices from the price record, the period clock, declining offers */
 
@@ -864,21 +527,12 @@
 "Some links couldn't be checked from this phone right now. They're saved as entered, and people's apps load them when they can." = "برخی پیوندها همین حالا از این گوشی بررسی نشدند. همان‌طور که وارد شده‌اند ذخیره می‌شوند و برنامه‌های دیگران هر وقت بتوانند آن‌ها را بارگیری می‌کنند.";
 
 /* KaPosts tip sheet (Send Kaspa layout) */
-"Goes to a fresh private address they shared" = "به یک آدرس خصوصی تازه که به اشتراک گذاشته‌اند می‌رود";
-"Goes to their public chatting address" = "به آدرس عمومی گفتگوی آن‌ها می‌رود";
 
 /* Profile bell: .kachat news and public chats */
-"%@ has expired" = "%@ منقضی شد";
-"%@ KAS was paid to you." = "%@ KAS به شما پرداخت شد.";
-"%@ KAS offered for it." = "%@ KAS برای آن پیشنهاد شد.";
-"The owner declined it. The KAS is back with you." = "مالک آن را رد کرد. KAS به شما برگشت.";
-"Nobody accepted it in time. The KAS is back with you." = "کسی به‌موقع آن را نپذیرفت. KAS به شما برگشت.";
-"It can no longer be accepted. The KAS is back with you." = "دیگر قابل پذیرش نیست. KAS به شما برگشت.";
 
 /* .kachat hub tabs: Marketplace, Reclaimable, Activity */
 
 /* .kachat: Reclaim to Own */
-"Waiting for the old %@ to be cleared from the registry." = "در انتظار پاک شدن %@ قدیمی از رجیستری.";
 
 /* .kachat: a released or reclaimed name */
 
@@ -889,7 +543,6 @@
 /* Create Account: name step and seed length step */
 "Create a name for your wallet" = "یک نام برای کیف پول خود بسازید";
 "This name is only stored on this device, to tell your wallets apart. No one else will ever see it." = "این نام فقط روی همین دستگاه ذخیره می‌شود تا کیف پول‌هایتان را از هم تشخیص دهید. هیچ‌کس دیگری هرگز آن را نمی‌بیند.";
-"The next screen shows your 12 or 24 words. They are the only way to recover your account: write them down and store them securely, and make sure no one can see your screen." = "صفحه بعد ۱۲ یا ۲۴ کلمه شما را نشان می‌دهد. این تنها راه بازیابی حساب است: آن‌ها را بنویسید، در جای امن نگه دارید و مطمئن شوید کسی صفحه شما را نمی‌بیند.";
 
 /* Create Account: seed length step title */
 "Choose 12 or 24 words" = "۱۲ یا ۲۴ کلمه را انتخاب کنید";
@@ -904,17 +557,14 @@
 
 /* Onboarding: import length step and the seed phrase explainer */
 "How many words are you importing?" = "چند کلمه را وارد می‌کنید؟";
-"What is this?" = "این چیست؟";
 "What are my 12 or 24 words?" = "۱۲ یا ۲۴ کلمه من چیست؟";
 "Your 12 or 24 words are ordinary words that work as the master key to your account. Your wallet, your chatting address and your messages all come from them." = "۱۲ یا ۲۴ کلمه شما کلمات معمولی هستند که مانند کلید اصلی حسابتان عمل می‌کنند. کیف پول، آدرس گفتگو و پیام‌های شما همگی از آن‌ها می‌آیند.";
 "Anyone who has these words can take everything in your account. If you lose them and lose this device, nobody can get your account back, not even KaChat." = "هر کسی این کلمات را داشته باشد می‌تواند همه‌چیز حساب شما را بردارد. اگر آن‌ها را گم کنید و این دستگاه را هم از دست بدهید، هیچ‌کس نمی‌تواند حسابتان را برگرداند، حتی KaChat.";
 "Write the words on paper, in order, and keep them somewhere safe and private. Never type them into a website, send them in a chat, or keep them in a screenshot or cloud notes." = "کلمات را به ترتیب روی کاغذ بنویسید و در جایی امن و خصوصی نگه دارید. هرگز آن‌ها را در وب‌سایتی تایپ نکنید، در گفتگو نفرستید و در اسکرین‌شات یا یادداشت ابری نگه ندارید.";
-"12 words are already very secure. 24 words add even more protection." = "۱۲ کلمه همین حالا هم بسیار امن است. ۲۴ کلمه امنیت بیشتری اضافه می‌کند.";
 
 /* Onboarding: seed phrase explainer page headings */
 "Anyone with it can take everything" = "هر کس آن را داشته باشد همه‌چیز را می‌برد";
 "How to keep it safe" = "چگونه آن را امن نگه داریم";
-"12 or 24 words?" = "۱۲ یا ۲۴ کلمه؟";
 
 /* Onboarding: seed phrase explainer page, first heading */
 "The short version" = "به طور خلاصه";
@@ -925,7 +575,6 @@
 "Web Responses" = "پاسخ‌های وب";
 "Temporary Files" = "فایل‌های موقت";
 "Avatars, banners and bios of your profile and of the people you see. Loaded again when you next see them." = "آواتار، بنر و بیوی پروفایل شما و افرادی که می‌بینید. دفعه بعد که آن‌ها را ببینید دوباره بارگیری می‌شوند.";
-"Photos copied from your device address book. Re-read from Contacts." = "عکس‌های کپی‌شده از دفترچه نشانی دستگاه شما. دوباره از مخاطبان خوانده می‌شوند.";
 "Link previews and API responses held by the system's network cache." = "پیش‌نمایش پیوندها و پاسخ‌های API که در حافظه موقت شبکه سیستم نگه داشته شده‌اند.";
 "Scratch files from sending photos and voice notes. Safe to remove at any time." = "فایل‌های موقت ارسال عکس و پیام صوتی. حذف آن‌ها در هر زمان بی‌خطر است.";
 
@@ -936,40 +585,23 @@
 /* .kachat name screen: when an expired name's grace period ends */
 
 /* .kachat: names in grace keep resolving to their owner */
-"No .kachat name by that name." = "هیچ نام ‎.kachat‎ با این نام وجود ندارد.";
 
 /* Address Book (replaces syncing with the phone's Contacts) */
-"Address Book" = "دفترچه نشانی";
-"Addresses" = "آدرس‌ها";
 "Save a Kaspa address with a name you'll recognize." = "یک آدرس کسپا را با نامی که می‌شناسید ذخیره کنید.";
-"Add to Address Book" = "افزودن به دفترچه نشانی";
 "Search names and addresses" = "جستجوی نام‌ها و نشانی‌ها";
-"Save the Kaspa addresses you use with a name you'll recognize. They stay in KaChat, for this wallet only, and never go into your phone's Contacts." = "نشانی‌های Kaspa که استفاده می‌کنید را با نامی که می‌شناسید ذخیره کنید. آن‌ها در KaChat می‌مانند، فقط برای این کیف پول، و هرگز به مخاطبین گوشی شما نمی‌روند.";
 "Copied" = "کپی شد";
 "Share Address" = "اشتراک‌گذاری نشانی";
 "Edit" = "ویرایش";
-"Delete from Address Book" = "حذف از دفترچه نشانی";
-"Delete %@ from your Address Book?" = "%@ از دفترچه نشانی حذف شود؟";
-"Not in your Address Book" = "در دفترچه نشانی شما نیست";
 "Note (optional)" = "یادداشت (اختیاری)";
-"Saved in KaChat for this wallet only. Never added to your phone's Contacts." = "فقط برای این کیف پول در KaChat ذخیره می‌شود. هرگز به مخاطبین گوشی شما اضافه نمی‌شود.";
-"Remove from Address Book" = "برداشتن از دفترچه نشانی";
-"Edit Address" = "ویرایش نشانی";
 "Open a wallet first." = "ابتدا یک کیف پول باز کنید.";
 "Enter a name." = "یک نام وارد کنید.";
 "Enter a valid Kaspa address." = "یک نشانی معتبر Kaspa وارد کنید.";
-"Saved to Address Book." = "در دفترچه نشانی ذخیره شد.";
-"Removed from Address Book." = "از دفترچه نشانی برداشته شد.";
 
 /* Address Book photos */
 "Change Photo" = "تغییر عکس";
 "Remove Photo" = "حذف عکس";
 "Couldn't use that photo." = "نشد از آن عکس استفاده کرد.";
 "Without a photo of your own, this shows the avatar they set on their profile." = "بدون عکسی از خودتان، اینجا آواتاری نمایش داده می‌شود که آن شخص در نمایه‌اش گذاشته است.";
-"Address Book Photos" = "عکس‌های دفترچه نشانی";
-"Remove Address Book Photos" = "حذف عکس‌های دفترچه نشانی";
-"Remove Address Book Photos?" = "عکس‌های دفترچه نشانی حذف شوند؟";
-"Photos you assigned to saved addresses, for every wallet on this device. They're kept until you remove them, and they're included in your chat backup." = "عکس‌هایی که به نشانی‌های ذخیره‌شده داده‌اید، برای همه کیف پول‌های این دستگاه. تا وقتی حذفشان نکنید می‌مانند و در پشتیبان گفتگوهای شما هستند.";
 "Frees %@. Saved addresses keep their names; they show the avatar their owner set instead." = "%@ آزاد می‌شود. نشانی‌های ذخیره‌شده نامشان را نگه می‌دارند و به جای آن آواتاری را نشان می‌دهند که صاحبشان گذاشته است.";
 
 /* Chat row: Address Book tile */
@@ -979,31 +611,20 @@
 /* New Chat / New Group: Address Book picker */
 "Add (%lld)" = "افزودن (%lld)";
 "Add Members" = "افزودن اعضا";
-"Pick people from your Address Book, or add anyone by Kaspa address or domain." = "افراد را از دفترچه نشانی انتخاب کنید، یا هر کسی را با نشانی Kaspa یا دامنه اضافه کنید.";
 "Add people to the group. You control the membership as the group admin." = "افرادی را به گروه اضافه کنید. شما به‌عنوان مدیر گروه عضویت را کنترل می‌کنید.";
-"No members added yet. Add people from your Address Book or by address below." = "هنوز عضوی اضافه نشده. در پایین افراد را از دفترچه نشانی یا با نشانی اضافه کنید.";
 
 /* Address Book import / export */
-"Import or export" = "وارد یا صادر کردن";
-"Import or Export" = "وارد یا صادر کردن";
 "Import File" = "وارد کردن فایل";
 "Export File" = "صادر کردن فایل";
-"Add addresses from an Address Book export." = "نشانی‌ها را از یک فایل صادرشده دفترچه نشانی اضافه کنید.";
-"Save this Address Book, with its photos, to a file." = "این دفترچه نشانی را همراه عکس‌هایش در یک فایل ذخیره کنید.";
-"Pick an Address Book export from your Nextcloud." = "یک فایل صادرشده دفترچه نشانی را از Nextcloud انتخاب کنید.";
 "Save it to the KaChat folder in your Nextcloud, to import on any device." = "آن را در پوشه KaChat در Nextcloud ذخیره کنید تا روی هر دستگاهی وارد شود.";
 "Connect Nextcloud in Settings > Storage to also save it there and import it on another device." = "Nextcloud را در تنظیمات > فضای ذخیره‌سازی وصل کنید تا آنجا هم ذخیره و روی دستگاه دیگری وارد شود.";
 "Couldn't read that file." = "خواندن آن فایل ممکن نشد.";
 "Nothing to export yet. Add a contact first." = "هنوز چیزی برای خروجی گرفتن نیست. اول یک مخاطب اضافه کنید.";
-"Nothing to export yet. Add an address first." = "هنوز چیزی برای صادر کردن نیست. ابتدا یک نشانی اضافه کنید.";
 "Export failed. Couldn't write the file." = "صدور ناموفق بود. نوشتن فایل ممکن نشد.";
 "Already up to date. Every address in the file is saved." = "به‌روز است. همه نشانی‌های فایل ذخیره شده‌اند.";
 "Imported: %lld added, %lld updated." = "وارد شد: %lld افزوده، %lld به‌روزرسانی.";
-"That file isn't a KaChat Address Book export." = "آن فایل یک فایل صادرشده دفترچه نشانی KaChat نیست.";
-"That Address Book export has no addresses." = "این فایل صادرشده هیچ نشانی‌ای ندارد.";
 
 /* .kachat: fees, busy network, progress receipt */
-"Balance after: %@" = "موجودی پس از آن: %@";
 "Sent to the network" = "به شبکه ارسال شد";
 "In a block" = "در یک بلوک";
 "Updated in KaChat" = "در KaChat به‌روز شد";
@@ -1028,9 +649,7 @@
 "Finds addresses holding a balance or a domain." = "نشانی‌هایی را که موجودی یا دامنه دارند پیدا می‌کند.";
 "Their profile, .kachat name and address." = "نمایه، نام .kachat و نشانی او.";
 "KaChat Names Indexer URL" = "نشانی نمایه‌ساز نام‌های KaChat";
-"Where .kachat names and profiles are read. Point it at your own indexer if you run one. If it can't serve names, they are read straight from the chain. Resolved first, everywhere you can type an address." = "نام‌ها و نمایه‌های .kachat از اینجا خوانده می‌شوند. اگر نمایه‌ساز خودتان را اجرا می‌کنید، آن را اینجا وارد کنید. اگر نتواند نام‌ها را ارائه دهد، مستقیماً از زنجیره خوانده می‌شوند. هر جا بتوانید نشانی وارد کنید، اول این بررسی می‌شود.";
 "Other Domains" = "دامنه‌های دیگر";
-"Looked up after .kachat, and listed under Other domains when a typed name also exists there." = "بعد از .kachat جست‌وجو می‌شوند و اگر نام واردشده آنجا هم باشد، زیر «دامنه‌های دیگر» نمایش داده می‌شوند.";
 "If these words already hold your identity at a different address - a domain (.kachat, .kas, .k or .kaspa) or a funded chatting balance - pick it here. Only addresses with a balance or domains are shown." = "اگر این کلمات از قبل هویت شما را در آدرس دیگری دارند (دامنه ‎.kachat، ‎.kas، ‎.k یا ‎.kaspa یا موجودی گفتگو)، آن را اینجا انتخاب کنید. فقط آدرس‌های دارای موجودی یا دامنه نمایش داده می‌شوند.";
 ".kachat Names (%lld)" = "نام‌های .kachat (%lld)";
 ".kas Names (%lld)" = "نام‌های .kas (%lld)";
@@ -1038,8 +657,6 @@
 "Search contacts, or an address or domain" = "جست‌وجوی مخاطبان، نشانی یا دامنه";
 "You have no contacts yet. Paste an address or a domain above to invite someone." = "هنوز مخاطبی ندارید. برای دعوت از کسی، یک نشانی یا دامنه بالا بچسبانید.";
 "No contacts match your search. Paste an address or a domain to invite someone new." = "هیچ مخاطبی با جست‌وجوی شما مطابقت ندارد. برای دعوت از فردی تازه، یک نشانی یا دامنه بچسبانید.";
-"No domain found by that name." = "دامنه‌ای با این نام پیدا نشد.";
-"%lld of your .kachat domains expired" = "%lld دامنهٔ .kachat شما منقضی شده‌اند";
 
 /* Bare names resolve to .kachat only */
 ".kachat names aren't live on this network yet" = "نام‌های .kachat هنوز در این شبکه فعال نیستند";
@@ -1053,18 +670,12 @@
 /* .kachat on mainnet */
 "The .kachat registry is being upgraded. Names open here again once the new registry is live." = "رجیستری .kachat در حال ارتقاست. نام‌ها پس از راه‌اندازی رجیستری جدید دوباره اینجا باز می‌شوند.";
 "No wallet is open." = "هیچ کیف پولی باز نیست.";
-"Live on Mainnet" = "فعال در Mainnet";
 
 /* .kachat offers: refundable before the name expires (MAINNET.md C1) */
 
 /* .kachat: combining many small coins before a name transaction */
-"Not enough KAS on your chatting address for this." = "برای این کار KAS کافی در نشانی گفت‌وگوی شما نیست.";
 
 /* .kachat mainnet launch countdown */
-"Days" = "روز";
-"Hours" = "ساعت";
-"Minutes" = "دقیقه";
-"Seconds" = "ثانیه";
 
 /* Kaspa Hub > KaChat Bots */
 "Block Reward Tracker" = "ردیاب پاداش بلاک";
@@ -1089,23 +700,18 @@
 
 /* Payment requests: Chats > + > Request Payment, the request card and the pay screen */
 "Request Payment" = "درخواست پرداخت";
-"A link asking for an exact amount, with what it's for." = "پیوندی که مبلغی دقیق را با دلیلش درخواست می‌کند.";
 "Paid to" = "پرداخت به";
 "The payment lands in your chat with whoever pays, with the memo." = "پرداخت با یادداشت در گفتگوی شما با پرداخت‌کننده ثبت می‌شود.";
-"Paid to a fresh address of yours. The memo shows to whoever pays, but doesn't travel with the payment." = "به یک آدرس تازه شما پرداخت می‌شود. پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
 "What it's for (optional)" = "بابت چه (اختیاری)";
 "Copy Payment Request" = "کپی درخواست پرداخت";
-"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in." = "هر کس آن را در KaChat باز یا جای‌گذاری کند، صفحه ارسال Kaspa را با این جزئیات می‌بیند.";
 "Requested" = "درخواست‌شده";
 "Paid as a chat payment: it shows in your chat with them." = "به‌صورت پرداخت در گفتگو: در گفتگوی شما با او نمایش داده می‌شود.";
 "Paid to their spending address." = "به آدرس هزینه او پرداخت می‌شود.";
 "Payment Request" = "درخواست پرداخت";
 "Payment request: %@ KAS" = "درخواست پرداخت: %@ KAS";
-"Your payment request." = "درخواست پرداخت شما.";
 "Tap to pay." = "برای پرداخت ضربه بزنید.";
 
 /* Payment requests: who made it (signed by their chatting address) */
-"Anyone who opens or pastes it in KaChat gets Send Kaspa with this filled in, and sees it was made by your chatting address (signed with its key)." = "هر کس آن را در KaChat باز یا جای‌گذاری کند، صفحه ارسال Kaspa را پرشده می‌بیند و می‌فهمد که از آدرس گفتگوی شما ساخته شده است (با کلید آن امضا شده).";
 "Requested by" = "درخواست‌کننده";
 "Signed by their chatting address. The payment goes to the address above." = "با آدرس گفتگوی او امضا شده است. پرداخت به آدرس بالا می‌رود.";
 "Not signed: who made this request can't be confirmed." = "امضا نشده: سازنده این درخواست قابل تأیید نیست.";
@@ -1131,7 +737,6 @@
 /* Request Payment: Fresh Address / Choose an Address */
 "Fresh Address" = "آدرس تازه";
 "Choose an Address" = "انتخاب آدرس";
-"Paid to a brand-new address of yours, never used before and used for this request only. It's made when you copy, share or send the request. The memo shows to whoever pays, but doesn't travel with the payment." = "به یک آدرس کاملاً تازه شما پرداخت می‌شود که پیش‌تر استفاده نشده و فقط برای همین درخواست است. هنگام کپی، اشتراک یا ارسال درخواست ساخته می‌شود. پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
 "The memo shows to whoever pays, but doesn't travel with the payment." = "پرداخت‌کننده یادداشت را می‌بیند، اما همراه پرداخت ارسال نمی‌شود.";
 "Pick which of your addresses gets paid." = "انتخاب کنید کدام آدرس شما پرداخت را دریافت کند.";
 "Couldn't make a new address. Please try again." = "ساخت آدرس تازه ممکن نشد. دوباره تلاش کنید.";
@@ -1145,21 +750,14 @@
 "Checking" = "در حال بررسی";
 
 /* Chats > + > Send Kaspa: from any of your addresses (the From section) */
-"Send Kaspa from any of your addresses." = "از هر یک از آدرس‌هایتان Kaspa بفرستید.";
 
 /* Address Visibility: Hide All; setup guide: Your Addresses */
-"Your Addresses" = "آدرس‌های شما";
-"Your messaging identity. Messages and your .kachat name are paid from it, and every send starts from it unless you choose another address." = "هویت پیام‌رسانی شما. پیام‌ها و نام .kachat شما از آن پرداخت می‌شوند و هر ارسال از آن شروع می‌شود، مگر آدرس دیگری انتخاب کنید.";
-"More addresses of yours for sending and receiving Kaspa. Pick one under From on any send, or make a new one in Manage Addresses." = "آدرس‌های دیگر شما برای ارسال و دریافت Kaspa. در هر ارسال یکی را زیر «از» انتخاب کنید یا در مدیریت آدرس‌ها آدرس تازه بسازید.";
 "Hide All" = "پنهان کردن همه";
 "Hide All Addresses?" = "همه آدرس‌ها پنهان شوند؟";
 "Manage Addresses starts over with only your chatting address. Nothing is lost: bring any address back here, and its Kaspa still counts in your total." = "مدیریت آدرس‌ها فقط با آدرس گفتگوی شما از نو شروع می‌شود. چیزی از دست نمی‌رود: هر آدرسی را از اینجا برگردانید و Kaspa آن همچنان در جمع کل حساب می‌شود.";
 
 /* Setup guide: Your Chatting Address step */
 "Your Chatting Address" = "آدرس گفتگوی شما";
-"Your identity on KaChat, and yours alone. People message it, your .kachat name and profile live on it, and every message you send is paid from it. Everything it does is public on the Kaspa network and tied to you." = "هویت شما در KaChat، فقط از آنِ شما. دیگران به آن پیام می‌دهند، نام .kachat و پروفایل شما روی آن است و هزینه هر پیام از آن پرداخت می‌شود. هر کاری که انجام می‌دهد در شبکه Kaspa عمومی و به شما مرتبط است.";
-"Everything Else" = "همه چیز دیگر";
-"To protect your privacy, use your other addresses for all other activity on the Kaspa network. Receive Kaspa gives you a fresh one, and Manage Addresses lists them all." = "برای حفظ حریم خصوصی، برای هر فعالیت دیگری در شبکه Kaspa از آدرس‌های دیگرتان استفاده کنید. «دریافت Kaspa» یک آدرس تازه می‌دهد و «مدیریت آدرس‌ها» همه را نشان می‌دهد.";
 
 /* .kachat Names guide (claim, how it works, make it yours, keep it) */
 "You're all set" = "آماده‌اید";
@@ -1171,14 +769,11 @@
 
 /* .kachat marketplace: Buy From (the address the marketplace pays and buys with) */
 "Fund" = "شارژ";
-"Copy address" = "کپی آدرس";
 
 /* Address card: the address is one of this wallet's own (e.g. Your own address: Address #3) */
 "Your own address: %@" = "آدرس خودتان: %@";
 
 /* User Info: look the person's avatar, banner and bio up again now */
-"Rescan Profile" = "بررسی دوباره نمایه";
-"Profile rescanned." = "نمایه دوباره بررسی شد.";
 
 /* Chat payment From a spending address while the chatting address is empty (%@ = contact name) */
 "Your chatting address has no KAS to tell %@ about this payment, so they see it as a payment from an unknown address, without the memo. KaChat tells them once your chatting address has some KAS." = "آدرس گفتگوی شما KAS ندارد تا %@ را از این پرداخت باخبر کند، پس آن را پرداختی از یک آدرس ناشناس و بدون یادداشت می‌بیند. وقتی آدرس گفتگوی شما کمی KAS داشته باشد، KaChat به او خبر می‌دهد.";
@@ -1186,8 +781,6 @@
 /* Customize Dock (Brave-style list): the two dock picks above the card, Kaspa Hub below (%@ = Kaspa Hub) */
 
 /* Customize Dock: dock list (red minus) and Kaspa Hub list (green plus) */
-"In the order %@ shows them." = "به ترتیبی که %@ نشانشان می‌دهد.";
-"Move %@ to %@" = "انتقال %@ به %@";
 
 /* KaPosts: tip counter / tippers list, and the bell for a person's new posts (%@ = name) */
 
@@ -1208,7 +801,6 @@
 /* Edit KaChat Profile: Clear Profile */
 "Clear Profile" = "پاک کردن پروفایل";
 "Profile cleared" = "پروفایل پاک شد";
-"Clearing writes an empty profile to the chain from your address to itself, for a network fee, so KaChat shows nothing for your address again." = "پاک کردن یک پروفایل خالی را روی زنجیره از آدرس شما به خودش می‌نویسد، در ازای کارمزد شبکه، و از آن پس کاچت چیزی برای آدرس شما نشان نمی‌دهد.";
 
 /* KNS domain transfers and quantum-safe (script) addresses */
 "KNS can't move a domain out of a quantum-safe address: KNS identifies a domain's owner by a public key, and a quantum-safe address keeps its key hidden." = "KNS نمی‌تواند دامنه را از یک آدرس مقاوم در برابر کوانتوم خارج کند: KNS مالک دامنه را با یک کلید عمومی می‌شناسد و آدرس مقاوم در برابر کوانتوم کلیدش را پنهان نگه می‌دارد.";
@@ -1227,20 +819,10 @@
 "Up to 25 seconds, sent on chain." = "تا ۲۵ ثانیه، روی زنجیره ارسال می‌شود.";
 
 /* Chess leaderboard: this month / all time */
-"This month" = "این ماه";
-"All time" = "همه زمان‌ها";
-"Counted from %@." = "شمارش از %@.";
 
 /* KaPosts: post activity cards */
 
 /* Group Chats tab */
-"Groups" = "گروه‌ها";
-"Group Chats" = "گفتگوهای گروهی";
-"Search group chats" = "جستجوی گفتگوهای گروهی";
-"Select a group chat" = "یک گفتگوی گروهی را انتخاب کنید";
-"Choose a group on the left" = "یک گروه را در سمت چپ انتخاب کنید";
-"Keeps it first in your group chats." = "در گفتگوهای گروهی‌تان اول می‌ماند.";
-"Pinned" = "سنجاق‌شده";
 
 /* Nextcloud media waits in the composer while it uploads */
 "Uploading to Nextcloud…" = "در حال بارگذاری در Nextcloud…";
@@ -1267,10 +849,7 @@
 "Pin to Top Row" = "سنجاق در ردیف بالا";
 "Moves it into the row above your chats." = "آن را به ردیف بالای گفتگوهایتان می‌برد.";
 "Moves it back into your chats list." = "آن را به فهرست گفتگوهایتان برمی‌گرداند.";
-"Moves it into the row above your group chats." = "آن را به ردیف بالای گفتگوهای گروهی‌تان می‌برد.";
-"Moves it back into your group chats list." = "آن را به فهرست گفتگوهای گروهی‌تان برمی‌گرداند.";
 "Pinned to the top row" = "در ردیف بالا سنجاق شد";
-"Send and Receive" = "ارسال و دریافت";
 
 /* Send steps */
 "Who are you sending to?" = "برای چه کسی می‌فرستید؟";
@@ -1301,7 +880,6 @@
 "Removed from Contacts." = "از مخاطبان حذف شد.";
 "Remove Contact Photos" = "حذف عکس‌های مخاطبان";
 "Remove Contact Photos?" = "عکس‌های مخاطبان حذف شود؟";
-"Your contacts are in the same backup and sync between your devices the same way." = "مخاطبان شما در همان پشتیبان هستند و به همان شکل میان دستگاه‌هایتان همگام می‌شوند.";
 "Pick people from your contacts, or add anyone by Kaspa address or domain." = "افرادی را از مخاطبان خود انتخاب کنید یا هر کسی را با نشانی کاسپا یا دامنه اضافه کنید.";
 "No members added yet. Add people from your contacts or by address below." = "هنوز عضوی نیست. افراد را از مخاطبان یا با نشانی در پایین اضافه کنید.";
 "Add contacts from a contacts export." = "افزودن مخاطبان از یک فایل خروجی مخاطبان.";
@@ -1309,7 +887,6 @@
 "Pick a contacts export from your Nextcloud." = "یک فایل خروجی مخاطبان را از Nextcloud خود انتخاب کنید.";
 "Delete Contact" = "حذف مخاطب";
 "Not in your contacts" = "در مخاطبان شما نیست";
-"Remove from Contacts" = "حذف از مخاطبان";
 "Add them in Contacts." = "آن‌ها را در مخاطبان اضافه کنید.";
 "That file isn't a KaChat contacts export." = "این فایل خروجی مخاطبان KaChat نیست.";
 "That contacts export has no contacts." = "این خروجی مخاطبان هیچ مخاطبی ندارد.";
@@ -1342,19 +919,7 @@
 "%@ reacted to your message" = "%@ به پیام شما واکنش نشان داد";
 "%1$@ reacted %2$@ to a message" = "%1$@ به یک پیام %2$@ واکنش نشان داد";
 "%@ reacted to a message" = "%@ به یک پیام واکنش نشان داد";
-"Do you already have a domain?" = "آیا از قبل دامنه دارید؟";
-"A KNS domain is your name on Kaspa. If you own one already, you can bring it here instead of buying another." = "دامنه KNS نام شما روی Kaspa است. اگر از قبل یکی دارید، می‌توانید به جای خریدن دامنه‌ای دیگر، آن را به اینجا بیاورید.";
-"Yes, I have one" = "بله، دارم";
-"No, I need one" = "نه، به یکی نیاز دارم";
-"Which domain should this profile use?" = "این نمایه از کدام دامنه استفاده کند؟";
-"No domains on this address yet" = "هنوز دامنه‌ای روی این آدرس نیست";
-"Go back and use Refresh once the transfer lands." = "برگردید و پس از رسیدن انتقال، از «بازخوانی» استفاده کنید.";
-"Send your domain here" = "دامنه خود را اینجا بفرستید";
-"Transfer your domain to this address so your identity is connected to KaChat." = "دامنه خود را به این آدرس منتقل کنید تا هویت شما به KaChat وصل شود.";
-"No domains on this address yet." = "هنوز دامنه‌ای روی این آدرس نیست.";
-"%lld domain%@ found on this address." = "%lld دامنه%@ روی این آدرس پیدا شد.";
 "Checking..." = "در حال بررسی...";
-"Refresh" = "بازخوانی";
 "Couldn't Create Account" = "حساب ایجاد نشد";
 "App Settings" = "تنظیمات برنامه";
 "Account name" = "نام حساب";
@@ -1410,7 +975,6 @@
 "App password" = "گذرواژه برنامه";
 "Connect" = "اتصال";
 "The app password is removed from this device's Keychain. You can reconnect any time." = "گذرواژه برنامه از زنجیره کلید (Keychain) این دستگاه حذف می‌شود. هر زمان بخواهید می‌توانید دوباره وصل شوید.";
-"Restore" = "بازیابی";
 "Restore Complete" = "بازیابی کامل شد";
 "Restore Failed" = "بازیابی ناموفق بود";
 "Restoring Backup" = "در حال بازیابی نسخه پشتیبان";
@@ -1521,7 +1085,6 @@
 "%lld found so far" = "تا اینجا %lld مورد پیدا شد";
 "Close and Keep Scanning" = "بستن و ادامه اسکن";
 "Contains domain" = "شامل دامنه";
-"%lld separate transactions will be sent, one per address. Fast or Priority pays a higher fee to help them confirm sooner. Tap the fee amount to set a custom fee, applied to each." = "%lld تراکنش جداگانه ارسال می‌شود، یکی برای هر آدرس. «سریع» یا «اولویت‌دار» کارمزد بیشتری می‌پردازد تا تراکنش‌ها زودتر تأیید شوند. برای تعیین کارمزد دلخواه روی مبلغ کارمزد ضربه بزنید؛ این کارمزد برای هر تراکنش اعمال می‌شود.";
 "Tap anywhere to copy" = "برای کپی، هر جا ضربه بزنید";
 "Anyone with this address's private key can spend its funds. Never share it with anyone." = "هر کسی کلید خصوصی این آدرس را داشته باشد می‌تواند موجودی آن را خرج کند. هرگز آن را با کسی به اشتراک نگذارید.";
 "Tap to reveal private key" = "برای نمایش کلید خصوصی ضربه بزنید";
@@ -1760,7 +1323,6 @@
 "fee: %@ KAS" = "کارمزد: %@ KAS";
 "This permanently deletes every message in each selected chat from this device. This cannot be undone." = "این کار همه پیام‌های هر گفتگوی انتخاب‌شده را برای همیشه از این دستگاه حذف می‌کند. این کار قابل بازگشت نیست.";
 "Confirm sending Kaspa" = "تأیید ارسال Kaspa";
-"From:" = "از:";
 "Accepted your request to communicate" = "درخواست شما برای ارتباط را پذیرفت";
 "Sent you a message" = "برایتان پیام فرستاد";
 "[Payment]" = "[پرداخت]";
@@ -1771,7 +1333,6 @@
 "Group Invite" = "دعوت گروه";
 "Invited by %@" = "دعوت از طرف %@";
 "People and groups waiting for you" = "افراد و گروه‌ها منتظر شما هستند";
-"You're not in this group unless you accept. Rejecting removes the invite." = "تا نپذیرید عضو این گروه نیستید. با رد کردن، دعوت حذف می‌شود.";
 "Invited" = "دعوت‌شده";
 "Declined" = "رد کرد";
 "You're not in this group unless you accept. Your answer goes out as a small encrypted transaction, so the group and your other devices know." = "تا نپذیرید عضو این گروه نیستید. پاسخ شما به‌صورت یک تراکنش کوچک رمزگذاری‌شده ارسال می‌شود تا گروه و دستگاه‌های دیگرتان مطلع شوند.";
@@ -1806,3 +1367,146 @@
 "A post on KaPost" = "یک پست در KaPost";
 "Tap to open it in KaPost." = "برای باز کردن در KaPost ضربه بزنید.";
 "Shared a KaPost" = "یک پست KaPost را به اشتراک گذاشت";
+"Couldn't look up %@ right now. Try again in a moment." = "در حال حاضر جست‌وجوی %@ ممکن نیست. کمی بعد دوباره تلاش کنید.";
+
+/* Action sheets, toasts and progress text */
+"%@ freed. %@" = "%@ آزاد شد. %@";
+"1 | 1 Bullet" = "1 | 1 بولت";
+"2 | 1 Bullet" = "2 | 1 بولت";
+"3 | 2 Blitz" = "3 | 2 برق‌آسا";
+"Address %@ copied" = "آدرس %@ کپی شد";
+"Address hidden. Re-enable it in Address Visibility." = "آدرس پنهان شد. از بخش نمایان بودن آدرس دوباره فعالش کنید.";
+"Address removed." = "آدرس حذف شد.";
+"Asks to open an encrypted conversation." = "درخواست باز کردن یک گفتگوی رمزگذاری‌شده را می‌دهد.";
+"Calls stay off for this contact." = "تماس‌ها برای این مخاطب خاموش می‌مانند.";
+"Casual" = "دوستانه";
+"Changes the text. Everyone sees the new version." = "متن را تغییر می‌دهد. همه نسخه جدید را می‌بینند.";
+"Check off every address you want on the list, in one sitting." = "هر آدرسی را که در فهرست می‌خواهید یک‌جا علامت بزنید.";
+"Clear %@?" = "%@ پاک شود؟";
+"Clear All Cache?" = "همه حافظه پنهان پاک شود؟";
+"Clears the unread badge on this group." = "نشان خوانده‌نشده این گروه را پاک می‌کند.";
+"Close this and stay in the chat." = "این را ببندید و در گفتگو بمانید.";
+"Connecting for live updates" = "در حال اتصال برای به‌روزرسانی زنده";
+"Copies the address to your clipboard." = "آدرس را در کلیپ‌بورد کپی می‌کند.";
+"Copies the name to your clipboard." = "نام را در کلیپ‌بورد کپی می‌کند.";
+"Copies the text to your clipboard." = "متن را در کلیپ‌بورد کپی می‌کند.";
+"Copy their Kaspa address." = "آدرس Kaspa او را کپی کنید.";
+"Deletes this chat's messages from this device. The bot stays in the row." = "پیام‌های این گفتگو را از این دستگاه حذف می‌کند. ربات در ردیف می‌ماند.";
+"Downloading message history" = "در حال دانلود تاریخچه پیام‌ها";
+"Enable calls" = "فعال کردن تماس‌ها";
+"Failed to open archive: %@" = "باز کردن بایگانی ناموفق بود: %@";
+"Finding your conversations" = "در حال یافتن گفتگوهای شما";
+"Finished" = "تمام شد";
+"Finishing up..." = "در حال اتمام...";
+"Frees %@. Your messages, contacts and keys are not touched." = "%@ آزاد می‌کند. پیام‌ها، مخاطبان و کلیدهای شما دست‌نخورده می‌مانند.";
+"Full screen, for scanning with another device." = "تمام‌صفحه، برای اسکن با دستگاهی دیگر.";
+"Get notified for their messages again." = "دوباره برای پیام‌های او اعلان بگیرید.";
+"Gives this account a name of your own." = "به این حساب نامی به انتخاب خودتان می‌دهد.";
+"Gives this address a label of your own." = "به این آدرس برچسبی به انتخاب خودتان می‌دهد.";
+"Go on to calling this person." = "ادامه و تماس با این شخص.";
+"Hide Address" = "پنهان کردن آدرس";
+"Invite this contact to a game on chain." = "این مخاطب را به یک بازی روی زنجیره دعوت کنید.";
+"KaChat Link" = "پیوند KaChat";
+"Leave everything as it is." = "همه‌چیز را همان‌طور که هست بگذارید.";
+"Leave your messages as they are." = "پیام‌هایتان را همان‌طور که هستند بگذارید.";
+"Link" = "پیوند";
+"Loading saved messages" = "در حال بارگیری پیام‌های ذخیره‌شده";
+"Message them directly, one to one." = "مستقیم و خصوصی به او پیام بدهید.";
+"Moves it back into your chats." = "آن را به گفتگوهای شما برمی‌گرداند.";
+"Mute User" = "بی‌صدا کردن کاربر";
+"Nextcloud upload failed — sending on-chain instead" = "بارگذاری در Nextcloud ناموفق بود؛ به‌جای آن روی زنجیره ارسال می‌شود";
+"No notification from this chat, whatever your app-wide setting says." = "هیچ اعلانی از این گفتگو نمی‌آید، تنظیم کلی برنامه هرچه باشد.";
+"No notification from this group, mentions included." = "هیچ اعلانی از این گروه نمی‌آید، حتی برای اشاره‌ها.";
+"No timer." = "بدون زمان‌سنج.";
+"Node address copied." = "آدرس گره کپی شد.";
+"Not now" = "حالا نه";
+"Notifications from this chat resume." = "اعلان‌های این گفتگو از سر گرفته می‌شود.";
+"Notifications from this group resume, including mentions." = "اعلان‌های این گروه، از جمله اشاره‌ها، از سر گرفته می‌شود.";
+"One minute each, plus one second a move." = "هر نفر یک دقیقه، به‌علاوه یک ثانیه برای هر حرکت.";
+"Open in Explorer" = "باز کردن در کاوشگر";
+"Open in KaChat" = "باز کردن در KaChat";
+"Open in KaPost" = "باز کردن در KaPost";
+"Open your chat with them in payment mode." = "گفتگوی خود با او را در حالت پرداخت باز کنید.";
+"Opens in your browser." = "در مرورگر شما باز می‌شود.";
+"Opens it right here in the app." = "آن را همین‌جا در برنامه باز می‌کند.";
+"Opens the post in the KaPost app." = "پست را در برنامه KaPost باز می‌کند.";
+"Opens this address on your chosen block explorer." = "این آدرس را در کاوشگر بلاکی که انتخاب کرده‌اید باز می‌کند.";
+"Opens this transaction on the block explorer." = "این تراکنش را در کاوشگر بلاک باز می‌کند.";
+"Original message isn't on this device yet - fetching it." = "پیام اصلی هنوز روی این دستگاه نیست؛ در حال دریافت است.";
+"Original message not available." = "پیام اصلی در دسترس نیست.";
+"Pick several messages at once." = "چند پیام را یک‌جا انتخاب کنید.";
+"Pick which chats to wipe and re-sync. Everything else is left alone." = "انتخاب کنید کدام گفتگوها پاک و دوباره همگام شوند. بقیه دست‌نخورده می‌ماند.";
+"Preparing messages..." = "در حال آماده‌سازی پیام‌ها...";
+"Preparing..." = "در حال آماده‌سازی...";
+"Private key copied. Clipboard will clear in 30s." = "کلید خصوصی کپی شد. کلیپ‌بورد تا ۳۰ ثانیه دیگر پاک می‌شود.";
+"Public key copied" = "کلید عمومی کپی شد";
+"Puts the full address on the clipboard." = "آدرس کامل را در کلیپ‌بورد می‌گذارد.";
+"Puts the unread badge back so you come across it again." = "نشان خوانده‌نشده را برمی‌گرداند تا دوباره آن را ببینید.";
+"Quotes this message above your reply." = "این پیام را بالای پاسخ شما نقل می‌کند.";
+"Re-fetching handshakes..." = "در حال دریافت دوباره دست‌دادن‌ها...";
+"Re-fetching payments..." = "در حال دریافت دوباره پرداخت‌ها...";
+"Re-syncing... %lld of %lld chats" = "در حال همگام‌سازی مجدد... %lld از %lld گفتگو";
+"Reactions (%lld)" = "واکنش‌ها (%lld)";
+"Removed from address book. Still connected to this node." = "از دفترچه آدرس حذف شد. هنوز به این گره متصل است.";
+"Removes every incoming message locally, then re-syncs them from the blockchain. Sent messages and account info are kept." = "همه پیام‌های ورودی را به‌صورت محلی حذف می‌کند، سپس آن‌ها را از بلاک‌چین دوباره همگام می‌کند. پیام‌های ارسالی و اطلاعات حساب حفظ می‌شوند.";
+"Removes it from this list. Re-enable it in Address Visibility." = "آن را از این فهرست حذف می‌کند. از بخش نمایان بودن آدرس دوباره فعالش کنید.";
+"Removes this account and its data from this device." = "این حساب و داده‌هایش را از این دستگاه حذف می‌کند.";
+"Removes this account and its local data from this device." = "این حساب و داده‌های محلی‌اش را از این دستگاه حذف می‌کند.";
+"Removes this chat and its messages from this device." = "این گفتگو و پیام‌هایش را از این دستگاه حذف می‌کند.";
+"Removes this group and its messages from this device." = "این گروه و پیام‌هایش را از این دستگاه حذف می‌کند.";
+"Reply to this message instead." = "به‌جای آن به این پیام پاسخ دهید.";
+"Reveals the next unused address in this wallet." = "آدرس استفاده‌نشده بعدی این کیف پول را نشان می‌دهد.";
+"Rings them in KaChat; your Nextcloud carries the call." = "در KaChat برای او زنگ می‌زند؛ Nextcloud شما تماس را منتقل می‌کند.";
+"Same, with your camera on from the start." = "همین، با دوربین روشن از ابتدا.";
+"Saves or shares the recording as a file." = "ضبط را به‌صورت فایل ذخیره یا هم‌رسانی می‌کند.";
+"Select Chats..." = "انتخاب گفتگوها...";
+"Sends this message again." = "این پیام را دوباره می‌فرستد.";
+"Shared File" = "فایل هم‌رسانی‌شده";
+"Signs out of this account. Wallet and message data stay on this device." = "از این حساب خارج می‌شوید. داده‌های کیف پول و پیام‌ها روی این دستگاه می‌مانند.";
+"Silence" = "بی‌صدا کردن";
+"Start a group with the people you choose." = "با افرادی که انتخاب می‌کنید گروهی بسازید.";
+"Starting" = "در حال شروع";
+"Stay on voice" = "ماندن روی صدا";
+"Stop seeing their messages in this group. Undo it in Group Info." = "دیدن پیام‌های او در این گروه را متوقف کنید. در اطلاعات گروه می‌توانید برگردانید.";
+"Switch to video" = "رفتن به ویدیو";
+"The call carries on as it is, and they are told." = "تماس همان‌طور ادامه می‌یابد و به او اطلاع داده می‌شود.";
+"The key that spends this address. Never share it." = "کلیدی که از این آدرس خرج می‌کند. هرگز آن را هم‌رسانی نکنید.";
+"The passphrase shows too, if this account has one." = "اگر این حساب عبارت عبور داشته باشد، آن هم نشان داده می‌شود.";
+"The public half of this address, for anyone who asks for it." = "نیمه عمومی این آدرس، برای هر کسی که بخواهد.";
+"Their messages still show, but never notify you." = "پیام‌هایش همچنان نمایش داده می‌شوند، اما هرگز به شما اعلان نمی‌دهند.";
+"This address can't be hidden." = "این آدرس را نمی‌توان پنهان کرد.";
+"Three minutes each, plus two seconds a move." = "هر نفر سه دقیقه، به‌علاوه دو ثانیه برای هر حرکت.";
+"Two minutes each, plus one second a move." = "هر نفر دو دقیقه، به‌علاوه یک ثانیه برای هر حرکت.";
+"Unmute User" = "باصدا کردن کاربر";
+"Unsilence" = "باصدا کردن";
+"User hidden." = "کاربر پنهان شد.";
+"User muted." = "کاربر بی‌صدا شد.";
+"User unmuted." = "کاربر باصدا شد.";
+"Validating backup..." = "در حال بررسی نسخه پشتیبان...";
+"Video call" = "تماس تصویری";
+"View 12 or 24 Words and Passphrase" = "مشاهده ۱۲ یا ۲۴ کلمه و عبارت عبور";
+"View Private Key" = "مشاهده کلید خصوصی";
+"View Public Key" = "مشاهده کلید عمومی";
+"Voice call" = "تماس صوتی";
+"Who reacted, and with what." = "چه کسی و با چه چیزی واکنش نشان داده.";
+"Wiping incoming messages..." = "در حال پاک کردن پیام‌های ورودی...";
+"Write down your 12 or 24 words before you delete." = "پیش از حذف، ۱۲ یا ۲۴ کلمه خود را یادداشت کنید.";
+"Yes, All Chats" = "بله، همه گفتگوها";
+"Your camera turns on and the call moves to the speaker." = "دوربین شما روشن می‌شود و تماس به بلندگو می‌رود.";
+"Saves this for %@ and lets you call now." = "این را برای %@ ذخیره می‌کند و اجازه می‌دهد اکنون تماس بگیرید.";
+"Camera off" = "دوربین خاموش";
+"Address #%d is ready." = "آدرس شماره %d آماده است.";
+"Conversation declined" = "گفتگو رد شد";
+"Recents" = "اخیر";
+"Restoring messages... %d of %d conversations" = "بازیابی پیام‌ها... %d از %d گفتگو";
+"Deletes %@ (%@) and its local data from this device." = "%@ (%@) و داده‌های محلی آن را از این دستگاه حذف می‌کند.";
+"Passcode Required" = "رمز عبور لازم است";
+"Set a passcode on this iPhone (Settings > Face ID & Passcode) to send Kaspa, delete an account, or view secret keys in KaChat." = "برای ارسال Kaspa، حذف حساب یا مشاهده کلیدهای خصوصی در KaChat، روی این iPhone رمز عبور تنظیم کنید (تنظیمات > Face ID و رمز عبور).";
+"Waiting on opponent" = "در انتظار حریف";
+"Not sent: you switched accounts before this went out." = "ارسال نشد: پیش از ارسال حساب را عوض کردید.";
+"The first of two transactions went through, but the second didn't. KaChat will finish it the next time it opens." = "اولین تراکنش از دو تراکنش انجام شد، اما دومی نه. KaChat دفعه بعد که باز شود آن را کامل می‌کند.";
+"A domain transfer's fee can be at most 1 KAS." = "کارمزد انتقال دامنه حداکثر 1 KAS است.";
+"Confirm setting this primary name" = "تأیید تنظیم این نام اصلی";
+"This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "کلیدهای این حساب شاید هنوز روی این گوشی باشند، اما الان خوانده نمی‌شوند، بنابراین چیزی تغییر نکرد. کمی بعد دوباره تلاش کنید.";
+"Play It Again" = "دوباره بازی کن";
+"This is the public half of this address. It cannot spend anything." = "این نیمه عمومی این آدرس است و نمی‌تواند چیزی خرج کند.";

@@ -49,7 +49,6 @@ struct SharedOutboundShare: Codable {
     /// nil for shares queued by builds before this field.
     let walletAddress: String?
 
-    static let maxStoredItems = 50
     static let maxAgeMs: Int64 = 7 * 24 * 60 * 60 * 1000
 
     var hasSendableContent: Bool {

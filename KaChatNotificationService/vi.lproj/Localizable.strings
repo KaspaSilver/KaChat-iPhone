@@ -318,3 +318,8 @@
 "Sent you a payment" = "Đã gửi cho bạn một khoản thanh toán";
 "Requested for payment" = "Đã yêu cầu thanh toán";
 "You were invited to \"%@\"" = "Bạn được mời vào \"%@\"";
+
+/* Undecryptable group push */
+"Group chat" = "Trò chuyện nhóm";
+"Group update" = "Cập nhật nhóm";
+"New group message" = "Tin nhắn nhóm mới";

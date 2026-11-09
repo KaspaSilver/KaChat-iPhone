@@ -85,6 +85,10 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
     private var fallbackSession: URLSession!
     private let sessionLock = NSLock()
     private let requestQueue = IndexerRequestQueue(maxConcurrent: 5)
+    /// Whether the indexer is answering, and the history read in its place (see the end of
+    /// this class).
+    private let indexerHealth = IndexerHealth()
+    private let chainHistoryCache = ChainHistoryCache()
     private let http1Client = HTTP1Client()
     private let dpiState = DpiModeState()
     private let rootCheckMinInterval: TimeInterval = 20
@@ -280,43 +284,58 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
     // MARK: - Handshakes
 
     func getHandshakesBySender(address: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [HandshakeResponse] {
-        try await getPaginated(
-            endpoint: "/handshakes/by-sender",
-            params: ["address": address],
-            limit: limit,
-            startBlockTime: blockTime,
-            getBlockTime: { $0.blockTime }
-        )
+        try await fromIndexerOrChain {
+            try await getPaginated(
+                endpoint: "/handshakes/by-sender",
+                params: ["address": address],
+                limit: limit,
+                startBlockTime: blockTime,
+                getBlockTime: { $0.blockTime }
+            )
+        } chain: {
+            try await chainHandshakes(address: address, sent: true, since: blockTime)
+        }
     }
 
     func getHandshakesByReceiver(address: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [HandshakeResponse] {
-        try await getPaginated(
-            endpoint: "/handshakes/by-receiver",
-            params: ["address": address],
-            limit: limit,
-            startBlockTime: blockTime,
-            getBlockTime: { $0.blockTime }
-        )
+        try await fromIndexerOrChain {
+            try await getPaginated(
+                endpoint: "/handshakes/by-receiver",
+                params: ["address": address],
+                limit: limit,
+                startBlockTime: blockTime,
+                getBlockTime: { $0.blockTime }
+            )
+        } chain: {
+            try await chainHandshakes(address: address, sent: false, since: blockTime)
+        }
     }
 
     // MARK: - Contextual Messages
 
     func getContextualMessagesBySender(address: String, alias: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [ContextualMessageResponse] {
         let aliasHex = alias.data(using: .utf8)?.map { String(format: "%02x", $0) }.joined() ?? ""
-        return try await getPaginated(
-            endpoint: "/contextual-messages/by-sender",
-            params: ["address": address, "alias": aliasHex],
-            limit: limit,
-            startBlockTime: blockTime,
-            getBlockTime: { $0.blockTime }
-        )
+        return try await fromIndexerOrChain {
+            try await getPaginated(
+                endpoint: "/contextual-messages/by-sender",
+                params: ["address": address, "alias": aliasHex],
+                limit: limit,
+                startBlockTime: blockTime,
+                getBlockTime: { $0.blockTime }
+            )
+        } chain: {
+            try await chainContextualMessages(address: address, alias: alias, since: blockTime)
+        }
     }
 
     /// First-contact messages addressed to `tag` - a recipient's inbox tag (`InboxTag`) - newest
     /// after `blockTime`. Same objects as by-sender, with `sender` filled in
     /// (NO_HANDSHAKE_MESSAGING.md §5.3).
     func getContextualMessagesByInbox(tag: String, limit: Int = 100, blockTime: UInt64 = 0) async throws -> [ContextualMessageResponse] {
-        try await getPaginated(
+        // Only the indexer can look a tag up. While it's down, new ones arrive from the block
+        // stream instead (`ChatService.refreshInboxBlockScan`).
+        if await shouldSkipIndexer() { throw KasiaError.networkError("The indexer isn't answering") }
+        return try await getPaginated(
             endpoint: "/contextual-messages/by-inbox",
             params: ["tag": tag],
             limit: limit,
@@ -328,6 +347,7 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
     /// Whether the indexer answers inbox lookups: true on an answer, false on 404 (an indexer
     /// without the feature), nil when it couldn't be reached - unknown, so not worth caching.
     func probeInboxSupport() async -> Bool? {
+        if await shouldSkipIndexer() { return nil }
         do {
             let _: [ContextualMessageResponse] = try await get(
                 endpoint: "/contextual-messages/by-inbox",
@@ -350,7 +370,21 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
             "limit": String(limit),
             "block_time": String(blockTime)
         ]
-        return try await get(endpoint: "/payments/by-receiver", params: params)
+        return try await fromIndexerOrChain {
+            try await get(endpoint: "/payments/by-receiver", params: params)
+        } chain: {
+            try await chainPayments(receiver: address, since: blockTime)
+        }
+    }
+
+    /// The indexer's own row or nothing, never the chain's history: for a check whose point is
+    /// that the indexer is a source the REST server can't speak for (`indexerSender`).
+    func getPaymentsFromIndexerOnly(address: String, limit: Int = 50, blockTime: UInt64 = 0) async throws -> [PaymentResponse] {
+        if await shouldSkipIndexer() { throw KasiaError.networkError("The indexer isn't answering") }
+        return try await get(
+            endpoint: "/payments/by-receiver",
+            params: ["address": address, "limit": String(limit), "block_time": String(blockTime)]
+        )
     }
 
     // MARK: - Self Stash
@@ -363,15 +397,21 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
     func getSelfStashReportingEnd(owner: String, scope: String, limit: Int = 50, startBlockTime: UInt64 = 0) async throws -> (items: [SelfStashResponse], reachedEnd: Bool) {
         let scopeHex = scope.data(using: .utf8)?.map { String(format: "%02x", $0) }.joined() ?? ""
         var reachedEnd = false
-        let items: [SelfStashResponse] = try await getPaginated(
-            endpoint: "/self-stash/by-owner",
-            params: ["owner": owner, "scope": scopeHex],
-            limit: limit,
-            startBlockTime: startBlockTime,
-            maxPages: 200,
-            getBlockTime: { $0.blockTime },
-            reachedEnd: { reachedEnd = $0 }
-        )
+        let items: [SelfStashResponse] = try await fromIndexerOrChain {
+            try await getPaginated(
+                endpoint: "/self-stash/by-owner",
+                params: ["owner": owner, "scope": scopeHex],
+                limit: limit,
+                startBlockTime: startBlockTime,
+                maxPages: 200,
+                getBlockTime: { $0.blockTime },
+                reachedEnd: { reachedEnd = $0 }
+            )
+        } chain: {
+            // never reports the end: the read back from the chain stops at a page cap
+            reachedEnd = false
+            return try await chainSelfStash(owner: owner, scope: scope, since: startBlockTime)
+        }
         return (items, reachedEnd)
     }
 
@@ -496,6 +536,17 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
     /// without `get`'s HTTP/1.1 and fallback-session dance: the one caller is best-effort and
     /// falls back to `get` itself.
     private func postJSON<Body: Encodable, T: Decodable & Sendable>(endpoint: String, body: Body) async throws -> T {
+        do {
+            let result: T = try await postJSONToIndexer(endpoint: endpoint, body: body)
+            await noteIndexerResult(error: nil)
+            return result
+        } catch {
+            await noteIndexerResult(error: error)
+            throw error
+        }
+    }
+
+    private func postJSONToIndexer<Body: Encodable, T: Decodable & Sendable>(endpoint: String, body: Body) async throws -> T {
         guard hasIndexer else { throw KasiaAPIClientError.noIndexer }
         guard let url = URL(string: baseURL + endpoint) else {
             throw KasiaError.networkError("Invalid URL")
@@ -739,6 +790,17 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
     }
 
     private func get<T: Decodable & Sendable>(endpoint: String, params: [String: String]) async throws -> T {
+        do {
+            let result: T = try await getFromIndexer(endpoint: endpoint, params: params)
+            await noteIndexerResult(error: nil)
+            return result
+        } catch {
+            await noteIndexerResult(error: error)
+            throw error
+        }
+    }
+
+    private func getFromIndexer<T: Decodable & Sendable>(endpoint: String, params: [String: String]) async throws -> T {
         guard hasIndexer else { throw KasiaAPIClientError.noIndexer }
         var urlComponents = URLComponents(string: baseURL + endpoint)
         urlComponents?.queryItems = params.map { URLQueryItem(name: $0.key, value: $0.value) }
@@ -1001,6 +1063,270 @@ final class KasiaAPIClient: NSObject, URLSessionTaskDelegate {
             throw KasiaError.apiError("Server error")
         default:
             throw KasiaError.apiError("HTTP \(status)")
+        }
+    }
+
+    // MARK: - When the indexer is down
+
+    /// True while the indexer has stopped answering. Chats keep working from the node and the
+    /// Kaspa REST API meanwhile; see `fromIndexerOrChain`.
+    var isIndexerDown: Bool {
+        get async {
+            await endOutageIfIndexerChanged()
+            return await indexerHealth.isDown
+        }
+    }
+
+    /// For a caller about to read the indexer: true while it's down. Once a minute a single
+    /// cheap request goes out to find out whether it's back, so an outage never costs a real
+    /// sync run against a dead server.
+    func shouldSkipIndexer() async -> Bool {
+        guard await isIndexerDown else { return false }
+        if await indexerHealth.claimRecoveryCheck() {
+            Task { _ = try? await self.getMetrics() }
+        }
+        return true
+    }
+
+    /// A different indexer in Settings (or none) ends what was known about the old one.
+    private func endOutageIfIndexerChanged() async {
+        guard await indexerHealth.endOutageIfIndexerChanged(to: baseURL) else { return }
+        await MainActor.run {
+            NotificationCenter.default.post(name: .indexerAvailabilityChanged, object: nil, userInfo: ["down": false])
+        }
+    }
+
+    private enum IndexerOutcome { case answered, down, inconclusive }
+
+    private static func outcome(of error: Error) -> IndexerOutcome {
+        if error is CancellationError { return .inconclusive }
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            // the phone has no connection: that says nothing about the indexer
+            case .cancelled, .notConnectedToInternet, .dataNotAllowed: return .inconclusive
+            default: return .down
+            }
+        }
+        if error is HTTP1ClientError { return .down }
+        if let clientError = error as? KasiaAPIClientError {
+            switch clientError {
+            case .dpiPaginationExhausted: return .down
+            case .endpointUnsupported: return .answered
+            case .noIndexer: return .inconclusive
+            }
+        }
+        if let kasiaError = error as? KasiaError, case .apiError(let message) = kasiaError {
+            // A body it couldn't decode is still the indexer answering: one odd row isn't an outage.
+            if message == "Server error" || message.hasPrefix("Unexpected Content-Type") { return .down }
+            if message.hasPrefix("HTTP "), let code = Int(message.dropFirst(5)), code == 429 || code >= 500 { return .down }
+            return .answered
+        }
+        return .inconclusive
+    }
+
+    /// Every indexer request reports here. A change either way is announced, for what has its
+    /// own way of working without it (the block stream).
+    private func noteIndexerResult(error: Error?) async {
+        let info: [String: Any]
+        switch error.map(Self.outcome(of:)) ?? .answered {
+        case .answered:
+            guard let wentDownAt = await indexerHealth.recordAnswer() else { return }
+            info = ["down": false, "downSinceMs": UInt64(wentDownAt.timeIntervalSince1970 * 1000)]
+            AppLog.log("[KasiaAPI] Indexer is answering again")
+        case .down:
+            // a weak signal looks like a dead server: only an online phone's failures count
+            guard await networkIsOnline(), await indexerHealth.recordFailure() else { return }
+            info = ["down": true]
+            AppLog.log("[KasiaAPI] Indexer isn't answering: reading chats from the node and the Kaspa REST API")
+        case .inconclusive:
+            return
+        }
+        await MainActor.run {
+            NotificationCenter.default.post(name: .indexerAvailabilityChanged, object: nil, userInfo: info)
+        }
+    }
+
+    /// The indexer's answer or, once it's confirmed down, the same thing read from the chain's
+    /// history, so callers work the same either way. A one-off failure with the indexer up is
+    /// thrown as it always was, for the caller's own retry to ask the indexer again.
+    private func fromIndexerOrChain<T>(
+        _ indexer: () async throws -> T,
+        chain: () async throws -> T
+    ) async throws -> T {
+        if await shouldSkipIndexer() { return try await chain() }
+        do {
+            return try await indexer()
+        } catch {
+            guard Self.outcome(of: error) == .down, await indexerHealth.isDown else { throw error }
+            return try await chain()
+        }
+    }
+
+    // MARK: Reading history from the chain
+
+    private static let chainPageSize = 100
+    /// 2,000 transactions per address. A node keeps no history by address, so this is the Kaspa
+    /// REST API, newest first; past this a window is left to the indexer when it's back.
+    private static let chainMaxPages = 20
+
+    /// `address`'s accepted transactions since `since` (ms), oldest first. Shared for a moment,
+    /// since one sync asks about the same address several times over. Throws when the history
+    /// runs past the page cap before reaching `since`: a partial read would move the caller's
+    /// cursor past the part it never saw.
+    func chainTransactions(address: String, since: UInt64) async throws -> [ChainHistoryTx] {
+        let key = address.lowercased()
+        if let cached = await chainHistoryCache.fresh(key, since: since) {
+            return cached.filter { $0.blockTime >= since }
+        }
+        let base = AppSettings.load().kaspaRestAPIURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let root = base.hasSuffix("/") ? String(base.dropLast()) : base
+        var found: [ChainHistoryTx] = []
+        var reachedStart = false
+        for page in 0..<Self.chainMaxPages {
+            guard let delay = await chainHistoryCache.reserveRequestSlot() else {
+                throw KasiaError.networkError("The Kaspa REST API is busy")
+            }
+            if delay > 0 { try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
+            let offset = page * Self.chainPageSize
+            guard let url = URL(string: "\(root)/addresses/\(key)/full-transactions?limit=\(Self.chainPageSize)&offset=\(offset)&resolve_previous_outpoints=light&fields=transaction_id,is_accepted,payload,inputs,outputs,block_time") else {
+                throw KasiaError.networkError("Invalid URL")
+            }
+            let parsed: (transactions: [ChainHistoryTx], rows: Int) = try await requestQueue.enqueue { [self] in
+                let (data, response) = try await URLSession.shared.data(for: ChatService.timedRequest(url))
+                let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+                guard status == 200 else {
+                    if status == 429 || status >= 500 { await chainHistoryCache.backOff() }
+                    throw KasiaError.networkError("The Kaspa REST API answered \(status)")
+                }
+                return Self.parseChainRows(data)
+            }
+            found.append(contentsOf: parsed.transactions)
+            if parsed.rows < Self.chainPageSize || (since > 0 && parsed.transactions.contains { $0.blockTime < since }) {
+                reachedStart = true
+                break
+            }
+        }
+        guard reachedStart else { throw KasiaError.networkError("Too much history to read from the chain") }
+        let inOrder = found.sorted { ($0.blockTime, $0.txId) < ($1.blockTime, $1.txId) }
+        await chainHistoryCache.store(key, since: since, transactions: inOrder)
+        return inOrder.filter { $0.blockTime >= since }
+    }
+
+    private static func parseChainRows(_ data: Data) -> (transactions: [ChainHistoryTx], rows: Int) {
+        guard let rows = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] else { return ([], 0) }
+        func number(_ value: Any?) -> UInt64? {
+            if let n = value as? NSNumber { return n.uint64Value }
+            if let s = value as? String { return UInt64(s) }
+            return nil
+        }
+        let transactions = rows.compactMap { row -> ChainHistoryTx? in
+            if let accepted = row["is_accepted"] as? Bool, !accepted { return nil }
+            guard let txId = row["transaction_id"] as? String, let rawBlockTime = number(row["block_time"]) else { return nil }
+            let blockTime = min(rawBlockTime, UInt64(Int64.max))
+            let senders = ((row["inputs"] as? [[String: Any]]) ?? []).compactMap { ($0["previous_outpoint_address"] as? String)?.lowercased() }
+            let outputs = ((row["outputs"] as? [[String: Any]]) ?? []).compactMap { output -> ChainHistoryTx.Output? in
+                guard let address = (output["script_public_key_address"] as? String)?.lowercased(),
+                      let amount = number(output["amount"]) else { return nil }
+                return ChainHistoryTx.Output(address: address, amount: amount)
+            }
+            return ChainHistoryTx(
+                txId: txId,
+                blockTime: blockTime,
+                payloadHex: (row["payload"] as? String)?.lowercased() ?? "",
+                senders: Set(senders),
+                outputs: outputs
+            )
+        }
+        return (transactions, rows.count)
+    }
+
+    private static func hex(_ text: String) -> String {
+        text.utf8.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static let handshakePrefixes = ["kchat:1:handshake:", "ciph_msg:1:handshake:"].map(hex)
+
+    /// Only rows whose author's input signature checks out: the REST listing's addresses are its
+    /// word, and the rest of the app takes only a signature as proof of who wrote something.
+    /// A row that can't be proven now comes back from the indexer when it recovers.
+    private func provenByAuthor<T>(_ rows: [T], txId: (T) -> String, author: (T) -> String) async -> [T] {
+        var kept: [T] = []
+        for row in rows {
+            let id = txId(row)
+            if await chainHistoryCache.isProven(id) {
+                kept.append(row)
+            } else if await ChatService.shared.provenSender(of: id, expected: author(row), myAddress: "") == .proven {
+                await chainHistoryCache.markProven(id)
+                kept.append(row)
+            }
+        }
+        return kept
+    }
+
+    /// The indexer's form: the encrypted hex, with no protocol prefix.
+    private func chainHandshakes(address: String, sent: Bool, since: UInt64) async throws -> [HandshakeResponse] {
+        let me = address.lowercased()
+        let rows: [HandshakeResponse] = try await chainTransactions(address: address, since: since).compactMap { tx in
+            guard let prefix = Self.handshakePrefixes.first(where: { tx.payloadHex.hasPrefix($0) }) else { return nil }
+            guard tx.senders.contains(me) == sent else { return nil }
+            let sender = sent ? address : (tx.senders.sorted().first ?? "")
+            let receiver = sent ? (tx.outputs.first { $0.address != me }?.address ?? "") : address
+            guard !sender.isEmpty, !receiver.isEmpty else { return nil }
+            return HandshakeResponse(
+                txId: tx.txId, sender: sender, receiver: receiver, blockTime: tx.blockTime,
+                acceptingBlock: nil, acceptingDaaScore: nil,
+                messagePayload: String(tx.payloadHex.dropFirst(prefix.count))
+            )
+        }
+        return await provenByAuthor(rows, txId: { $0.txId }, author: { $0.sender })
+    }
+
+    /// `kchat:1:comm:ALIAS:BASE64` becomes the indexer's form, hex(BASE64). Only what `address`
+    /// itself spent into: a message is a transaction from its author to themselves.
+    private func chainContextualMessages(address: String, alias: String, since: UInt64) async throws -> [ContextualMessageResponse] {
+        let me = address.lowercased()
+        let rows: [ContextualMessageResponse] = try await chainTransactions(address: address, since: since).compactMap { tx in
+            guard tx.senders.contains(me), !tx.payloadHex.isEmpty,
+                  let bytes = Data(hexString: tx.payloadHex), let raw = String(data: bytes, encoding: .utf8) else { return nil }
+            let text = ContextualPayloadFormat.normalized(raw)
+            guard text.hasPrefix("kchat:1:comm:") || text.hasPrefix("ciph_msg:1:comm:") else { return nil }
+            let parts = text.split(separator: ":", maxSplits: 4, omittingEmptySubsequences: false)
+            guard parts.count == 5, parts[3] == alias, !parts[4].isEmpty else { return nil }
+            return ContextualMessageResponse(
+                txId: tx.txId, sender: address, alias: Self.hex(alias), blockTime: tx.blockTime,
+                acceptingBlock: nil, acceptingDaaScore: nil, messagePayload: Self.hex(String(parts[4]))
+            )
+        }
+        return await provenByAuthor(rows, txId: { $0.txId }, author: { $0.sender })
+    }
+
+    private func chainPayments(receiver: String, since: UInt64) async throws -> [PaymentResponse] {
+        let me = receiver.lowercased()
+        return try await chainTransactions(address: receiver, since: since).compactMap { tx in
+            guard !tx.senders.isEmpty, !tx.senders.contains(me) else { return nil }
+            var amount: UInt64 = 0
+            for output in tx.outputs where output.address == me {
+                let (sum, overflowed) = amount.addingReportingOverflow(output.amount)
+                if overflowed { return nil }
+                amount = sum
+            }
+            guard amount > 0, let sender = tx.senders.sorted().first else { return nil }
+            return PaymentResponse(
+                txId: tx.txId, sender: sender, receiver: receiver, amount: amount, message: nil, blockTime: tx.blockTime,
+                acceptingBlock: nil, acceptingDaaScore: nil, messagePayload: tx.payloadHex.isEmpty ? nil : tx.payloadHex
+            )
+        }
+    }
+
+    private func chainSelfStash(owner: String, scope: String, since: UInt64) async throws -> [SelfStashResponse] {
+        let me = owner.lowercased()
+        let prefixes = ["kchat:1:self_stash:", "ciph_msg:1:self_stash:"].map { Self.hex($0 + scope + ":") }
+        return try await chainTransactions(address: owner, since: since).compactMap { tx in
+            guard tx.senders.contains(me), let prefix = prefixes.first(where: { tx.payloadHex.hasPrefix($0) }) else { return nil }
+            return SelfStashResponse(
+                txId: tx.txId, owner: owner, scope: scope, blockTime: tx.blockTime,
+                acceptingBlock: nil, acceptingDaaScore: nil, stashedData: String(tx.payloadHex.dropFirst(prefix.count))
+            )
         }
     }
 
@@ -1498,6 +1824,144 @@ private final class ContinuationGate: @unchecked Sendable {
         guard !resumed else { return }
         resumed = true
         action()
+    }
+}
+
+extension Notification.Name {
+    /// The indexer stopped answering or came back; `userInfo["down"]` says which.
+    static let indexerAvailabilityChanged = Notification.Name("indexerAvailabilityChanged")
+}
+
+/// One transaction from an address's history on the Kaspa REST API (`KasiaAPIClient.chainTransactions`).
+struct ChainHistoryTx: Sendable {
+    struct Output: Sendable {
+        let address: String
+        let amount: UInt64
+    }
+    let txId: String
+    let blockTime: UInt64
+    let payloadHex: String
+    /// The addresses whose coins it spent, lowercased (the REST API's word for it).
+    let senders: Set<String>
+    let outputs: [Output]
+}
+
+private actor ChainHistoryCache {
+    private struct Entry {
+        let since: UInt64
+        let at: Date
+        let transactions: [ChainHistoryTx]
+    }
+    private var entries: [String: Entry] = [:]
+    private static let lifetime: TimeInterval = 20
+    /// One request every quarter second at most, across the whole app: an outage hits every
+    /// phone at once, and they all land on the same REST server.
+    private static let requestSpacing: TimeInterval = 0.25
+    private static let backOffSeconds: TimeInterval = 30
+    private var nextRequestAt = Date.distantPast
+    private var blockedUntil = Date.distantPast
+    private var proven: Set<String> = []
+
+    /// How long to wait before the next request, or nil while backing off.
+    func reserveRequestSlot() -> TimeInterval? {
+        let now = Date()
+        guard now >= blockedUntil else { return nil }
+        let at = max(now, nextRequestAt)
+        nextRequestAt = at.addingTimeInterval(Self.requestSpacing)
+        return at.timeIntervalSince(now)
+    }
+
+    func backOff() {
+        blockedUntil = Date().addingTimeInterval(Self.backOffSeconds)
+    }
+
+    func isProven(_ txId: String) -> Bool { proven.contains(txId) }
+
+    func markProven(_ txId: String) {
+        if proven.count > 5_000 { proven.removeAll() }
+        proven.insert(txId)
+    }
+
+    func fresh(_ address: String, since: UInt64) -> [ChainHistoryTx]? {
+        guard let entry = entries[address], entry.since <= since,
+              Date().timeIntervalSince(entry.at) < Self.lifetime else { return nil }
+        return entry.transactions
+    }
+
+    func store(_ address: String, since: UInt64, transactions: [ChainHistoryTx]) {
+        if entries.count > 500 { entries.removeAll() }
+        entries[address] = Entry(since: since, at: Date(), transactions: transactions)
+    }
+}
+
+/// Whether the indexer is answering. It only counts as down after several failures in a row, so
+/// one timeout never moves the app off it, and failures within a few seconds of each other count
+/// once, since a dropped connection fails everything in flight together. While it's down, one
+/// request a minute checks whether it's back.
+private actor IndexerHealth {
+    private static let outageKey = "kachat_indexer_down_since"
+    private var downSince: Date?
+    /// An outage the app was killed during: the first answer after launch still closes it, so
+    /// the window read from the chain is read again from the indexer.
+    private var unfinishedOutage = UserDefaults.standard.object(forKey: IndexerHealth.outageKey) as? Date
+    private var indexerURL: String?
+    private var failuresInARow = 0
+    private var lastFailureAt = Date.distantPast
+    private var retryAt = Date.distantPast
+    private static let failureSpacing: TimeInterval = 5
+    private static let failuresToGoDown = 3
+    /// Failures further apart than this aren't a run.
+    private static let failureWindow: TimeInterval = 120
+    private static let retryInterval: TimeInterval = 60
+
+    var isDown: Bool { downSince != nil }
+
+    /// True at most once a minute, while it's down.
+    func claimRecoveryCheck() -> Bool {
+        let now = Date()
+        guard downSince != nil, now >= retryAt else { return false }
+        retryAt = now.addingTimeInterval(Self.retryInterval)
+        return true
+    }
+
+    /// True when an outage ended because Settings now names a different indexer.
+    func endOutageIfIndexerChanged(to url: String) -> Bool {
+        defer { indexerURL = url }
+        guard let indexerURL, indexerURL != url else { return false }
+        failuresInARow = 0
+        unfinishedOutage = nil
+        UserDefaults.standard.removeObject(forKey: Self.outageKey)
+        defer { downSince = nil }
+        return downSince != nil
+    }
+
+    /// True when this is the moment it went down.
+    func recordFailure() -> Bool {
+        let now = Date()
+        let sinceLast = now.timeIntervalSince(lastFailureAt)
+        if sinceLast > Self.failureWindow { failuresInARow = 0 }
+        if failuresInARow == 0 || sinceLast >= Self.failureSpacing {
+            lastFailureAt = now
+            failuresInARow += 1
+        }
+        guard downSince == nil, failuresInARow >= Self.failuresToGoDown else { return false }
+        // still the outage the app was killed during: it began back then
+        let started = unfinishedOutage ?? now
+        downSince = started
+        unfinishedOutage = nil
+        retryAt = now.addingTimeInterval(Self.retryInterval)
+        UserDefaults.standard.set(started, forKey: Self.outageKey)
+        return true
+    }
+
+    /// When it went down, if this answer is the moment it came back.
+    func recordAnswer() -> Date? {
+        failuresInARow = 0
+        guard let wentDownAt = downSince ?? unfinishedOutage else { return nil }
+        downSince = nil
+        unfinishedOutage = nil
+        UserDefaults.standard.removeObject(forKey: Self.outageKey)
+        return wentDownAt
     }
 }
 

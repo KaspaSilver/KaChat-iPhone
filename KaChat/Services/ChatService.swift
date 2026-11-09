@@ -33,6 +33,7 @@ enum CatchUpSyncTrigger: String {
     case rpcSubscriptionsRestored = "rpc-subscriptions-restored"
     case pushMarkedUnreliable = "push-marked-unreliable"
     case failedSyncRetry = "failed-sync-retry"
+    case indexerRecovered = "indexer-recovered"
 }
 
 @MainActor
@@ -56,6 +57,9 @@ final class ChatService: ObservableObject {
     /// Whether each indexer answers inbox lookups (`KasiaAPIClient.probeInboxSupport`).
     var inboxSupportByIndexer: [String: Bool] = [:]
     var inboxSyncInFlight = false
+    /// The wallet whose first-contact messages the block stream is being read for (indexer down).
+    var inboxBlockScanWallet: String?
+    var inboxBlockScanHandlerId: UUID?
     @Published var replyingTo: ChatMessage?
     /// The message whose text the composer is editing (the user's own) - see `sendEdit`.
     @Published var editingMessage: ChatMessage?
@@ -274,6 +278,8 @@ final class ChatService: ObservableObject {
     var olderHistoryExhaustedContacts: Set<String> = []
     var needsMessageStoreSyncAfterBatch = false
     var lastMessageStoreSyncScheduledAt: Date?
+    /// A save put off to the end of the throttle window is waiting; later saves ride on it.
+    var messageStoreSyncTrailingPending = false
     let messageStoreSyncMinInterval: TimeInterval = 5.0
     var dirtyConversationAddresses = Set<String>()
     var lastFullStoreMaintenanceAt: Date = .distantPast
@@ -614,6 +620,13 @@ final class ChatService: ObservableObject {
     var chatRequestsShareCancellable: AnyCancellable?
 
     private init() {
+        NotificationCenter.default.addObserver(forName: .indexerAvailabilityChanged, object: nil, queue: .main) { [weak self] note in
+            let downSinceMs = note.userInfo?["downSinceMs"] as? UInt64
+            Task { @MainActor [weak self] in
+                await self?.refreshInboxBlockScan()
+                if let downSinceMs { await self?.catchUpAfterIndexerOutage(downSinceMs: downSinceMs) }
+            }
+        }
         Self.migrateSyncCursorsToNetworkScopeIfNeeded(userDefaults)
         lastPollTime = UInt64(userDefaults.integer(forKey: lastPollTimeKey))
         migrateLegacyMessagesIfNeeded()

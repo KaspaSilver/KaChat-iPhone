@@ -1851,7 +1851,7 @@ final class BackupRestoreCoordinator: ObservableObject {
                     let f = total > 0 ? Double(done) / Double(total) : 1.0
                     self.advance(
                         to: 0.40 + 0.50 * f,
-                        stage: "Restoring messages... \(done) of \(total) conversations"
+                        stage: String(format: AppLocalization.string("Restoring messages... %d of %d conversations"), locale: AppLocalization.locale, done, total)
                     )
                 case .finalizing:
                     self.advance(to: 0.92, stage: "Finishing up...")

@@ -192,6 +192,7 @@ final class WalletManager: ObservableObject {
         // first: gets UserDefaults back under iOS's 4 MB limit before anything else writes
         DerivedAddressStore.prepare()
         Self.trimUserDefaults()
+        ChatListSnapshotStore.removePlaintextSnapshots()
         LaunchTrace.mark("UserDefaults trimmed")
         savedAccounts = loadSavedAccountsFromStorage()
         hasStoredWallet = !savedAccounts.isEmpty
@@ -203,7 +204,7 @@ final class WalletManager: ObservableObject {
 
     /// Keeps the app's UserDefaults well under iOS's 4 MB limit - past it iOS refuses EVERY
     /// write the app makes, settings and chain bounds included (seen on a real device,
-    /// 2026-10-20). Moves the chat-list snapshots into files, drops the payment-pool state no
+    /// 2026-10-20). Drops the chat-list snapshots (files now) and the payment-pool state no
     /// code has read since Payment Privacy was removed (6333dd3), and, if iOS refused those
     /// removals (the domain still over the limit), writes the trimmed domain back in one go.
     /// Until the domain is healthy it logs its size and largest keys on every launch.
@@ -213,7 +214,7 @@ final class WalletManager: ObservableObject {
     private static func trimUserDefaults() {
         let defaults = UserDefaults.standard
         guard !defaults.bool(forKey: defaultsTrimmedKey), let id = Bundle.main.bundleIdentifier else { return }
-        let snapshots = ChatListSnapshotStore.moveOutOfUserDefaults()
+        let snapshots = ChatListSnapshotStore.dropFromUserDefaults()
         var dropped = 0
         for key in (defaults.persistentDomain(forName: id) ?? [:]).keys
         where deadDefaultsPrefixes.contains(where: { key.hasPrefix($0) }) {
@@ -237,7 +238,7 @@ final class WalletManager: ObservableObject {
         let total = size(after)
         let largest = after.map { ($0.key, size($0.value)) }.sorted { $0.1 > $1.1 }.prefix(8)
             .map { "\($0.0)=\($0.1 / 1024)KB" }.joined(separator: ", ")
-        AppLog.log("[WalletManager] UserDefaults %d KB after trimming (moved %d snapshots, dropped %d dead keys). Largest: %@",
+        AppLog.log("[WalletManager] UserDefaults %d KB after trimming (dropped %d snapshots and %d dead keys). Largest: %@",
                    total / 1024, snapshots, dropped, largest)
         if total < 2_500_000 {
             defaults.set(true, forKey: defaultsTrimmedKey)
@@ -275,16 +276,32 @@ final class WalletManager: ObservableObject {
                 // A readable snapshot of this account (filed on this phone) puts its keys back
                 // first: the recovery screen is only for keys that are really gone, and its
                 // Remove would erase a snapshot that could still have restored them.
-                if case .missing = keychainService.keyMaterialStatus(), !restoreKeysFromSnapshot(for: wallet) {
-                    // The record survived but the keys did not (an iPhone restore, typically).
-                    // Opening the app with an address that cannot sign or decrypt looked like a
-                    // working wallet in which everything silently failed.
-                    AppLog.log("%@", "[WalletManager] Wallet record present but no key material on this device; asking for the recovery phrase")
-                    updateSavedAccounts(from: wallet)
-                    walletNeedingKeyRecovery = wallet
-                    currentWallet = nil
-                    SharedDataManager.setPrivateKeyAvailable(false)
-                    return
+                if case .missing = keychainService.keyMaterialStatus() {
+                    switch restoreKeysFromSnapshot(for: wallet) {
+                    case .restored:
+                        break
+                    case .absent:
+                        // The record survived but the keys did not (an iPhone restore, typically).
+                        // Opening the app with an address that cannot sign or decrypt looked like a
+                        // working wallet in which everything silently failed.
+                        AppLog.log("%@", "[WalletManager] Wallet record present but no key material on this device; asking for the recovery phrase")
+                        updateSavedAccounts(from: wallet)
+                        walletNeedingKeyRecovery = wallet
+                        currentWallet = nil
+                        SharedDataManager.setPrivateKeyAvailable(false)
+                        return
+                    case .unreadable:
+                        // Not known to be gone, so no recovery screen and its Remove: the sign-in
+                        // screen, where tapping the account tries this again.
+                        AppLog.log("%@", "[WalletManager] This account's snapshot can't be read right now; not treating its keys as gone")
+                        updateSavedAccounts(from: wallet)
+                        walletNeedingKeyRecovery = nil
+                        currentWallet = nil
+                        SharedDataManager.setPrivateKeyAvailable(false)
+                        self.error = keysUnreadableError
+                        signInFailureMessage = keysUnreadableError.localizedDescription
+                        return
+                    }
                 }
                 walletNeedingKeyRecovery = nil
                 LaunchTrace.mark("loadWallet: reconcile")
@@ -300,6 +317,8 @@ final class WalletManager: ObservableObject {
                 self.currentWallet = updated
                 migrateSpendingBoundsIfNeeded()
                 ContactsManager.shared.setActiveWalletAddress(canonicalWallet.publicAddress)
+                // reading the key is what lets the chat list snapshot below open (`cachedPrivateKey`)
+                _ = getPrivateKey()
                 ChatService.shared.loadChatListSnapshot(for: canonicalWallet.publicAddress)
                 SharedDataManager.syncWalletAddressForExtension()
         NotificationCenter.default.post(name: .settingsDidChange, object: nil)
@@ -443,7 +462,13 @@ final class WalletManager: ObservableObject {
         let previousAddress = currentWallet?.publicAddress ?? existingStoredAddress
         // Compared as an account: the same words entered on the other network are the same
         // account, and must not reset it or delete its contacts.
-        let isNewWallet = previousAddress.map { !Self.isSameAccount($0, publicAddress) } ?? true
+        let isSwitchingAccount = previousAddress.map { !Self.isSameAccount($0, publicAddress) } ?? true
+        // Switching isn't the same as new: the words of a saved account that isn't the active one
+        // bring back an account whose contacts and messages are on this phone. Asked here, while
+        // `savedAccounts` doesn't hold this import yet.
+        let isNewAccount = isSwitchingAccount
+            && !savedAccounts.contains { Self.isSameAccount($0.publicAddress, publicAddress) }
+            && !Self.accountAddressVariants(publicAddress).contains { ContactsManager.shared.hasPersistedContacts(forWalletAddress: $0) }
 
         let wallet = Wallet(
             publicAddress: publicAddress,
@@ -494,7 +519,7 @@ final class WalletManager: ObservableObject {
 
         // Reset chat and contacts data when importing a new/different wallet
         // This ensures lastPollTime=0 so all historical messages are fetched
-        if isNewWallet {
+        if isNewAccount {
             AppLog.log("%@", "[WalletManager] Importing new wallet, resetting chat and contacts data")
             // Stamp the import moment BEFORE any sync starts: everything mined earlier is
             // history the initial sync backfills, and it must land read and silent (no unread
@@ -503,6 +528,12 @@ final class WalletManager: ObservableObject {
             // Pass skipStoreClear=true since the new wallet's store is already empty
             ChatService.shared.resetForNewWallet(skipStoreClear: true)
             ContactsManager.shared.deleteAllContacts()
+        } else if isSwitchingAccount {
+            // An account already on this phone: the last one's chats leave memory as on any
+            // switch, and this one's come back from its own store, contacts untouched.
+            ChatService.shared.resetForNewWallet(skipStoreClear: true)
+            ChatService.shared.loadChatListSnapshot(for: wallet.publicAddress)
+            await ChatService.shared.loadMessagesFromStoreIfNeeded(onlyIfEmpty: false)
         }
 
         // Your chat with yourself is the first chat of every account, before any sync has
@@ -661,7 +692,7 @@ final class WalletManager: ObservableObject {
                 for address in Self.accountAddressVariants(account.publicAddress) {
                     try? keychainService.deleteAccountSnapshot(publicAddress: address)
                 }
-                for address in Self.accountAddressVariants(account.publicAddress) {
+                for address in addressesHoldingLocalData(ofAccount: account.publicAddress) {
                     // Its messages and groups too, but only from the sign-in screen, where no
                     // account has these stores open: never pull them out from under a signed-in one.
                     if currentWallet == nil {
@@ -680,6 +711,7 @@ final class WalletManager: ObservableObject {
                 if let cached = cachedPrivateKey, Self.isSameAccount(cached.address, account.publicAddress) {
                     cachedPrivateKey = nil
                 }
+                removeDerivationRecords(forAccount: account.publicAddress)
                 removeSavedAccountFromStorage(account)
                 return
             }
@@ -693,8 +725,9 @@ final class WalletManager: ObservableObject {
         ChatService.shared.stopPolling()
 
         // Remove local message DB for the stored wallet, then clear local key material - on both
-        // networks, since mainnet and testnet keep this account's data under different addresses.
-        for address in Self.accountAddressVariants(account.publicAddress) {
+        // networks, since mainnet and testnet keep this account's data under different addresses,
+        // and for each chatting address the account used before this one.
+        for address in addressesHoldingLocalData(ofAccount: account.publicAddress) {
             await MessageStore.shared.setCurrentWallet(address)
             MessageStore.shared.clearAll()
             await MessageStore.shared.destroyLocalStoreFiles()
@@ -714,6 +747,7 @@ final class WalletManager: ObservableObject {
         }
 
         AccountBackupStatus.shared.forget(account.publicAddress)
+        removeDerivationRecords(forAccount: account.publicAddress)
         removeSavedAccountFromStorage(account)
         currentWallet = nil
         cachedPrivateKey = nil
@@ -735,16 +769,41 @@ final class WalletManager: ObservableObject {
 
     /// What every account removal erases besides its keys, messages and groups, on both network
     /// encodings - one list, so no removal path leaves a different part behind. Nextcloud's app
-    /// password is revoked with the stored login before that login is deleted.
+    /// password is revoked with the stored login before that login is deleted. Covers each
+    /// chatting address the account used before this one (`setChattingAddress`).
     private func removeLocalData(forAccount address: String) async {
-        removeSpendingData(forAccount: address)
+        let previous = previousChattingAddresses(ofAccount: address)
+        for owned in [address] + previous {
+            removeSpendingData(forAccount: owned)
+            for variant in Self.accountAddressVariants(owned) {
+                ChatListSnapshotStore.clear(walletAddress: variant)
+                ContactsManager.shared.deletePersistedContacts(forWalletAddress: variant)
+                await NextcloudService.shared.revokeAndPurgeStoredState(forWalletAddress: variant)
+                await KachatNameReminders.removeAll(forWallet: variant)
+                AddressBookManager.shared.removeAllData(forWalletAddress: variant)
+                GlobalNotificationCenter.removeAllData(forWalletAddress: variant)
+                UserDefaults.standard.removeObject(forKey: balanceCacheKey(for: variant))
+                UserDefaults.standard.removeObject(forKey: accountAddedDateKey(for: variant))
+            }
+        }
+        // The same words as the account going, so nothing is lost with them. Its own snapshots
+        // are the callers': they stop a removal that can't delete them.
+        for old in previous {
+            for variant in Self.accountAddressVariants(old) {
+                try? keychainService.deleteAccountSnapshot(publicAddress: variant)
+            }
+        }
+    }
+
+    /// Last in a removal, once the keys are gone: until then these are what re-derive the
+    /// account's key from its seed, on a removal that fails part-way.
+    private func removeDerivationRecords(forAccount address: String) {
+        for owned in addressesHoldingLocalData(ofAccount: address) {
+            UserDefaults.standard.removeObject(forKey: chattingIndexKey(for: owned))
+            UserDefaults.standard.removeObject(forKey: walletSourceFamilyKey(for: owned))
+        }
         for variant in Self.accountAddressVariants(address) {
-            ChatListSnapshotStore.clear(walletAddress: variant)
-            ContactsManager.shared.deletePersistedContacts(forWalletAddress: variant)
-            await NextcloudService.shared.revokeAndPurgeStoredState(forWalletAddress: variant)
-            await KachatNameReminders.removeAll(forWallet: variant)
-            AddressBookManager.shared.removeAllData(forWalletAddress: variant)
-            GlobalNotificationCenter.removeAllData(forWalletAddress: variant)
+            UserDefaults.standard.removeObject(forKey: previousChattingAddressesKey(for: variant))
         }
     }
 
@@ -761,6 +820,19 @@ final class WalletManager: ObservableObject {
             walletNeedingKeyRecovery = nil
             error = .keychainError(AppLocalization.string("This account's keys are on this phone again, so nothing was removed."))
             return
+        }
+        // This screen can be left from a launch that couldn't read the snapshot. Removing would
+        // erase one that can still restore the account.
+        switch restoreKeysFromSnapshot(for: wallet) {
+        case .restored:
+            walletNeedingKeyRecovery = nil
+            error = .keychainError(AppLocalization.string("This account's keys are on this phone again, so nothing was removed."))
+            return
+        case .unreadable:
+            error = keysUnreadableError
+            return
+        case .absent:
+            break
         }
         cachedPrivateKey = nil
         // files the account first, whatever the list holds, so the removal finds it
@@ -792,8 +864,16 @@ final class WalletManager: ObservableObject {
     /// In-memory cache of the active wallet's private key, keyed by address. Avoids a keychain read
     /// (and, if the stored key were ever missing, a full PBKDF2 re-derivation) on every
     /// `getPrivateKey()` call - which the initial sync makes once per handshake/message. The address
-    /// key makes serving a stale key after a wallet switch impossible; it's also cleared on logout.
-    private var cachedPrivateKey: (address: String, key: Data)?
+    /// key makes serving a stale key after a wallet switch impossible; it's also cleared on logout,
+    /// which also takes away the key that opens the chat list snapshot: the same at-rest key as
+    /// `ChatService.messageEncryptionKey()`.
+    private var cachedPrivateKey: (address: String, key: Data)? {
+        didSet {
+            ChatListSnapshotStore.setSealing(cachedPrivateKey.map {
+                (walletAddress: $0.address, key: SymmetricKey(data: CryptoUtils.sha256($0.key)))
+            })
+        }
+    }
 
     /// Get the private key data for the current wallet (used for decryption)
     func getPrivateKey() -> Data? {
@@ -929,6 +1009,7 @@ final class WalletManager: ObservableObject {
             return wallet
         }
         guard localWallet.publicKey != wallet.publicKey else {
+            repairActiveSeedIfItDoesNotDeriveStoredKey(for: wallet)
             return wallet
         }
 
@@ -942,7 +1023,39 @@ final class WalletManager: ObservableObject {
         } catch {
             AppLog.log("[WalletManager] Failed to persist repaired wallet record: %@", error.localizedDescription)
         }
+        repairActiveSeedIfItDoesNotDeriveStoredKey(for: localWallet)
         return localWallet
+    }
+
+    /// Whether `seedPhrase` is the seed behind `privateKey` for this account. False is no proof of
+    /// damage: the chatting index and family live in UserDefaults, which a reinstall clears while
+    /// the Keychain stays. So it only ever stops a write, and nothing is deleted on it.
+    private func seed(_ seedPhrase: SeedPhrase, derives privateKey: Data, forAccount address: String) -> Bool {
+        guard let index = UInt32(exactly: chattingAddressIndex(for: address)) else { return false }
+        let derived = try? deriveKeysFromSeed(seedPhrase, chattingIndex: index, family: walletSourceFamily(for: address))
+        return derived?.privateKey == privateKey
+    }
+
+    /// A kill between writing the seed and the private key leaves one account's key beside another
+    /// account's seed in the active slot. The account's words come back from its own snapshot, and
+    /// only when that seed provably derives the key in the slot; otherwise the slot is left alone.
+    private func repairActiveSeedIfItDoesNotDeriveStoredKey(for wallet: Wallet) {
+        guard let seedPhrase = try? keychainService.loadSeedPhrase(),
+              let privateKey = try? keychainService.loadPrivateKey(),
+              !seed(seedPhrase, derives: privateKey, forAccount: wallet.publicAddress) else { return }
+        for address in Self.accountAddressVariants(wallet.publicAddress) {
+            guard let snapshot = try? keychainService.loadAccountSnapshot(publicAddress: address),
+                  snapshot.privateKey == privateKey,
+                  seed(snapshot.seedPhrase, derives: privateKey, forAccount: wallet.publicAddress) else { continue }
+            do {
+                try keychainService.saveSeedPhrase(snapshot.seedPhrase)
+                AppLog.log("%@", "[WalletManager] Active seed didn't derive the stored key; put back from this account's snapshot")
+            } catch {
+                AppLog.log("[WalletManager] Failed to put the active seed back: %@", error.localizedDescription)
+            }
+            return
+        }
+        AppLog.log("%@", "[WalletManager] Active seed doesn't derive the stored key and no snapshot proves a better one; left as is")
     }
 
     /// - Parameter storedAddress: the keychain wallet record's address, used to look up its
@@ -1086,7 +1199,7 @@ final class WalletManager: ObservableObject {
     /// creation date currently stored for it - the best evidence available - and keeps that from
     /// then on rather than resetting again on the next switch.
     private func accountAddedDate(for address: String) -> Date {
-        let key = "kachat_account_added_at.\(address)"
+        let key = accountAddedDateKey(for: address)
         if let stored = UserDefaults.standard.object(forKey: key) as? Date {
             return stored
         }
@@ -1095,6 +1208,10 @@ final class WalletManager: ObservableObject {
         let date = inherited ?? Date()
         UserDefaults.standard.set(date, forKey: key)
         return date
+    }
+
+    private func accountAddedDateKey(for address: String) -> String {
+        "kachat_account_added_at.\(address)"
     }
 
     private func snapshotStoredWalletIfPossible() {
@@ -1117,6 +1234,16 @@ final class WalletManager: ObservableObject {
             return
         }
         if let newAddress, Self.isSameAccount(wallet.publicAddress, newAddress) { return }
+        // A seed that doesn't derive this slot's key (a kill between writing the two) must not
+        // replace a snapshot that can still be read: it may be the only copy of the right words.
+        // Unreadable right now throws, and that replaces nothing either.
+        if !seed(seedPhrase, derives: privateKey, forAccount: wallet.publicAddress),
+           let filed = try keychainService.loadAccountSnapshot(publicAddress: wallet.publicAddress) {
+            guard newAddress == nil || filed.privateKey == privateKey else {
+                throw KasiaError.keychainError(AppLocalization.string("The current account's keys couldn't be backed up on this device, so nothing was changed. Try again."))
+            }
+            return
+        }
         try keychainService.saveAccountSnapshot(wallet: wallet, seedPhrase: seedPhrase, privateKey: privateKey)
         guard let back = try keychainService.loadAccountSnapshot(publicAddress: wallet.publicAddress),
               back.privateKey == privateKey, back.seedPhrase.words == seedPhrase.words,
@@ -1580,6 +1707,47 @@ final class WalletManager: ObservableObject {
         }
     }
 
+    // MARK: - Previous chatting addresses
+
+    private func previousChattingAddressesKey(for address: String) -> String {
+        "kachat_previous_chatting_addresses_\(address)"
+    }
+
+    /// The chatting addresses this account used before its current one. Their messages, contacts
+    /// and the rest stay on the phone, under those addresses, until the account is removed. One
+    /// since added as an account of its own is left out: from then on that data is that account's.
+    private func previousChattingAddresses(ofAccount address: String) -> [String] {
+        let stored = Self.accountAddressVariants(address)
+            .compactMap { UserDefaults.standard.stringArray(forKey: previousChattingAddressesKey(for: $0)) }
+            .first ?? []
+        return stored.filter { old in
+            !Self.isSameAccount(old, address)
+                && !savedAccounts.contains { Self.isSameAccount($0.publicAddress, old) }
+        }
+    }
+
+    /// `address` on both networks, then each previous chatting address on both networks.
+    private func addressesHoldingLocalData(ofAccount address: String) -> [String] {
+        ([address] + previousChattingAddresses(ofAccount: address)).flatMap { Self.accountAddressVariants($0) }
+    }
+
+    /// `previous` is now behind `newAddress`: its list moves over with it, written under both
+    /// networks' encodings like the chatting index. Coming back to an old address takes it off.
+    private func movePreviousChattingAddresses(from previous: String, to newAddress: String) {
+        let addresses = (previousChattingAddresses(ofAccount: previous) + [previous])
+            .filter { !Self.isSameAccount($0, newAddress) }
+        for variant in Self.accountAddressVariants(previous) {
+            UserDefaults.standard.removeObject(forKey: previousChattingAddressesKey(for: variant))
+        }
+        for variant in Self.accountAddressVariants(newAddress) {
+            if addresses.isEmpty {
+                UserDefaults.standard.removeObject(forKey: previousChattingAddressesKey(for: variant))
+            } else {
+                UserDefaults.standard.set(addresses, forKey: previousChattingAddressesKey(for: variant))
+            }
+        }
+    }
+
     // MARK: - Source-wallet family persistence (same pattern as the chatting index)
 
     private func walletSourceFamilyKey(for address: String) -> String {
@@ -1751,6 +1919,7 @@ final class WalletManager: ObservableObject {
             savedAccounts.removeAll { $0.publicAddress == previousAddress }
             hasStoredWallet = !savedAccounts.isEmpty
             persistSavedAccountsToStorage()
+            movePreviousChattingAddresses(from: previousAddress, to: newAddress)
             try? keychainService.deleteAccountSnapshot(publicAddress: previousAddress)
         }
     }
@@ -1806,23 +1975,44 @@ final class WalletManager: ObservableObject {
         }
     }
 
+    private enum SnapshotRestoreResult {
+        case restored
+        /// Looked up, and this phone holds no snapshot of the account.
+        case absent
+        /// There may be one, but it couldn't be read or put back right now. Says nothing about
+        /// whether the keys are gone.
+        case unreadable
+    }
+
+    private var keysUnreadableError: KasiaError {
+        .keychainError(AppLocalization.string("This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment."))
+    }
+
     /// The stored record has no keys behind it: puts them back from this account's snapshot, when
-    /// one filed on this phone can still be read. False when there is none.
-    private func restoreKeysFromSnapshot(for wallet: Wallet) -> Bool {
+    /// one filed on this phone can still be read.
+    private func restoreKeysFromSnapshot(for wallet: Wallet) -> SnapshotRestoreResult {
+        var couldNotRead = false
         for address in Self.accountAddressVariants(wallet.publicAddress) {
-            guard let snapshot = try? keychainService.loadAccountSnapshot(publicAddress: address) else { continue }
+            let found: (seedPhrase: SeedPhrase, privateKey: Data)?
+            do {
+                found = try keychainService.loadAccountSnapshot(publicAddress: address)
+            } catch {
+                couldNotRead = true
+                continue
+            }
+            guard let snapshot = found else { continue }
             do {
                 try keychainService.saveSeedPhrase(snapshot.seedPhrase)
                 try keychainService.savePrivateKey(snapshot.privateKey)
                 AppLog.log("%@", "[WalletManager] Restored missing keys from this account's snapshot")
-                return true
+                return .restored
             } catch {
                 try? keychainService.deleteSeedPhrase()
                 try? keychainService.deletePrivateKey()
-                return false
+                return .unreadable
             }
         }
-        return false
+        return couldNotRead ? .unreadable : .absent
     }
 
     func saveWalletOnly(_ wallet: Wallet) async throws {

@@ -53,6 +53,10 @@ final class PushNotificationManager: ObservableObject {
     private var updateWatchedInFlight = false
     private var updateWatchedPending = false
     private var updateWatchedTask: Task<Void, Never>?
+    /// How long sign-out waits on the push service (see `unregister`).
+    private static let unregisterWaitNs: UInt64 = 6_000_000_000
+    /// A pending push older than this is dropped unfetched (see `processPendingMessages`).
+    private static let pendingMessageMaxAgeMs: Int64 = 3 * 24 * 60 * 60 * 1000
     private var lastWatchedUpdateAt: Date?
     private var lastWatchedUpdateSuccessAt: Date?
     private var lastWatchedSignature: String?
@@ -153,7 +157,19 @@ final class PushNotificationManager: ObservableObject {
         KasiaAPIClient.isUsableBaseURL(AppSettings.load().pushIndexerURL)
     }
 
+    /// Reads the permission first: it's only otherwise set at launch and by Settings, so a
+    /// prompt answered elsewhere (Chats asks on a fresh install) would count only after a relaunch.
     func refreshRegistrationIfNeeded() {
+        Task { await checkPermissionStatus() }
+    }
+
+    /// For code outside this class that asked iOS for notification permission: call it once the
+    /// prompt is answered, so registration starts now rather than at the next app-active.
+    func permissionPromptFinished() {
+        Task { await checkPermissionStatus() }
+    }
+
+    private func applyRegistrationRefresh() {
         let settings = AppSettings.load()
         guard settings.notificationMode == .remotePush else { return }
         // No push service on this network (testnet has none yet). The service this device
@@ -681,10 +697,6 @@ final class PushNotificationManager: ObservableObject {
     }
 
     private func runWatchedUpdate(fromDebounceTask: Bool = false) async {
-        guard let token = deviceToken, isRegistered else {
-            updateWatchedPending = false
-            return
-        }
         // CRITICAL: when running INSIDE the debounce task, do NOT cancel it - cancelling the very
         // task this code executes in poisons the subsequent URLSession call (it throws .cancelled),
         // which silently dropped every debounced update. Roster changes emit in bursts, so group
@@ -694,6 +706,11 @@ final class PushNotificationManager: ObservableObject {
         } else {
             updateWatchedTask?.cancel()
             updateWatchedTask = nil
+        }
+        // After the task is cleared: left set while unregistered, it would swallow every later update.
+        guard let token = deviceToken, isRegistered else {
+            updateWatchedPending = false
+            return
         }
         if updateWatchedInFlight {
             updateWatchedPending = true
@@ -722,7 +739,7 @@ final class PushNotificationManager: ObservableObject {
         // users with groups but no push-eligible 1:1 chats.
         if watchedAddresses.isEmpty && watchedGroupIds.isEmpty {
             AppLog.log("[Push] No eligible chats for push, unregistering device from indexer")
-            await unregister()
+            await performUnregister()
             lastWatchedSignature = ""
             lastWatchedUpdateSuccessAt = Date()
             pendingWatchedSignature = nil
@@ -964,7 +981,20 @@ final class PushNotificationManager: ObservableObject {
         AppLog.log("[Push] No push service on this network; sent unregister to %@", registeredBase)
     }
 
+    /// Unregister for callers the user is waiting on (Log Out, Delete, turning push off). It can
+    /// take over a minute on a hung server and nothing on screen says so, so it gets a few
+    /// seconds; past that it's given up, the same outcome as any failed unregister.
     func unregister() async {
+        let waitNs = Self.unregisterWaitNs
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.performUnregister() }
+            group.addTask { try? await Task.sleep(nanoseconds: waitNs) }
+            _ = await group.next()
+            group.cancelAll()
+        }
+    }
+
+    private func performUnregister() async {
         guard let token = deviceToken else { return }
         guard hasPushService else {
             await leavePushServiceOfOtherNetworkIfNeeded()
@@ -1084,9 +1114,18 @@ final class PushNotificationManager: ObservableObject {
                 await GroupChatService.shared.performCatchUpSync()
             }
 
-            var failed: [SharedPendingMessage] = []
+            // Each id comes off the queue on its own, as it's dealt with: the extension can add
+            // ids during this long loop, and writing the queue back whole would erase them.
+            let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
             for pending in pendingMessages {
                 if pending.type == "group_message" || pending.type == "group_control" {
+                    SharedDataManager.removePendingMessage(txId: pending.txId)
+                    continue
+                }
+                // Still failing after this long it never will; any real message came with a sync.
+                if nowMs - pending.timestamp > Self.pendingMessageMaxAgeMs {
+                    AppLog.log("[Push] Dropping expired pending message: %@", pending.txId)
+                    SharedDataManager.removePendingMessage(txId: pending.txId)
                     continue
                 }
                 ChatService.shared.recordRemotePushDelivery(
@@ -1105,12 +1144,10 @@ final class PushNotificationManager: ObservableObject {
                 } else {
                     fetched = await ChatService.shared.fetchMessageByTxId(pending.txId, sender: pending.sender)
                 }
-                if !fetched {
-                    failed.append(pending)
+                if fetched {
+                    SharedDataManager.removePendingMessage(txId: pending.txId)
                 }
             }
-
-            SharedDataManager.setPendingMessages(failed)
         }
     }
 
@@ -1450,8 +1487,10 @@ final class PushNotificationManager: ObservableObject {
     private func checkPermissionStatus() async {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
-        permissionStatus = settings.authorizationStatus
-        refreshRegistrationIfNeeded()
+        if permissionStatus != settings.authorizationStatus {
+            permissionStatus = settings.authorizationStatus
+        }
+        applyRegistrationRefresh()
     }
 
     private func observeSettingsChanges() {

@@ -174,64 +174,8 @@ final class SettingsViewModel: ObservableObject {
     var selectedNetworkType: NetworkType { PendingNetworkSwitch.target ?? settings.networkType }
 
     // MARK: - Convenience Methods
-    var networkType: NetworkType {
-        get { settings.networkType }
-        set {
-            settings.networkType = newValue
-            saveSettings()
-        }
-    }
-
-    var notificationsEnabled: Bool {
-        get { settings.notificationsEnabled }
-        set {
-            settings.notificationsEnabled = newValue
-            saveSettings()
-        }
-    }
-
-    var backgroundFetchEnabled: Bool {
-        get { settings.backgroundFetchEnabled }
-        set {
-            settings.backgroundFetchEnabled = newValue
-            saveSettings()
-        }
-    }
-
-    var notificationMode: NotificationMode {
-        get { settings.notificationMode }
-        set {
-            settings.notificationMode = newValue
-            saveSettings()
-        }
-    }
-
-    var indexerURL: String {
-        get { settings.indexerURL }
-        set {
-            settings.indexerURL = newValue
-            saveSettings()
-        }
-    }
-
-    var pushIndexerURL: String {
-        get { settings.pushIndexerURL }
-        set {
-            settings.pushIndexerURL = newValue
-            saveSettings()
-        }
-    }
-
     /// Read-only: the KNS endpoint is fixed to the network's default (see `AppSettings`).
     var knsBaseURL: String { settings.knsBaseURL }
-
-    var kaspaRestAPIURL: String {
-        get { settings.kaspaRestAPIURL }
-        set {
-            settings.kaspaRestAPIURL = newValue
-            saveSettings()
-        }
-    }
 
     var kaspaExplorer: KaspaExplorer {
         get { settings.kaspaExplorer }

@@ -468,6 +468,7 @@ extension ChatService {
         // if it already is). It self-gates on app-active and on the initial sync having finished,
         // so starting it here is safe on every startPolling() call, including tab re-entry.
         startForegroundContactSweep()
+        Task { await refreshInboxBlockScan() }
 
         // If initial sync already completed (e.g. Mac Catalyst window reopen),
         // just ensure subscription/polling is running — skip the heavy 4-phase sync.
@@ -955,6 +956,24 @@ extension ChatService {
             AppLog.log("[ChatService] Push message already exists: %@", txId)
             return
         }
+
+        // The sender here is only what the push server says, and a message sealed to us names
+        // nobody: only the signatures on the transaction's inputs can. Same check as the
+        // subscription path (`resolveAndProcessSelfStash`).
+        switch await provenSender(of: txId, expected: sender, myAddress: wallet.publicAddress) {
+        case .proven:
+            break
+        case .forged:
+            AppLog.log("[ChatService] Dropped push %@: not signed by the contact it claims", String(txId.prefix(12)))
+            return
+        case .unknown:
+            // Not readable yet (the REST API lags a new transaction). Filed as before; a sender
+            // not already a contact arrives auto-added, so in Message Requests, not the chat list.
+            break
+        }
+
+        // A wallet switch may have happened during the awaits above.
+        guard isActiveWallet(wallet.publicAddress) else { return }
 
         // Determine message type
         let msgType: ChatMessage.MessageType = content.hasPrefix("{\"type\":\"audio\"") ? .audio : .contextual

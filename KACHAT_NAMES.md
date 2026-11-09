@@ -511,8 +511,10 @@ manifest's `registryCovenantId`. Otherwise it walks the chain itself:
 | Offers you made (withdraw, refund) | yes | yes (tracked from your own transactions) |
 | Offers others made on your names (accept) | yes | no - the screens say "Offers from others appear once a names indexer is connected" |
 | History and activity | the indexer's | every registry transition the walker walked (not offers made by others) |
-| Labels (section 7) | `/identity` | from the walked names; `primaryName` known only for your own address |
-| Other people's profiles (avatar, bio...) | `/identity`, `/profiles` | no; your own last record only |
+| Labels (section 7) | `/identity` | from the walked names and each address's own profile record |
+| Other people's profiles (avatar, bio...) | `/identity`, `/profiles` | each address's newest `kchat:1:profile:` record, from the Kaspa REST API (the last 200 transactions); not found keeps the saved one |
+
+Three indexer requests failing in a row within two minutes (no answer, 429, 5xx) move the app to the chain walker, so one timeout never does; the once-a-minute refresh goes back to the indexer when it recovers. While the indexer answers, a standby copy of the registry is walked every 30 minutes (2 hours on an expensive connection), so the names are already here when it stops. Nothing is answered from a walked copy that has never reached the live UTXOs (`RegistryState.reachedTip`): those reads fail, and saved names keep showing, rather than saying a name is free or an address has none.
 
 **Registration** (`KachatNamesActions`): a fresh 32-byte salt goes to the Keychain (per wallet and
 registration), the salted commit is sent, and a record (name, years, commit outpoint and DAA, stage,

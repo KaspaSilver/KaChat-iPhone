@@ -85,7 +85,7 @@ struct EmojiReactionPicker: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16, pinnedViews: [.sectionHeaders]) {
                     if !recents.recents.isEmpty, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        section(title: "Recents", emojis: recents.recents)
+                        section(title: AppLocalization.string("Recents"), emojis: recents.recents)
                     }
                     ForEach(filteredSections, id: \.title) { section(title: $0.title, emojis: $0.emojis) }
                     if filteredSections.isEmpty {

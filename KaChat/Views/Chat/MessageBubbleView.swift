@@ -282,7 +282,7 @@ struct MessageBubbleView: View {
                             // bubble entirely (matches iMessage) instead of showing both. `fallbackText`
                             // keeps the raw link visible/tappable if no preview data is ever found,
                             // rather than the message rendering as nothing at all.
-                            LinkPreviewCardView(url: linkURL, txId: message.txId, fallbackText: displayText, onSelect: onSelect, onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil, isOutgoing: message.isOutgoing, autoFetch: linkPreviewsAutoLoad || message.isOutgoing)
+                            LinkPreviewCardView(url: linkURL, txId: message.txId, fallbackText: displayText, onSelect: onSelect, onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil, isOutgoing: message.isOutgoing, autoFetch: linkPreviewsAutoLoad || message.isOutgoing, photosBlocked: photosBlocked && !message.isOutgoing, blockedSenderName: avatarDisplayName)
                         } else if let callEnvelope = CallCodec.parseAny(displayText) {
                             // Calls leave a compact history line, like a phone's recents.
                             callBubble(callEnvelope)
@@ -326,7 +326,7 @@ struct MessageBubbleView: View {
                        CallCodec.parseAny(displayText) == nil,
                        !MessageTextRenderPlan.isEntirelyLink(displayText),
                        let linkURL = MessageTextRenderPlan.firstHTTPLink(in: displayText) {
-                        LinkPreviewCardView(url: linkURL, txId: message.txId, onSelect: onSelect, onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil, isOutgoing: message.isOutgoing, autoFetch: linkPreviewsAutoLoad || message.isOutgoing)
+                        LinkPreviewCardView(url: linkURL, txId: message.txId, onSelect: onSelect, onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil, isOutgoing: message.isOutgoing, autoFetch: linkPreviewsAutoLoad || message.isOutgoing, photosBlocked: photosBlocked && !message.isOutgoing, blockedSenderName: avatarDisplayName)
                     }
                 }
 
@@ -783,7 +783,7 @@ struct MessageBubbleView: View {
             && chessSummary?.status == .pendingResponse
         // "3 | 2"-style chip when the invite carries a time control; nil (no chip) for casual
         // games and every invite from a legacy client.
-        let timeControlLabel: String? = content.tcMinutes.map { "\($0) | \(content.tcIncSeconds ?? 0)" }
+        let timeControlLabel: String? = ChessTimeControl.fromInvite(content)?.label
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Text("♟️")
@@ -2512,6 +2512,13 @@ private struct AudioShareSheet: UIViewControllerRepresentable {
 }
 
 #if canImport(YbridOpus) || OPUS_BRIDGE || OPUS_CATALYST
+/// The most a voice note decodes to: the longest one any composer records, `nextcloudVoiceSeconds`
+/// (an on-chain note is far shorter). A crafted file's packet count would otherwise set the size
+/// of the buffer reserved below.
+private func maxDecodedVoiceSamples(sampleRate: Double, channels: Int) -> Int {
+    Int(sampleRate * ComposerMediaLimits.nextcloudVoiceSeconds) * channels
+}
+
 private enum WebMOpusDecodeError: LocalizedError {
     case invalidWebM(String)
     case missingOpusHead
@@ -2560,8 +2567,9 @@ struct WebMOpusDecoder {
         defer { opus_decoder_destroy(decoder) }
 
         let maxFrameSize = Int(sampleRate / 1000.0 * 120.0)
+        let maxSamples = maxDecodedVoiceSamples(sampleRate: sampleRate, channels: head.channels)
         var samples = [Float]()
-        samples.reserveCapacity(packets.count * maxFrameSize * head.channels)
+        samples.reserveCapacity(min(packets.count * maxFrameSize * head.channels, maxSamples))
 
         var tempBuffer = [Float](repeating: 0, count: maxFrameSize * head.channels)
         for packet in packets {
@@ -2583,6 +2591,9 @@ struct WebMOpusDecoder {
             }
             let frameCount = Int(decodedFrames)
             let total = frameCount * head.channels
+            guard samples.count + total <= maxSamples else {
+                throw WebMOpusDecodeError.invalidWebM("Too long.")
+            }
             samples.append(contentsOf: tempBuffer.prefix(total))
         }
 
@@ -2652,7 +2663,14 @@ struct WebMOpusDecoder {
                         // than a bare SimpleBlock, unlike this app's own hand-rolled encoder.
         ]
 
-        func parseElements(in range: Range<Int>) throws {
+        // Real files nest Segment > Cluster > BlockGroup > Block. Each container recurses, so a
+        // crafted one nested thousands deep overflowed the stack just by being rendered.
+        let maxContainerDepth = 16
+
+        func parseElements(in range: Range<Int>, depth: Int) throws {
+            guard depth <= maxContainerDepth else {
+                throw WebMOpusDecodeError.invalidWebM("Nested too deeply.")
+            }
             var offset = range.lowerBound
             while offset < range.upperBound {
                 let (id, idLen, _) = try readVInt(data, offset: offset, forSize: false)
@@ -2684,7 +2702,7 @@ struct WebMOpusDecoder {
                         packets.append(packet)
                     }
                 } else if containerIDs.contains(id) {
-                    try parseElements(in: payloadStart..<payloadEnd)
+                    try parseElements(in: payloadStart..<payloadEnd, depth: depth + 1)
                 }
 
                 if payloadEnd <= offset {
@@ -2694,7 +2712,7 @@ struct WebMOpusDecoder {
             }
         }
 
-        try parseElements(in: 0..<data.count)
+        try parseElements(in: 0..<data.count, depth: 0)
 
         guard let opusHead else {
             throw WebMOpusDecodeError.missingOpusHead
@@ -2872,8 +2890,9 @@ private struct OggOpusDecoder {
         defer { opus_decoder_destroy(decoder) }
 
         let maxFrameSize = Int(sampleRate / 1000.0 * 120.0)
+        let maxSamples = maxDecodedVoiceSamples(sampleRate: sampleRate, channels: head.channels)
         var samples = [Float]()
-        samples.reserveCapacity(audioPackets.count * maxFrameSize * head.channels)
+        samples.reserveCapacity(min(audioPackets.count * maxFrameSize * head.channels, maxSamples))
 
         var tempBuffer = [Float](repeating: 0, count: maxFrameSize * head.channels)
         for packet in audioPackets {
@@ -2895,6 +2914,9 @@ private struct OggOpusDecoder {
             }
             let frameCount = Int(decodedFrames)
             let total = frameCount * head.channels
+            guard samples.count + total <= maxSamples else {
+                throw OggOpusDecodeError.invalidOgg("Too long.")
+            }
             samples.append(contentsOf: tempBuffer.prefix(total))
         }
 

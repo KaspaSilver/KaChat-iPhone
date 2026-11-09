@@ -286,6 +286,17 @@ final class ContactsManager: ObservableObject {
         }
     }
 
+    /// Whether a wallet has contacts saved on this device, the active one or not. A list that
+    /// can't be decoded counts as having some, so nobody treats it as nothing to lose.
+    func hasPersistedContacts(forWalletAddress walletAddress: String) -> Bool {
+        guard let normalizedAddress = normalizeWalletAddress(walletAddress),
+              let data = userDefaults.data(forKey: contactsKey(forNormalizedWalletAddress: normalizedAddress)) else {
+            return false
+        }
+        guard let contacts = try? JSONDecoder().decode([Contact].self, from: data) else { return true }
+        return !contacts.isEmpty
+    }
+
     func loadContacts() {
         guard let contactsKey = activeContactsKey else {
             contacts = []

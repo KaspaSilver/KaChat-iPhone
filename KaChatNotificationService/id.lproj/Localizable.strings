@@ -1,0 +1,13 @@
+"New message request" = "Permintaan pesan baru";
+"%@ wants to chat with you." = "%@ ingin mengobrol denganmu.";
+"New message" = "Pesan baru";
+"Started a conversation" = "Memulai percakapan";
+"Voice message" = "Pesan suara";
+"Sent you %@ KAS" = "Mengirimi Anda %@ KAS";
+"Sent you a payment" = "Mengirimi Anda pembayaran";
+"You were invited to \"%@\"" = "Anda diundang ke \"%@\"";
+"Requested for payment" = "Meminta pembayaran";
+"Received payment" = "Menerima pembayaran";
+"Group chat" = "Obrolan grup";
+"Group update" = "Pembaruan grup";
+"New group message" = "Pesan grup baru";

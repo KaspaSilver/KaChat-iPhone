@@ -24,6 +24,31 @@ struct ChessTimeControl: Equatable {
     var incrementMs: Int64 { Int64(incSeconds) * 1_000 }
     /// "3 | 2"-style display label, matching how chess sites name minute/increment pairs.
     var label: String { "\(minutes) | \(incSeconds)" }
+
+    /// The most a clock can hold: a month, far past any real game even at the highest increment.
+    /// A move's `clockMs` is whatever the sender wrote, so it's held to this before any arithmetic.
+    static let maxClockMs: Int64 = 30 * 24 * 60 * 60 * 1_000
+
+    /// The time control an invite asks for, nil for an untimed game. The envelope's numbers are
+    /// the sender's word: anything outside 1...180 minutes or 0...180 seconds is played untimed
+    /// (`initialMs` on a huge `tcMinutes` overflowed and took the app down on the invite alone).
+    static func fromInvite(_ invite: ChessInviteContent) -> ChessTimeControl? {
+        guard let minutes = invite.tcMinutes, (1...180).contains(minutes) else { return nil }
+        let incSeconds = invite.tcIncSeconds ?? 0
+        guard (0...180).contains(incSeconds) else { return nil }
+        return ChessTimeControl(minutes: minutes, incSeconds: incSeconds)
+    }
+
+    /// A move's `clockMs` as received, held within what a clock can be.
+    static func sanitizedClockMs(_ clockMs: Int64) -> Int64 {
+        min(max(clockMs, 0), maxClockMs)
+    }
+
+    /// The `clockMs` my move reports: what I have left plus the increment.
+    func clockMs(afterMoveWith remainingMs: Int64) -> Int64 {
+        let (sum, overflow) = remainingMs.addingReportingOverflow(incrementMs)
+        return overflow ? Self.maxClockMs : Self.sanitizedClockMs(sum)
+    }
 }
 
 enum ChessGameStatus: Equatable {
@@ -148,7 +173,7 @@ enum ChessGameService {
     static func summarize(gameId: String, in messages: [ChatMessage], myAddress: String, contactAddress: String) -> ChessGameSummary? {
         var invite: ChessInviteContent?
         var inviterAddress: String?
-        var response: ChessResponseContent?
+        var responseEntries: [(message: ChatMessage, content: ChessResponseContent, sender: String)] = []
         var board = ChessEngine.initialBoard()
         var resignerAddress: String?
         var resignReason: String?
@@ -172,11 +197,14 @@ enum ChessGameService {
 
             switch envelope {
             case .invite(let content):
+                // The first invite is the game: a second one for this gameId can't change the
+                // colors or the time control of a game already under way.
+                if invite != nil { continue }
                 invite = content
                 inviterAddress = senderAddress
             case .response(let content):
                 if unsent { continue }
-                response = content
+                responseEntries.append((message, content, senderAddress))
             case .move(let content):
                 if unsent { continue }
                 moveEntries.append((message, content, senderAddress))
@@ -222,7 +250,7 @@ enum ChessGameService {
                         : board.piece(at: to)
                     board = ChessEngine.apply(move, to: board)
                     if let clockMs = content.clockMs {
-                        lastClockByColor[movingPiece.color] = clockMs
+                        lastClockByColor[movingPiece.color] = ChessTimeControl.sanitizedClockMs(clockMs)
                     }
                     moveHistory.append(ChessMoveRecord(
                         from: from,
@@ -245,6 +273,15 @@ enum ChessGameService {
         let otherAddress = inviterAddress == myAddress ? contactAddress : myAddress
         let whiteAddress = invite.inviterColor == .white ? inviterAddress : otherAddress
         let blackAddress = invite.inviterColor == .white ? otherAddress : inviterAddress
+
+        // The answer is the invited side's, once, and only while the game hasn't started: a decline
+        // sent after the first move would otherwise void a game its sender is losing.
+        let firstMoveAt = moveHistory.first.flatMap { first in
+            moveEntries.first { $0.message.txId == first.messageTxId }?.message.timestamp
+        }
+        let response = responseEntries.first { entry in
+            entry.sender != inviterAddress && (firstMoveAt.map { entry.message.timestamp <= $0 } ?? true)
+        }?.content
 
         let status: ChessGameStatus
         if let resignerAddress {
@@ -271,10 +308,7 @@ enum ChessGameService {
 
         let viewerColor: ChessColor? = myAddress == whiteAddress ? .white : (myAddress == blackAddress ? .black : nil)
 
-        var timeControl: ChessTimeControl?
-        if let minutes = invite.tcMinutes, minutes > 0 {
-            timeControl = ChessTimeControl(minutes: minutes, incSeconds: max(invite.tcIncSeconds ?? 0, 0))
-        }
+        let timeControl = ChessTimeControl.fromInvite(invite)
 
         return ChessGameSummary(
             gameId: gameId,

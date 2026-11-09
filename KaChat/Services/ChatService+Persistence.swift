@@ -237,6 +237,8 @@ extension ChatService {
         }
         let existingConversations = conversations
         let currentActiveConversationAddress = activeConversationAddress
+        // To tell, after the detached merge, which chats were read while it ran.
+        let readCursorsBeforeMerge = readCursorByAddress
 
         // The actual O(total messages in the wallet) sort/dedupe/trim/merge work used to run
         // synchronously right here on the main actor, on every reload - not just for the one conversation that changed, the *entire* wallet's history,
@@ -275,11 +277,14 @@ extension ChatService {
             let combinedMessages = Self.dedupeMessages(latest.messages + conv.messages)
             let shouldTrim = conv.contact.address != activeConversationAddress
             let finalMessages = shouldTrim ? Self.trimMessagesForMemory(combinedMessages) : combinedMessages
+            // Read during the merge: `conv`'s count predates that, and taking the larger of the
+            // two would hand the chat its badge back.
+            let readDuringMerge = (readCursorByAddress[conv.contact.address] ?? 0) > (readCursorsBeforeMerge[conv.contact.address] ?? 0)
             return Conversation(
                 id: conv.id,
                 contact: conv.contact,
                 messages: finalMessages,
-                unreadCount: max(conv.unreadCount, latest.unreadCount)
+                unreadCount: readDuringMerge ? latest.unreadCount : max(conv.unreadCount, latest.unreadCount)
             )
         }
         let reconciledAddresses = Set(reconciled.map { $0.contact.address })
@@ -491,7 +496,7 @@ extension ChatService {
     /// A send still pending from before this run started stays on Sending for good with nothing left
     /// working on it. Once per account, after its first full sync has brought in any copy that did
     /// get delivered, what's left is marked failed so Retry appears. A copy delivered later still
-    /// replaces it (`updateOldestPendingOutgoingMessage` matches failed rows too).
+    /// with the same text replaces it (`updateOutgoingPendingMessageIfMatch`).
     func failPendingSendsFromBeforeThisRun(walletAddress: String) {
         guard leftoverPendingSendsCheckedWallets.insert(walletAddress).inserted else { return }
         let leftovers = conversations.flatMap { conversation in
@@ -907,6 +912,19 @@ extension ChatService {
         saveSyncObjectCursorsIfNeeded()
     }
 
+    /// Pulls every sync cursor back to `blockTime`: what was read from the chain during an
+    /// indexer outage moved them, and the indexer has the final word on that window.
+    func rewindAllSyncCursors(to blockTime: UInt64) {
+        var rewound = false
+        for (key, cursor) in syncObjectCursors where cursor.lastFetchedBlockTime > blockTime {
+            syncObjectCursors[key] = SyncObjectCursor(lastFetchedBlockTime: blockTime)
+            rewound = true
+        }
+        guard rewound else { return }
+        syncObjectCursorsDirty = true
+        saveSyncObjectCursorsIfNeeded()
+    }
+
     func advanceSyncCursor(for objectKey: String, maxBlockTime: UInt64?) {
         guard let maxBlockTime, maxBlockTime > 0 else { return }
         let previous = syncObjectCursors[objectKey]?.lastFetchedBlockTime ?? 0
@@ -925,7 +943,7 @@ extension ChatService {
     }
 
     /// Stamps "now" as the import moment for a wallet that is NEW to this device. Called by
-    /// `WalletManager.importWallet` inside its `isNewWallet` branch only, so a same-account
+    /// `WalletManager.importWallet` inside its `isNewAccount` branch only, so a same-account
     /// re-login or a saved-account switch never moves an existing baseline forward (messages
     /// that arrived while logged out must still land unread there). Keyed per wallet address,
     /// so it survives wallet switches and `resetForNewWallet`'s fixed-key cleanup.
@@ -1230,7 +1248,9 @@ extension ChatService {
         }
         if syncDepth == 0, needsMessageStoreSyncAfterBatch {
             needsMessageStoreSyncAfterBatch = false
-            saveMessages()
+            // Exempt from the throttle: the cursors below are written now, and must never sit
+            // past a batch that is still only in memory.
+            scheduleMessageStoreSync(bypassThrottle: true)
         }
         saveSyncObjectCursorsIfNeeded()
         flushPendingLastMessageUpdates()
@@ -1245,67 +1265,81 @@ extension ChatService {
         return key
     }
 
-    func scheduleMessageStoreSync() {
-        if let lastScheduled = lastMessageStoreSyncScheduledAt,
-           !isSyncInProgress,
-           Date().timeIntervalSince(lastScheduled) < messageStoreSyncMinInterval {
-            return
+    func scheduleMessageStoreSync(bypassThrottle: Bool = false) {
+        // Inside the throttle window a save is put off to the window's end, never dropped. The
+        // write reads the conversations and the dirty set when it runs, so one trailing write
+        // covers every save that comes in while it waits.
+        var remainingInWindow: TimeInterval = 0
+        if !bypassThrottle, !isSyncInProgress, let lastScheduled = lastMessageStoreSyncScheduledAt {
+            remainingInWindow = messageStoreSyncMinInterval - Date().timeIntervalSince(lastScheduled)
         }
+        let isTrailing = remainingInWindow > 0
+        if isTrailing, messageStoreSyncTrailingPending { return }
+        let delay = isTrailing ? remainingInWindow : 0.15
         // The active wallet at schedule time. If the user switches/imports a different account
         // during the debounce window below, we must not flush this snapshot into the new wallet's
         // store. Upstream sync guards already keep foreign messages out of `conversations`; this is
         // the final backstop right at the persistence boundary. See ChatService.isActiveWallet.
         let scheduledOwner = WalletManager.shared.currentWallet?.publicAddress
-        messageSyncTask?.cancel()
-        lastMessageStoreSyncScheduledAt = Date()
+        // A trailing save leaves a write already on its way alone: cancelling wakes it early.
+        if !isTrailing { messageSyncTask?.cancel() }
+        messageStoreSyncTrailingPending = isTrailing
+        lastMessageStoreSyncScheduledAt = Date().addingTimeInterval(delay)
         messageSyncTask = Task { [weak self] in
             // Reduced delay from 600ms to 150ms to minimize race condition window
             // where in-memory changes (e.g., marking as read) get overwritten by
             // stale Core Data reloads before save completes
-            try? await Task.sleep(nanoseconds: 150_000_000)
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             guard let self else { return }
-            guard let owner = scheduledOwner, self.isActiveWallet(owner) else { return }
-            guard let key = self.messageEncryptionKey() else { return }
-            let conversationsSnapshot = await MainActor.run { self.conversations }
-            let dirtyAddresses = await MainActor.run { () -> Set<String> in
-                let snapshot = self.dirtyConversationAddresses
-                self.dirtyConversationAddresses.removeAll()
-                return snapshot
-            }
-            let now = Date()
-            let shouldRunMaintenance = now.timeIntervalSince(self.lastFullStoreMaintenanceAt) >= self.fullStoreMaintenanceInterval
-            let conversationsToSync: [Conversation]
-            let performMaintenance: Bool
-            if shouldRunMaintenance {
-                conversationsToSync = conversationsSnapshot
-                performMaintenance = true
-            } else if !dirtyAddresses.isEmpty {
-                conversationsToSync = conversationsSnapshot.filter { dirtyAddresses.contains($0.contact.address) }
-                performMaintenance = false
-            } else {
-                conversationsToSync = []
-                performMaintenance = false
-            }
+            if isTrailing { self.messageStoreSyncTrailingPending = false }
+            await self.writeDirtyConversations(owner: scheduledOwner, allowMaintenance: true)
+        }
+    }
 
-            if conversationsToSync.isEmpty { return }
+    /// Going to the background: what is dirty is written now, since iOS can kill the app before
+    /// a debounced save runs. No full maintenance pass here - the app has seconds, not minutes.
+    func flushMessageStoreForBackground() {
+        let owner = WalletManager.shared.currentWallet?.publicAddress
+        Task { [weak self] in
+            await self?.writeDirtyConversations(owner: owner, allowMaintenance: false)
+        }
+    }
 
-            let didWrite = await self.messageStore.syncFromConversations(
-                conversationsToSync,
-                encryptionKey: key,
-                retention: SettingsViewModel.loadSettings().messageRetention,
-                performMaintenance: performMaintenance
-            )
-            if performMaintenance {
-                await MainActor.run {
-                    self.lastFullStoreMaintenanceAt = now
-                }
-            }
+    private func writeDirtyConversations(owner: String?, allowMaintenance: Bool) async {
+        guard let owner, isActiveWallet(owner) else { return }
+        guard let key = messageEncryptionKey() else { return }
+        let conversationsSnapshot = conversations
+        let dirtyAddresses = dirtyConversationAddresses
+        dirtyConversationAddresses.removeAll()
+        let now = Date()
+        let shouldRunMaintenance = allowMaintenance && now.timeIntervalSince(lastFullStoreMaintenanceAt) >= fullStoreMaintenanceInterval
+        let conversationsToSync: [Conversation]
+        let performMaintenance: Bool
+        if shouldRunMaintenance {
+            conversationsToSync = conversationsSnapshot
+            performMaintenance = true
+        } else if !dirtyAddresses.isEmpty {
+            conversationsToSync = conversationsSnapshot.filter { dirtyAddresses.contains($0.contact.address) }
+            performMaintenance = false
+        } else {
+            conversationsToSync = []
+            performMaintenance = false
+        }
 
-            if didWrite {
-                await MainActor.run {
-                    self.recordLocalSave()
-                }
-            }
+        if conversationsToSync.isEmpty { return }
+
+        let didWrite = await messageStore.syncFromConversations(
+            conversationsToSync,
+            encryptionKey: key,
+            retention: SettingsViewModel.loadSettings().messageRetention,
+            performMaintenance: performMaintenance
+        )
+        if performMaintenance {
+            lastFullStoreMaintenanceAt = now
+        }
+
+        if didWrite {
+            recordLocalSave()
         }
     }
 
@@ -1630,7 +1664,21 @@ extension ChatService {
     /// Contacts whose stored routing was checked against this account's key, per account.
     static var verifiedRoutingContacts = Set<String>()
 
-    func ensureRoutingState(for address: String, privateKey: Data?) {
+    /// Signing in wipes routing (`routingStatesKey` is global) and only chats with handshake
+    /// aliases get theirs back from the chain, so a no-handshake chat you never replied to would
+    /// stop being polled. Its messages are in this wallet's store: that's enough to derive it.
+    /// Called after the handshake phases: a state made before them would have no legacy aliases.
+    func seedRoutingStatesForStoredConversations(privateKey: Data?) {
+        guard let privateKey else { return }
+        let missing = conversations.map(\.contact.address).filter { routingStates[$0] == nil }
+        guard !missing.isEmpty else { return }
+        for address in missing {
+            ensureRoutingState(for: address, privateKey: privateKey, persist: false)
+        }
+        saveRoutingStates()
+    }
+
+    func ensureRoutingState(for address: String, privateKey: Data?, persist: Bool = true) {
         guard let privKey = privateKey, isCurrentAccountKey(privKey) else { return }
         guard let myAlias = try? DeterministicAlias.deriveMyAlias(privateKey: privKey, theirAddress: address),
               let theirAlias = try? DeterministicAlias.deriveTheirAlias(privateKey: privKey, theirAddress: address) else {
@@ -1657,7 +1705,7 @@ extension ChatService {
                 lastLegacyIncomingAtMs: existing.lastLegacyIncomingAtMs,
                 lastDeterministicIncomingAtMs: nil
             )
-            saveRoutingStates()
+            if persist { saveRoutingStates() }
             return
         }
 
@@ -1675,7 +1723,7 @@ extension ChatService {
             lastLegacyIncomingAtMs: nil,
             lastDeterministicIncomingAtMs: nil
         )
-        saveRoutingStates()
+        if persist { saveRoutingStates() }
     }
 
     /// Get all incoming aliases (deterministic + legacy) for a contact

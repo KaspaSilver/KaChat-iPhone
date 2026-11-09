@@ -498,7 +498,9 @@ extension ChatService {
     func indexerSender(txId: String, receiver: String, blockTime: UInt64) async -> String? {
         // its rows are read forward from block_time: start a little before the payment
         let from = blockTime > 600_000 ? blockTime - 600_000 : 0
-        guard let rows = try? await apiClient.getPaymentsByReceiverOnce(address: receiver, limit: 50, blockTime: from),
+        // Indexer only: the ordinary read falls back to the REST server during an outage, and this
+        // check exists to be a second source to it. An outage leaves the payment held.
+        guard let rows = try? await apiClient.getPaymentsFromIndexerOnly(address: receiver, limit: 50, blockTime: from),
               let row = rows.first(where: { $0.txId.lowercased() == txId.lowercased() }) else { return nil }
         let sender = row.sender.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         return sender.isEmpty ? nil : sender
@@ -2069,6 +2071,7 @@ extension ChatService {
             ensureRoutingState(for: myAddress, privateKey: privateKey)
             _ = contactsManager.getOrCreateContact(address: myAddress)
         }
+        seedRoutingStatesForStoredConversations(privateKey: privateKey)
         // Build contact set from routing states (preferred) + legacy aliases (fallback)
         let allContactAddresses = Array(Set(routingStates.keys).union(conversationAliases.keys))
         AppLog.log("%@", "[ChatService] Fetching contextual messages for \(allContactAddresses.count) contacts")
@@ -2488,6 +2491,9 @@ extension ChatService {
                         messageType: .contextual
                     )
 
+                    // A wallet switch may have happened during the fetch and decrypt awaits above;
+                    // don't append this wallet's history to the now-active wallet's list.
+                    guard isActiveWallet(myAddress) else { return false }
                     addMessageToConversation(message, contactAddress: contactAddress)
 
                     // Capability detection: if message arrived on deterministic alias, mark peer
@@ -2599,6 +2605,9 @@ extension ChatService {
                         messageType: held?.messageType ?? messageType(for: content)
                     )
 
+                    // A wallet switch may have happened during the fetch and decrypt awaits above;
+                    // don't append this wallet's history to the now-active wallet's list.
+                    guard isActiveWallet(myAddress) else { return false }
                     addMessageToConversation(message, contactAddress: contactAddress)
                     if let blockTime = contextMsg.blockTime, blockTime > lastPollTime {
                         updateLastPollTime(blockTime)
@@ -2690,6 +2699,8 @@ extension ChatService {
                         messageType: .contextual
                     )
 
+                    // A wallet switch may have happened during the fetch and decrypt awaits above.
+                    guard isActiveWallet(myAddress) else { return .success(added: false) }
                     addMessageToConversation(message, contactAddress: contactAddress)
                     newMessagesAdded = true
 
@@ -3097,6 +3108,7 @@ extension ChatService {
             AppLog.log("[ChatService] Outgoing push: missing private key")
             return false
         }
+        let owner = WalletManager.shared.currentWallet?.publicAddress
 
         // A reaction's own transaction never gets a CDMessage row (see isKnownReaction's doc
         // comment) - nothing below this point could ever resolve real "message" content for it,
@@ -3146,6 +3158,8 @@ extension ChatService {
         if sentContent == nil {
             sentContent = await decryptContextualMessageFromRawPayload(rawPayload, privateKey: privateKey)
         }
+        // A wallet switch during the awaits above: this push was for the account signed out of.
+        guard let owner, isActiveWallet(owner) else { return true }
         guard let decrypted = sentContent else {
             AppLog.log("[ChatService] Outgoing push: decrypt failed for %@ - content arrives with the next archive restore", txId)
             // Create placeholder message - the archive restore delivers the actual content

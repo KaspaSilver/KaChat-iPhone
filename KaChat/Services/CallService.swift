@@ -104,6 +104,9 @@ final class CallService: ObservableObject {
         var phaseObserver: AnyCancellable?
         /// Ringback asked for before CallKit activated the audio session; played on activation.
         var ringbackPending = false
+        /// The account this call belongs to, nil only on a VoIP launch before the wallet has
+        /// loaded (`walletChanged`).
+        var ownerAddress: String?
 
         init(id: String, contact: Contact, isOutgoing: Bool, server: URL?, token: String, video: Bool, phase: Phase, hostsThisCall: Bool) {
             self.id = id
@@ -120,7 +123,13 @@ final class CallService: ObservableObject {
         }
     }
 
-    @Published private(set) var session: ActiveCall?
+    @Published private(set) var session: ActiveCall? {
+        didSet {
+            if let session, session.ownerAddress == nil {
+                session.ownerAddress = WalletManager.shared.currentWallet?.publicAddress
+            }
+        }
+    }
     /// The call screen is tucked away: the user is elsewhere in KaChat (or in another app)
     /// while the call goes on. A video call floats as the system's Picture in Picture; a voice
     /// call shows the green return bar. `restore()` brings the screen back.
@@ -140,9 +149,18 @@ final class CallService: ObservableObject {
     private let inviteFreshness: TimeInterval = 45
 
     private var audioObservers: [NSObjectProtocol] = []
+    private var walletObserver: AnyCancellable?
 
     private init() {
         handledCallIds = Set(UserDefaults.standard.stringArray(forKey: Self.handledCallIdsKey) ?? [])
+        // `@Published` sends before the value is stored; the Task runs after, so `finish` reads
+        // the new account.
+        walletObserver = WalletManager.shared.$currentWallet
+            .map { $0?.publicAddress }
+            .removeDuplicates()
+            .sink { [weak self] address in
+                Task { @MainActor in self?.walletChanged(to: address) }
+            }
         let center = NotificationCenter.default
         audioObservers.append(center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.routeChanged() }
@@ -911,6 +929,20 @@ final class CallService: ObservableObject {
 
     // MARK: - Teardown
 
+    /// A call belongs to the account it started on: switching accounts or logging out ends it,
+    /// or it would go on under someone else's name. `finish` sends no `call_end` for it.
+    private func walletChanged(to address: String?) {
+        guard let call = session else { return }
+        if case .ended = call.phase { return }
+        guard let owner = call.ownerAddress else {
+            call.ownerAddress = address
+            return
+        }
+        guard address != owner else { return }
+        AppLog.log("[Call] Account changed during a call; ending it")
+        Task { await finish(reason: "hangup") }
+    }
+
     private func finish(reason: String) async {
         guard let call = session else { return }
         if case .ended = call.phase { return }
@@ -937,8 +969,10 @@ final class CallService: ObservableObject {
 
         // The caller is the only side that ever puts a call on chain: one opening message
         // (invite or request) and one closing message with how it went and, if it connected,
-        // for how long. A callee's hang-up reaches the caller through the room instead.
-        if call.isOutgoing, call.openingMessageSent {
+        // for how long. A callee's hang-up reaches the caller through the room instead. Never
+        // from another account: it would go to the contact from a stranger, and `sendMessage`
+        // would open a chat with them there.
+        if call.isOutgoing, call.openingMessageSent, call.ownerAddress == WalletManager.shared.currentWallet?.publicAddress {
             let end = CallEndContent(callId: call.id, reason: reason, durationSeconds: duration)
             try? await ChatService.shared.sendMessage(to: call.contact, content: CallCodec.encode(end))
         }

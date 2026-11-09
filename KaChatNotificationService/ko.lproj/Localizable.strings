@@ -318,3 +318,8 @@
 "Sent you a payment" = "결제를 보냈습니다";
 "Requested for payment" = "결제를 요청했습니다";
 "You were invited to \"%@\"" = "\"%@\"에 초대되었습니다";
+
+/* Undecryptable group push */
+"Group chat" = "그룹 채팅";
+"Group update" = "그룹 업데이트";
+"New group message" = "새 그룹 메시지";

@@ -126,6 +126,8 @@ struct ChessGameView: View {
             hasher.combine(message.id)
             hasher.combine(message.txId)
             hasher.combine(message.deliveryStatus)
+            // A placeholder resolving to its real text keeps its id and txId.
+            hasher.combine(message.content)
         }
         return hasher.finalize()
     }
@@ -610,11 +612,21 @@ struct ChessGameView: View {
                     .foregroundColor(.red)
                     .fontWeight(.semibold)
             case .warning:
-                // The move's outcome is unknown: it may have landed, so a Retry could play it twice.
+                // The move's outcome is unknown: it may have landed, so a resend right away could
+                // play it twice. Once its transaction has had time to be read back, Play It Again
+                // is offered: a move that never landed otherwise leaves both sides waiting for
+                // good, and if both copies do land, replay drops the second as illegal.
                 Image(systemName: "questionmark.circle")
                     .foregroundColor(.orange)
                 Text("Not confirmed")
                     .foregroundColor(.orange)
+                TimelineView(.periodic(from: .now, by: 5)) { context in
+                    if canPlayUnconfirmedMoveAgain(at: context.date) {
+                        Text("Play It Again")
+                            .foregroundColor(.orange)
+                            .fontWeight(.semibold)
+                    }
+                }
             case .pending:
                 ProgressView()
                     .scaleEffect(0.7)
@@ -625,8 +637,36 @@ struct ChessGameView: View {
         .foregroundColor(.secondary)
         .contentShape(Rectangle())
         .onTapGesture {
-            guard status == .failed, let lastActionMessage else { return }
-            retryMessage(lastActionMessage)
+            guard let lastActionMessage else { return }
+            if status == .failed {
+                retryMessage(lastActionMessage)
+            } else if status == .warning, canPlayUnconfirmedMoveAgain(at: Date()) {
+                playUnconfirmedMoveAgain(lastActionMessage)
+            }
+        }
+    }
+
+    /// How long a Not confirmed move waits for its transaction to be read back before it can be
+    /// sent again.
+    private static let unconfirmedMoveReplayDelay: TimeInterval = 60
+
+    private func canPlayUnconfirmedMoveAgain(at date: Date) -> Bool {
+        guard !isSending, let lastActionMessage, lastActionMessage.deliveryStatus == .warning else { return false }
+        return date.timeIntervalSince(lastActionMessage.timestamp) >= Self.unconfirmedMoveReplayDelay
+    }
+
+    /// A new transaction with the same move: `retryOutgoingMessage` refuses a Not confirmed row,
+    /// which keeps a payment from going twice, and the row stays until its copy is read back.
+    private func playUnconfirmedMoveAgain(_ message: ChatMessage) {
+        guard !isSending else { return }
+        isSending = true
+        Task {
+            do {
+                try await chatService.sendMessage(to: contact, content: message.content)
+            } catch {
+                self.error = error.localizedDescription
+            }
+            isSending = false
         }
     }
 
@@ -853,7 +893,7 @@ struct ChessGameView: View {
         // straight off this field. Untimed games send no clockMs, exactly the legacy shape.
         var clockMs: Int64?
         if let timeControl, let remaining = myDisplayClockMs {
-            clockMs = remaining + timeControl.incrementMs
+            clockMs = timeControl.clockMs(afterMoveWith: remaining)
         }
         lastClockTick = nil
         Task {
@@ -953,7 +993,7 @@ struct WaitingOnOpponentOverlay: View {
     @State private var dotCount = 1
 
     var body: some View {
-        Text("Waiting on opponent" + String(repeating: ".", count: dotCount))
+        Text(AppLocalization.string("Waiting on opponent") + String(repeating: ".", count: dotCount))
             .font(.subheadline)
             .fontWeight(.semibold)
             .foregroundColor(.white)

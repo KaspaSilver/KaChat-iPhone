@@ -318,3 +318,8 @@
 "Sent you a payment" = "برای شما پرداختی فرستاد";
 "Requested for payment" = "درخواست پرداخت";
 "You were invited to \"%@\"" = "به «%@» دعوت شدید";
+
+/* Undecryptable group push */
+"Group chat" = "گفتگوی گروهی";
+"Group update" = "به‌روزرسانی گروه";
+"New group message" = "پیام گروهی جدید";

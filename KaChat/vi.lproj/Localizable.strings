@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "Cụm mật khẩu khác sẽ cho địa chỉ khác và tài khoản khác.";
 "This address holds funds, so this looks like the right account." = "Địa chỉ này có tiền, nên đây có vẻ là đúng tài khoản.";
 "No funds on this address. If you expected funds here, check your passphrase." = "Địa chỉ này không có tiền. Nếu bạn mong đợi có tiền ở đây, hãy kiểm tra cụm mật khẩu của bạn.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "Chúng tôi đã chọn địa chỉ đầu tiên có tiền. Hãy chạm địa chỉ khác nếu đó không phải địa chỉ bạn dùng để trò chuyện.";
 "Address #%lld" = "Địa chỉ #%lld";
 "Get KaChat Contacts" = "Lấy danh bạ KaChat";
 "Return KaChat contacts as JSON strings." = "Trả về danh bạ KaChat dưới dạng chuỗi JSON.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "Tin nhắn thoại không khả dụng";
 "Tap to retry" = "Chạm để thử lại";
 "Loading…" = "Đang tải…";
-"Where are your 12 or 24 words from?" = "12 hoặc 24 từ của bạn đến từ đâu?";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "Mỗi ví lưu Kaspa của bạn ở một đường dẫn địa chỉ khác nhau. Hãy chọn nơi các từ này đến từ để KaChat tìm thấy tiền và tên miền của bạn.";
 "Restore from NFC Card" = "Khôi phục từ thẻ NFC";
 "NFC Card Backup" = "Sao lưu vào thẻ NFC";
 "Erase the backup on this card?" = "Xóa bản sao lưu trên thẻ này?";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "Khóa của tài khoản này có thể vẫn còn trên điện thoại này, nhưng hiện không đọc được nên chưa có gì thay đổi. Hãy thử lại sau giây lát.";
 "Play It Again" = "Chơi lại";
 "This is the public half of this address. It cannot spend anything." = "Đây là phần công khai của địa chỉ này. Nó không thể chi tiêu gì.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "Ví Kaspa tiêu chuẩn";
+"Has history" = "Có lịch sử";
+"See Every Wallet Type" = "Xem mọi loại ví";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat đối chiếu các từ của bạn với mọi loại ví Kaspa, nên bạn không cần biết chúng đến từ ví nào.";
+"This address has history, so this looks like the right account." = "Địa chỉ này có lịch sử, nên có vẻ đây là tài khoản đúng.";
+"No funds or history on this address." = "Địa chỉ này không có tiền hoặc lịch sử.";
+"We picked the most likely account. Tap another if that's not the one you use." = "Chúng tôi đã chọn tài khoản có khả năng nhất. Hãy chạm vào tài khoản khác nếu đây không phải tài khoản bạn dùng.";
+"Your Account" = "Tài khoản của bạn";

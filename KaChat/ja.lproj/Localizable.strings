@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "パスフレーズが違うと、アドレスも別になり、別のアカウントになります。";
 "This address holds funds, so this looks like the right account." = "このアドレスには資金があるため、正しいアカウントのようです。";
 "No funds on this address. If you expected funds here, check your passphrase." = "このアドレスに資金はありません。ここにあるはずの場合は、パスフレーズを確認してください。";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "資金のある最初のアドレスを選びました。チャットに使うアドレスが別なら、そちらをタップしてください。";
 "Address #%lld" = "アドレス #%lld";
 "Get KaChat Contacts" = "KaChatの連絡先を取得";
 "Return KaChat contacts as JSON strings." = "KaChatの連絡先をJSON文字列で返します。";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "ボイスメッセージは利用できません";
 "Tap to retry" = "タップして再試行";
 "Loading…" = "読み込み中…";
-"Where are your 12 or 24 words from?" = "12語または24語はどこのものですか？";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "ウォレットによって、Kaspaを保管するアドレスのパスが異なります。KaChatが資金とドメインを見つけられるよう、これらの単語がどこのものかを選んでください。";
 "Restore from NFC Card" = "NFCカードから復元";
 "NFC Card Backup" = "NFCカードのバックアップ";
 "Erase the backup on this card?" = "このカードのバックアップを消去しますか？";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "このアカウントの鍵はまだこの iPhone にある可能性がありますが、現在読み取れないため、何も変更していません。しばらくしてからもう一度お試しください。";
 "Play It Again" = "もう一度指す";
 "This is the public half of this address. It cannot spend anything." = "これはこのアドレスの公開部分です。何も使うことはできません。";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "標準のKaspaウォレット";
+"Has history" = "履歴あり";
+"See Every Wallet Type" = "すべてのウォレットの種類を表示";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChatがあらゆる種類のKaspaウォレットと照合するため、どのウォレットの単語かを知らなくても大丈夫です。";
+"This address has history, so this looks like the right account." = "このアドレスには履歴があるため、正しいアカウントのようです。";
+"No funds or history on this address." = "このアドレスには資金も履歴もありません。";
+"We picked the most likely account. Tap another if that's not the one you use." = "最も可能性の高いアカウントを選びました。使っているものと違う場合は、別のアカウントをタップしてください。";
+"Your Account" = "あなたのアカウント";

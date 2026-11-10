@@ -130,7 +130,6 @@
 		GRPC00010001000100000018 /* p2p.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRPC00010001000100000008 /* p2p.pb.swift */; };
 		GRST00010001000100000001 /* GroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = GRST00010001000000000001 /* GroupStore.swift */; };
 		IMGP00010001000100000001 /* ImagePrep.swift in Sources */ = {isa = PBXBuildFile; fileRef = IMGP00010001000000000001 /* ImagePrep.swift */; };
-		IMSW00010001000100000001 /* ImportSourceWalletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IMSW00010001000000000001 /* ImportSourceWalletView.swift */; };
 		KASPATYPES001 /* KaspaTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = KASPATYPES002 /* KaspaTypes.swift */; };
 		KFAS00010001000000000002 /* KaspaFiatAmountState.swift in Sources */ = {isa = PBXBuildFile; fileRef = KFAS00010001000000000001 /* KaspaFiatAmountState.swift */; };
 		KFPOLICY000100010001 /* KaspaFeePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = KFPOLICY000100010002 /* KaspaFeePolicy.swift */; };
@@ -346,7 +345,6 @@
 		GRPC00010001000100000008 /* p2p.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = p2p.pb.swift; sourceTree = "<group>"; };
 		GRST00010001000000000001 /* GroupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupStore.swift; sourceTree = "<group>"; };
 		IMGP00010001000000000001 /* ImagePrep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePrep.swift; sourceTree = "<group>"; };
-		IMSW00010001000000000001 /* ImportSourceWalletView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportSourceWalletView.swift; sourceTree = "<group>"; };
 		KASPATYPES002 /* KaspaTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaspaTypes.swift; sourceTree = "<group>"; };
 		KFAS00010001000000000001 /* KaspaFiatAmountState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaspaFiatAmountState.swift; sourceTree = "<group>"; };
 		KFPOLICY000100010002 /* KaspaFeePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaspaFeePolicy.swift; sourceTree = "<group>"; };
@@ -706,7 +704,6 @@
 				ABVW0000000000000002 /* AccountBackupView.swift */,
 				NFCT0000000000000006 /* NFCCardRestoreView.swift */,
 				CHAD00010001000000000001 /* ChattingAddressPickerView.swift */,
-				IMSW00010001000000000001 /* ImportSourceWalletView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -1169,7 +1166,6 @@
 				ABVW0000000000000001 /* AccountBackupView.swift in Sources */,
 				NFCT0000000000000005 /* NFCCardRestoreView.swift in Sources */,
 				CHAD00010001000100000001 /* ChattingAddressPickerView.swift in Sources */,
-				IMSW00010001000100000001 /* ImportSourceWalletView.swift in Sources */,
 				E81000172D4C00010000000C /* ChatListView.swift in Sources */,
 				GRPCHATLV000100010000002 /* GroupChatListView.swift in Sources */,
 				E81000192D4C00010000000D /* ChatDetailView.swift in Sources */,

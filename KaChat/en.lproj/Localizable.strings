@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "A different passphrase gives a different address, and a different account.";
 "This address holds funds, so this looks like the right account." = "This address holds funds, so this looks like the right account.";
 "No funds on this address. If you expected funds here, check your passphrase." = "No funds on this address. If you expected funds here, check your passphrase.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "We picked the first address with funds. Tap another if that's not the one you chat from.";
 "Address #%lld" = "Address #%lld";
 "Get KaChat Contacts" = "Get KaChat Contacts";
 "Return KaChat contacts as JSON strings." = "Return KaChat contacts as JSON strings.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "Voice message unavailable";
 "Tap to retry" = "Tap to retry";
 "Loading…" = "Loading…";
-"Where are your 12 or 24 words from?" = "Where are your 12 or 24 words from?";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains.";
 "Restore from NFC Card" = "Restore from NFC Card";
 "NFC Card Backup" = "NFC Card Backup";
 "Erase the backup on this card?" = "Erase the backup on this card?";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment.";
 "Play It Again" = "Play It Again";
 "This is the public half of this address. It cannot spend anything." = "This is the public half of this address. It cannot spend anything.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "Standard Kaspa Wallet";
+"Has history" = "Has history";
+"See Every Wallet Type" = "See Every Wallet Type";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from.";
+"This address has history, so this looks like the right account." = "This address has history, so this looks like the right account.";
+"No funds or history on this address." = "No funds or history on this address.";
+"We picked the most likely account. Tap another if that's not the one you use." = "We picked the most likely account. Tap another if that's not the one you use.";
+"Your Account" = "Your Account";

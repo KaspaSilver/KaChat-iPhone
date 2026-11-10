@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "密码短语不同，地址就不同，账户也就不同。";
 "This address holds funds, so this looks like the right account." = "此地址上有资金，所以看起来这就是正确的账户。";
 "No funds on this address. If you expected funds here, check your passphrase." = "此地址上没有资金。如果你以为这里有，请检查你的密码短语。";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "我们选了第一个有资金的地址。如果那不是你用来聊天的地址，请点另一个。";
 "Address #%lld" = "地址 #%lld";
 "Get KaChat Contacts" = "获取 KaChat 联系人";
 "Return KaChat contacts as JSON strings." = "以 JSON 字符串返回 KaChat 联系人。";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "语音消息不可用";
 "Tap to retry" = "轻点重试";
 "Loading…" = "正在加载…";
-"Where are your 12 or 24 words from?" = "你的 12 或 24 个单词来自哪里？";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "不同的钱包把你的 Kaspa 存在不同的地址路径上。请选择这些单词来自哪里，这样 KaChat 才能找到你的资金和域名。";
 "Restore from NFC Card" = "从 NFC 卡恢复";
 "NFC Card Backup" = "NFC 卡备份";
 "Erase the backup on this card?" = "要清除这张卡上的备份吗？";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "此账户的密钥可能仍在这部手机上，但目前无法读取，因此未做任何更改。请稍后再试。";
 "Play It Again" = "再走一次";
 "This is the public half of this address. It cannot spend anything." = "这是此地址的公开部分，无法用它花费任何资金。";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "标准 Kaspa 钱包";
+"Has history" = "有历史记录";
+"See Every Wallet Type" = "查看所有钱包类型";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat 会用你的助记词核对每一种 Kaspa 钱包，所以你不需要知道它们来自哪个钱包。";
+"This address has history, so this looks like the right account." = "此地址有历史记录，看起来是正确的账户。";
+"No funds or history on this address." = "此地址没有资金或历史记录。";
+"We picked the most likely account. Tap another if that's not the one you use." = "我们选择了最可能的账户。如果这不是你使用的账户，请点按其他账户。";
+"Your Account" = "你的账户";

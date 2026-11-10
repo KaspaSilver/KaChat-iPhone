@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "패스프레이즈가 다르면 주소가 달라지고, 계정도 달라집니다.";
 "This address holds funds, so this looks like the right account." = "이 주소에 자금이 있으므로 맞는 계정으로 보입니다.";
 "No funds on this address. If you expected funds here, check your passphrase." = "이 주소에는 자금이 없습니다. 여기에 있어야 한다면 패스프레이즈를 확인하세요.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "자금이 있는 첫 번째 주소를 골랐습니다. 그 주소로 채팅하지 않는다면 다른 주소를 탭하세요.";
 "Address #%lld" = "주소 #%lld";
 "Get KaChat Contacts" = "KaChat 연락처 가져오기";
 "Return KaChat contacts as JSON strings." = "KaChat 연락처를 JSON 문자열로 반환합니다.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "음성 메시지를 사용할 수 없습니다";
 "Tap to retry" = "탭하여 다시 시도";
 "Loading…" = "불러오는 중…";
-"Where are your 12 or 24 words from?" = "12개 또는 24개 단어는 어디서 왔나요?";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "지갑마다 Kaspa를 보관하는 주소 경로가 다릅니다. KaChat이 자금과 도메인을 찾을 수 있도록 이 단어가 어디서 왔는지 고르세요.";
 "Restore from NFC Card" = "NFC 카드에서 복원";
 "NFC Card Backup" = "NFC 카드 백업";
 "Erase the backup on this card?" = "이 카드의 백업을 지울까요?";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "이 계정의 키가 아직 이 휴대폰에 있을 수 있지만 지금은 읽을 수 없어 아무것도 변경하지 않았습니다. 잠시 후 다시 시도해 주세요.";
 "Play It Again" = "다시 두기";
 "This is the public half of this address. It cannot spend anything." = "이 주소의 공개 부분입니다. 이것으로는 아무것도 사용할 수 없습니다.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "표준 Kaspa 지갑";
+"Has history" = "기록 있음";
+"See Every Wallet Type" = "모든 지갑 유형 보기";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat이 모든 종류의 Kaspa 지갑과 단어를 대조하므로 어느 지갑의 단어인지 몰라도 됩니다.";
+"This address has history, so this looks like the right account." = "이 주소에 기록이 있어 올바른 계정으로 보입니다.";
+"No funds or history on this address." = "이 주소에는 자금이나 기록이 없습니다.";
+"We picked the most likely account. Tap another if that's not the one you use." = "가장 가능성이 높은 계정을 선택했습니다. 사용하는 계정이 아니면 다른 계정을 탭하세요.";
+"Your Account" = "내 계정";

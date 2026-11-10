@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "Frasa sandi yang berbeda menghasilkan alamat yang berbeda, dan akun yang berbeda.";
 "This address holds funds, so this looks like the right account." = "Alamat ini menyimpan dana, jadi ini tampaknya akun yang tepat.";
 "No funds on this address. If you expected funds here, check your passphrase." = "Tidak ada dana di alamat ini. Jika Anda mengharapkan dana di sini, periksa frasa sandi Anda.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "Kami memilih alamat pertama yang berisi dana. Ketuk yang lain jika itu bukan alamat tempat Anda mengobrol.";
 "Address #%lld" = "Alamat #%lld";
 "Get KaChat Contacts" = "Ambil Kontak KaChat";
 "Return KaChat contacts as JSON strings." = "Mengembalikan kontak KaChat sebagai string JSON.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "Pesan suara tidak tersedia";
 "Tap to retry" = "Ketuk untuk mencoba lagi";
 "Loading…" = "Memuat…";
-"Where are your 12 or 24 words from?" = "Dari mana 12 atau 24 kata Anda berasal?";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "Setiap dompet menyimpan Kaspa Anda di jalur alamat yang berbeda. Pilih asal kata-kata ini agar KaChat dapat menemukan dana dan domain Anda.";
 "Restore from NFC Card" = "Pulihkan dari Kartu NFC";
 "NFC Card Backup" = "Cadangan Kartu NFC";
 "Erase the backup on this card?" = "Hapus cadangan di kartu ini?";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "Kunci akun ini mungkin masih ada di ponsel ini, tetapi saat ini tidak dapat dibaca, jadi tidak ada yang diubah. Coba lagi sebentar lagi.";
 "Play It Again" = "Mainkan Lagi";
 "This is the public half of this address. It cannot spend anything." = "Ini adalah bagian publik dari alamat ini. Tidak dapat membelanjakan apa pun.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "Dompet Kaspa Standar";
+"Has history" = "Ada riwayat";
+"See Every Wallet Type" = "Lihat Semua Jenis Dompet";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat memeriksa kata-kata Anda pada setiap jenis dompet Kaspa, jadi Anda tidak perlu tahu asalnya dari dompet mana.";
+"This address has history, so this looks like the right account." = "Alamat ini punya riwayat, jadi sepertinya ini akun yang benar.";
+"No funds or history on this address." = "Tidak ada dana atau riwayat di alamat ini.";
+"We picked the most likely account. Tap another if that's not the one you use." = "Kami memilih akun yang paling mungkin. Ketuk yang lain jika bukan ini yang Anda gunakan.";
+"Your Account" = "Akun Anda";

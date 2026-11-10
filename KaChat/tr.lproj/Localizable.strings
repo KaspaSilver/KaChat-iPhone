@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "Farklı bir parola ifadesi, farklı bir adres ve farklı bir hesap demektir.";
 "This address holds funds, so this looks like the right account." = "Bu adreste bakiye var, yani doğru hesap gibi görünüyor.";
 "No funds on this address. If you expected funds here, check your passphrase." = "Bu adreste bakiye yok. Burada bakiye bekliyorsan parola ifadeni kontrol et.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "Bakiyesi olan ilk adresi seçtik. Sohbet ettiğin adres o değilse başka birine dokun.";
 "Address #%lld" = "Adres #%lld";
 "Get KaChat Contacts" = "KaChat Kişilerini Al";
 "Return KaChat contacts as JSON strings." = "KaChat kişilerini JSON dizeleri olarak döndürür.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "Sesli mesaj kullanılamıyor";
 "Tap to retry" = "Tekrar denemek için dokun";
 "Loading…" = "Yükleniyor…";
-"Where are your 12 or 24 words from?" = "12 veya 24 kelimen nereden?";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "Farklı cüzdanlar Kaspa'nı farklı adres yollarında saklar. KaChat'in fonlarını ve alan adlarını bulabilmesi için bu kelimelerin nereden geldiğini seç.";
 "Restore from NFC Card" = "NFC Karttan Geri Yükle";
 "NFC Card Backup" = "NFC Kart Yedeği";
 "Erase the backup on this card?" = "Bu karttaki yedek silinsin mi?";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "Bu hesabın anahtarları hâlâ bu telefonda olabilir ama şu anda okunamıyor, bu yüzden hiçbir şey değiştirilmedi. Birazdan tekrar deneyin.";
 "Play It Again" = "Tekrar Oyna";
 "This is the public half of this address. It cannot spend anything." = "Bu, bu adresin genel yarısıdır. Hiçbir şey harcayamaz.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "Standart Kaspa Cüzdanı";
+"Has history" = "Geçmişi var";
+"See Every Wallet Type" = "Tüm Cüzdan Türlerini Gör";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat kelimelerinizi her tür Kaspa cüzdanıyla karşılaştırır, bu yüzden hangi cüzdandan geldiklerini bilmeniz gerekmez.";
+"This address has history, so this looks like the right account." = "Bu adresin geçmişi var, yani doğru hesap gibi görünüyor.";
+"No funds or history on this address." = "Bu adreste bakiye veya geçmiş yok.";
+"We picked the most likely account. Tap another if that's not the one you use." = "En olası hesabı seçtik. Kullandığınız bu değilse başka birine dokunun.";
+"Your Account" = "Hesabınız";

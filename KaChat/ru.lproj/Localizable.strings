@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "Другая парольная фраза даёт другой адрес и другой аккаунт.";
 "This address holds funds, so this looks like the right account." = "На этом адресе есть средства, так что это, похоже, нужный аккаунт.";
 "No funds on this address. If you expected funds here, check your passphrase." = "На этом адресе нет средств. Если вы ждали их здесь, проверьте парольную фразу.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "Мы выбрали первый адрес со средствами. Нажмите на другой, если вы общаетесь не с него.";
 "Address #%lld" = "Адрес #%lld";
 "Get KaChat Contacts" = "Получить контакты KaChat";
 "Return KaChat contacts as JSON strings." = "Возвращает контакты KaChat в виде строк JSON.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "Голосовое сообщение недоступно";
 "Tap to retry" = "Нажмите, чтобы повторить";
 "Loading…" = "Загрузка…";
-"Where are your 12 or 24 words from?" = "Откуда ваши 12 или 24 слова?";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "Разные кошельки хранят ваши Kaspa по разным путям адресов. Выберите, откуда эти слова, чтобы KaChat нашёл ваши средства и домены.";
 "Restore from NFC Card" = "Восстановить с NFC-карты";
 "NFC Card Backup" = "Копия на NFC-карте";
 "Erase the backup on this card?" = "Стереть копию на этой карте?";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "Ключи этого аккаунта, возможно, всё ещё на этом телефоне, но сейчас их не удаётся прочитать, поэтому ничего не изменено. Попробуйте ещё раз чуть позже.";
 "Play It Again" = "Сыграть снова";
 "This is the public half of this address. It cannot spend anything." = "Это открытая часть этого адреса. С её помощью ничего нельзя потратить.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "Стандартный кошелёк Kaspa";
+"Has history" = "Есть история";
+"See Every Wallet Type" = "Показать все типы кошельков";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "KaChat проверяет ваши слова по всем типам кошельков Kaspa, поэтому вам не нужно знать, из какого они.";
+"This address has history, so this looks like the right account." = "У этого адреса есть история, похоже, это нужный аккаунт.";
+"No funds or history on this address." = "На этом адресе нет средств и истории.";
+"We picked the most likely account. Tap another if that's not the one you use." = "Мы выбрали наиболее вероятный аккаунт. Нажмите на другой, если вы используете не этот.";
+"Your Account" = "Ваш аккаунт";

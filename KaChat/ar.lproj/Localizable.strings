@@ -1156,7 +1156,6 @@
 "A different passphrase gives a different address, and a different account." = "عبارة مرور مختلفة تعطي عنوانًا مختلفًا وحسابًا مختلفًا.";
 "This address holds funds, so this looks like the right account." = "يحتوي هذا العنوان على أموال، لذا يبدو أنه الحساب الصحيح.";
 "No funds on this address. If you expected funds here, check your passphrase." = "لا توجد أموال في هذا العنوان. إذا كنت تتوقع وجود أموال هنا، فتحقق من عبارة المرور.";
-"We picked the first address with funds. Tap another if that's not the one you chat from." = "اخترنا أول عنوان به أموال. اضغط على عنوان آخر إذا لم يكن هذا هو الذي تدردش منه.";
 "Address #%lld" = "العنوان رقم %lld";
 "Get KaChat Contacts" = "الحصول على جهات اتصال KaChat";
 "Return KaChat contacts as JSON strings." = "إرجاع جهات اتصال KaChat كسلاسل JSON.";
@@ -1266,8 +1265,6 @@
 "Voice message unavailable" = "الرسالة الصوتية غير متاحة";
 "Tap to retry" = "اضغط لإعادة المحاولة";
 "Loading…" = "جارٍ التحميل…";
-"Where are your 12 or 24 words from?" = "من أين جاءت كلماتك الـ 12 أو 24؟";
-"Different wallets store your Kaspa on different address paths. Pick where these words come from so KaChat finds your funds and domains." = "تخزّن المحافظ المختلفة Kaspa الخاص بك على مسارات عناوين مختلفة. اختر المحفظة التي جاءت منها هذه الكلمات ليجد KaChat أموالك ونطاقاتك.";
 "Restore from NFC Card" = "استعادة من بطاقة NFC";
 "NFC Card Backup" = "نسخة احتياطية على بطاقة NFC";
 "Erase the backup on this card?" = "مسح النسخة الاحتياطية على هذه البطاقة؟";
@@ -1510,3 +1507,13 @@
 "This account's keys may still be on this phone, but they can't be read right now, so nothing was changed. Try again in a moment." = "قد تكون مفاتيح هذا الحساب لا تزال على هذا الهاتف، لكن لا يمكن قراءتها الآن، لذا لم يتغير شيء. حاول مرة أخرى بعد قليل.";
 "Play It Again" = "العب مجددًا";
 "This is the public half of this address. It cannot spend anything." = "هذا هو النصف العام من هذا العنوان، ولا يمكنه إنفاق أي شيء.";
+
+/* Import Account: finding the wallet the words belong to */
+"Standard Kaspa Wallet" = "محفظة Kaspa القياسية";
+"Has history" = "له سجل";
+"See Every Wallet Type" = "عرض كل أنواع المحافظ";
+"KaChat checks your words against every kind of Kaspa wallet, so you don't need to know which one they came from." = "يفحص KaChat كلماتك مقابل كل أنواع محافظ Kaspa، فلا تحتاج إلى معرفة المحفظة التي جاءت منها.";
+"This address has history, so this looks like the right account." = "لهذا العنوان سجل، لذا يبدو أن هذا هو الحساب الصحيح.";
+"No funds or history on this address." = "لا توجد أموال أو سجل على هذا العنوان.";
+"We picked the most likely account. Tap another if that's not the one you use." = "اخترنا الحساب الأرجح. اضغط على حساب آخر إذا لم يكن هذا هو الذي تستخدمه.";
+"Your Account" = "حسابك";

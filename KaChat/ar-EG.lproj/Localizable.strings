@@ -1497,3 +1497,7 @@
 "No funds or history on this address." = "مفيش أموال ولا سجل على العنوان ده.";
 "We picked the most likely account. Tap another if that's not the one you use." = "اخترنا الحساب الأقرب. دوس على حساب تاني لو ده مش اللي بتستخدمه.";
 "Your Account" = "حسابك";
+
+/* Settings > Customization: .kachat name endings */
+"Show .kachat Endings" = "إظهار نهاية ‎.kachat";
+"Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "اقفله عشان الأسماء تظهر زي alice بدل alice.kachat. الاسم اللي إنت اديته لحد عمره ما بيبقى فيه النهاية.";

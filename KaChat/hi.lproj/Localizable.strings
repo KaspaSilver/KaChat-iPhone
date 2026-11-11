@@ -1497,3 +1497,7 @@
 "No funds or history on this address." = "इस पते पर कोई राशि या इतिहास नहीं है।";
 "We picked the most likely account. Tap another if that's not the one you use." = "हमने सबसे संभावित खाता चुना है। अगर आप इसे इस्तेमाल नहीं करते, तो दूसरे पर टैप करें।";
 "Your Account" = "आपका खाता";
+
+/* Settings > Customization: .kachat name endings */
+"Show .kachat Endings" = ".kachat अंत दिखाएँ";
+"Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "बंद करने पर नाम alice.kachat की जगह alice दिखेंगे। जो नाम आपने खुद किसी को दिया है, उसमें यह अंत कभी नहीं होता।";

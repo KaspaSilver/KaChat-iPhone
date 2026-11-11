@@ -569,7 +569,7 @@ final class ContactsManager: ObservableObject {
     private func identityName(for address: String) -> String {
         if KachatNamesService.isEnabled {
             if let label = KachatNamesRegistry.shared.cachedIdentity(for: address)?.label {
-                return "\(label).kachat"
+                return KachatNameLabel.display(label)
             }
             return Contact.generateDefaultAlias(from: address)
         }

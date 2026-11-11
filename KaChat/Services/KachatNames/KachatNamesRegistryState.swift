@@ -49,7 +49,8 @@ extension KachatNames {
         var updatedAt: Int64?
 
         var id: String { name }
-        var display: String { "\(name).kachat" }
+        /// Follows Settings > Customization > Show .kachat Endings (`KachatNameLabel`).
+        var display: String { KachatNameLabel.display(name) }
         var isListed: Bool { price > 0 }
 
         /// The on-chain state, when the period start is known.

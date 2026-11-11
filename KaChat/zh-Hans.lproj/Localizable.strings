@@ -1497,3 +1497,7 @@
 "No funds or history on this address." = "此地址没有资金或历史记录。";
 "We picked the most likely account. Tap another if that's not the one you use." = "我们选择了最可能的账户。如果这不是你使用的账户，请点按其他账户。";
 "Your Account" = "你的账户";
+
+/* Settings > Customization: .kachat name endings */
+"Show .kachat Endings" = "显示 .kachat 后缀";
+"Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "关闭后，名称会显示为 alice，而不是 alice.kachat。你自己给别人起的名字永远不会带这个后缀。";

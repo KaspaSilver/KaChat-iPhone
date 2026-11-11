@@ -456,7 +456,7 @@ struct ProfileView: View {
     private func profileHeroSection(_ wallet: Wallet) -> some View {
         let displayName: String = {
             if KachatNamesService.isEnabled, let kachatLabel {
-                return "\(kachatLabel).kachat"
+                return KachatNameLabel.display(kachatLabel)
             }
             // Your .kas name is yours to manage in Your Domains, but not your name here since 5.2
             // (KNSService.showsDomainNamesAsIdentity) - that will be your .kachat name.

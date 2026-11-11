@@ -21,7 +21,7 @@ struct AddressResolutionCard: View {
     /// The name to show: the domain typed, else the address's .kachat name.
     private func displayName(for address: String) -> String? {
         if let domain { return domain }
-        if let label = kachatRegistry.cachedIdentity(for: address)?.label { return "\(label).kachat" }
+        if let label = kachatRegistry.cachedIdentity(for: address)?.label { return KachatNameLabel.display(label) }
         return profile?.domainName
     }
 

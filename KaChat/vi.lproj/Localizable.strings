@@ -1497,3 +1497,7 @@
 "No funds or history on this address." = "Địa chỉ này không có tiền hoặc lịch sử.";
 "We picked the most likely account. Tap another if that's not the one you use." = "Chúng tôi đã chọn tài khoản có khả năng nhất. Hãy chạm vào tài khoản khác nếu đây không phải tài khoản bạn dùng.";
 "Your Account" = "Tài khoản của bạn";
+
+/* Settings > Customization: .kachat name endings */
+"Show .kachat Endings" = "Hiện đuôi .kachat";
+"Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "Tắt để hiện tên như alice thay vì alice.kachat. Tên bạn tự đặt cho ai đó không bao giờ có đuôi này.";

@@ -2462,6 +2462,21 @@ enum MentionsFeature {
     static let enabled = false
 }
 
+/// How a .kachat name is shown: "alice.kachat" by default, or "alice" when Settings >
+/// Customization > Show .kachat Endings is off. Display only: typing, copying and anything sent
+/// keep working with either form (the codec strips the ending).
+enum KachatNameLabel {
+    static let showEndingsKey = "kachat_show_name_endings"
+
+    static var showsEnding: Bool {
+        UserDefaults.standard.object(forKey: showEndingsKey) as? Bool ?? true
+    }
+
+    static func display(_ name: String) -> String {
+        showsEnding ? "\(name).kachat" : name
+    }
+}
+
 /// How .kas names are shown and found in text. These lived on the KaPosts feed until KaPosts
 /// left the app (2026-10-24); group chats and the notification feed still use them.
 enum KasNameText {

@@ -242,7 +242,7 @@ final class NameServicesClient: ObservableObject {
         for address in addresses {
             guard let key = KachatNamesRegistry.keyOf(address),
                   let held = try? await KachatNamesRegistry.shared.heldNames(owner: key), !held.isEmpty else { continue }
-            result[address] = held.map { OwnedServiceName(name: $0.name, display: "\($0.name).kachat", tld: .kachat, isProvisional: false) }
+            result[address] = held.map { OwnedServiceName(name: $0.name, display: KachatNameLabel.display($0.name), tld: .kachat, isProvisional: false) }
         }
         return result
     }
@@ -398,7 +398,7 @@ final class NameServicesClient: ObservableObject {
     private func resolveKachat(_ label: String) async -> NameResolution? {
         let canonical = KachatNames.Codec.normalize(label)
         guard KachatNames.Codec.isValid(canonical) else { return nil }
-        let display = "\(canonical).kachat"
+        let display = KachatNameLabel.display(canonical)
         guard NameServiceTLD.kachat.isLive else {
             return NameResolution(tld: .kachat, display: display, address: nil, failed: false, notLive: true)
         }

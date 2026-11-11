@@ -201,7 +201,7 @@ struct ChatInfoView: View {
                             // focuses the field too, so it works as the affordance it looks like
                             // rather than being decoration next to the real target.
                             if isSelf {
-                                Text(verbatim: kachatLabel.map { "\($0).kachat" } ?? contactsManager.displayName(for: contact))
+                                Text(verbatim: kachatLabel.map(KachatNameLabel.display) ?? contactsManager.displayName(for: contact))
                                     .font(.headline)
                                     .lineLimit(1)
                             } else {
@@ -582,7 +582,7 @@ struct ChatInfoView: View {
             List {
                 ForEach(kachatNames, id: \.self) { name in
                     HStack {
-                        Text(verbatim: "\(name).kachat")
+                        Text(verbatim: KachatNameLabel.display(name))
                         Spacer()
                         if name == kachatLabel {
                             Text("Primary")

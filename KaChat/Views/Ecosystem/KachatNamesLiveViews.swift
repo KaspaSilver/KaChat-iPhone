@@ -581,7 +581,7 @@ struct KachatLiveProfileEditor: View {
                     if KachatNamesService.isLaunched {
                         Picker("Primary name", selection: $primary) {
                             Text("None").tag("")
-                            ForEach(activeNames, id: \.self) { n in Text(verbatim: "\(n).kachat").tag(n) }
+                            ForEach(activeNames, id: \.self) { n in Text(verbatim: KachatNameLabel.display(n)).tag(n) }
                         }
                     } else {
                         HStack {
@@ -733,7 +733,7 @@ struct KachatProfileSaveSheet: View {
                         LabeledRow(title: "Banner", value: source(profile.banner, .banner))
                         LabeledRow(title: "Bio", value: source(profile.bio, .bio))
                         LabeledRow(title: "Linktree", value: profile.linktree.map { $0.replacingOccurrences(of: "https://", with: "") } ?? AppLocalization.string("None"))
-                        LabeledRow(title: "Primary name", value: profile.primaryName.map { "\($0).kachat" } ?? AppLocalization.string("None"))
+                        LabeledRow(title: "Primary name", value: profile.primaryName.map(KachatNameLabel.display) ?? AppLocalization.string("None"))
                     } header: {
                         Text("Your Profile")
                     }

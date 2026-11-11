@@ -1500,3 +1500,7 @@
 "No funds or history on this address." = "Kein Guthaben und kein Verlauf auf dieser Adresse.";
 "We picked the most likely account. Tap another if that's not the one you use." = "Wir haben das wahrscheinlichste Konto ausgewählt. Tippe auf ein anderes, wenn du dieses nicht verwendest.";
 "Your Account" = "Dein Konto";
+
+/* Settings > Customization: .kachat name endings */
+"Show .kachat Endings" = ".kachat-Endung anzeigen";
+"Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "Aus, um Namen wie alice statt alice.kachat anzuzeigen. Ein Name, den du jemandem selbst gegeben hast, hat nie die Endung.";

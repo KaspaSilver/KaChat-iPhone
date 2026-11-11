@@ -222,7 +222,7 @@ struct SettingsView: View {
 
     private var customizationPage: some View {
         Form {
-            Section("Customization") {
+            Section {
                     // Appearance/Language/Currency are extracted so the accounts-screen
                     // App Settings can reuse the exact same rows (one source of truth).
                     AppWideCustomizationPickers()
@@ -233,6 +233,12 @@ struct SettingsView: View {
                         .onChange(of: settingsViewModel.settings.showFeeEstimate) { _ in
                             settingsViewModel.saveSettings()
                         }
+
+                    KachatEndingsToggle()
+                } header: {
+                    Text("Customization")
+                } footer: {
+                    Text("Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending.")
                 }
         }
         .navigationTitle("Customization")
@@ -832,6 +838,21 @@ struct SecuritySettingsPage: View {
         }
         .navigationTitle("Security")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Settings > Customization > Show .kachat Endings. Its own view so it owns the @AppStorage:
+/// held by SettingsView, the pushed Customization page never redrew and the switch didn't move.
+/// Off shows .kachat names bare ("alice"); on by default, because the ending is how a registered
+/// name tells itself apart from a name you gave someone yourself.
+struct KachatEndingsToggle: View {
+    @AppStorage(KachatNameLabel.showEndingsKey) private var showEndings = true
+
+    var body: some View {
+        Toggle("Show .kachat Endings", isOn: $showEndings)
+            .onChange(of: showEndings) { _ in
+                NotificationCenter.default.post(name: .settingsDidChange, object: nil)
+            }
     }
 }
 

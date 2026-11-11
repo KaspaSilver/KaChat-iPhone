@@ -1663,7 +1663,7 @@ struct ConversationRow: View {
         // On testnet: the .kachat name (read through the observed registry, so the row redraws
         // when it lands); KNS isn't consulted there.
         if KachatNamesService.isEnabled {
-            if let label = kachatRegistry.cachedIdentity(for: conversation.contact.address)?.label { return "\(label).kachat" }
+            if let label = kachatRegistry.cachedIdentity(for: conversation.contact.address)?.label { return KachatNameLabel.display(label) }
             return Contact.generateDefaultAlias(from: conversation.contact.address)
         }
         if let domain = knsService.profileCache[conversation.contact.address]?.domainName, !domain.isEmpty {

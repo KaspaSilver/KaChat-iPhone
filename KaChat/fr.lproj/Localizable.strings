@@ -1497,3 +1497,7 @@
 "No funds or history on this address." = "Aucun fonds ni historique sur cette adresse.";
 "We picked the most likely account. Tap another if that's not the one you use." = "Nous avons choisi le compte le plus probable. Touchez-en un autre si ce n'est pas celui que vous utilisez.";
 "Your Account" = "Votre compte";
+
+/* Settings > Customization: .kachat name endings */
+"Show .kachat Endings" = "Afficher l’extension .kachat";
+"Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "Désactivez pour afficher les noms comme alice au lieu de alice.kachat. Un nom que vous avez donné vous-même à quelqu’un n’a jamais l’extension.";

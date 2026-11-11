@@ -1354,12 +1354,8 @@ extension ChatService {
         }
 
         // If replying, wrap the content in the shared reply envelope (matches the group send) so the quote survives even if the original message is later pruned.
-        // Never a call message: a call_invite/request/end sent while a reply was queued in the
-        // chat went out as a reply, and the other phone never saw a call (the reply stays
-        // queued for the person's next text).
-        let isCallEnvelope = CallCodec.parseAny(trimmed) != nil
         let payload: String
-        if let reply = replyingTo, !isCallEnvelope {
+        if let reply = replyingTo {
             let preview = MessageReplyCodec.previewText(for: reply.content)
             payload = MessageReplyCodec.encode(
                 replyToId: reply.txId,
@@ -1420,7 +1416,7 @@ extension ChatService {
                 ownerAddress: wallet.publicAddress
             )
         }
-        if !isCallEnvelope { replyingTo = nil }
+        replyingTo = nil
 
         // Successful send: refresh the Share Extension's recents and donate an
         // INSendMessageIntent so iOS can surface this conversation as a share-sheet
@@ -1496,6 +1492,184 @@ extension ChatService {
         try await sendMessage(to: contact, content: jsonString, messageType: .audio)
     }
 
+    /// A long on-chain voice note (MESSAGING.md, "Long voice notes (multi-part)"): each of
+    /// `parts` is a complete WebM-Opus file of at most 14.5 s, sent as its own ordinary voice
+    /// message tagged `voicePart` {id, index, count}, so old clients show N notes in order and
+    /// this app shows one.
+    ///
+    /// - The balance is checked for ALL parts before anything goes out, so a half-sent note is
+    ///   unlikely.
+    /// - Every part's row is created up front (the one bubble shows Sending), then the parts go
+    ///   through the outgoing queue one after another, so each spends the previous one's change.
+    /// - A part that fails stops the rest: they are marked failed too, and Retry on the bubble
+    ///   resends only the failed parts (`retryVoiceNoteParts`).
+    /// - Parts carry no reply envelope: a reply would take them off the binary media frame and
+    ///   past what one transaction carries. A reply being composed is dropped, as after any send.
+    func sendVoiceNoteParts(
+        to contact: Contact,
+        parts: [Data],
+        mimeType: String = "audio/webm"
+    ) async throws {
+        try await sendMediaParts(to: contact, parts: parts, mimeType: mimeType)
+    }
+
+    /// The parts of one long voice note or one multi-part photo (`mediaPart` tag, chunks of the
+    /// JPEG; MESSAGING.md "Photos: quality tiers and multi-part photos"), sent as described on
+    /// `sendVoiceNoteParts`.
+    func sendMediaParts(
+        to contact: Contact,
+        parts: [Data],
+        mimeType: String
+    ) async throws {
+        guard parts.count >= 2, parts.count <= VoicePartTag.maxParts, !parts.contains(where: \.isEmpty) else {
+            throw KasiaError.networkError("Audio file is empty")
+        }
+        acceptChat(contact.address)
+        guard let wallet = WalletManager.shared.currentWallet else {
+            throw KasiaError.walletNotFound
+        }
+        guard let privateKey = WalletManager.shared.getPrivateKey() else {
+            throw KasiaError.keychainError("Could not get private key")
+        }
+        let resolvedMimeType = mimeType.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? "audio/webm"
+            : mimeType
+        let isPhoto = resolvedMimeType.lowercased().hasPrefix("image/")
+        let groupId = VoicePartTag.newGroupId()
+        var contents: [String] = []
+        for (offset, data) in parts.enumerated() {
+            guard let tag = VoicePartTag(id: groupId, index: offset + 1, count: parts.count) else {
+                throw KasiaError.networkError("Audio file is empty")
+            }
+            contents.append(MediaFileEnvelope.json(
+                name: isPhoto ? "photo-\(tag.index)of\(tag.count).jpg" : tag.fileName,
+                size: data.count,
+                mimeType: resolvedMimeType,
+                dataUrlContent: "data:\(resolvedMimeType);base64,\(data.base64EncodedString())",
+                voicePart: isPhoto ? nil : tag,
+                mediaPart: isPhoto ? tag : nil
+            ))
+        }
+
+        // The whole note first, before a single part goes out.
+        do {
+            try await ensureSufficientBalanceForVoiceParts(
+                to: contact,
+                contents: contents,
+                walletAddress: wallet.publicAddress,
+                privateKey: privateKey
+            )
+        } catch {
+            if isNoConfirmedInputsError(error) {
+                AppLog.log("[ChatService] Voice note precheck deferred: %@", error.localizedDescription)
+            } else if shouldBypassBalancePrecheck(error) {
+                AppLog.log("[ChatService] Voice note balance precheck unavailable, continuing send: %@", error.localizedDescription)
+            } else {
+                throw error
+            }
+        }
+
+        // Every part's row now, a millisecond apart so they keep their order.
+        let start = Date()
+        var pending: [(txId: String, id: UUID, content: String)] = []
+        for (offset, content) in contents.enumerated() {
+            let pendingTxId = "pending_\(UUID().uuidString)"
+            let timestamp = start.addingTimeInterval(Double(offset) / 1000)
+            let message = ChatMessage(
+                txId: pendingTxId,
+                senderAddress: wallet.publicAddress,
+                receiverAddress: contact.address,
+                content: content,
+                timestamp: timestamp,
+                blockTime: UInt64(timestamp.timeIntervalSince1970 * 1000),
+                isOutgoing: true,
+                messageType: .audio,
+                deliveryStatus: .pending
+            )
+            addMessageToConversation(message, contactAddress: contact.address)
+            enqueuePendingOutgoing(contactAddress: contact.address, pendingTxId: pendingTxId, messageType: .audio, timestamp: timestamp)
+            pending.append((pendingTxId, message.id, content))
+        }
+        saveMessages()
+        replyingTo = nil
+
+        for (offset, part) in pending.enumerated() {
+            do {
+                try await enqueueOutgoingTxOperation {
+                    try await self.sendMessageInternal(
+                        to: contact,
+                        content: part.content,
+                        messageType: .audio,
+                        pendingTxId: part.txId,
+                        pendingMessageId: part.id,
+                        ownerAddress: wallet.publicAddress
+                    )
+                }
+            } catch {
+                // The rest never went: failed too, so one Retry resends them in order.
+                for rest in pending[(offset + 1)...] {
+                    markPendingMessageFailed(rest.txId, contactAddress: contact.address)
+                }
+                saveMessages()
+                throw error
+            }
+        }
+
+        SharedDataManager.recordRecentConversation(address: contact.address, alias: contact.alias)
+        donateSendMessageIntent(for: contact)
+    }
+
+    /// Retry on a long voice note's bubble: only its failed parts, in index order, one after
+    /// another. Stops at the first that fails again.
+    func retryVoiceNoteParts(_ failedParts: [ChatMessage], contact: Contact) async throws {
+        for part in failedParts where part.isOutgoing && part.deliveryStatus == .failed {
+            try await retryOutgoingMessage(part, contact: contact)
+        }
+    }
+
+    /// The balance check for a long voice note: what all its parts cost together (each a
+    /// self-send paying only its fee), and the first part must build on the coins there are.
+    /// Leaves the dust threshold over, so the last part still has a change output to stand on.
+    func ensureSufficientBalanceForVoiceParts(
+        to contact: Contact,
+        contents: [String],
+        walletAddress: String,
+        privateKey: Data
+    ) async throws {
+        guard let first = contents.first else { return }
+        guard let recipientPublicKey = KaspaAddress.publicKey(from: contact.address),
+              let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: walletAddress) else {
+            throw KasiaError.invalidAddress
+        }
+        try await ensureSufficientBalanceForMessageSend(
+            to: contact,
+            content: first,
+            walletAddress: walletAddress,
+            privateKey: privateKey
+        )
+        ensureRoutingState(for: contact.address, privateKey: privateKey)
+        let alias = outgoingAlias(for: contact.address)
+        var totalFee: UInt64 = 0
+        for content in contents {
+            let payload = try KasiaTransactionBuilder.buildContextualMessagePayload(
+                alias: alias,
+                message: content,
+                recipientPublicKey: recipientPublicKey
+            )
+            totalFee = addSompiSafely(totalFee, KasiaTransactionBuilder.estimateContextualMessageFee(
+                payload: payload,
+                inputCount: 1,
+                senderScriptPubKey: senderScriptPubKey
+            ))
+        }
+        let utxos = try await fetchSendUtxos(for: walletAddress)
+        let available = prepareMessageUtxos(confirmed: utxos).reduce(UInt64(0)) { addSompiSafely($0, $1.amount) }
+        let required = addSompiSafely(totalFee, KasiaTransactionBuilder.dustThreshold)
+        guard available >= required else {
+            throw formatInsufficientBalanceError(plannedSpendSompi: required, availableSompi: available)
+        }
+    }
+
     /// Sends a photo - same inline JSON envelope as `sendAudio`, just an image mimeType, matching
     /// Android's `ImageMessage` (which itself reuses its `VoiceMessageContent` shape). Reuses the
     /// `.audio` message type since rendering already keys off the JSON's `mimeType`, not this.
@@ -1507,6 +1681,13 @@ extension ChatService {
     ) async throws {
         guard !imageData.isEmpty else {
             throw KasiaError.networkError("Image is empty")
+        }
+        // Bigger than one transaction carries (a Medium or High photo): its chunks, as one
+        // multi-part photo.
+        let chunks = PhotoPolicy.chunks(imageData, forGroup: false)
+        if chunks.count > 1 {
+            try await sendMediaParts(to: contact, parts: chunks, mimeType: mimeType.isEmpty ? "image/jpeg" : mimeType)
+            return
         }
 
         let resolvedFileName = fileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -3437,7 +3618,9 @@ extension ChatService {
         }
     }
 
-    func estimateMessageFee(to contact: Contact, content: String, feeOverride: UInt64? = nil) async throws -> UInt64 {
+    /// `wrapReply: false` sizes the content exactly as given: a long voice note's parts never
+    /// carry the reply envelope (`sendVoiceNoteParts`).
+    func estimateMessageFee(to contact: Contact, content: String, feeOverride: UInt64? = nil, wrapReply: Bool = true) async throws -> UInt64 {
         if let feeOverride { return feeOverride }
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -3463,7 +3646,7 @@ extension ChatService {
         let alias = outgoingAlias(for: contact.address)
         // Account for the reply envelope's extra bytes, matching the wrapping `sendMessage` does.
         let estimatedContent: String
-        if let reply = replyingTo {
+        if wrapReply, let reply = replyingTo {
             let preview = MessageReplyCodec.previewText(for: reply.content)
             estimatedContent = MessageReplyCodec.encode(
                 replyToId: reply.txId,

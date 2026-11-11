@@ -448,7 +448,6 @@
 "Record On-Chain" = "Grabar on-chain";
 "Take a photo and send it on chain, compressed to fit." = "Toma una foto y envíala on-chain, comprimida para que quepa.";
 "Pick an image and send it on chain, compressed to fit." = "Elige una imagen y envíala on-chain, comprimida para que quepa.";
-"Up to 10 seconds, sent on chain." = "Hasta 10 segundos, enviado on-chain.";
 "Take Photo via Nextcloud" = "Tomar foto con Nextcloud";
 "Record via Nextcloud" = "Grabar con Nextcloud";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "Calidad completa, o un vídeo. Se sube a tu Nextcloud; el chat lleva el enlace.";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "%lld de %lld visibles";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "Fotos de mayor calidad";
-"Up to 25 seconds, sent on chain." = "Hasta 25 segundos, enviado en la cadena.";
+"Up to %@, sent on chain." = "Hasta %@, enviado en la cadena.";
+"Photo Quality" = "Calidad de la foto";
+"High" = "Alta";
+"Medium" = "Media";
+"Low" = "Baja";
+"Receiving… %lld of %lld" = "Recibiendo… %lld de %lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "Visibilidad de la dirección";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "Estas direcciones no se pudieron derivar ahora mismo. Vuelve una página atrás o reabre esta pantalla para reintentar.";
 "Add, import or export" = "Agregar, importar o exportar";
-"Call" = "Llamar";
 "KaChat Contact" = "Contacto de KaChat";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat está hecho con estas bibliotecas de código abierto. Sus autores piden que estos avisos acompañen a la app.";
 "24 words" = "24 palabras";
@@ -1137,13 +1139,6 @@
 "Chatting" = "Chatear";
 "Spending" = "Gasto";
 "Request" = "Solicitar";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "Las llamadas solo funcionan si tú o la persona con la que quieres hablar tienen configurado Nextcloud Talk. Si ninguno de los dos lo tiene configurado, no puedes hacer llamadas.";
-"Continue?" = "¿Continuar?";
-"Enable calls and video calls with %@?" = "¿Activar llamadas y videollamadas con %@?";
-"They will be able to call you too." = "Esa persona también podrá llamarte.";
-"Call %@" = "Llamar a %@";
-"%@ wants to switch to video" = "%@ quiere cambiar a video";
-"Tap to return" = "Toca para volver";
 "What is a passphrase?" = "¿Qué es una frase de contraseña?";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "Si no estás seguro, la respuesta casi seguro es no. Una frase de contraseña la habrías escrito a propósito.";
 "No" = "No";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "Dirección oculta. Vuelve a activarla en Visibilidad de la dirección.";
 "Address removed." = "Dirección eliminada.";
 "Asks to open an encrypted conversation." = "Pide abrir una conversación cifrada.";
-"Calls stay off for this contact." = "Las llamadas siguen desactivadas para este contacto.";
 "Casual" = "Informal";
 "Changes the text. Everyone sees the new version." = "Cambia el texto. Todos ven la nueva versión.";
 "Check off every address you want on the list, in one sitting." = "Marca de una vez todas las direcciones que quieras en la lista.";
 "Clear %@?" = "¿Borrar %@?";
 "Clear All Cache?" = "¿Borrar toda la caché?";
 "Clears the unread badge on this group." = "Quita la insignia de no leídos de este grupo.";
-"Close this and stay in the chat." = "Cierra esto y sigue en el chat.";
 "Connecting for live updates" = "Conectando para recibir actualizaciones en directo";
 "Copies the address to your clipboard." = "Copia la dirección al portapapeles.";
 "Copies the name to your clipboard." = "Copia el nombre al portapapeles.";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "Copia su dirección de Kaspa.";
 "Deletes this chat's messages from this device. The bot stays in the row." = "Elimina los mensajes de este chat de este dispositivo. El bot sigue en la fila.";
 "Downloading message history" = "Descargando el historial de mensajes";
-"Enable calls" = "Activar llamadas";
 "Failed to open archive: %@" = "No se pudo abrir el archivo: %@";
 "Finding your conversations" = "Buscando tus conversaciones";
 "Finished" = "Terminado";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "Vuelve a recibir avisos de sus mensajes.";
 "Gives this account a name of your own." = "Da a esta cuenta un nombre propio.";
 "Gives this address a label of your own." = "Da a esta dirección una etiqueta propia.";
-"Go on to calling this person." = "Continúa con la llamada a esta persona.";
 "Hide Address" = "Ocultar dirección";
 "Invite this contact to a game on chain." = "Invita a este contacto a una partida en la cadena.";
 "KaChat Link" = "Enlace de KaChat";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "Sin notificaciones de este grupo, ni siquiera de menciones.";
 "No timer." = "Sin reloj.";
 "Node address copied." = "Dirección del nodo copiada.";
-"Not now" = "Ahora no";
 "Notifications from this chat resume." = "Se reanudan las notificaciones de este chat.";
 "Notifications from this group resume, including mentions." = "Se reanudan las notificaciones de este grupo, incluidas las menciones.";
 "One minute each, plus one second a move." = "Un minuto cada uno, más un segundo por jugada.";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "Elimina este grupo y sus mensajes de este dispositivo.";
 "Reply to this message instead." = "Responde a este mensaje en su lugar.";
 "Reveals the next unused address in this wallet." = "Muestra la siguiente dirección sin usar de esta billetera.";
-"Rings them in KaChat; your Nextcloud carries the call." = "Le suena en KaChat; tu Nextcloud transporta la llamada.";
-"Same, with your camera on from the start." = "Igual, con la cámara activada desde el principio.";
 "Saves or shares the recording as a file." = "Guarda o comparte la grabación como archivo.";
 "Select Chats..." = "Seleccionar chats...";
 "Sends this message again." = "Envía este mensaje de nuevo.";
@@ -1463,10 +1451,7 @@
 "Silence" = "Silenciar";
 "Start a group with the people you choose." = "Crea un grupo con las personas que elijas.";
 "Starting" = "Iniciando";
-"Stay on voice" = "Seguir en voz";
 "Stop seeing their messages in this group. Undo it in Group Info." = "Deja de ver sus mensajes en este grupo. Puedes deshacerlo en Información del grupo.";
-"Switch to video" = "Cambiar a video";
-"The call carries on as it is, and they are told." = "La llamada sigue como está, y se le avisa.";
 "The key that spends this address. Never share it." = "La clave que gasta desde esta dirección. Nunca la compartas.";
 "The passphrase shows too, if this account has one." = "También se muestra la frase de contraseña, si esta cuenta tiene una.";
 "The public half of this address, for anyone who asks for it." = "La mitad pública de esta dirección, para quien la pida.";
@@ -1480,18 +1465,13 @@
 "User muted." = "Usuario silenciado.";
 "User unmuted." = "Usuario ya no silenciado.";
 "Validating backup..." = "Validando la copia de seguridad...";
-"Video call" = "Videollamada";
 "View 12 or 24 Words and Passphrase" = "Ver las 12 o 24 palabras y la frase de contraseña";
 "View Private Key" = "Ver clave privada";
 "View Public Key" = "Ver clave pública";
-"Voice call" = "Llamada de voz";
 "Who reacted, and with what." = "Quién reaccionó y con qué.";
 "Wiping incoming messages..." = "Borrando los mensajes entrantes...";
 "Write down your 12 or 24 words before you delete." = "Anota tus 12 o 24 palabras antes de eliminar.";
 "Yes, All Chats" = "Sí, todos los chats";
-"Your camera turns on and the call moves to the speaker." = "Se enciende tu cámara y la llamada pasa al altavoz.";
-"Saves this for %@ and lets you call now." = "Guarda esto para %@ y te permite llamar ahora.";
-"Camera off" = "Cámara apagada";
 "Address #%d is ready." = "La dirección n.º %d está lista.";
 "Conversation declined" = "Conversación rechazada";
 "Recents" = "Recientes";

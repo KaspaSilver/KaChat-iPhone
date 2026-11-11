@@ -448,7 +448,6 @@
 "Record On-Chain" = "オンチェーンで録音";
 "Take a photo and send it on chain, compressed to fit." = "写真を撮ってオンチェーンで送信します（収まるよう圧縮）。";
 "Pick an image and send it on chain, compressed to fit." = "画像を選んでオンチェーンで送信します（収まるよう圧縮）。";
-"Up to 10 seconds, sent on chain." = "最大10秒、オンチェーンで送信。";
 "Take Photo via Nextcloud" = "Nextcloudで写真を撮る";
 "Record via Nextcloud" = "Nextcloudで録音";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "フル画質、または動画。Nextcloudにアップロードされ、チャットにはリンクが送られます。";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "%2$lld件中%1$lld件を表示";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "高画質の写真";
-"Up to 25 seconds, sent on chain." = "最大25秒、オンチェーンで送信。";
+"Up to %@, sent on chain." = "最大%@、オンチェーンで送信。";
+"Photo Quality" = "写真の画質";
+"High" = "高";
+"Medium" = "中";
+"Low" = "低";
+"Receiving… %lld of %lld" = "受信中… %2$lld件中%1$lld件";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "アドレスの表示設定";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "現在、これらのアドレスを導出できません。前のページに戻るか、この画面を開き直して再試行してください。";
 "Add, import or export" = "追加、インポート、エクスポート";
-"Call" = "通話";
 "KaChat Contact" = "KaChatの連絡先";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChatは、これらのオープンソースライブラリを使って作られています。作者の希望により、これらの表示をアプリとともに掲載しています。";
 "24 words" = "24語";
@@ -1137,13 +1139,6 @@
 "Chatting" = "チャット";
 "Spending" = "支出";
 "Request" = "リクエスト";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "通話は、あなたか相手のどちらかがNextcloud Talkを設定している場合のみ使えます。どちらも設定していない場合、通話はできません。";
-"Continue?" = "続けますか？";
-"Enable calls and video calls with %@?" = "%@との通話とビデオ通話を有効にしますか？";
-"They will be able to call you too." = "相手もあなたに通話できるようになります。";
-"Call %@" = "%@に発信";
-"%@ wants to switch to video" = "%@さんがビデオ通話への切り替えを希望しています";
-"Tap to return" = "タップして戻る";
 "What is a passphrase?" = "パスフレーズとは？";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "わからない場合は、ほぼ間違いなく「いいえ」です。パスフレーズは、自分で意識して入力するものです。";
 "No" = "いいえ";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "アドレスを非表示にしました。「アドレスの表示設定」で再度有効にできます。";
 "Address removed." = "アドレスを削除しました。";
 "Asks to open an encrypted conversation." = "暗号化された会話の開始を依頼します。";
-"Calls stay off for this contact." = "この連絡先との通話はオフのままです。";
 "Casual" = "カジュアル";
 "Changes the text. Everyone sees the new version." = "テキストを変更します。全員に新しい内容が表示されます。";
 "Check off every address you want on the list, in one sitting." = "リストに入れたいアドレスをまとめてチェックします。";
 "Clear %@?" = "%@を消去しますか？";
 "Clear All Cache?" = "すべてのキャッシュを消去しますか？";
 "Clears the unread badge on this group." = "このグループの未読バッジを消します。";
-"Close this and stay in the chat." = "これを閉じてチャットに戻ります。";
 "Connecting for live updates" = "リアルタイム更新に接続中";
 "Copies the address to your clipboard." = "アドレスをクリップボードにコピーします。";
 "Copies the name to your clipboard." = "名前をクリップボードにコピーします。";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "相手のKaspaアドレスをコピーします。";
 "Deletes this chat's messages from this device. The bot stays in the row." = "このチャットのメッセージをこのデバイスから削除します。ボットは列に残ります。";
 "Downloading message history" = "メッセージ履歴をダウンロード中";
-"Enable calls" = "通話を有効にする";
 "Failed to open archive: %@" = "アーカイブを開けませんでした: %@";
 "Finding your conversations" = "会話を検索中";
 "Finished" = "完了";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "相手のメッセージの通知を再び受け取ります。";
 "Gives this account a name of your own." = "このアカウントに好きな名前を付けます。";
 "Gives this address a label of your own." = "このアドレスに好きなラベルを付けます。";
-"Go on to calling this person." = "この人への発信に進みます。";
 "Hide Address" = "アドレスを非表示";
 "Invite this contact to a game on chain." = "この連絡先をオンチェーンの対局に招待します。";
 "KaChat Link" = "KaChatリンク";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "メンションを含め、このグループからの通知はありません。";
 "No timer." = "持ち時間なし。";
 "Node address copied." = "ノードアドレスをコピーしました。";
-"Not now" = "今はしない";
 "Notifications from this chat resume." = "このチャットの通知を再開します。";
 "Notifications from this group resume, including mentions." = "メンションを含め、このグループの通知を再開します。";
 "One minute each, plus one second a move." = "持ち時間は各1分、1手ごとに1秒加算。";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "このグループとそのメッセージをこのデバイスから削除します。";
 "Reply to this message instead." = "代わりにこのメッセージに返信します。";
 "Reveals the next unused address in this wallet." = "このウォレットの次の未使用アドレスを表示します。";
-"Rings them in KaChat; your Nextcloud carries the call." = "相手のKaChatを呼び出します。通話はあなたのNextcloudを経由します。";
-"Same, with your camera on from the start." = "同じ内容で、最初からカメラをオンにします。";
 "Saves or shares the recording as a file." = "録音をファイルとして保存または共有します。";
 "Select Chats..." = "チャットを選択...";
 "Sends this message again." = "このメッセージをもう一度送信します。";
@@ -1463,10 +1451,7 @@
 "Silence" = "ミュート";
 "Start a group with the people you choose." = "選んだ人たちとグループを始めます。";
 "Starting" = "開始中";
-"Stay on voice" = "音声のまま続ける";
 "Stop seeing their messages in this group. Undo it in Group Info." = "このグループで相手のメッセージを表示しなくなります。グループ情報で元に戻せます。";
-"Switch to video" = "ビデオに切り替える";
-"The call carries on as it is, and they are told." = "通話はそのまま続き、相手に通知されます。";
 "The key that spends this address. Never share it." = "このアドレスから支払うための鍵です。絶対に共有しないでください。";
 "The passphrase shows too, if this account has one." = "このアカウントにパスフレーズがある場合は、それも表示されます。";
 "The public half of this address, for anyone who asks for it." = "このアドレスの公開部分です。求められた相手に渡せます。";
@@ -1480,18 +1465,13 @@
 "User muted." = "ユーザーをミュートしました。";
 "User unmuted." = "ユーザーのミュートを解除しました。";
 "Validating backup..." = "バックアップを検証中...";
-"Video call" = "ビデオ通話";
 "View 12 or 24 Words and Passphrase" = "12または24の単語とパスフレーズを表示";
 "View Private Key" = "秘密鍵を表示";
 "View Public Key" = "公開鍵を表示";
-"Voice call" = "音声通話";
 "Who reacted, and with what." = "誰が何でリアクションしたか。";
 "Wiping incoming messages..." = "受信メッセージを消去中...";
 "Write down your 12 or 24 words before you delete." = "削除する前に12または24の単語を書き留めてください。";
 "Yes, All Chats" = "はい、すべてのチャット";
-"Your camera turns on and the call moves to the speaker." = "カメラがオンになり、通話がスピーカーに切り替わります。";
-"Saves this for %@ and lets you call now." = "%@ のためにこれを保存し、今すぐ通話できるようにします。";
-"Camera off" = "カメラオフ";
 "Address #%d is ready." = "アドレス #%d の準備ができました。";
 "Conversation declined" = "会話が拒否されました";
 "Recents" = "最近使用したもの";

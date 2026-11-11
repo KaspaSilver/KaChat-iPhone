@@ -256,19 +256,203 @@ raw file bytes                      the JPEG / WebM-Opus exactly, no base64
 
 - Applies to the media-file JSON (`{"type":"file",...,"content":"data:<mime>;base64,..."}`)
   of `image/*` and `audio/*` types only. Every other message stays UTF-8 text.
+- Groups (since 2026-11-11): voice notes only, as the `gcomm` plaintext ("In group chats" below).
 - The payload around it is unchanged: `kchat:1:comm:<alias>:<base64(encrypted)>` (or the `dm`
   form), so indexers and push need no change.
 - Reading: decrypt to BYTES first. If they start with the magic, rebuild the media-file JSON:
   `{"type":"file","name":"<name>","size":<raw byte count>,"mimeType":"<mime>","content":
   "data:<mime>;base64,<base64 of raw>"}`, and treat it exactly as the text form from then on.
   Otherwise decode UTF-8 as before. 0xFF never begins UTF-8, so the two never collide.
-- Sizes (iOS): photos are JPEG at 20 KB (the same ~27 KB of payload a 15 KB photo took before),
-  or 32 KB with Chats > Higher quality photos (~43 KB of payload, the largest a standard
-  transaction carries with margin at 2 grams of transient mass per byte). Voice notes are up to
-  25 s / 31 KB of 6 kbps Opus. A client that predates the frame fails to decode it as UTF-8 and
-  shows nothing (or "[Encrypted message]") - Android and Desktop must read it to show iOS photos.
+- Sizes (iOS): a photo's size is chosen at send time (High, Medium or Low, up to 1, 0.5 or
+  0.1 KAS), and one bigger than a transaction goes as several messages ("Photos: quality tiers
+  and multi-part photos" below). A voice note is up to
+  14.5 s / 31 KB per message: 16 kbps CBR Opus in 60 ms frames since 2026-11-11 (6 kbps in
+  20 ms before), and longer notes go as several messages (below). A client that predates the
+  frame fails to decode it as UTF-8 and shows nothing (or "[Encrypted message]") - Android and
+  Desktop must read it to show iOS photos.
 - iOS: `ContextualMediaFrame` (KaChatCipher.swift); sent by `encryptContextualMessage`,
   read by `KasiaCipher.decrypt` and the push extension's `mediaFrameEnvelope`.
+
+### Photos: quality tiers and multi-part photos
+
+Since 2026-11-11, iOS asks for a quality when an on-chain photo is sent, in 1:1 chats and in
+groups (`PhotoQualitySheet`). The Nextcloud route (full quality, uploaded) never asks. Each
+tier is a fee budget, and it buys the largest JPEG whose parts' fees add up to no more than
+that. Older and other clients may show these photos broken or blank (the owner accepted this).
+
+- **Tiers:** High, up to 1 KAS; Medium, up to 0.5 KAS; Low, up to 0.1 KAS. The sheet shows each
+  tier's real fee once the photo has been compressed for it (off the main thread), and "Up to
+  …" until then.
+- **Byte budgets (`PhotoTier.maxBytes`):** the exact largest total, rounded down about 0.5% for
+  header length and extra-input slack:
+
+  | Tier | 1:1 bytes | parts | 1:1 fee | Group bytes | parts | Group fee |
+  |---|---|---|---|---|---|---|
+  | High | 368,000 (exact 369,799) | 12 | ~0.995 KAS | 243,000 (exact 244,047) | 12 | ~0.996 KAS |
+  | Medium | 184,000 (exact 184,904) | 6 | ~0.498 KAS | 121,500 (exact 122,038) | 6 | ~0.498 KAS |
+  | Low | 36,000 (exact 36,635) | 2 | ~0.098 KAS | 23,500 (exact 24,013) | 2 | ~0.098 KAS |
+
+- **One part's fee, for a chunk of R bytes** (2 grams of transient mass per transaction byte,
+  100 sompi a gram, 272 bytes of input and output, a ~142-byte tagged header):
+  - **1:1:** payload = 26 + 4 x ceil((9 + header + R + 61) / 3) in `kchat:1:comm:`. A full
+    31,000-byte chunk is a 41,638-byte payload, mass 83,820, 0.0838 KAS.
+  - **Groups:** payload = 391 + 2 x (9 + header + R + 16) in the unchanged `gcomm` payload. A
+    full 21,000-byte chunk is a 42,719-byte payload, mass 85,982, 0.0860 KAS.
+- **Compression (iOS, `ImagePrep.prepareJPEGForTiers`):** the image is re-rendered into a fresh
+  bitmap, so orientation is applied and no EXIF, GPS or camera metadata is kept.
+  - It picks the largest long edge (3000, 2560, 2240, 2048, 1920, 1600, 1440, 1280, 1080, 960,
+    800, 640, 480 or 360 px, never upscaled) at which JPEG quality 0.5 fits the budget.
+  - It then takes the highest quality up to 0.85 that still fits at that edge.
+  - It goes below 0.5 only at 360 px.
+- **Multi-part:** a photo bigger than one part (31,000 bytes in 1:1, 21,000 in groups) is cut
+  into raw byte chunks. Each chunk goes as its own message, one transaction each, in index
+  order through the send queue, after a balance check for all parts. Each chunk is a binary
+  media frame whose header carries `"mediaPart":{"count":N,"id":"<random 16-byte hex>","index":i}`
+  (the voice tag, under its own key). The rebuilt media-file JSON carries it between
+  `mimeType` and `content`, and part files are named `photo-<i>of<N>.jpg`. The rules are the
+  voice tag's: count 2...12, index 1...count, a hex id of 16 to 64 characters, image types
+  only, and a malformed tag means a plain photo. A photo of one part is an ordinary untagged
+  photo.
+- **Reassembly:** join the chunks in index order **only once all N are present**, then decode.
+  Until then, show one placeholder bubble ("Receiving… N of M") at the earliest part's place.
+- **One message everywhere, as for long voice notes:**
+  - Parts belong together by sender (and group id in a group), `id` and `count`.
+  - Status is combined, Retry resends only failed parts, and Delete removes all parts.
+  - Reply, react and the explorer link use part 1.
+  - Unread and the chat list count it once, and only the first part to arrive rings.
+  - Save, share and full screen use the joined image.
+- **Groups:** photos are now the binary media frame too (`GroupChatService.groupPlaintextData`),
+  inside the unchanged `gcomm` payload.
+- **Android and Desktop must:**
+  - Read the frame in group plaintext.
+  - Group `mediaPart` chunks, join them in order once all are there, and decode the JPEG.
+  - Show one bubble with "Receiving… N of M" until then.
+  - Count, ring, retry and delete the photo once, as above.
+
+### Long voice notes (multi-part)
+
+Since 2026-11-11 iOS sends on-chain voice notes at **16 kbps CBR Opus in 60 ms frames**, in
+1:1 chats and in groups (group format below). A note is as long as 1 KAS of fees allows:
+**2:50 in 1:1, 1:50 in groups**. A note longer than one part is split into parts, and each part
+is sent as its own ordinary voice message, one transaction each, in the binary media frame (in
+groups, inside the `gcomm` payload: see below). A note of one part's length or less is still
+one message with no tag. Nextcloud voice notes are unchanged.
+
+- **Each part is a complete WebM-Opus file**, playable on its own. Each part's encoder is
+  also fed the codec's 312-sample look-ahead from the next part, and the part's Info Duration
+  states its real length. A reader that drops each part's pre-skip and cuts it to that
+  duration joins the parts with no gap.
+- **Part layout at 16 kbps:**
+  - libopus 1.5.2 CBR makes each 60 ms packet (12 x 16000 / 8 + 100) / 200 = 120 bytes.
+  - A SimpleBlock is 1 ID + 1 size + 4 header + 120 = 126 bytes.
+  - Each Cluster of 16 packets costs 10 bytes, and the headers 155.
+  - A part of T seconds is N = ceil((T x 48000 + 312) / 2880) packets and
+    155 + 126 N + 10 ceil(N / 16) bytes.
+- **1:1 limits:**
+  - **Part length 14.5 s.** The cap is 31,000 bytes: N <= 243 (244 packets is 31,059 bytes),
+    so T <= 14.57 s. A full part is 242 packets, 30,807 bytes.
+  - **Note length 170 s (2:50).** A full part is a ~41,386-byte payload (frame, ECIES and
+    base64 in `kchat:1:comm:`). Its mass is 2 x (payload + 272 bytes of input and output) =
+    83,316, so 0.0833 KAS. 12 full parts (174 s) are 0.9998 KAS and a 13th would pass 1 KAS,
+    so the note is 174 s rounded down to 5 s.
+- **Fees in 1:1:**
+
+  | Note | Parts | Fee |
+  |---|---|---|
+  | one full part (14.5 s) | 1 | 0.0833 KAS |
+  | 60 s | 5 | 0.346 KAS |
+  | 120 s | 9 | 0.691 KAS |
+  | 170 s (max) | 12 | 0.977 KAS |
+  | 175 s (not allowed) | 13 | 1.007 KAS |
+- **Parts per note:** at most 12, a strict bound readers enforce. Both paths' longest notes
+  need exactly 12.
+- **The tag:** every part carries
+  `"voicePart":{"id":"<random 16-byte hex>","index":<1-based>,"count":<N>}`. It goes in the
+  frame's header JSON, and in the media-file JSON rebuilt from it, between `mimeType` and
+  `content`:
+  `{"type":"file","name":"voice-2of12.webm","size":30807,"mimeType":"audio/webm","voicePart":{"id":"…","index":2,"count":12},"content":"data:…"}`.
+  Part files are named `voice-<index>of<count>.webm`.
+- **Read it defensively:** `count` 2...12, `index` 1...count (integers), `id` hex of 16 to
+  64 characters (compare it lowercased), audio types only. A part decodes to at most 25 s. A
+  malformed tag means the message is a plain single voice note. Parts belong together when
+  they have the same sender, `id` and
+  `count`.
+- **Sending (iOS):** the balance for all parts is checked before the first goes out. The parts
+  then go out in index order, one after another through the send queue, so each one spends the
+  previous one's change. Parts never carry a reply envelope, which would take them off the
+  frame and past what one transaction holds.
+- **Fallback:** a client that doesn't know the tag ignores the unknown key and shows N
+  separate, playable voice notes in order. Android, Desktop and older iOS builds do this today.
+- **What Android and Desktop must do to show one bubble:**
+  - Collapse parts with the same (sender, id, count) into a single audio bubble, at the time
+    and position of the earliest part, and hide the other rows.
+  - Show the total duration and one scrubber. Play gaplessly: decode each part to PCM in index
+    order, drop each part's pre-skip, cut it to its Info Duration, and concatenate.
+  - While parts are missing, play what's there in order and say so ("Receiving… 7 of 12").
+  - Outgoing: one status for the note (any part failed means Failed, then Sending). Retry
+    resends only the failed parts.
+  - Reply and react target part 1 (the earliest). Delete removes every part.
+  - The chat list, unread counts and notifications count the note once: only the first part
+    to arrive bumps unread and rings.
+- **iOS notifications:** the push extension lets the first part to arrive ring and count.
+  Without the `com.apple.developer.usernotifications.filtering` entitlement (the extension
+  doesn't have it) a later part can't be withheld. It is delivered passive instead (no sound,
+  no screen wake, no badge) in the same thread, and the quiet notification of the part before
+  it is removed. That leaves at most the first banner and one quiet entry per note
+  (`voice_part_banners` in the App Group). In the foreground the app lists such a push without
+  a banner (`kachat_quiet_voice_part`).
+- iOS: `VoicePartTag` / `VoicePartGrouping` (Models.swift), `WebMOpusEncoder.encodeParts`
+  (ChatDetailView.swift), `ChatService.sendVoiceNoteParts`, and
+  `WebMOpusDecoder.decodePartsToPCMFile` with `LazyMultipartAudioBubble` (MessageBubbleView.swift).
+
+#### In group chats
+
+Since 2026-11-11 every group voice note, short or long, is sealed as the **binary media frame**
+above (`0xFF "KCM" 0x01`, header JSON, raw WebM bytes) in place of the base64 media-file JSON.
+**Older and other clients (Android, Desktop, older iOS) can't read these until they're
+updated:** they show nothing or a blank bubble. The owner accepted this. Group photos and
+every other group message stay UTF-8 text.
+
+- **Wire:** the outer `gcomm` payload is unchanged:
+  `kchat:1:gcomm:<blinded id>:<epoch>:<sender id>:<sender key>:<msg id>:<ciphertext hex>:<signature>`.
+  Only the ChaCha20-Poly1305 plaintext changed: the frame instead of the JSON text. The indexer
+  and push server see nothing different.
+- **Reading:** decrypt to bytes first. If they start with the magic, rebuild the media-file
+  JSON as in 1:1 (with `voicePart` when the header has a valid one). Otherwise decode UTF-8 as
+  before, so old text-form group notes keep playing. iOS: `GroupCipher.decryptMessage`, and the
+  push extension's `NotificationGroupCipher.decryptMessage`.
+- **The tag** is in the frame header JSON, as in 1:1:
+  `{"mimeType":"audio\/webm","name":"voice-2of12.webm","size":20024,"voicePart":{"count":12,"id":"…","index":2}}`.
+  Parts belong together by (group id, sender, `id`, `count`), with the same parsing rules.
+- **Encoding (iOS):** 16 kbps CBR in 60 ms frames, as in 1:1. Parts are at most 9.8 s and
+  21,000 bytes of WebM. A note of one part's length or less is one untagged message. The old
+  6 kbps / 20 ms layout is left only for the Nextcloud route's on-chain fallback.
+- **Cost of a part of R bytes:**
+  - Plaintext: 9 bytes of magic and length + ~142 of header + R.
+  - Payload: ~391 + 2 x (151 + R + 16) bytes, about 2 payload bytes per audio byte (2.67 with
+    the old base64 JSON).
+  - Mass: 2 x (payload + 272).
+- **Group limits:**
+  - **Part length 9.8 s.** The cap is 21,000 bytes: N <= 164 (165 packets is 21,055 bytes),
+    so T <= 9.83 s. A full part is 164 packets, 20,929 bytes, a ~42,583-byte payload, mass
+    85,710, so 0.0857 KAS.
+  - **Note length 110 s (1:50).** 115 s would be 12 parts and 1.007 KAS.
+  - The cap is about 42.7 KB of payload and 86,000 of the 100,000 mass ceiling.
+- **Fees in groups:**
+
+  | Note | Parts | Fee |
+  |---|---|---|
+  | one full part (9.8 s) | 1 | 0.0857 KAS |
+  | 60 s | 7 | 0.528 KAS |
+  | 110 s (max) | 12 | 0.964 KAS |
+  | 115 s (not allowed) | 12 | 1.007 KAS |
+- **Sending, grouping, playback, Retry, Delete, unread and notifications** work as in 1:1.
+  On iOS: `GroupChatService.sendGroupVoiceNoteParts` (the balance for all parts is checked
+  first) and `retryGroupVoiceNoteParts`. One bubble per note in `GroupChatDetailView`. Unread
+  counts the note once (`unreadCount(for:)`). Only the first part to arrive posts a local
+  banner. In the push extension, a later part's push is passive, in the group's thread.
+- **Android and Desktop** must read the frame in group plaintext first, then group the parts
+  as in 1:1, keyed by (group id, sender, `id`).
 
 ### Handshakes
 
@@ -373,8 +557,8 @@ original, with a small "edited" mark. Rules, identical on every platform:
   someone else's message is dropped. Clients also refuse edits on their own behalf unless
   the target is theirs.
 - Newest by block time wins; an older edit replayed from history never overwrites a newer one.
-- Text only. A payment notice, voice message, photo, chess move, call line, reaction or any
-  other envelope is never editable; an edit naming one is dropped. A **reply** is editable:
+- Text only. A payment notice, voice message, photo, chess move, reaction or any other
+  envelope is never editable; an edit naming one is dropped. A **reply** is editable:
   the edit's `text` replaces the reply's text and the quote is kept
   (`MessageEditCodec.apply`).
 - `text` is capped at 4 000 characters. Unknown extra fields are ignored.
@@ -653,92 +837,15 @@ kchat:1:gctl:...                              # Group chat control message
 | Send handshake | Self → Recipient | Key exchange | N/A (we're sender) | Immediate |
 | Receive handshake | Sender → Self | Key exchange | No | REST API |
 
-## Calls (5.0): Nextcloud Talk over the 1:1 channel
+## Call messages (ignored since 2026-11-11)
 
-Voice and video calls never leave KaChat and need a Nextcloud on ONE side only. The caller's
-Nextcloud (Talk installed, calls enabled - detected from `/ocs/v2.php/cloud/capabilities`
-`spreed.features` incl. `conversation-v4`/`signaling-v3` and `config.call.enabled`) hosts a
-throwaway **public** Talk conversation; the callee joins it as a Talk **guest** on that server,
-so no account of their own is involved. Media is one WebRTC peer connection between the two
-phones, negotiated over Talk's *internal* signaling API (the external HPB mode is refused with
-a message). STUN/TURN come from the caller's server's `signaling/settings`.
-
-Ringing is ordinary encrypted contextual messages, JSON like the chess envelopes, all carrying
-the same `callId` (a UUID). **The caller is the only side that ever writes to the chain, and at
-most twice per call**: one opening message and one closing message. The callee answers, declines
-and hangs up through the Talk room itself (joining it, a `kachat_decline` signaling message, or
-leaving it), never on chain.
-
-A closed app cannot see the chain, so alongside the opening message the caller's phone asks
-the push service to send the callee a **VoIP push** (`POST /v1/push/ring`, PUSH_EXTENSIONS.md
-§5) carrying `call_id`, `kind`, `video`, the caller's address and a hex copy of that same
-opening message encrypted to the callee. iOS wakes the callee's KaChat and it rings through
-CallKit at once; the push's copy gives the room straight away when the keys are reachable, and
-the chain message fills it in otherwise (the ringing call's `callId` matches, so the app knows
-the invite is the one it is already showing). The push is best effort and carries nothing the
-chain does not: no push, and an open app still rings off the chain message a little later.
-
-**Multitasking camera (Picture in Picture in other apps).** iOS pauses an app's camera the
-moment it leaves the foreground unless the App ID carries Apple's
-`com.apple.developer.avfoundation.multitasking-camera-access` entitlement, granted on request
-(developer.apple.com > Account > Additional resources > "Multitasking Camera Access" request
-form; describe the video-call feature). Once approved: enable the capability on the
-`com.kachat.app` App ID in the portal, add
-`<key>com.apple.developer.avfoundation.multitasking-camera-access</key><true/>` to
-`KaChat/KaChat.entitlements` and `KaChat/KaChatRelease.entitlements`, and let automatic signing
-regenerate the profiles. The code is already in place (`WebRTCClient.startCaptureIfNeeded` sets
-`isMultitaskingCameraAccessEnabled` whenever the session reports it supported); adding the
-entitlement key BEFORE Apple grants it breaks signing, so it is deliberately not in the repo yet.
-
-| Envelope | Sent by | Fields |
-|---|---|---|
-| `{"type":"call_invite"}` | the caller, when they host | `callId`, `server` (https base URL), `token` (room), `video` (bool), `viaRequest` (bool, optional - true when a host answers a `call_request`) |
-| `{"type":"call_request"}` | a caller with NO Nextcloud | `callId`, `video` - asks the contact to host; if the contact's KaChat can host and their "Allow calls" switch is on for the requester, it opens a room, answers with a `call_invite {viaRequest:true}` (the one message a non-caller ever sends - the requester cannot learn the room any other way) and rings; the requester joins that room as a guest. A contact that cannot host stays silent and the request rings out. |
-| `{"type":"call_end"}` | the caller, always | `callId`, `reason` (`hangup`, `remote_hangup`, `declined`, `no_answer`, `cancelled`, `failed`), `durationSeconds` (when it connected). Sent only after the caller's opening message went out. |
-| `{"type":"call_response"}` | *legacy* - nothing sends it any more | `callId`, `accepted`, `reason`; still parsed so older clients' messages render |
-
-**Who hosts.** A phone whose Nextcloud is connected always hosts its own calls: before falling
-back to `call_request` it re-checks Talk on the server when the last answer is unknown or was a
-failed lookup (a lookup that couldn't reach the server is not "no Talk"). Likewise a phone asked
-to host re-checks before turning a request away.
-
-**Hosting a request (the callee side).** Ring at once (so an Answer tapped while the room is
-being opened finds the call), then open the room, check its signaling is internal (not the
-external HPB), and only then send the `call_invite {viaRequest:true}` - again on a failed send.
-The host also **pushes** that invite to the requester (`POST /v1/push/ring`, `kind:"invite"`) so
-their phone joins without waiting for the chain; a requester already waiting for that call id
-joins from the push and ignores the later chain copy. After Answer the other phone has 30 s to
-appear in the room, then the call ends as failed ("X didn't join") instead of hanging on
-"Connecting".
-
-**Consent before ringing.** A call (VoIP push, `call_request`, or a non-`viaRequest`
-`call_invite`) from someone whose "Allow calls" is off is ended or silenced on arrival, from a
-list the push handlers can read before the wallet loads - never a ring or an "Incoming call"
-banner first. Call messages are never wrapped as a reply.
-
-So a hosted call costs the caller 2 messages whatever happens (answered: invite + "Call · 4:12";
-declined / no answer / cancelled: invite + the reason); a requested call costs the caller 2 and the
-host 1 (its invite). Callee-side events reach the caller through the room: appearing in the call =
-answered; `kachat_decline` from the callee's guest session = declined; the callee leaving the
-call = hang-up (the caller writes the duration); the host deleting the room = a declined request
-(the waiting guest sees a 404).
-
-Clients render these as call-history bubbles ("Voice call started", "Missed call", "Call
-declined", "Call · 4:12"; a `viaRequest` invite is the neutral "Voice call ready") and never as
-raw JSON. The call button is always there; Chat Info's per-contact switch (`Contact.callsEnabled`,
-OFF by default, device-local) is the gate - the first tap on a not-yet-enabled contact asks
-"Enable calls and video calls with X?" and saves the answer. While off, that contact's invites and
-requests are ignored silently. A client keeps a persisted set of call ids it has handled so a
-re-ingested invite/request never rings twice. An invite is only answerable for 45 s after its
-block time; the callee's phone rings for 30 s and the caller gives up after 35 s with `no_answer`.
-
-Call sequence (caller): `POST /apps/spreed/api/v4/room` (`roomType=3`) → `POST
-/room/{token}/participants/active` (gives the Talk `sessionId`) → `POST /call/{token}` (`flags`
-= 1|2|4) → send `call_invite` → long-poll `GET /api/v3/signaling/{token}` for `usersInRoom` +
-peer `message`s, send offer/answer/candidates via `POST /api/v3/signaling/{token}`
-(`messages=[{ev:"message",fn:<json>,sessionId}]`, `fn` = `{to,sid,roomType:"video",type,payload}`).
-The peer with the larger Talk session id sends the offer (Talk web's tie-break); the other side
-offers itself after 10 s of silence. Callee mirrors this unauthenticated (guest cookie session),
-plus `POST /api/v1/guest/{token}/name`. On hang-up the caller leaves the call and conversation
-and deletes the room.
+KaChat for iPhone has no voice or video calls: no CallKit, PushKit, WebRTC or Nextcloud Talk, and
+it never sends a call message. Other clients (and older iPhone builds) may still send the call
+envelopes as ordinary encrypted 1:1 messages: JSON objects whose `type` starts with `call_`
+(`call_invite`, `call_request`, `call_response`, `call_end`). The iPhone app recognizes them by
+that `type` alone (`CallSignal.isCallSignal` in Models.swift) and drops them on arrival
+(`addMessageToConversation`): no bubble, no unread count, no notification, never raw JSON. One an
+older build already stored is hidden like the other placeholders (`ChatMessage.isHiddenPlaceholder`).
+The notification extension silences their pushes the same way (`isCallSignal` in
+NotificationService.swift). Nothing ever answers them, so a caller on another client rings out.
 

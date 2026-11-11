@@ -30,7 +30,7 @@ those clients until they do.
   holds stay hidden on a new device. iOS never deletes it either: deleting an account removes only
   what is on the phone, and revokes the app password KaChat made.
 - **KaPay** reads and writes this same file directly (§9).
-- **Not affected:** media sent via Nextcloud, calls over Talk, the manual Address Book export (§1), and
+- **Not affected:** media sent via Nextcloud, the manual Address Book export (§1), and
   exporting or importing a chat archive as a local file.
 
 ---
@@ -215,7 +215,7 @@ The dirty flag clears only after a successful upload.
 shared file quietly. Mark that as done **only after a successful import**: if the file is
 missing, a backup that appears later (first sync from another device) still triggers the restore.
 
-**Mainnet only.** Nextcloud backup, sync, media and calls are off on testnet, so a testnet
+**Mainnet only.** Nextcloud backup, sync and media are off on testnet, so a testnet
 wallet can never overwrite a mainnet backup.
 
 ## 7. Errors

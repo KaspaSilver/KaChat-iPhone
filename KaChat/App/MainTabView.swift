@@ -27,10 +27,6 @@ struct MainTabView: View {
     @State private var showWelcomeGuide = false
     /// Blocking progress while the post-onboarding sync runs.
     @State private var showInitialSyncProgress = false
-    /// The call screen (ringing in, ringing out, connected) sits over the whole app, whichever
-    /// tab is showing - a call is not a page of the chat it started from.
-    @ObservedObject private var callService = CallService.shared
-    @ObservedObject private var pictureInPicture = CallPictureInPicture.shared
     @Environment(\.scenePhase) private var scenePhase
     /// Not observed. This view only CALLS into these two (start/stop polling, onboarding holds,
     /// pending routes) and renders nothing from them, but as @EnvironmentObjects every chat
@@ -99,16 +95,6 @@ struct MainTabView: View {
         }
         .fullScreenCover(isPresented: $showInitialSyncProgress) {
             InitialSyncProgressModal(onDismiss: { showInitialSyncProgress = false })
-        }
-        // The call screen itself is a window of its own (`CallWindowPresenter`), so no sheet up
-        // here can keep it from showing.
-        // A call tucked away and not floating as Picture in Picture: the green return bar.
-        .overlay(alignment: .top) {
-            if let call = callService.session, callService.isMinimized, !pictureInPicture.isActive {
-                CallReturnBar(call: call)
-                    .padding(.top, 4)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
         }
         .fullScreenCover(isPresented: $showWelcomeGuide) {
             WelcomeGuideView(

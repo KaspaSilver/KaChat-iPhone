@@ -18,6 +18,14 @@ class NotificationService: UNNotificationServiceExtension {
 
     var contentHandler: ((UNNotificationContent) -> Void)?
     var bestAttemptContent: UNMutableNotificationContent?
+    /// This push's request id, for replacing an earlier quiet banner of the same long voice note.
+    private var requestIdentifier: String?
+    /// The part tag of the message this push carries, when it is part of a long voice note
+    /// (MESSAGING.md, "Long voice notes (multi-part)"). Set where the message is decrypted.
+    private var voicePartKey: String?
+    /// App Group ledger: long voice notes already announced, by "sender|id|count", each with the
+    /// ids of the quiet notifications its later parts left.
+    private let voicePartBannersKey = "voice_part_banners"
 
     // App Group identifier for shared data
     private let appGroupIdentifier = "group.com.kachat.app"
@@ -58,6 +66,7 @@ class NotificationService: UNNotificationServiceExtension {
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
+        requestIdentifier = request.identifier
 
         guard let content = bestAttemptContent else {
             contentHandler(request.content)
@@ -275,10 +284,10 @@ class NotificationService: UNNotificationServiceExtension {
                 // a payment_notice for a payment to our chatting address, which reads
                 // "Received payment".
                 // An edit envelope changes an earlier bubble in place - nothing to announce.
-                // A call from someone this phone hasn't allowed calls from: ignored silently, as
-                // the app does (no "Incoming call" banner).
+                // KaChat has no calls: another client's call message is dropped silently, as
+                // the app does.
                 if isSilentPoolEnvelope(decrypted) || isEditEnvelope(decrypted)
-                    || isUnwantedCall(decrypted, from: senderAddress) {
+                    || isCallSignal(decrypted) {
                     content.title = ""
                     content.body = ""
                     content.sound = nil
@@ -287,10 +296,10 @@ class NotificationService: UNNotificationServiceExtension {
                     contentHandler(content)
                     return
                 }
+                voicePartKey = Self.voicePartKey(in: decrypted, sender: senderAddress)
                 content.body = paymentNoticePreviewText(for: decrypted)
                     ?? reactionPreviewText(for: decrypted)
                     ?? chessPreviewText(for: decrypted)
-                    ?? callPreviewText(for: decrypted)
                     ?? unwrapReplyText(decrypted)
             } else {
                 // No payload on the push. Anything over 3.5KB is sent txId-only (see
@@ -299,7 +308,7 @@ class NotificationService: UNNotificationServiceExtension {
                 // good the preview sniffs below are. The message is on chain and this extension
                 // holds the key, so read it and say what it actually is.
                 content.body = NSLocalizedString("New message", comment: "Fallback body for contextual push notification")
-                fetchChainPreview(txId: txId) { [weak self] read in
+                fetchChainPreview(txId: txId, sender: senderAddress) { [weak self] read in
                     guard let self else { return }
                     switch read {
                     case .notForThisAccount:
@@ -364,11 +373,87 @@ class NotificationService: UNNotificationServiceExtension {
         // chat was opened.
         addPendingMessage(txId: txId, sender: senderAddress, type: messageType)
 
+        // A long voice note is ONE message: the first of its parts to arrive (part 1, or
+        // whichever comes first) rings and counts. A later part can't be withheld - that needs
+        // the com.apple.developer.usernotifications.filtering entitlement, which this extension
+        // doesn't have - so it is delivered passive (no sound, no screen wake, no badge) in the
+        // same thread, and the quiet one before it is removed, leaving at most the first banner
+        // and one quiet entry per note.
+        if let key = voicePartKey, !claimVoicePartBanner(key: key) {
+            content.sound = nil
+            content.interruptionLevel = .passive
+            content.badge = nil
+            // The app, in the foreground, lists it without a banner (AppDelegate.willPresent).
+            content.userInfo["kachat_quiet_voice_part"] = true
+            contentHandler(content)
+            return
+        }
+
         if shouldIncrementUnread, let badge = incrementUnreadCountIfNeeded() {
             content.badge = NSNumber(value: badge)
         }
 
         contentHandler(content)
+    }
+
+    /// True for the first part of a long voice note to reach this device (it may announce
+    /// itself), false for every later one. A later part records this push's id and removes the
+    /// quiet notification the previous later part left. Bounded to the newest 50 notes.
+    private func claimVoicePartBanner(key: String) -> Bool {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else { return true }
+        var ledger = (defaults.array(forKey: voicePartBannersKey) as? [[String]]) ?? []
+        guard let index = ledger.firstIndex(where: { $0.first == key }) else {
+            ledger.append([key])
+            if ledger.count > 50 { ledger.removeFirst(ledger.count - 50) }
+            defaults.set(ledger, forKey: voicePartBannersKey)
+            return true
+        }
+        let earlierQuiet = Array(ledger[index].dropFirst())
+        if !earlierQuiet.isEmpty {
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: earlierQuiet)
+        }
+        ledger[index] = [key] + (requestIdentifier.map { [$0] } ?? [])
+        defaults.set(ledger, forKey: voicePartBannersKey)
+        return false
+    }
+
+    /// "sender|id|count" of a long voice note's part, read from the head of the decrypted
+    /// media-file JSON (the app's `VoicePartTag.sniff`); nil for anything else or a malformed tag.
+    static func voicePartKey(in text: String, sender: String) -> String? {
+        guard text.first == "{" else { return nil }
+        let head = String(text.prefix(2048))
+        // `voicePart` on a voice note, `mediaPart` on a multi-part photo's chunk.
+        let tagKey: String
+        if head.contains("\"mimeType\":\"audio/") {
+            tagKey = "\"voicePart\":"
+        } else if head.contains("\"mimeType\":\"image/") {
+            tagKey = "\"mediaPart\":"
+        } else {
+            return nil
+        }
+        guard let keyRange = head.range(of: tagKey),
+              let close = head[keyRange.upperBound...].firstIndex(of: "}") else { return nil }
+        let objectText = String(head[keyRange.upperBound...close])
+        guard let data = objectText.data(using: .utf8),
+              let part = voicePart(from: try? JSONSerialization.jsonObject(with: data)) else { return nil }
+        return "\(sender.lowercased())|\(part.id)|\(part.count)"
+    }
+
+    /// The app's `VoicePartTag` rules: a hex id of 16...64 characters, count 2...12, index
+    /// 1...count. Anything else is no tag.
+    static func voicePart(from object: Any?) -> (id: String, index: Int, count: Int)? {
+        guard let dict = object as? [String: Any],
+              let id = (dict["id"] as? String)?.lowercased(),
+              (16...64).contains(id.count),
+              id.allSatisfy({ $0.isASCII && $0.isHexDigit }),
+              let indexNumber = dict["index"] as? NSNumber, CFGetTypeID(indexNumber) != CFBooleanGetTypeID(),
+              let countNumber = dict["count"] as? NSNumber, CFGetTypeID(countNumber) != CFBooleanGetTypeID(),
+              indexNumber.doubleValue == indexNumber.doubleValue.rounded(),
+              countNumber.doubleValue == countNumber.doubleValue.rounded() else { return nil }
+        let index = indexNumber.intValue
+        let count = countNumber.intValue
+        guard (2...12).contains(count), (1...count).contains(index) else { return nil }
+        return (id, index, count)
     }
 
     override func serviceExtensionTimeWillExpire() {
@@ -503,8 +588,10 @@ class NotificationService: UNNotificationServiceExtension {
             // `inGroup: !reactionTargetsMine`: when the shared own-txId list proves the reaction
             // targets MY message, use the 1:1 "to your message" wording instead of the neutral
             // "a message" fallback.
-            // An edit changes an earlier bubble in place - nothing to announce.
-            if isEditEnvelope(match.plaintext) || isMemberStatusEnvelope(match.plaintext) {
+            // An edit changes an earlier bubble in place - nothing to announce. Nor does a
+            // call message: KaChat has no calls.
+            if isEditEnvelope(match.plaintext) || isMemberStatusEnvelope(match.plaintext)
+                || isCallSignal(match.plaintext) {
                 suppressGroupNotification(content)
                 return
             }
@@ -516,7 +603,6 @@ class NotificationService: UNNotificationServiceExtension {
             let reactionTargetsMine = isReactionToMyMessage(match.plaintext)
             let displayBody = reactionPreviewText(for: match.plaintext, inGroup: !reactionTargetsMine)
                 ?? chessPreviewText(for: match.plaintext)
-                ?? callPreviewText(for: match.plaintext)
                 ?? unwrapReplyText(match.plaintext)
             // "Only Notify if I'm Mentioned" - a reply to one of MY messages counts the same as
             // an explicit @mention (checked against the raw, still-wrapped plaintext, since
@@ -548,6 +634,8 @@ class NotificationService: UNNotificationServiceExtension {
             content.subtitle = senderName
             content.body = displayBody
             content.threadIdentifier = "group:\(match.groupId)"
+            // A long voice note in a group: keyed by (group, sender, voicePart.id), as the app.
+            voicePartKey = Self.voicePartKey(in: match.plaintext, sender: "group:\(match.groupId.lowercased())|\(match.senderAddress)")
             content.categoryIdentifier = "KACHAT_MESSAGE"
             content.sound = defaultSoundEnabled ? .default : nil
         } else {
@@ -587,6 +675,19 @@ class NotificationService: UNNotificationServiceExtension {
             // Tapping opens Message Requests (KaChatApp's didReceive): there's no group to open yet.
             content.threadIdentifier = "group_requests"
             content.sound = defaultSoundEnabled ? .default : nil
+        }
+
+        // A later part of a long voice note rings no second time: passive, no badge, and the
+        // quiet entry of the part before it removed (see `finishContextual`).
+        if let key = voicePartKey, !claimVoicePartBanner(key: key) {
+            content.sound = nil
+            content.interruptionLevel = .passive
+            content.badge = nil
+            content.userInfo["kachat_quiet_voice_part"] = true
+            markGroupPushHandled(txId: txId)
+            addPendingMessage(txId: txId, sender: "group", type: messageType)
+            contentHandler?(content)
+            return
         }
 
         if shouldIncrementUnread, let badge = incrementUnreadCountIfNeeded() {
@@ -1151,56 +1252,18 @@ class NotificationService: UNNotificationServiceExtension {
         let reason: String?
     }
 
-    /// Local mirror of the main app's `CallCodec` (this target doesn't compile Models.swift):
-    /// call events ring through the chat, and the push for one must read like a call, not JSON.
-    private struct PushCallEnvelope: Decodable {
+    /// Local mirror of the main app's `CallSignal` (this target doesn't compile Models.swift):
+    /// KaChat has no calls, so another client's call message (`call_invite`, `call_request`,
+    /// `call_response`, `call_end`) never shows a banner.
+    private struct PushCallTypeOnly: Decodable {
         let type: String
-        let video: Bool?
-        let accepted: Bool?
-        let reason: String?
-        let durationSeconds: Int?
-        let viaRequest: Bool?
     }
 
-    /// An opening call message (`call_request`, or a `call_invite` that isn't the answer to
-    /// our own request) from someone not on the shared "Allow calls" list.
-    private func isUnwantedCall(_ content: String, from sender: String) -> Bool {
+    private func isCallSignal(_ content: String) -> Bool {
         let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.first == "{", trimmed.contains("\"call_"), let data = trimmed.data(using: .utf8),
-              let parsed = try? JSONDecoder().decode(PushCallEnvelope.self, from: data) else { return false }
-        let opening = parsed.type == "call_request" || (parsed.type == "call_invite" && parsed.viaRequest != true)
-        guard opening, let defaults = UserDefaults(suiteName: appGroupIdentifier),
-              let listData = defaults.data(forKey: "call_contacts"),
-              let list = try? JSONSerialization.jsonObject(with: listData) as? [[String: String]] else { return false }
-        let target = sender.lowercased()
-        return !list.contains { ($0["address"] ?? "").lowercased() == target }
-    }
-
-    private func callPreviewText(for content: String) -> String? {
-        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.first == "{", trimmed.contains("\"call_"), let data = trimmed.data(using: .utf8),
-              let parsed = try? JSONDecoder().decode(PushCallEnvelope.self, from: data) else { return nil }
-        switch parsed.type {
-        case "call_request":
-            return parsed.video == true ? "📹 Incoming video call" : "📞 Incoming voice call"
-        case "call_invite":
-            if parsed.viaRequest == true { return parsed.video == true ? "📹 Video call ready" : "📞 Voice call ready" }
-            return parsed.video == true ? "📹 Incoming video call" : "📞 Incoming voice call"
-        case "call_response":
-            if parsed.reason == "no_host" { return "📞 Calls need Nextcloud Talk on one side" }
-            return parsed.accepted == true ? "📞 Answered your call" : "📞 Declined your call"
-        case "call_end":
-            if let seconds = parsed.durationSeconds, seconds > 0 {
-                return String(format: "📞 Call · %d:%02d", seconds / 60, seconds % 60)
-            }
-            switch parsed.reason {
-            case "no_answer", "cancelled": return "📞 Missed call"
-            case "declined": return "📞 Call declined"
-            default: return "📞 Call ended"
-            }
-        default:
-            return nil
-        }
+              let parsed = try? JSONDecoder().decode(PushCallTypeOnly.self, from: data) else { return false }
+        return parsed.type.hasPrefix("call_")
     }
 
     private func chessPreviewText(for content: String) -> String? {
@@ -1370,8 +1433,7 @@ class NotificationService: UNNotificationServiceExtension {
         }
         guard trimmed.first == "{" else { return trimmed.isEmpty ? body : trimmed }
         if let preview = reactionPreviewText(for: trimmed, inGroup: true)
-            ?? chessPreviewText(for: trimmed)
-            ?? callPreviewText(for: trimmed) {
+            ?? chessPreviewText(for: trimmed) {
             return preview
         }
         let unwrapped = unwrapReplyText(trimmed)
@@ -1452,7 +1514,7 @@ class NotificationService: UNNotificationServiceExtension {
     /// Deliberately tight: a notification extension has about thirty seconds and it is sharing
     /// them with everything else here, so a slow or unreachable API just leaves the generic body
     /// rather than holding the banner. 10-50KB is a small read even on a poor connection.
-    private func fetchChainPreview(txId: String, completion: @escaping (ContextualRead) -> Void) {
+    private func fetchChainPreview(txId: String, sender: String, completion: @escaping (ContextualRead) -> Void) {
         guard let url = kaspaTransactionURL(txId: txId) else {
             completion(.unreadable)
             return
@@ -1474,11 +1536,16 @@ class NotificationService: UNNotificationServiceExtension {
                 completion(read)
                 return
             }
+            // A call message says nothing, as on the payload-carrying path.
+            if self.isCallSignal(decrypted) {
+                completion(.notForThisAccount)
+                return
+            }
+            self.voicePartKey = Self.voicePartKey(in: decrypted, sender: sender)
             // Same chain the payload-carrying path uses, so the wording matches exactly.
             let preview = self.paymentNoticePreviewText(for: decrypted)
                 ?? self.reactionPreviewText(for: decrypted)
                 ?? self.chessPreviewText(for: decrypted)
-                ?? self.callPreviewText(for: decrypted)
                 ?? self.unwrapReplyText(decrypted)
             completion(.message(preview))
         }.resume()
@@ -1911,7 +1978,7 @@ private struct NotificationCipher {
     /// The app's `ContextualMediaFrame.envelopeText`, for the extension's own decrypt: a binary
     /// media frame (0xFF 'K' 'C' 'M' 0x01 | u32 BE header length | header JSON | raw bytes)
     /// becomes the same media-file JSON the text form carried.
-    private static func mediaFrameEnvelope(_ data: Data) -> String? {
+    static func mediaFrameEnvelope(_ data: Data) -> String? {
         let magic: [UInt8] = [0xFF, 0x4B, 0x43, 0x4D, 0x01]
         let bytes = [UInt8](data)
         guard bytes.count > magic.count + 4, Array(bytes[0..<magic.count]) == magic else { return nil }
@@ -1924,7 +1991,14 @@ private struct NotificationCipher {
         guard !raw.isEmpty else { return nil }
         let name = ((header["name"] as? String) ?? "file")
             .replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
-        return "{\"type\":\"file\",\"name\":\"\(name)\",\"size\":\(raw.count),\"mimeType\":\"\(mimeType)\",\"content\":\"data:\(mimeType);base64,\(raw.base64EncodedString())\"}"
+        // A long voice note's part tag, as the app's MediaFileEnvelope writes it (before content).
+        var part = ""
+        let lowered = mimeType.lowercased()
+        let tagKey = lowered.hasPrefix("audio/") ? "voicePart" : (lowered.hasPrefix("image/") ? "mediaPart" : nil)
+        if let tagKey, let tag = NotificationService.voicePart(from: header[tagKey]) {
+            part = ",\"\(tagKey)\":{\"id\":\"\(tag.id)\",\"index\":\(tag.index),\"count\":\(tag.count)}"
+        }
+        return "{\"type\":\"file\",\"name\":\"\(name)\",\"size\":\(raw.count),\"mimeType\":\"\(mimeType)\"\(part),\"content\":\"data:\(mimeType);base64,\(raw.base64EncodedString())\"}"
     }
 
     private static func performECDH(privateKey: Data, ephemeralPublicKey: Data) throws -> Data {
@@ -2168,6 +2242,8 @@ private struct NotificationGroupCipher {
         let sealedBox = try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
         let key = SymmetricKey(data: senderKey)
         let plaintext = try ChaChaPoly.open(sealedBox, using: key, authenticating: aad)
+        // A group voice note is the binary media frame (the app's GroupCipher.decryptMessage).
+        if let media = NotificationCipher.mediaFrameEnvelope(plaintext) { return media }
         guard let result = String(data: plaintext, encoding: .utf8) else {
             throw NotificationCipher.CipherError.invalidPlaintext
         }

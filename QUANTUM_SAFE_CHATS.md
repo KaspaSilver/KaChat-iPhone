@@ -25,7 +25,6 @@ What is exposed today, by kind:
 | Group roots to members (`gctl_root`, `gctl_epoch`) | ECIES to each member | Yes, and with it every message of that epoch |
 | Admin's group recovery copy (carries `groupSeed`) | ECIES to your own key | Yes, and with it **every epoch** of that group (epoch roots are derived from the seed) |
 | Group messages (`gcomm`) | Symmetric (ChaCha20-Poly1305) | Only through the root keys above |
-| Call setup (Nextcloud Talk opening message) | 1:1 ECIES | Yes |
 | Handshakes (older clients, Kasia) | ECIES | Yes |
 
 Not in scope: metadata (who wrote to whom, when, amounts) is public now and stays public;
@@ -256,15 +255,13 @@ A type-2 message whose `conv_id` isn't known yet (the setup hasn't been fetched)
 "Waiting for keys…", is retried after the next history fetch, and never becomes a lasting failure on
 its own. A full history fetch processes setups (type 1) and wraps (type 4) before type-2 messages.
 
-## 8. Requests, payments and calls
+## 8. Requests and payments
 
 - **First contact (`dm`)**: a `dm` to someone with a published key carries the setup. The inbox tag and
   Message Requests work exactly as in `NO_HANDSHAKE_MESSAGING.md`. A request shows the same content once
   accepted.
 - **Payments**: the memo of `kchat:1:pay:` and `payment_notice` use type 2 (or type 1 if this payment is
   what upgrades the chat). The transfer itself is unchanged.
-- **Calls**: the Nextcloud Talk opening message rides the 1:1 channel, so it's covered once the chat is
-  upgraded.
 - **Kasia and older clients** never publish a key, so chats with them stay as they are today.
 
 ## 9. Groups

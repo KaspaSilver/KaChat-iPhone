@@ -1730,7 +1730,7 @@ struct ConversationRow: View {
                     if let lastMessage {
                         if lastMessage.isOutgoing || lastMessage.deliveryStatus == .warning {
                             DeliveryStatusLabel(
-                                status: .init(lastMessage.deliveryStatus, isOutgoing: lastMessage.isOutgoing),
+                                status: .init(rowDeliveryStatus(lastMessage), isOutgoing: lastMessage.isOutgoing),
                                 compact: true
                             )
                         }
@@ -1805,6 +1805,25 @@ struct ConversationRow: View {
         }
     }
 
+    /// The last message's status, or for a long voice note (several messages, MESSAGING.md
+    /// "Long voice notes") the whole note's: Failed if any part failed, Sending while any is.
+    /// The preview text is already one "voice message" whichever part is newest.
+    private func rowDeliveryStatus(_ lastMessage: ChatMessage) -> ChatMessage.DeliveryStatus {
+        guard lastMessage.isOutgoing, let tag = VoicePartTag.sniff(lastMessage.content) else {
+            return lastMessage.deliveryStatus
+        }
+        let key = VoicePartGroup.key(sender: lastMessage.senderAddress, tag: tag)
+        let parts = conversation.messages.suffix(VoicePartTag.maxParts * 4).filter { message in
+            message.isOutgoing
+                && VoicePartTag.sniff(message.content).map { VoicePartGroup.key(sender: message.senderAddress, tag: $0) } == key
+        }
+        let statuses = parts.map(\.deliveryStatus)
+        if statuses.contains(.failed) { return .failed }
+        if statuses.contains(.pending) { return .pending }
+        if statuses.contains(.warning) { return .warning }
+        return lastMessage.deliveryStatus
+    }
+
     private func formatPreview(_ content: String) -> String {
         // Cross-device placeholders never surface anywhere (see ChatMessage.isSentPlaceholder).
         // Conversation.lastMessage already skips them; this is a defensive backstop in case a
@@ -1856,27 +1875,6 @@ struct ConversationRow: View {
                 result = "♟️ Chess game - \(minutes) | \(invite.tcIncSeconds ?? 0)"
             } else {
                 result = "♟️ Chess game"
-            }
-            Self.previewCache.setObject(result as NSString, forKey: key)
-            return result
-        }
-
-        if let callEnvelope = CallCodec.parseAny(unwrapped) {
-            switch callEnvelope {
-            case .request(let request): result = request.video ? "📹 Video call" : "📞 Voice call"
-            case .invite(let invite): result = invite.video ? "📹 Video call" : "📞 Voice call"
-            case .response(let response):
-                result = response.reason == "no_host" ? "📞 Calls need Nextcloud Talk" : (response.accepted ? "📞 Call answered" : "📞 Call declined")
-            case .end(let end):
-                if let seconds = end.durationSeconds, seconds > 0 {
-                    result = String(format: "📞 Call · %d:%02d", seconds / 60, seconds % 60)
-                } else {
-                    switch end.reason {
-                    case "no_answer", "cancelled": result = "📞 Missed call"
-                    case "declined": result = "📞 Call declined"
-                    default: result = "📞 Call ended"
-                    }
-                }
             }
             Self.previewCache.setObject(result as NSString, forKey: key)
             return result

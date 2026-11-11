@@ -103,6 +103,22 @@ enum GroupCipher {
         guard let plaintextData = plaintext.data(using: .utf8) else {
             throw CipherError.invalidPlaintext
         }
+        return try encryptMessage(
+            plaintextData: plaintextData, groupRootEpoch: groupRootEpoch, groupId: groupId,
+            epoch: epoch, senderId: senderId, msgId: msgId
+        )
+    }
+
+    /// The same, for raw bytes: a group voice note's binary media frame
+    /// (`ContextualMediaFrame`, MESSAGING.md "In group chats").
+    static func encryptMessage(
+        plaintextData: Data,
+        groupRootEpoch: Data,
+        groupId: Data,
+        epoch: UInt64,
+        senderId: Data,
+        msgId: Data
+    ) throws -> Data {
         let keys = deriveMessageKeys(groupRootEpoch: groupRootEpoch, groupId: groupId, epoch: epoch, senderId: senderId, msgId: msgId)
         let aad = buildMessageAAD(groupId: groupId, epoch: epoch, senderId: senderId, msgId: msgId)
         let key = SymmetricKey(data: keys.senderKey)
@@ -133,6 +149,11 @@ enum GroupCipher {
             let sealedBox = try ChaChaPoly.SealedBox(nonce: nonce, ciphertext: ciphertext, tag: tag)
             let key = SymmetricKey(data: keys.senderKey)
             let plaintext = try ChaChaPoly.open(sealedBox, using: key, authenticating: aad)
+            // Bytes first: a group voice note is the binary media frame since 2026-11-11, read
+            // back as the same media-file JSON the text form carried. 0xFF never begins UTF-8.
+            if let media = ContextualMediaFrame.envelopeText(from: plaintext) {
+                return media
+            }
             guard let result = String(data: plaintext, encoding: .utf8) else {
                 throw CipherError.invalidPlaintext
             }

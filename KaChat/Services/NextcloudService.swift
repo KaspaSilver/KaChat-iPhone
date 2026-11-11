@@ -145,11 +145,6 @@ final class NextcloudService: ObservableObject {
 
     @Published private(set) var account: NextcloudAccount?
 
-    /// Whether the connected server has Nextcloud Talk with calls enabled - what makes the call
-    /// buttons appear in 1:1 chats (see `CallService.canCall`). Read from the server's
-    /// capabilities on connect and on every wallet activation; false until known.
-    @Published private(set) var talkCallsAvailable = false
-
     /// "Automatic Sync" toggle (Settings > Storage > Nextcloud), per wallet account. Nextcloud backs
     /// up contacts and nothing else: messages and groups come back from the seed, off the chain.
     /// When on, the contacts file syncs both ways: a debounced merge upload after a contact changes,
@@ -244,9 +239,6 @@ final class NextcloudService: ObservableObject {
     private nonisolated static let autoSyncChosenKey = "kachat_nextcloud_auto_sync_chosen"
     /// Persisted last-known backup ETag (see `lastKnownBackupETag`).
     private nonisolated static let lastETagKey = "kachat_nextcloud_last_etag"
-    /// The last capabilities probe's answer, per wallet, so a launch knows at once whether this
-    /// account can host a call - a VoIP push that starts the app cannot wait for the network.
-    private nonisolated static let talkCallsKey = "kachat_nextcloud_talk_calls"
     nonisolated static let autoBackupMinInterval: TimeInterval = 3600
     /// Quiet time after the last contact change before the automatic merge upload runs.
     nonisolated static let syncDebounceInterval: TimeInterval = 15
@@ -318,10 +310,10 @@ final class NextcloudService: ObservableObject {
     /// backup first, and drops the thumbnail cache so the picker never shows a previous
     /// account's server content.
     /// True when the app is running on testnet. Nextcloud is a mainnet-only feature: the backup
-    /// archive, the media folder and Talk calls are one per account across both networks, so on
+    /// archive and the media folder are one per account across both networks, so on
     /// testnet automatic sync would write testnet history over the mainnet backup (and import
     /// mainnet history into testnet). While this is set the service holds no account at all -
-    /// nothing syncs, restores, uploads or rings - and the mainnet connection comes back as it
+    /// nothing syncs, restores or uploads - and the mainnet connection comes back as it
     /// was on the next mainnet launch. Fixed per launch, like the network itself.
     @Published private(set) var isOffForTestnet = false
 
@@ -345,7 +337,6 @@ final class NextcloudService: ObservableObject {
 
         guard let walletAddress else {
             account = nil
-            talkCallsAvailable = false
             autoBackupEnabled = false
             pendingSyncDirty = false
             lastAutoSyncAt = nil
@@ -369,8 +360,6 @@ final class NextcloudService: ObservableObject {
         // Watch the contacts file for other devices' writes. A new device's first poll sees an ETag
         // it doesn't know, so this is also how it gets the contacts.
         startChangeWatcherIfNeeded()
-        talkCallsAvailable = account != nil && (scopedKey(Self.talkCallsKey).map { UserDefaults.standard.bool(forKey: $0) } ?? false)
-        refreshTalkAvailability()
     }
 
     /// Revokes the app password KaChat created on the user's Nextcloud (Login Flow v2 mints
@@ -424,11 +413,6 @@ final class NextcloudService: ObservableObject {
     private func scopedKey(_ base: String) -> String? {
         guard let suffix = currentWalletHashSuffix else { return nil }
         return "\(base)_\(suffix)"
-    }
-
-    private func persistSetting(_ value: Bool, baseKey: String) {
-        guard let key = scopedKey(baseKey) else { return }
-        UserDefaults.standard.set(value, forKey: key)
     }
 
     /// The active wallet's effective Automatic Sync value, upgrading the old "Automatic
@@ -885,77 +869,6 @@ final class NextcloudService: ObservableObject {
         autoBackupEnabled = resolveAutoSyncForConnect()
         noteContactActivity()
         startChangeWatcherIfNeeded()
-        refreshTalkAvailability()
-    }
-
-    /// `walletAddress`'s Nextcloud account and its last Talk answer, read straight from the
-    /// Keychain and settings without scoping the service: a VoIP push that launched the app needs
-    /// them before the wallet's Nextcloud state is loaded (that waits on the message store,
-    /// seconds on a cold launch). nil when not connected, and always on testnet (Nextcloud is off
-    /// there).
-    static func peekCallHosting(walletAddress: String) -> (account: NextcloudAccount, talkCalls: Bool)? {
-        guard AppSettings.load().networkType != .testnet,
-              let data = try? KeychainService.shared.loadNextcloudCredentials(walletAddress: walletAddress),
-              let account = try? JSONDecoder().decode(NextcloudAccount.self, from: data) else { return nil }
-        let key = "\(talkCallsKey)_\(KeychainService.walletHashSuffix(walletAddress))"
-        return (account, UserDefaults.standard.bool(forKey: key))
-    }
-
-    /// Asks the server's capabilities whether Talk is installed with calls on, and publishes
-    /// the answer. A lookup that couldn't reach the server changes nothing: it used to store
-    /// "no Talk" until the next wallet load, and a phone with Talk then asked the other side to
-    /// host every call it made.
-    func refreshTalkAvailability() {
-        Task { await recheckTalkAvailability() }
-    }
-
-    /// The same, awaited: what a call about to start asks when Talk isn't known to be there.
-    @discardableResult
-    func recheckTalkAvailability() async -> Bool {
-        guard let account, let server = account.serverURL else {
-            talkCallsAvailable = false
-            return false
-        }
-        let owner = currentWalletAddress
-        guard let available = await Self.probeTalkCalls(server: server, account: account) else {
-            AppLog.log("%@", "[Nextcloud] Talk check could not reach \(server.host ?? "server") - keeping \(talkCallsAvailable)")
-            return talkCallsAvailable
-        }
-        guard currentWalletAddress == owner, self.account?.serverURLString == account.serverURLString else { return talkCallsAvailable }
-        if talkCallsAvailable != available {
-            talkCallsAvailable = available
-            AppLog.log("%@", "[Nextcloud] Talk calls \(available ? "available" : "not available") on \(server.host ?? "server")")
-        }
-        persistSetting(available, baseKey: Self.talkCallsKey)
-        return available
-    }
-
-    /// true/false when the server answered; nil when it couldn't be asked (offline, timeout,
-    /// an error page) - not an answer about Talk.
-    private nonisolated static func probeTalkCalls(server: URL, account: NextcloudAccount) async -> Bool? {
-        guard let endpoint = URL(string: server.absoluteString + "/ocs/v2.php/cloud/capabilities?format=json") else { return nil }
-        var request = URLRequest(url: endpoint)
-        let token = Data("\(account.username):\(account.appPassword)".utf8).base64EncodedString()
-        request.setValue("Basic \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("true", forHTTPHeaderField: "OCS-APIRequest")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.timeoutInterval = 20
-        guard let (data, response) = try? await URLSession.shared.data(for: request),
-              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
-              let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let ocs = root["ocs"] as? [String: Any],
-              let payload = ocs["data"] as? [String: Any],
-              let capabilities = payload["capabilities"] as? [String: Any] else { return nil }
-        // the server answered: no "spreed" entry means Talk isn't installed
-        guard let spreed = capabilities["spreed"] as? [String: Any] else { return false }
-        let features = (spreed["features"] as? [String]) ?? []
-        guard features.contains("conversation-v4"), features.contains("signaling-v3") else { return false }
-        let config = spreed["config"] as? [String: Any]
-        let call = config?["call"] as? [String: Any]
-        // Absent means an older Talk that never had the switch - calls are on.
-        if let enabled = call?["enabled"] as? Bool { return enabled }
-        if let enabled = call?["enabled"] as? Int { return enabled != 0 }
-        return true
     }
 
     func disconnect() {
@@ -989,7 +902,6 @@ final class NextcloudService: ObservableObject {
         }
         autoBackupEnabled = false
         account = nil
-        talkCallsAvailable = false
     }
 
     /// Persists the picker's start folder (nil/"" = files root) into the credentials blob.

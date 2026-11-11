@@ -448,7 +448,6 @@
 "Record On-Chain" = "অন-চেইন রেকর্ড করুন";
 "Take a photo and send it on chain, compressed to fit." = "একটি ছবি তুলে অন-চেইন পাঠান, আঁটানোর জন্য সংকুচিত।";
 "Pick an image and send it on chain, compressed to fit." = "একটি ছবি বেছে অন-চেইন পাঠান, আঁটানোর জন্য সংকুচিত।";
-"Up to 10 seconds, sent on chain." = "১০ সেকেন্ড পর্যন্ত, অন-চেইন পাঠানো হয়।";
 "Take Photo via Nextcloud" = "Nextcloud দিয়ে ছবি তুলুন";
 "Record via Nextcloud" = "Nextcloud দিয়ে রেকর্ড করুন";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "পূর্ণ মান, বা একটি ভিডিও। আপনার Nextcloud-এ আপলোড হয়; চ্যাটে লিংক যায়।";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "%2$lld-এর মধ্যে %1$lld দেখানো হচ্ছে";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "উচ্চমানের ছবি";
-"Up to 25 seconds, sent on chain." = "সর্বোচ্চ ২৫ সেকেন্ড, চেইনে পাঠানো হয়।";
+"Up to %@, sent on chain." = "সর্বোচ্চ %@, চেইনে পাঠানো হয়।";
+"Photo Quality" = "ছবির মান";
+"High" = "উচ্চ";
+"Medium" = "মাঝারি";
+"Low" = "নিম্ন";
+"Receiving… %lld of %lld" = "গ্রহণ করা হচ্ছে… %2$lld-এর মধ্যে %1$lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "ঠিকানার দৃশ্যমানতা";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "এই ঠিকানাগুলো এখন বের করা যায়নি। এক পাতা পিছনে যান অথবা আবার চেষ্টা করতে এই স্ক্রিনটি আবার খুলুন।";
 "Add, import or export" = "যোগ করুন, ইমপোর্ট বা এক্সপোর্ট করুন";
-"Call" = "কল";
 "KaChat Contact" = "KaChat কন্টাক্ট";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat এই ওপেন সোর্স লাইব্রেরিগুলো দিয়ে তৈরি। এগুলোর লেখকরা চান এই নোটিশগুলো অ্যাপের সাথে থাকুক।";
 "24 words" = "২৪টি শব্দ";
@@ -1137,13 +1139,6 @@
 "Chatting" = "চ্যাটিং";
 "Spending" = "খরচ";
 "Request" = "অনুরোধ";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "কলিং তখনই কাজ করে যখন আপনার বা আপনি যাঁর সাথে কথা বলতে চান তাঁর Nextcloud Talk সেট করা থাকে। দুই পক্ষের কারও না থাকলে কল করা যায় না।";
-"Continue?" = "চালিয়ে যাবেন?";
-"Enable calls and video calls with %@?" = "%@-এর সাথে কল ও ভিডিও কল চালু করবেন?";
-"They will be able to call you too." = "তাঁরাও আপনাকে কল করতে পারবেন।";
-"Call %@" = "%@-কে কল করুন";
-"%@ wants to switch to video" = "%@ ভিডিওতে যেতে চান";
-"Tap to return" = "ফিরে যেতে ট্যাপ করুন";
 "What is a passphrase?" = "পাসফ্রেজ কী?";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "আপনি নিশ্চিত না হলে উত্তর প্রায় নিশ্চিতভাবেই না। পাসফ্রেজ এমন কিছু যা আপনি ইচ্ছা করে লিখেছিলেন।";
 "No" = "না";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "ঠিকানা লুকানো হয়েছে। ঠিকানার দৃশ্যমানতায় আবার চালু করুন।";
 "Address removed." = "ঠিকানা সরানো হয়েছে।";
 "Asks to open an encrypted conversation." = "একটি এনক্রিপ্টেড কথোপকথন খোলার অনুরোধ করে।";
-"Calls stay off for this contact." = "এই পরিচিতির জন্য কল বন্ধ থাকবে।";
 "Casual" = "ক্যাজুয়াল";
 "Changes the text. Everyone sees the new version." = "লেখা বদলায়। সবাই নতুন সংস্করণ দেখবে।";
 "Check off every address you want on the list, in one sitting." = "তালিকায় যত ঠিকানা চান, একবারেই টিক দিন।";
 "Clear %@?" = "%@ মুছবেন?";
 "Clear All Cache?" = "সব ক্যাশ মুছবেন?";
 "Clears the unread badge on this group." = "এই গ্রুপের অপঠিত ব্যাজ সরিয়ে দেয়।";
-"Close this and stay in the chat." = "এটি বন্ধ করুন এবং চ্যাটেই থাকুন।";
 "Connecting for live updates" = "লাইভ আপডেটের জন্য সংযুক্ত হচ্ছে";
 "Copies the address to your clipboard." = "ঠিকানাটি ক্লিপবোর্ডে কপি করে।";
 "Copies the name to your clipboard." = "নামটি ক্লিপবোর্ডে কপি করে।";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "তাদের Kaspa ঠিকানা কপি করুন।";
 "Deletes this chat's messages from this device. The bot stays in the row." = "এই চ্যাটের বার্তাগুলো এই ডিভাইস থেকে মুছে দেয়। বটটি সারিতে থাকে।";
 "Downloading message history" = "বার্তার ইতিহাস ডাউনলোড হচ্ছে";
-"Enable calls" = "কল চালু করুন";
 "Failed to open archive: %@" = "আর্কাইভ খোলা যায়নি: %@";
 "Finding your conversations" = "আপনার কথোপকথন খোঁজা হচ্ছে";
 "Finished" = "শেষ হয়েছে";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "তাদের বার্তার বিজ্ঞপ্তি আবার পান।";
 "Gives this account a name of your own." = "এই অ্যাকাউন্টকে আপনার পছন্দের নাম দেয়।";
 "Gives this address a label of your own." = "এই ঠিকানাকে আপনার পছন্দের লেবেল দেয়।";
-"Go on to calling this person." = "এই ব্যক্তিকে কল করতে এগিয়ে যান।";
 "Hide Address" = "ঠিকানা লুকান";
 "Invite this contact to a game on chain." = "এই পরিচিতিকে অন-চেইন খেলায় আমন্ত্রণ জানান।";
 "KaChat Link" = "KaChat লিংক";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "এই গ্রুপ থেকে কোনো বিজ্ঞপ্তি নয়, উল্লেখ সহ।";
 "No timer." = "কোনো টাইমার নেই।";
 "Node address copied." = "নোডের ঠিকানা কপি হয়েছে।";
-"Not now" = "এখন নয়";
 "Notifications from this chat resume." = "এই চ্যাটের বিজ্ঞপ্তি আবার চালু হবে।";
 "Notifications from this group resume, including mentions." = "এই গ্রুপের বিজ্ঞপ্তি আবার চালু হবে, উল্লেখ সহ।";
 "One minute each, plus one second a move." = "প্রত্যেকের এক মিনিট, প্রতি চালে এক সেকেন্ড যোগ।";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "এই গ্রুপ ও এর বার্তা এই ডিভাইস থেকে সরায়।";
 "Reply to this message instead." = "তার বদলে এই বার্তার উত্তর দিন।";
 "Reveals the next unused address in this wallet." = "এই ওয়ালেটের পরবর্তী অব্যবহৃত ঠিকানা দেখায়।";
-"Rings them in KaChat; your Nextcloud carries the call." = "KaChat-এ তাদের রিং করে; কলটি আপনার Nextcloud দিয়ে চলে।";
-"Same, with your camera on from the start." = "একই, শুরু থেকে আপনার ক্যামেরা চালু রেখে।";
 "Saves or shares the recording as a file." = "রেকর্ডিংটি ফাইল হিসেবে সংরক্ষণ বা শেয়ার করে।";
 "Select Chats..." = "চ্যাট বেছে নিন...";
 "Sends this message again." = "এই বার্তাটি আবার পাঠায়।";
@@ -1463,10 +1451,7 @@
 "Silence" = "মিউট করুন";
 "Start a group with the people you choose." = "আপনার বেছে নেওয়া লোকদের নিয়ে একটি গ্রুপ শুরু করুন।";
 "Starting" = "শুরু হচ্ছে";
-"Stay on voice" = "ভয়েসেই থাকুন";
 "Stop seeing their messages in this group. Undo it in Group Info." = "এই গ্রুপে তাদের বার্তা দেখা বন্ধ করুন। গ্রুপ তথ্যে গিয়ে পূর্বাবস্থায় ফেরান।";
-"Switch to video" = "ভিডিওতে যান";
-"The call carries on as it is, and they are told." = "কলটি যেমন আছে তেমনই চলে, এবং তাদের জানানো হয়।";
 "The key that spends this address. Never share it." = "যে কী দিয়ে এই ঠিকানা থেকে খরচ হয়। কখনো শেয়ার করবেন না।";
 "The passphrase shows too, if this account has one." = "এই অ্যাকাউন্টে পাসফ্রেজ থাকলে সেটিও দেখা যাবে।";
 "The public half of this address, for anyone who asks for it." = "এই ঠিকানার সর্বজনীন অংশ, যে চাইবে তার জন্য।";
@@ -1480,18 +1465,13 @@
 "User muted." = "ব্যবহারকারী মিউট করা হয়েছে।";
 "User unmuted." = "ব্যবহারকারীর মিউট তোলা হয়েছে।";
 "Validating backup..." = "ব্যাকআপ যাচাই হচ্ছে...";
-"Video call" = "ভিডিও কল";
 "View 12 or 24 Words and Passphrase" = "12 বা 24টি শব্দ ও পাসফ্রেজ দেখুন";
 "View Private Key" = "প্রাইভেট কী দেখুন";
 "View Public Key" = "পাবলিক কী দেখুন";
-"Voice call" = "ভয়েস কল";
 "Who reacted, and with what." = "কে প্রতিক্রিয়া দিয়েছে, এবং কী দিয়ে।";
 "Wiping incoming messages..." = "আগত বার্তা মোছা হচ্ছে...";
 "Write down your 12 or 24 words before you delete." = "মোছার আগে আপনার 12 বা 24টি শব্দ লিখে রাখুন।";
 "Yes, All Chats" = "হ্যাঁ, সব চ্যাট";
-"Your camera turns on and the call moves to the speaker." = "আপনার ক্যামেরা চালু হবে এবং কল স্পিকারে চলে যাবে।";
-"Saves this for %@ and lets you call now." = "এটি %@-এর জন্য সংরক্ষণ করে এবং আপনাকে এখন কল করতে দেয়।";
-"Camera off" = "ক্যামেরা বন্ধ";
 "Address #%d is ready." = "ঠিকানা #%d প্রস্তুত।";
 "Conversation declined" = "কথোপকথন প্রত্যাখ্যাত";
 "Recents" = "সাম্প্রতিক";

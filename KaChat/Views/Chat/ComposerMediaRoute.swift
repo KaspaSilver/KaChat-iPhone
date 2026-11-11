@@ -15,7 +15,8 @@ enum ComposerMediaKind: Equatable {
 
 enum ComposerMediaLimits {
     /// Ceiling for a voice note uploaded to Nextcloud, everywhere in the app (1:1 and groups).
-    /// On-chain voice notes are payload-bound: ~25 s in 1:1, ~10 s elsewhere.
+    /// On-chain voice notes: 2:50 in 1:1 and 1:50 in groups, at 16 kbps, as long as 1 KAS of fees
+    /// allows (`VoiceNotePolicy`, MESSAGING.md "Long voice notes (multi-part)").
     static let nextcloudVoiceSeconds: TimeInterval = 300
 }
 
@@ -23,9 +24,9 @@ enum ComposerMediaLimits {
 /// Shown only while a Nextcloud server is connected.
 struct ComposerMediaRouteStep: View {
     let kind: ComposerMediaKind
-    /// The on-chain voice cap of the chat that opened this: 25 s in 1:1 chats (binary media
-    /// frame), 10 s in groups, whose payloads are unchanged.
-    var onChainVoiceSeconds: Int = 10
+    /// The on-chain voice cap of the chat that opened this, in seconds: 170 in 1:1 chats, 110 in
+    /// groups (`VoiceNotePolicy`). Shown as "Up to 2:50, sent on chain."
+    var onChainVoiceSeconds: Int = Int(VoiceNotePolicy.oneToOne.maxSeconds)
     let onChoose: (_ viaNextcloud: Bool) -> Void
     let onBack: () -> Void
 
@@ -79,7 +80,10 @@ struct ComposerMediaRouteStep: View {
         case .camera: return "Take a photo and send it on chain, compressed to fit."
         case .photo: return "Pick an image and send it on chain, compressed to fit."
         case .voice:
-            return onChainVoiceSeconds >= 25 ? "Up to 25 seconds, sent on chain." : "Up to 10 seconds, sent on chain."
+            // Already localized (the row would otherwise look the formatted text up as a key).
+            let seconds = max(0, onChainVoiceSeconds)
+            let length = String(format: "%d:%02d", seconds / 60, seconds % 60)
+            return String(format: AppLocalization.string("Up to %@, sent on chain."), locale: AppLocalization.locale, length)
         }
     }
 
@@ -97,6 +101,75 @@ struct ComposerMediaRouteStep: View {
         case .photo: return "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link."
         case .voice: return "Up to 5 minutes. Uploads to your Nextcloud; the chat carries the link."
         }
+    }
+}
+
+/// Send-time quality for an on-chain photo, 1:1 and groups: High (up to 1 KAS), Medium (up to
+/// 0.5 KAS), Low (up to 0.1 KAS) - `PhotoTier`, MESSAGING.md "Photos: quality tiers and
+/// multi-part photos". Each row shows its budget until the photo has been compressed for it,
+/// then the fee that photo will cost. The Nextcloud route never shows this.
+struct PhotoQualitySheet: View {
+    /// The fee of each tier's compressed photo, once known.
+    let fees: [PhotoTier: UInt64]
+    let onChoose: (PhotoTier) -> Void
+    let onCancel: () -> Void
+
+    static let height: CGFloat = 330
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Photo Quality")
+                .font(.headline)
+                .padding(.top, 20)
+                .padding(.bottom, 4)
+
+            ForEach(PhotoTier.allCases) { tier in
+                ActionSheetRow(title: tier.title, subtitle: subtitle(for: tier), systemImage: icon(for: tier)) {
+                    onChoose(tier)
+                }
+            }
+
+            Button("Cancel", action: onCancel)
+                .font(.subheadline.weight(.semibold))
+                .padding(.top, 4)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+
+    private func icon(for tier: PhotoTier) -> String {
+        switch tier {
+        case .high: return "photo.fill"
+        case .medium: return "photo"
+        case .low: return "photo.badge.arrow.down"
+        }
+    }
+
+    /// "(~1 KAS)": the tier's budget until this photo's own fee is worked out, then that fee,
+    /// rounded the same way. Language-neutral, so not a localized string.
+    private func subtitle(for tier: PhotoTier) -> String {
+        let sompi = fees[tier] ?? tier.budgetSompi
+        return KaspaUnit.label("(~\(Self.amount(sompi)) KAS)")
+    }
+
+    /// Two decimals (0.9912 -> 0.99, 0.4975 -> 0.5, 0.0977 -> 0.1); below 0.01, two significant
+    /// digits, so a tiny fee never reads as 0.
+    private static func amount(_ sompi: UInt64) -> String {
+        let kas = Double(sompi) / 100_000_000
+        let formatter = NumberFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.numberStyle = .decimal
+        if kas > 0, kas < 0.01 {
+            formatter.usesSignificantDigits = true
+            formatter.maximumSignificantDigits = 2
+        } else {
+            formatter.minimumFractionDigits = 0
+            formatter.maximumFractionDigits = 2
+        }
+        return formatter.string(from: NSNumber(value: kas)) ?? "\(kas)"
     }
 }
 

@@ -79,6 +79,12 @@ struct MessageBubbleView: View {
     /// (the same accepted/established predicate the stranger photo gating builds on). The local
     /// user's own outgoing links always auto-load.
     var linkPreviewsAutoLoad: Bool = true
+    /// Set on the row that stands for a whole long voice note (its earliest part): the bubble
+    /// plays every part present as one recording. `message` then carries the note's combined
+    /// delivery status.
+    var voiceParts: VoiceNotePartsInput? = nil
+    /// Set on the row that stands for a whole multi-part photo (its earliest part).
+    var photoParts: PhotoPartsInput? = nil
     @State private var shimmerPhase: CGFloat = -1
     @State private var showFullText = false
     /// Long-pressing a link surfaces this instead of the bubble's message sheet:
@@ -115,8 +121,12 @@ struct MessageBubbleView: View {
         isLatestChessMessage: Bool = false,
         onRespondToChessInvite: ((Bool) -> Void)? = nil,
         onOpenChessGame: (() -> Void)? = nil,
-        onOpenPayment: (() -> Void)? = nil
+        onOpenPayment: (() -> Void)? = nil,
+        voiceParts: VoiceNotePartsInput? = nil,
+        photoParts: PhotoPartsInput? = nil
     ) {
+        self.voiceParts = voiceParts
+        self.photoParts = photoParts
         self.message = message
         self.onCopy = onCopy
         self.onRetry = onRetry
@@ -232,7 +242,34 @@ struct MessageBubbleView: View {
                     // whichever sibling is widest, which for a reply is usually the quote banner,
                     // not the (often much narrower) bubble underneath it.
                     Group {
-                        if let media, media.isImage {
+                        if let photoParts {
+                            // A multi-part photo: the joined image once every part is here,
+                            // else a placeholder counting them in.
+                            if let joined = photoParts.joinedMedia {
+                                LazyImageBubble(
+                                    media: joined,
+                                    txId: message.txId,
+                                    shouldShowRetry: shouldShowRetry,
+                                    photosBlocked: photosBlocked && !message.isOutgoing,
+                                    senderDisplayName: avatarDisplayName,
+                                    onCopy: onCopy,
+                                    onRetry: { onRetry?(message) },
+                                    onReply: onReply,
+                                    onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil,
+                                    onSelect: onSelect,
+                                    imageCacheKey: photoParts.imageCacheKey
+                                )
+                            } else {
+                                PhotoPartsPlaceholderBubble(
+                                    input: photoParts,
+                                    isOutgoing: message.isOutgoing,
+                                    onRetry: shouldShowRetry ? { onRetry?(message) } : nil,
+                                    onReply: onReply,
+                                    onSelect: onSelect
+                                )
+                                .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId = message.id })
+                            }
+                        } else if let media, media.isImage {
                             // Double-tap opens the quick-reaction bar (co-located inside
                             // LazyImageBubble with its single-tap-to-preview gesture so SwiftUI can
                             // disambiguate the two correctly) rather than here, unlike the audio/text
@@ -249,6 +286,16 @@ struct MessageBubbleView: View {
                                 onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil,
                                 onSelect: onSelect
                             )
+                        } else if let voiceParts, !voiceParts.parts.isEmpty {
+                            LazyMultipartAudioBubble(
+                                input: voiceParts,
+                                isOutgoing: message.isOutgoing,
+                                txId: message.txId,
+                                onRetry: shouldShowRetry ? { onRetry?(message) } : nil,
+                                onReply: onReply,
+                                onSelect: onSelect
+                            )
+                            .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId = message.id })
                         } else if let media, media.isAudio, let data = media.fileData(cacheKey: message.txId) {
                             LazyAudioBubble(
                                 data: data,
@@ -283,10 +330,6 @@ struct MessageBubbleView: View {
                             // keeps the raw link visible/tappable if no preview data is ever found,
                             // rather than the message rendering as nothing at all.
                             LinkPreviewCardView(url: linkURL, txId: message.txId, fallbackText: displayText, onSelect: onSelect, onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil, isOutgoing: message.isOutgoing, autoFetch: linkPreviewsAutoLoad || message.isOutgoing, photosBlocked: photosBlocked && !message.isOutgoing, blockedSenderName: avatarDisplayName)
-                        } else if let callEnvelope = CallCodec.parseAny(displayText) {
-                            // Calls leave a compact history line, like a phone's recents.
-                            callBubble(callEnvelope)
-                                .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId = message.id })
                         } else if message.messageType == .payment, let paymentParts = paymentCardParts {
                             // Rich Apple-Pay-in-iMessage style card replacing the plain
                             // "Sent/Received X KAS" text bubble. Unparseable/legacy payment
@@ -318,12 +361,8 @@ struct MessageBubbleView: View {
                     // both handled inside the Group above) gets this extra preview card below it.
                     // An internal KaChat link wins over an external one in the same message, so
                     // a profile mentioned alongside other text still previews natively.
-                    // A call invite carries the caller's Nextcloud URL inside its JSON; that is
-                    // plumbing for the callee's phone, not a link the person shared, so it must
-                    // never grow a preview card under the "Incoming voice call" line.
                     if media == nil,
                        internalLink == nil,
-                       CallCodec.parseAny(displayText) == nil,
                        !MessageTextRenderPlan.isEntirelyLink(displayText),
                        let linkURL = MessageTextRenderPlan.firstHTTPLink(in: displayText) {
                         LinkPreviewCardView(url: linkURL, txId: message.txId, onSelect: onSelect, onDoubleTap: onReact != nil ? { activeQuickReactionMessageId = message.id } : nil, isOutgoing: message.isOutgoing, autoFetch: linkPreviewsAutoLoad || message.isOutgoing, photosBlocked: photosBlocked && !message.isOutgoing, blockedSenderName: avatarDisplayName)
@@ -702,65 +741,6 @@ struct MessageBubbleView: View {
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .frame(maxWidth: 300)
-    }
-
-    /// One line per call event - what it was, and for a finished call how long it lasted. The
-    /// invite/response/end trio all land as separate messages, so each says its own piece.
-    private func callBubble(_ envelope: CallEnvelope) -> some View {
-        let (icon, text): (String, String) = {
-            switch envelope {
-            case .request(let request):
-                let kind = request.video ? "Video call" : "Voice call"
-                return (request.video ? "video.fill" : "phone.fill", message.isOutgoing ? "\(kind) started" : "Incoming \(kind.lowercased())")
-            case .invite(let invite):
-                let kind = invite.video ? "Video call" : "Voice call"
-                if invite.viaRequest == true {
-                    // The host's answer to the other side's request - the call already has
-                    // its "started"/"incoming" line from the request itself.
-                    return (invite.video ? "video.fill" : "phone.fill", "\(kind) ready")
-                }
-                return (invite.video ? "video.fill" : "phone.fill", message.isOutgoing ? "\(kind) started" : "Incoming \(kind.lowercased())")
-            case .response(let response):
-                if response.reason == "no_host" {
-                    return ("phone.down.fill", "Calls need Nextcloud Talk on one side")
-                }
-                return (response.accepted ? "phone.arrow.down.left.fill" : "phone.down.fill",
-                        response.accepted ? "Call answered" : "Call declined")
-            case .end(let end):
-                if let seconds = end.durationSeconds, seconds > 0 {
-                    return ("phone.fill", String(format: "Call · %d:%02d", seconds / 60, seconds % 60))
-                }
-                switch end.reason {
-                case "no_answer": return ("phone.down.fill", message.isOutgoing ? "No answer" : "Missed call")
-                case "cancelled": return ("phone.down.fill", message.isOutgoing ? "Call cancelled" : "Missed call")
-                case "failed": return ("phone.down.fill", "Call failed")
-                case "declined": return ("phone.down.fill", "Call declined")
-                default: return ("phone.down.fill", "Call ended")
-                }
-            }
-        }()
-        return HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.subheadline.weight(.semibold))
-            Text(text)
-                .font(.subheadline.weight(.medium))
-        }
-        .foregroundStyle(message.isOutgoing ? Color.white : Color.primary)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(message.isOutgoing ? kaspaBubbleColor : Color(.systemGray5))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .messageActions(title: "Call") {
-            // Every call line is a real on-chain message, so it gets the same explorer link
-            // as any other bubble.
-            var actions: [MessageAction] = []
-            if let url = settingsViewModel.settings.kaspaExplorer.txURL(for: message.txId) {
-                actions.append(.explorer(url))
-            }
-            if let onReply { actions.append(.reply(onReply)) }
-            if let onSelect { actions.append(.select(onSelect)) }
-            return actions
-        }
     }
 
     @ViewBuilder
@@ -1693,6 +1673,9 @@ struct LazyImageBubble: View {
 
     let media: MediaFile
     let txId: String
+    /// The image caches' key: the txId, or for a multi-part photo its joined bytes' own key (the
+    /// first part's txId already names that part's chunk in the caches).
+    let imageCacheKey: String
     let shouldShowRetry: Bool
     let photosBlocked: Bool
     let senderDisplayName: String
@@ -1721,10 +1704,12 @@ struct LazyImageBubble: View {
         onRetry: (() -> Void)?,
         onReply: (() -> Void)?,
         onDoubleTap: (() -> Void)? = nil,
-        onSelect: (() -> Void)? = nil
+        onSelect: (() -> Void)? = nil,
+        imageCacheKey: String? = nil
     ) {
         self.media = media
         self.txId = txId
+        self.imageCacheKey = imageCacheKey ?? txId
         self.shouldShowRetry = shouldShowRetry
         self.photosBlocked = photosBlocked
         self.senderDisplayName = senderDisplayName
@@ -1817,7 +1802,7 @@ struct LazyImageBubble: View {
         .tint(.accentColor)
         .task(id: txId) {
             guard thumbnailState?.txId != txId else { return }
-            guard let loadedThumbnail = await media.thumbnailImage(cacheKey: txId),
+            guard let loadedThumbnail = await media.thumbnailImage(cacheKey: imageCacheKey),
                   !Task.isCancelled else {
                 return
             }
@@ -1869,7 +1854,7 @@ struct LazyImageBubble: View {
 
         isLoadingPreview = true
         Task {
-            let loaded = await media.previewImagePayload(cacheKey: txId)
+            let loaded = await media.previewImagePayload(cacheKey: imageCacheKey)
             isLoadingPreview = false
             guard let loaded else { return }
             previewImage = loaded.image
@@ -1927,6 +1912,65 @@ struct MediaFile: Codable {
     let size: Int?
     let mimeType: String
     let content: String
+    /// A long voice note's part tag (MESSAGING.md, "Long voice notes"). Read leniently: a
+    /// malformed tag is nil and the file is a plain single voice note.
+    let voicePart: VoicePartTag?
+    /// The same tag on a chunk of a multi-part photo (MESSAGING.md, "Photos: quality tiers and
+    /// multi-part photos"), read as leniently.
+    let mediaPart: VoicePartTag?
+
+    private enum CodingKeys: String, CodingKey {
+        case type, name, size, mimeType, content, voicePart, mediaPart
+    }
+
+    /// A media file made here: a multi-part photo's joined bytes.
+    init(name: String, mimeType: String, data: Data) {
+        type = "file"
+        self.name = name
+        size = data.count
+        self.mimeType = mimeType
+        content = "data:\(mimeType);base64,\(data.base64EncodedString())"
+        voicePart = nil
+        mediaPart = nil
+    }
+
+    private struct WireVoicePart: Codable {
+        let id: String
+        let index: Int
+        let count: Int
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        type = try container.decode(String.self, forKey: .type)
+        name = try container.decode(String.self, forKey: .name)
+        size = try container.decodeIfPresent(Int.self, forKey: .size)
+        mimeType = try container.decode(String.self, forKey: .mimeType)
+        content = try container.decode(String.self, forKey: .content)
+        let wire = (try? container.decodeIfPresent(WireVoicePart.self, forKey: .voicePart)) ?? nil
+        voicePart = mimeType.lowercased().hasPrefix("audio/")
+            ? wire.flatMap { VoicePartTag(id: $0.id, index: $0.index, count: $0.count) }
+            : nil
+        let mediaWire = (try? container.decodeIfPresent(WireVoicePart.self, forKey: .mediaPart)) ?? nil
+        mediaPart = mimeType.lowercased().hasPrefix("image/")
+            ? mediaWire.flatMap { VoicePartTag(id: $0.id, index: $0.index, count: $0.count) }
+            : nil
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(size, forKey: .size)
+        try container.encode(mimeType, forKey: .mimeType)
+        try container.encode(content, forKey: .content)
+        if let voicePart {
+            try container.encode(WireVoicePart(id: voicePart.id, index: voicePart.index, count: voicePart.count), forKey: .voicePart)
+        }
+        if let mediaPart {
+            try container.encode(WireVoicePart(id: mediaPart.id, index: mediaPart.index, count: mediaPart.count), forKey: .mediaPart)
+        }
+    }
 
     private final class OptionalMediaFileBox: NSObject {
         let value: MediaFile?
@@ -2133,6 +2177,7 @@ private final class AudioPlaybackHelper: NSObject, ObservableObject, AVAudioPlay
             helper.stop()
         }
         playingHelpers.removeAllObjects()
+        MultipartAudioPlaybackHelper.stopAllPlayback()
     }
 
     func preloadDuration(data: Data, mimeType: String) {
@@ -2435,6 +2480,432 @@ private struct AudioBubble: View {
     }
 }
 
+// MARK: - Multi-part photos
+
+/// The chunks of one multi-part photo that are on this device (MESSAGING.md, "Photos: quality
+/// tiers and multi-part photos"). The photo exists only once every chunk is here: they are
+/// joined in index order, then decoded.
+struct PhotoPartsInput {
+    struct Piece {
+        let index: Int
+        let data: Data
+    }
+    let count: Int
+    /// The chunks present, in index order.
+    let parts: [Piece]
+    let mimeType: String
+    /// The first part's txId: the bubble's identity, explorer link, reply and react target.
+    let anchorTxId: String
+
+    var isComplete: Bool {
+        parts.count == count && parts.map(\.index) == Array(1...max(1, count))
+    }
+
+    /// The joined photo's cache key - its own, never the first part's (that names its chunk).
+    var imageCacheKey: String { "\(anchorTxId)#joined-\(count)" }
+
+    private final class Box {
+        let media: MediaFile
+        init(_ media: MediaFile) { self.media = media }
+    }
+    private static let joinedCache: NSCache<NSString, Box> = {
+        let cache = NSCache<NSString, Box>()
+        cache.countLimit = 16
+        return cache
+    }()
+
+    /// The photo, once every chunk is here; nil until then.
+    var joinedMedia: MediaFile? {
+        guard isComplete else { return nil }
+        let key = imageCacheKey as NSString
+        if let cached = Self.joinedCache.object(forKey: key) { return cached.media }
+        var joined = Data()
+        joined.reserveCapacity(parts.reduce(0) { $0 + $1.data.count })
+        for part in parts { joined.append(part.data) }
+        let media = MediaFile(name: "photo.jpg", mimeType: mimeType, data: joined)
+        Self.joinedCache.setObject(Box(media), forKey: key)
+        return media
+    }
+}
+
+/// A multi-part photo still arriving: a placeholder with "Receiving… N of M".
+struct PhotoPartsPlaceholderBubble: View {
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
+    let input: PhotoPartsInput
+    let isOutgoing: Bool
+    let onRetry: (() -> Void)?
+    let onReply: (() -> Void)?
+    var onSelect: (() -> Void)? = nil
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "photo")
+                .font(.title2)
+            ProgressView()
+            Text("Receiving… \(input.parts.count) of \(input.count)")
+                .font(.caption)
+        }
+        .foregroundColor(isOutgoing ? .white.opacity(0.85) : .secondary)
+        .frame(width: 220, height: 160)
+        .background(isOutgoing ? kaspaBubbleColor : Color(.systemGray5))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .messageActions(title: "Photo") {
+            var actions: [MessageAction] = []
+            if let url = settingsViewModel.settings.kaspaExplorer.txURL(for: input.anchorTxId) {
+                actions.append(.explorer(url))
+            }
+            if let onReply { actions.append(.reply(onReply)) }
+            if let onRetry { actions.append(.retry(onRetry)) }
+            if let onSelect { actions.append(.select(onSelect)) }
+            return actions
+        }
+    }
+}
+
+// MARK: - Long voice notes (multi-part)
+
+/// The parts of one long voice note that are on this device, for its single bubble
+/// (MESSAGING.md, "Long voice notes (multi-part)"). Built by `ChatDetailView` from the grouped rows.
+struct VoiceNotePartsInput {
+    struct Piece {
+        let index: Int
+        let txId: String
+        let data: Data
+        let mimeType: String
+    }
+    /// How many parts the note has in all.
+    let count: Int
+    /// The parts present, in index order.
+    let parts: [Piece]
+
+    var isComplete: Bool { parts.count >= count }
+    /// Changes whenever a part arrives.
+    var signature: String { parts.map { "\($0.index):\($0.data.count)" }.joined(separator: ",") }
+}
+
+/// Plays a long voice note as one recording: every part present is decoded and joined
+/// (`WebMOpusDecoder.decodePartsToPCMFile`), so the length is the total and seeking crosses parts.
+private final class MultipartAudioPlaybackHelper: NSObject, ObservableObject, AVAudioPlayerDelegate, @unchecked Sendable {
+    @Published var isPlaying = false
+    @Published var durationText: String = "--:--"
+    @Published var isLoading = false
+    @Published var progress: Double = 0
+    @Published var waveformSamples: [Float] = []
+
+    private var player: AVAudioPlayer?
+    private var playbackURL: URL?
+    private var playbackSignature: String?
+    private var loadedSignature: String?
+    private var cachedDuration: TimeInterval?
+    private var progressTimer: Timer?
+    /// A seek made before playback started: where the next Play begins.
+    private var pendingSeekFraction: Double?
+
+    private static let activeHelpers = NSHashTable<MultipartAudioPlaybackHelper>.weakObjects()
+
+    static func stopAllPlayback() {
+        for helper in activeHelpers.allObjects {
+            helper.stop()
+        }
+        activeHelpers.removeAllObjects()
+    }
+
+    deinit {
+        progressTimer?.invalidate()
+        if let url = playbackURL { try? FileManager.default.removeItem(at: url) }
+    }
+
+    /// Length and waveform of the parts present; again whenever a part arrives (unless playing,
+    /// which picks the new parts up on the next Play).
+    func preload(_ input: VoiceNotePartsInput) {
+        let signature = input.signature
+        guard loadedSignature != signature, !isPlaying else { return }
+        loadedSignature = signature
+        isLoading = cachedDuration == nil
+        let datas = input.parts.map(\.data)
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let decoded = try? WebMOpusDecoder.decodePartsToPCMFile(parts: datas)
+            if let url = decoded?.url { try? FileManager.default.removeItem(at: url) }
+            await MainActor.run {
+                guard let self, self.loadedSignature == signature else { return }
+                if let decoded {
+                    self.cachedDuration = decoded.duration
+                    self.durationText = Self.formatted(decoded.duration)
+                    self.waveformSamples = decoded.waveform
+                } else {
+                    self.durationText = "--:--"
+                    self.waveformSamples = Array(repeating: 0.3, count: 40)
+                }
+                self.isLoading = false
+            }
+        }
+    }
+
+    func togglePlayback(_ input: VoiceNotePartsInput) {
+        if isPlaying {
+            pause()
+            return
+        }
+        // Paused on the same parts: carry on from there.
+        if let player, playbackSignature == input.signature {
+            if let fraction = pendingSeekFraction {
+                player.currentTime = fraction * player.duration
+                pendingSeekFraction = nil
+            }
+            start(player)
+            return
+        }
+        let seek = pendingSeekFraction
+        stop()
+        pendingSeekFraction = seek
+        isLoading = true
+        let signature = input.signature
+        let datas = input.parts.map(\.data)
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let decoded = try? WebMOpusDecoder.decodePartsToPCMFile(parts: datas)
+            await MainActor.run {
+                guard let self else {
+                    if let url = decoded?.url { try? FileManager.default.removeItem(at: url) }
+                    return
+                }
+                self.isLoading = false
+                guard let decoded else { return }
+                do {
+                    let session = AVAudioSession.sharedInstance()
+                    try session.setCategory(.playback, mode: .default)
+                    try session.setActive(true)
+                    let player = try AVAudioPlayer(contentsOf: decoded.url, fileTypeHint: AVFileType.caf.rawValue)
+                    player.delegate = self
+                    player.prepareToPlay()
+                    self.playbackURL = decoded.url
+                    self.playbackSignature = signature
+                    self.player = player
+                    self.cachedDuration = decoded.duration
+                    self.waveformSamples = decoded.waveform
+                    if let fraction = self.pendingSeekFraction {
+                        player.currentTime = fraction * player.duration
+                        self.pendingSeekFraction = nil
+                    }
+                    self.start(player)
+                } catch {
+                    try? FileManager.default.removeItem(at: decoded.url)
+                }
+            }
+        }
+    }
+
+    /// The scrubber: 0...1 across the whole note.
+    func seek(toFraction fraction: Double) {
+        let clamped = min(max(fraction, 0), 1)
+        progress = clamped
+        if let player {
+            player.currentTime = clamped * player.duration
+            durationText = Self.formatted(player.currentTime)
+        } else {
+            pendingSeekFraction = clamped
+            if let duration = cachedDuration { durationText = Self.formatted(clamped * duration) }
+        }
+    }
+
+    private func start(_ player: AVAudioPlayer) {
+        guard player.play() else {
+            stop()
+            return
+        }
+        isPlaying = true
+        Self.activeHelpers.add(self)
+        startProgressTimer()
+    }
+
+    private func pause() {
+        player?.pause()
+        progressTimer?.invalidate()
+        progressTimer = nil
+        isPlaying = false
+    }
+
+    func stop() {
+        progressTimer?.invalidate()
+        progressTimer = nil
+        player?.stop()
+        player = nil
+        playbackSignature = nil
+        if let url = playbackURL {
+            try? FileManager.default.removeItem(at: url)
+            playbackURL = nil
+        }
+        isPlaying = false
+        progress = 0
+        pendingSeekFraction = nil
+        if let duration = cachedDuration {
+            durationText = Self.formatted(duration)
+        }
+    }
+
+    private func startProgressTimer() {
+        progressTimer?.invalidate()
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            guard let self, let player = self.player else { return }
+            if player.duration > 0 {
+                self.progress = player.currentTime / player.duration
+            }
+            self.durationText = Self.formatted(player.currentTime)
+        }
+    }
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        DispatchQueue.main.async {
+            self.stop()
+        }
+    }
+
+    private static func formatted(_ duration: TimeInterval) -> String {
+        guard duration.isFinite else { return "--:--" }
+        let totalSeconds = Int(duration)
+        return String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
+    }
+}
+
+/// The one bubble of a long voice note: total length, one scrubber across all parts, and while
+/// parts are still on their way, "Receiving… 7 of 12".
+struct LazyMultipartAudioBubble: View {
+    let input: VoiceNotePartsInput
+    let isOutgoing: Bool
+    let txId: String
+    let onRetry: (() -> Void)?
+    let onReply: (() -> Void)?
+    var onSelect: (() -> Void)? = nil
+    @StateObject private var helper = MultipartAudioPlaybackHelper()
+
+    var body: some View {
+        MultipartAudioBubble(
+            helper: helper,
+            input: input,
+            isOutgoing: isOutgoing,
+            txId: txId,
+            onRetry: onRetry,
+            onReply: onReply,
+            onSelect: onSelect
+        )
+    }
+}
+
+private struct MultipartAudioBubble: View {
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
+    @ObservedObject var helper: MultipartAudioPlaybackHelper
+    let input: VoiceNotePartsInput
+    let isOutgoing: Bool
+    let txId: String
+    let onRetry: (() -> Void)?
+    let onReply: (() -> Void)?
+    var onSelect: (() -> Void)? = nil
+    @State private var showShareSheet = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Button {
+                helper.togglePlayback(input)
+            } label: {
+                if helper.isLoading {
+                    ProgressView()
+                        .frame(width: 32, height: 32)
+                } else {
+                    Image(systemName: helper.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.scaled(size: 32))
+                }
+            }
+            .disabled(helper.isLoading)
+
+            VStack(alignment: .leading, spacing: 4) {
+                WaveformView(
+                    samples: helper.waveformSamples,
+                    progress: helper.progress,
+                    isOutgoing: isOutgoing
+                )
+                .frame(height: 24)
+                .overlay {
+                    // One scrubber across every part.
+                    GeometryReader { geometry in
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { value in
+                                        guard geometry.size.width > 0 else { return }
+                                        helper.seek(toFraction: value.location.x / geometry.size.width)
+                                    }
+                            )
+                    }
+                }
+
+                Text(helper.durationText)
+                    .font(.caption)
+                    .foregroundColor(isOutgoing ? .white.opacity(0.8) : .secondary)
+                if !input.isComplete {
+                    Text("Receiving… \(input.parts.count) of \(input.count)")
+                        .font(.caption2)
+                        .foregroundColor(isOutgoing ? .white.opacity(0.8) : .secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(isOutgoing ? kaspaBubbleColor : Color(.systemGray5))
+        .foregroundColor(isOutgoing ? .white : .primary)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .messageActions(title: "Voice Message") {
+            var actions: [MessageAction] = [
+                MessageAction(title: "Save Audio", subtitle: "Saves or shares the recording as a file.", systemImage: "square.and.arrow.down") {
+                    showShareSheet = true
+                }
+            ]
+            // The first part's transaction: what reply, react and the explorer point at.
+            if let url = settingsViewModel.settings.kaspaExplorer.txURL(for: txId) {
+                actions.append(.explorer(url))
+            }
+            if let onReply { actions.append(.reply(onReply)) }
+            if let onRetry { actions.append(.retry(onRetry)) }
+            if let onSelect { actions.append(.select(onSelect)) }
+            return actions
+        }
+        .tint(.accentColor)
+        .sheet(isPresented: $showShareSheet) {
+            // Each part is a complete WebM file: they go out as the files they are, in order.
+            MultipartAudioShareSheet(pieces: input.parts, count: input.count)
+        }
+        .onAppear {
+            helper.preload(input)
+        }
+        .onChange(of: input.signature) { _ in
+            helper.preload(input)
+        }
+    }
+}
+
+private struct MultipartAudioShareSheet: UIViewControllerRepresentable {
+    let pieces: [VoiceNotePartsInput.Piece]
+    let count: Int
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("kachat-voice-\(UUID().uuidString)", isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        var urls: [URL] = []
+        for piece in pieces {
+            // Our own name pattern only, never the sender's: "voice-2of12.webm".
+            let url = folder.appendingPathComponent("voice-\(piece.index)of\(count).webm")
+            if (try? piece.data.write(to: url)) != nil { urls.append(url) }
+        }
+        let controller = UIActivityViewController(activityItems: urls, applicationActivities: nil)
+        controller.completionWithItemsHandler = { _, _, _, _ in
+            try? FileManager.default.removeItem(at: folder)
+        }
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
 private struct WaveformView: View {
     let samples: [Float]
     let progress: Double
@@ -2637,6 +3108,139 @@ struct WebMOpusDecoder {
         return DecodedAudio(url: outputURL, duration: duration)
     }
 
+    struct DecodedParts {
+        let url: URL
+        let duration: TimeInterval
+        /// Peaks across the whole note, `waveformBars` of them, 0.1...1.
+        let waveform: [Float]
+        /// How many of the given parts decoded.
+        let decodedParts: Int
+    }
+
+    /// The parts of a long voice note (MESSAGING.md, "Long voice notes"), in the order given,
+    /// as ONE mono PCM file: each part is decoded on its own, its pre-skip removed and cut to its
+    /// Info Duration (the encoder feeds each part a little of the next one to cover the codec's
+    /// look-ahead), so the joins are gapless and one player seeks across the whole note.
+    ///
+    /// Decoded at 24 kHz: the parts are narrowband-to-wideband SILK, so nothing audible is lost,
+    /// and five minutes stay ~29 MB of samples instead of ~58. A part that doesn't decode is left
+    /// out; with none decoding this throws.
+    static func decodePartsToPCMFile(parts: [Data], waveformBars: Int = 40) throws -> DecodedParts {
+        guard !parts.isEmpty else { throw WebMOpusDecodeError.noAudio }
+        let outputRate = 24_000.0
+        guard let format = AVAudioFormat(commonFormat: .pcmFormatFloat32,
+                                         sampleRate: outputRate,
+                                         channels: 1,
+                                         interleaved: false) else {
+            throw WebMOpusDecodeError.invalidWebM("Failed to build output format.")
+        }
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("kasia-audio-play-\(UUID().uuidString).caf")
+        var audioFile: AVAudioFile? = try AVAudioFile(forWriting: outputURL,
+                                                      settings: format.settings,
+                                                      commonFormat: format.commonFormat,
+                                                      interleaved: format.isInterleaved)
+        var totalFrames = 0
+        var decodedParts = 0
+        // Peaks per 0.1 s across the note, folded into `waveformBars` at the end.
+        let binFrames = Int(outputRate / 10)
+        var bins: [Float] = []
+        var binPeak: Float = 0
+        var binFill = 0
+        // A part is at most 14.5 s (25 s accepted); a crafted file can't grow one past this.
+        let maxPartFrames = Int(outputRate * (VoicePartTag.maxPartSeconds + 1))
+        let maxFrameSize = Int(outputRate / 1000.0 * 120.0)
+
+        for part in parts.prefix(VoicePartTag.maxParts) {
+            guard let parsed = try? parseWebM(part),
+                  !parsed.packets.isEmpty,
+                  let head = try? parseOpusHead(parsed.opusHead) else { continue }
+            let channels = max(1, min(head.channels, 2))
+            var opusError: Int32 = 0
+            guard let decoder = opus_decoder_create(Int32(outputRate), Int32(channels), &opusError) else { continue }
+            defer { opus_decoder_destroy(decoder) }
+
+            var mono = [Float]()
+            mono.reserveCapacity(min(parsed.packets.count * maxFrameSize, maxPartFrames))
+            var tempBuffer = [Float](repeating: 0, count: maxFrameSize * channels)
+            var failed = false
+            for packet in parsed.packets {
+                let decodedFrames = packet.withUnsafeBytes { buffer -> Int32 in
+                    guard let base = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                        return OPUS_BAD_ARG
+                    }
+                    return opus_decode_float(decoder, base, Int32(buffer.count), &tempBuffer, Int32(maxFrameSize), 0)
+                }
+                guard decodedFrames >= 0 else { failed = true; break }
+                let frames = Int(decodedFrames)
+                guard mono.count + frames <= maxPartFrames else { break }
+                if channels == 1 {
+                    mono.append(contentsOf: tempBuffer.prefix(frames))
+                } else {
+                    for frame in 0..<frames {
+                        mono.append((tempBuffer[frame * 2] + tempBuffer[frame * 2 + 1]) / 2)
+                    }
+                }
+            }
+            if failed || mono.isEmpty { continue }
+
+            let skip = Int(Double(head.preSkip) * outputRate / 48_000.0)
+            if skip > 0 && mono.count > skip { mono.removeFirst(skip) }
+            if let durationMs = parsed.durationMs {
+                let wanted = Int((durationMs / 1000.0 * outputRate).rounded())
+                if wanted > 0 && wanted < mono.count { mono.removeLast(mono.count - wanted) }
+            }
+
+            for sample in mono {
+                binPeak = max(binPeak, abs(sample))
+                binFill += 1
+                if binFill == binFrames {
+                    bins.append(binPeak)
+                    binPeak = 0
+                    binFill = 0
+                }
+            }
+
+            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(mono.count)),
+                  let channel = buffer.floatChannelData?[0] else { continue }
+            buffer.frameLength = AVAudioFrameCount(mono.count)
+            mono.withUnsafeBufferPointer { source in
+                if let base = source.baseAddress {
+                    channel.update(from: base, count: mono.count)
+                }
+            }
+            try audioFile?.write(from: buffer)
+            totalFrames += mono.count
+            decodedParts += 1
+        }
+        audioFile = nil // closes the file
+        if binFill > 0 { bins.append(binPeak) }
+
+        guard decodedParts > 0, totalFrames > 0 else {
+            try? FileManager.default.removeItem(at: outputURL)
+            throw WebMOpusDecodeError.noAudio
+        }
+
+        let bars = max(1, waveformBars)
+        var waveform: [Float] = []
+        if bins.isEmpty {
+            waveform = Array(repeating: 0.3, count: bars)
+        } else {
+            for bar in 0..<bars {
+                let start = min(bar * bins.count / bars, bins.count - 1)
+                let end = min(max(start + 1, (bar + 1) * bins.count / bars), bins.count)
+                let peak = bins[start..<end].max() ?? 0
+                waveform.append(min(1.0, max(0.1, peak * 2)))
+            }
+        }
+        return DecodedParts(
+            url: outputURL,
+            duration: TimeInterval(Double(totalFrames) / outputRate),
+            waveform: waveform,
+            decodedParts: decodedParts
+        )
+    }
+
     private struct OpusHead {
         let channels: Int
         let preSkip: Int
@@ -2646,11 +3250,14 @@ struct WebMOpusDecoder {
     private struct ParsedWebM {
         let opusHead: Data
         let packets: [Data]
+        /// Segment Info's Duration in ms (TimecodeScale 1 ms, what our encoder writes), if any.
+        let durationMs: Double?
     }
 
     private static func parseWebM(_ data: Data) throws -> ParsedWebM {
         var opusHead: Data?
         var packets: [Data] = []
+        var durationMs: Double?
 
         let containerIDs: Set<UInt64> = [
             0x18538067, // Segment
@@ -2694,6 +3301,8 @@ struct WebMOpusDecoder {
 
                 if id == 0x63A2 {
                     opusHead = data.subdata(in: payloadStart..<payloadEnd)
+                } else if id == 0x4489 {
+                    durationMs = readFloat(data, range: payloadStart..<payloadEnd)
                 } else if id == 0xA3 || id == 0xA1 {
                     // SimpleBlock (0xA3) or Block (0xA1, inside a BlockGroup) - both share the
                     // same track-number/timecode/flags header layout for our purposes.
@@ -2717,7 +3326,21 @@ struct WebMOpusDecoder {
         guard let opusHead else {
             throw WebMOpusDecodeError.missingOpusHead
         }
-        return ParsedWebM(opusHead: opusHead, packets: packets)
+        return ParsedWebM(opusHead: opusHead, packets: packets, durationMs: durationMs)
+    }
+
+    /// An EBML float: 4 or 8 bytes, big-endian. Nil for any other length or a non-finite value.
+    private static func readFloat(_ data: Data, range: Range<Int>) -> Double? {
+        let bytes = [UInt8](data[range])
+        let value: Double
+        if bytes.count == 8 {
+            value = Double(bitPattern: bytes.reduce(UInt64(0)) { ($0 << 8) | UInt64($1) })
+        } else if bytes.count == 4 {
+            value = Double(Float(bitPattern: bytes.reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }))
+        } else {
+            return nil
+        }
+        return value.isFinite && value > 0 ? value : nil
     }
 
     private static func parseSimpleBlock(_ data: Data) throws -> Data? {
@@ -3057,6 +3680,17 @@ struct WebMOpusDecoder {
     }
 
     static func decodeToPCMFile(data: Data) throws -> DecodedAudio {
+        throw WebMOpusDecodeError.unsupportedPlatform
+    }
+
+    struct DecodedParts {
+        let url: URL
+        let duration: TimeInterval
+        let waveform: [Float]
+        let decodedParts: Int
+    }
+
+    static func decodePartsToPCMFile(parts: [Data], waveformBars: Int = 40) throws -> DecodedParts {
         throw WebMOpusDecodeError.unsupportedPlatform
     }
 }

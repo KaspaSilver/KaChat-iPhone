@@ -250,11 +250,6 @@ struct SettingsView: View {
     private var chatsPage: some View {
         Form {
             Section("Chats") {
-                    Toggle("Higher quality photos", isOn: $settingsViewModel.settings.higherQualityPhotos)
-                        .onChange(of: settingsViewModel.settings.higherQualityPhotos) { _ in
-                            settingsViewModel.saveSettings()
-                        }
-
                     NavigationLink {
                         QuickReactionEmojisSettingsView(settingsViewModel: settingsViewModel)
                     } label: {

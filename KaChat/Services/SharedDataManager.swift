@@ -24,10 +24,6 @@ final class SharedDataManager {
 
     private enum Keys {
         static let contacts = "shared_contacts"
-        /// Contacts with calls enabled, for the Intents extension (`KaChatIntents`) to resolve
-        /// "call X on KaChat" against - by KaChat address or name. Plain JSON
-        /// `[{address, name}]`; the extension does not link the app's model types.
-        static let callContacts = "call_contacts"
         /// The wallet `contacts` was written for. The blob itself is a single key holding
         /// whichever account synced last, so without a stamp the extension has no way to tell
         /// that the list in front of it belongs to a different account than the one now signed
@@ -104,31 +100,6 @@ final class SharedDataManager {
         // see a new stamp over an old list.
         sharedDefaults?.set(WalletManager.shared.currentWallet?.publicAddress, forKey: Keys.contactsWallet)
         AppLog.log("[SharedData] Synced %d contacts to shared container", contacts.count)
-        syncCallContactsForIntents()
-    }
-
-    /// Whether calls are on for `address` (Chat Info's "Allow calls"), read from the shared list
-    /// without the wallet loaded - what a VoIP push that just launched the app decides by
-    /// before anything rings. nil when the list was never written (no answer yet).
-    static func isCallAllowed(_ address: String) -> Bool? {
-        guard let data = sharedDefaults?.data(forKey: Keys.callContacts),
-              let list = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] else { return nil }
-        let target = address.lowercased()
-        return list.contains { ($0["address"] ?? "").lowercased() == target }
-    }
-
-    /// The callable contacts, for the Intents extension. Refreshed with the contact list.
-    @MainActor
-    static func syncCallContactsForIntents() {
-        let callable: [[String: String]] = ContactsManager.shared.contacts.compactMap { contact in
-            guard contact.callsEnabled == true else { return nil }
-            return [
-                "address": contact.address,
-                "name": ContactsManager.shared.displayName(for: contact)
-            ]
-        }
-        guard let data = try? JSONSerialization.data(withJSONObject: callable) else { return }
-        sharedDefaults?.set(data, forKey: Keys.callContacts)
     }
 
     // MARK: - Recent Conversations (Share Extension direct targets)
@@ -494,9 +465,7 @@ final class SharedDataManager {
     static func clearAllSharedData() {
         sharedDefaults?.removeObject(forKey: Keys.contacts)
         sharedDefaults?.removeObject(forKey: Keys.contactsWallet)
-        // These outlived a deleted wallet: the Intents extension kept offering "call with
-        // KaChat" for its contacts, and its groups and KNS name stayed readable.
-        sharedDefaults?.removeObject(forKey: Keys.callContacts)
+        // These outlived a deleted wallet: its groups and KNS name stayed readable.
         sharedDefaults?.removeObject(forKey: Keys.groups)
         sharedDefaults?.removeObject(forKey: Keys.groupOwnTxIds)
         sharedDefaults?.removeObject(forKey: Keys.ownPrimaryKNSDomain)

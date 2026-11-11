@@ -27,7 +27,9 @@ Address (its QR code), Share Profile and Log Out, with Help at its top right.
 Removed from the app: KaPosts, Public Chats, Chess Online (the `#chess-arena` tournaments), KaChat
 Stats, Portfolio, Cold Storage (KasSigner), Kaspa Websites, Swap, the `.kachat` market (claim, buy,
 sell, offers, name notifications), the home-screen widget and Simple Mode (with the onboarding's
-"Who will use KaChat?" step). The wallet features live in the KaChat
+"Who will use KaChat?" step); voice and video calls since 2026-11-11 (no CallKit, PushKit,
+WebRTC or Nextcloud Talk, no Intents extension; other clients' `call_*` messages are dropped,
+`CallSignal` in Models.swift). The wallet features live in the KaChat
 wallet app. Kept: 1:1 chess inside a chat, sending and receiving KAS in chats and from Wallet,
 `.kachat` name lookup, Edit KaChat Profile and a read-only `.kachat` card in Your Domains
 (your names and when they expire). Their server docs below are kept as contracts for the
@@ -84,14 +86,13 @@ The app uses MVVM architecture with global singleton services injected via Swift
 | `KachatNamesService` | `.kachat` names. **Live on both networks**: testnet-10, and **mainnet since 2026-10-09** ("mainnet v1", kachat-domains docs/MAINNET.md: registry `348bd2c8…75a4`, the audited v4 contracts with yearly periods, 90-day grace, 30-day renewal window, register 4000/2000/1000/250/35 KAS). `isLaunched` is true on both; `networkName` / `addressPrefix` pick the network's bundled manifest (`Resources/kachat-names-<network>.json`), pins and price tables (per network in `KachatNames.Manifest`), address prefix and cache folder, and a network switch resets the manifest and registry. Mainnet opened to everyone in the app on Friday 2026-10-16 8:00 AM Eastern; the countdown that gated it until then was removed (audit XP-028). **Before any registry switch on mainnet**, build the old-registry offer clean-up first: the app only reads its manifest's registry, so offers on the old one vanish and stay locked (audit IOS-066, left as is; KACHAT_NAMES.md warning at the top). **Address profiles are not registry data** (`profilesEnabled`, every network since 2026-10-05): a `kchat:1:profile:` self-send from the chatting address (`KachatNamesActions.profileSigner()`), so "Edit KaChat Profile" saves on mainnet too (primary name greyed out there), and mainnet identities are profile-only (`GET /profiles/{address}`; the indexer side is kachat-indexer `docs/KACHAT_PROFILES.md`). Any UI change must work on both networks. It loads and verifies the registry manifest (registry v4 or v5, `registryVersion`: fixed price tables baked into the gap and name, one genesis whose covenant-id binding is verified; v5 adds `import` from a migration snapshot of the previous registry). The name template hash and the price tables are pinned in the app (`Manifest.pinnedTemplateHashes` by version, `pinnedRegisterPrices` / `pinnedRenewPrices`), the v4 gap too; the offer and the v5 gap per deployment in `Manifest.deployedTemplateHashes`; an indexer-served manifest is accepted only when every template hash is pinned. The bundled `Resources/kachat-names-testnet-10.json` is the live testnet-10 v5 registry on the audited contracts since 2026-10-09 (audit C2): genesis `b6223f0f…e24f`, registry `1283f749…bfa2`, imported from the drill registry `fdc403f5…571d` (6 names; 24-hour periods, 6-hour grace, 2-hour renewal window). Register, renew, list, buy and offers moved to the KaChat wallet app on 2026-10-24: nothing in this app builds or signs a covenant transaction |
 | `KachatNamesRegistry` | `.kachat` reads (lookup, by owner, a buyer's offers, identity) from the names indexer when `GET /names/status` matches the manifest's registry covenant id and the indexer is at most ~1 minute (600 DAA) behind the network - re-checked on every refresh - else from its own chain walker: the registry's live UTXOs kept from genesis, spends found via the REST API's `/addresses/{p2sh}/full-transactions`, decoded and verified against output scripts (`KachatNamesRegistryState.swift`, pure, tested by `scripts/test_kachat_names_registry.swift`) |
 | `KachatNamesActions` | What is left of the `.kachat` actions since the market moved to the KaChat wallet app: `saveProfile` and `profileFee` (the `kchat:1:profile:` record), `ownNamesAndOffers` (this wallet's names across its keys), `marketAddresses` (read-only, for names an older build's Buy From address holds) and `follow(txId:)`, which watches the mempool, then the REST API, so the receipt shows Sent / In a block / Updated in KaChat. Screens in `KaChat/Views/Ecosystem/KachatNamesLiveViews.swift` |
-| `CallService` | Voice/video calls over Nextcloud Talk + WebRTC (`NextcloudTalkClient`, `WebRTCClient`, `CallView`); ringing rides the 1:1 chat as `call_*` envelopes. `CallKitManager` mirrors every call into CallKit (lock-screen ringing, Recents, system audio session); `VoIPPushManager` receives the PushKit VoIP push the caller's phone requests from the push service so a closed app rings |
 
 ### Messaging Protocol
 
 1. **Handshake**: Initial key exchange, stored in sender's self-stash on-chain
 2. **Contextual Messages**: Encrypted messages using shared secret derived from handshake
 3. **Payments**: On-chain KAS transfers with optional encrypted metadata
-4. **Audio**: Voice messages encoded with the Opus codec (vendored `Opus.xcframework` via `OpusBridge`)
+4. **Audio**: Voice messages encoded with the Opus codec (vendored `Opus.xcframework` via `OpusBridge`). On chain, 16 kbps CBR in 60 ms frames (`VoiceNotePolicy`): 1:1 up to 2:50 as tagged parts of at most 14.5 s, groups up to 1:50 as tagged parts of at most 9.8 s, each limit set by 1 KAS of total fees; shown as one bubble. Group voice is sealed as the binary media frame inside the unchanged `gcomm` payload (older and other clients can't read group voice notes until updated). See MESSAGING.md "Long voice notes (multi-part)"
 
 ### Network Communication
 
@@ -299,7 +300,7 @@ KaChat/
 └── Utilities/        # CryptoUtils, KasiaCipher (ECIES, in KaChatCipher.swift), Bech32, ...
 ```
 
-Companion targets at the repo root: `KaChatNotificationService/` (push decryption extension), `KaChatShareExtension/` (share sheet), `KaChatIntents/` (Intents extension: `INStartCallIntent` so Siri and Recents can "call with KaChat"; it resolves against `call_contacts` in the App Group by KaChat address or name, and hands the call to the app).
+Companion targets at the repo root: `KaChatNotificationService/` (push decryption extension) and `KaChatShareExtension/` (share sheet).
 
 ## Key Dependencies
 
@@ -329,9 +330,21 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
   choice replaced the old "Send Media via Nextcloud" setting.
   - Via Nextcloud: full-quality uploads, videos from the camera or the library, and voice notes
     up to `ComposerMediaLimits.nextcloudVoiceSeconds` (5 min, app-wide).
-  - On chain: compressed photos (20 KB, 32 KB with Chats > Higher quality photos) and voice
-    notes up to ~25 s, both in the binary media frame (MESSAGING.md).
-  - Paste, drop and share-extension photos go on chain.
+  - On chain: compressed photos and voice notes, both in the binary media frame (MESSAGING.md;
+    in groups too, inside the `gcomm` payload). Send on an on-chain photo asks High, Medium or
+    Low (`PhotoQualitySheet`; `PhotoTier`: up to 1, 0.5 or 0.1 KAS, which is 368 / 184 / 36 KB in
+    1:1 and 243 / 121.5 / 23.5 KB in groups). A photo bigger than one transaction goes as
+    `mediaPart`-tagged chunks shown as one bubble once all are in ("Photos: quality tiers and
+    multi-part photos" in MESSAGING.md). There is no Higher quality photos setting any more.
+    Voice is 16 kbps CBR Opus in 60 ms
+    frames, as long as 1 KAS of fees allows (`VoiceNotePolicy`): a 1:1 note runs up to 2:50 in
+    parts of at most 14.5 s / 31 KB (0.977 KAS at the max), a group note up to 1:50 in parts of
+    at most 9.8 s / 21 KB (0.964 KAS). The chat shows them as one bubble with gapless playback,
+    and they count as one unread and one notification ("Long voice notes (multi-part)" in
+    MESSAGING.md). Older and other clients can't read group voice notes until they're updated.
+  - Paste, drop and share-extension photos go on chain. Pasted, dropped and share-extension
+    photos opened in the composer ask for a quality too. A photo the share extension sends
+    straight away has no sheet to ask, so it goes at Low.
 - **Paying:** Send Kaspa (and `startInPaymentMode`) opens the Send KAS sheet, not a composer
   mode: the Send Kaspa steps from Amount (the keypad, KAS or fiat, Max) to the Review, which holds
   the encrypted memo (the payment payload's note, ≤140 chars, shown in the bubble), and
@@ -537,7 +550,7 @@ Change these pieces rather than one screen, so the screens stay matched.
 | `KAPOSTS_REPLIES_FIX.md` | The short server ask: the two read endpoints that make reply threads complete (`get-post`, optionally `get-thread`). Hand this over on its own; `KAPOSTS_INDEXER.md` is the reference behind it. Server contract only: the feature left the app 2026-10-24 |
 | `PUBLIC_CHATS_INDEXER.md` | Handoff/build guide for the KaChat Public Chats indexer (curated room history incl. `chess-arena`, REST spec, push, Docker; code/API keep their `broadcast` identifiers). Server contract only: the feature left the app 2026-10-24 |
 | `TRANSLATION_SERVICE.md` | Handoff/build guide for the KaChat post translation endpoint (server-side translation of KaPosts, cached by txid; replaced the on-device Apple Translation / ML Kit path). Server contract only: the feature left the app 2026-10-24 |
-| `PUSH_EXTENSIONS.md` | Server handoff: remote push for public chats + KaPosts (registration fields, APNs payload specs, routing contracts) and call ringing. The app registers the public chat and KaPosts fields empty since 2026-10-24 |
+| `PUSH_EXTENSIONS.md` | Server handoff: remote push for public chats + KaPosts (registration fields, APNs payload specs, routing contracts). The app registers the public chat and KaPosts fields empty since 2026-10-24; §5 (call ringing) is retired since calls left on 2026-11-11 |
 | `GROUP_MESSAGES_INDEXER.md` | Server handoff: the batched group-message read (`POST /group-messages/by-blinded-group-ids`) and the `since` reads (`/group-messages/since`, `/group-control/since`) the app polls for live group traffic while open; both fall back to the older paths (per-member GETs, the block stream) on an indexer without them |
 | `ONLINE_CHESS.md` | Online Chess (5.1): public 1v1 and 8-player knockout tournaments in Kaspa Hub > Chess Online, every move a transaction in the `chess-arena` room, no referee (deterministic rules in `ChessTournamentEngine`), chain-time clocks with allowances; leaderboard handoff for the indexer. Server contract only: the feature left the app 2026-10-24 |
 | `KACHAT_APP_LINKS.md` | The kachat.app link site (`web_site/server/`): every shared link is `https://kachat.app/...` - Open Graph previews everywhere, Universal/App Links into the app, post-only page with download buttons without it |

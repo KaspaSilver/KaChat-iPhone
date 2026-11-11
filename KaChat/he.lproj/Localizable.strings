@@ -446,7 +446,6 @@
 "Record On-Chain" = "הקלטה על השרשרת";
 "Take a photo and send it on chain, compressed to fit." = "צלמו תמונה ושלחו אותה על השרשרת, דחוסה כדי שתתאים.";
 "Pick an image and send it on chain, compressed to fit." = "בחרו תמונה ושלחו אותה על השרשרת, דחוסה כדי שתתאים.";
-"Up to 10 seconds, sent on chain." = "עד 10 שניות, נשלח על השרשרת.";
 "Take Photo via Nextcloud" = "צילום תמונה דרך Nextcloud";
 "Record via Nextcloud" = "הקלטה דרך Nextcloud";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "איכות מלאה, או וידאו. עולה ל-Nextcloud שלכם; הצ'אט נושא את הקישור.";
@@ -813,8 +812,12 @@
 "%lld of %lld shown" = "%lld מתוך %lld מוצגות";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "תמונות באיכות גבוהה יותר";
-"Up to 25 seconds, sent on chain." = "עד 25 שניות, נשלח על השרשרת.";
+"Up to %@, sent on chain." = "עד %@, נשלח על השרשרת.";
+"Photo Quality" = "איכות התמונה";
+"High" = "גבוהה";
+"Medium" = "בינונית";
+"Low" = "נמוכה";
+"Receiving… %lld of %lld" = "מתקבל… %lld מתוך %lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1096,7 +1099,6 @@
 "Address Visibility" = "נראות הכתובת";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "לא ניתן היה לגזור את הכתובות האלה כרגע. חזרו עמוד אחד אחורה או פתחו את המסך מחדש כדי לנסות שוב.";
 "Add, import or export" = "הוספה, ייבוא או ייצוא";
-"Call" = "שיחה";
 "KaChat Contact" = "איש קשר ב-KaChat";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat בנויה עם ספריות הקוד הפתוח האלה. היוצרים שלהן מבקשים שההודעות האלה ילוו את האפליקציה.";
 "24 words" = "24 מילים";
@@ -1135,13 +1137,6 @@
 "Chatting" = "צ'אט";
 "Spending" = "הוצאה";
 "Request" = "בקשה";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "שיחות עובדות רק אם לכם או לאדם שאתם מנסים לדבר איתו הוגדר Nextcloud Talk. אם אצל אף צד זה לא הוגדר, אי אפשר לבצע שיחות.";
-"Continue?" = "להמשיך?";
-"Enable calls and video calls with %@?" = "להפעיל שיחות ושיחות וידאו עם %@?";
-"They will be able to call you too." = "גם הם יוכלו להתקשר אליכם.";
-"Call %@" = "שיחה עם %@";
-"%@ wants to switch to video" = "%@ מבקש/ת לעבור לווידאו";
-"Tap to return" = "הקישו כדי לחזור";
 "What is a passphrase?" = "מהו ביטוי סיסמה?";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "אם אינכם בטוחים, כמעט בוודאות התשובה היא לא. ביטוי סיסמה הוא משהו שהייתם מקלידים בכוונה.";
 "No" = "לא";
@@ -1373,14 +1368,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "הכתובת הוסתרה. אפשר להפעיל אותה מחדש בנראות הכתובת.";
 "Address removed." = "הכתובת הוסרה.";
 "Asks to open an encrypted conversation." = "מבקש לפתוח שיחה מוצפנת.";
-"Calls stay off for this contact." = "השיחות הקוליות נשארות כבויות עבור איש הקשר הזה.";
 "Casual" = "ללא לחץ";
 "Changes the text. Everyone sees the new version." = "משנה את הטקסט. כולם רואים את הגרסה החדשה.";
 "Check off every address you want on the list, in one sitting." = "סמן בפעם אחת כל כתובת שתרצה ברשימה.";
 "Clear %@?" = "לנקות את %@?";
 "Clear All Cache?" = "לנקות את כל המטמון?";
 "Clears the unread badge on this group." = "מנקה את תג הלא נקראו של הקבוצה הזו.";
-"Close this and stay in the chat." = "סגור ותישאר בצ'אט.";
 "Connecting for live updates" = "מתחבר לעדכונים בזמן אמת";
 "Copies the address to your clipboard." = "מעתיק את הכתובת ללוח.";
 "Copies the name to your clipboard." = "מעתיק את השם ללוח.";
@@ -1388,7 +1381,6 @@
 "Copy their Kaspa address." = "העתק את כתובת ה-Kaspa שלו.";
 "Deletes this chat's messages from this device. The bot stays in the row." = "מוחק את הודעות הצ'אט הזה מהמכשיר הזה. הבוט נשאר בשורה.";
 "Downloading message history" = "מוריד את היסטוריית ההודעות";
-"Enable calls" = "הפעל שיחות";
 "Failed to open archive: %@" = "פתיחת הארכיון נכשלה: %@";
 "Finding your conversations" = "מחפש את השיחות שלך";
 "Finished" = "הסתיים";
@@ -1398,7 +1390,6 @@
 "Get notified for their messages again." = "קבל שוב התראות על ההודעות שלו.";
 "Gives this account a name of your own." = "נותן לחשבון הזה שם משלך.";
 "Gives this address a label of your own." = "נותן לכתובת הזו תווית משלך.";
-"Go on to calling this person." = "המשך להתקשר לאדם הזה.";
 "Hide Address" = "הסתר כתובת";
 "Invite this contact to a game on chain." = "הזמן את איש הקשר הזה למשחק על השרשרת.";
 "KaChat Link" = "קישור KaChat";
@@ -1414,7 +1405,6 @@
 "No notification from this group, mentions included." = "ללא התראות מהקבוצה הזו, כולל אזכורים.";
 "No timer." = "ללא שעון.";
 "Node address copied." = "כתובת הצומת הועתקה.";
-"Not now" = "לא עכשיו";
 "Notifications from this chat resume." = "ההתראות מהצ'אט הזה יחודשו.";
 "Notifications from this group resume, including mentions." = "ההתראות מהקבוצה הזו יחודשו, כולל אזכורים.";
 "One minute each, plus one second a move." = "דקה לכל אחד, ועוד שנייה לכל מהלך.";
@@ -1451,8 +1441,6 @@
 "Removes this group and its messages from this device." = "מסיר את הקבוצה הזו ואת ההודעות שלה מהמכשיר הזה.";
 "Reply to this message instead." = "השב להודעה הזו במקום.";
 "Reveals the next unused address in this wallet." = "חושף את הכתובת הבאה שלא נוצלה בארנק הזה.";
-"Rings them in KaChat; your Nextcloud carries the call." = "מצלצל אצלו ב-KaChat; ה-Nextcloud שלך מעביר את השיחה.";
-"Same, with your camera on from the start." = "אותו דבר, עם המצלמה פועלת מההתחלה.";
 "Saves or shares the recording as a file." = "שומר את ההקלטה או משתף אותה כקובץ.";
 "Select Chats..." = "בחר צ'אטים...";
 "Sends this message again." = "שולח את ההודעה הזו שוב.";
@@ -1461,10 +1449,7 @@
 "Silence" = "השתק";
 "Start a group with the people you choose." = "התחל קבוצה עם האנשים שתבחר.";
 "Starting" = "מתחיל";
-"Stay on voice" = "הישאר בשיחה קולית";
 "Stop seeing their messages in this group. Undo it in Group Info." = "הפסק לראות את ההודעות שלו בקבוצה הזו. אפשר לבטל במידע על הקבוצה.";
-"Switch to video" = "עבור לווידאו";
-"The call carries on as it is, and they are told." = "השיחה נמשכת כפי שהיא, והצד השני מיודע.";
 "The key that spends this address. Never share it." = "המפתח שמוציא מהכתובת הזו. לעולם אל תשתף אותו.";
 "The passphrase shows too, if this account has one." = "גם ביטוי הסיסמה יוצג, אם יש לחשבון הזה.";
 "The public half of this address, for anyone who asks for it." = "החצי הציבורי של הכתובת הזו, לכל מי שמבקש.";
@@ -1478,20 +1463,15 @@
 "User muted." = "המשתמש הושתק.";
 "User unmuted." = "השתקת המשתמש בוטלה.";
 "Validating backup..." = "מאמת גיבוי...";
-"Video call" = "שיחת וידאו";
 "View 12 or 24 Words and Passphrase" = "הצג 12 או 24 מילים וביטוי סיסמה";
 "View Private Key" = "הצג מפתח פרטי";
 "View Public Key" = "הצג מפתח ציבורי";
-"Voice call" = "שיחה קולית";
 "Who reacted, and with what." = "מי הגיב, ובמה.";
 "Wiping incoming messages..." = "מוחק הודעות נכנסות...";
 "Write down your 12 or 24 words before you delete." = "רשום את 12 או 24 המילים שלך לפני המחיקה.";
 "Yes, All Chats" = "כן, כל הצ'אטים";
-"Your camera turns on and the call moves to the speaker." = "המצלמה שלך נדלקת והשיחה עוברת לרמקול.";
 "Support Email" = "אימייל תמיכה";
 "Total" = "סה״כ";
-"Saves this for %@ and lets you call now." = "שומר זאת עבור %@ ומאפשר להתקשר עכשיו.";
-"Camera off" = "המצלמה כבויה";
 "Address #%d is ready." = "כתובת מס׳ %d מוכנה.";
 "Conversation declined" = "השיחה נדחתה";
 "Recents" = "אחרונים";

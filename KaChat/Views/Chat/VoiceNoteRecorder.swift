@@ -13,10 +13,22 @@ final class VoiceNoteRecorder: NSObject, ObservableObject, AVAudioRecorderDelega
         case failed(String)
     }
 
+    /// The old single-note settings, now only for the Nextcloud route's on-chain fallback
+    /// (`stopAndEncode`): 6 kbps in 20 ms frames, at most ~13 KB.
     static let maxDuration: TimeInterval = 10
     private static let maxBytes = 13_000
     private static let bitrate: Int32 = 6_000
     private static let sampleRate: Double = 48_000
+
+    /// On chain: 16 kbps in 60 ms frames, parts of at most 9.8 s, up to 110 s (1:50) - as long
+    /// as 1 KAS of fees allows (`VoiceNotePolicy.group`, where the math is; MESSAGING.md "In
+    /// group chats"). A note of one part's length or less is one untagged message. Every group
+    /// voice note is sealed as the binary media frame (`GroupChatService.groupPlaintextData`).
+    static let policy = VoiceNotePolicy.group
+    static var maxOnChainDuration: TimeInterval { policy.maxSeconds }
+    static let partBitrate: Int32 = VoiceNotePolicy.bitrate
+    static let partFrameMs = VoiceNotePolicy.frameMs
+    static var partMaxBytes: Int { policy.maxBytes }
 
     @Published private(set) var state: State = .idle
     @Published private(set) var elapsedSeconds: TimeInterval = 0
@@ -102,6 +114,53 @@ final class VoiceNoteRecorder: NSObject, ObservableObject, AVAudioRecorderDelega
         pcmURL = nil
         state = .idle
         elapsedSeconds = 0
+    }
+
+    /// The on-chain recording as the parts it will go as: at most 9.8 s each at `partBitrate`
+    /// (a single part, sent untagged, when it is that short). Delivered in order.
+    func stopAndEncodeParts() async throws -> (parts: [Data], fileName: String, mimeType: String) {
+        guard state == .recording, let recorder else {
+            throw KasiaError.networkError("Not recording")
+        }
+        timer?.invalidate()
+        timer = nil
+        guard let pcmURL else {
+            throw KasiaError.networkError("Not recording")
+        }
+        state = .encoding
+        recorder.stop()
+        self.recorder = nil
+        defer {
+            try? FileManager.default.removeItem(at: pcmURL)
+            self.pcmURL = nil
+            if state == .encoding { state = .idle }
+        }
+        let urls = try await WebMOpusEncoder.encodeParts(
+            pcmURL: pcmURL,
+            outputDirectory: FileManager.default.temporaryDirectory,
+            bitrate: Self.partBitrate,
+            sampleRate: Self.sampleRate,
+            frameMs: Self.partFrameMs,
+            partSeconds: Self.policy.partSeconds,
+            maxParts: VoicePartTag.maxParts,
+            maxBytes: Self.partMaxBytes
+        )
+        defer { for url in urls { try? FileManager.default.removeItem(at: url) } }
+        let parts = try urls.map { try Data(contentsOf: $0) }
+        state = .idle
+        return (parts, "voice.webm", "audio/webm")
+    }
+
+    /// Estimated WebM bytes of each part a recording of `seconds` goes as - the live fee.
+    static func estimatedPartSizes(forDuration seconds: TimeInterval) -> [Int] {
+        VoiceNoteLayout.partSizes(
+            duration: min(seconds, maxOnChainDuration),
+            partSeconds: policy.partSeconds,
+            bitrate: partBitrate,
+            frameMs: partFrameMs,
+            maxBytes: partMaxBytes,
+            sampleRate: sampleRate
+        )
     }
 
     /// Stops recording, encodes to Opus/WebM, and delivers wire-ready data. Safe to call once

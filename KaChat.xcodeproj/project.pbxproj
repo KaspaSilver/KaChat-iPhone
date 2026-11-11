@@ -31,7 +31,6 @@
 		4D3D20062F72000600000002 /* DesktopEmojiLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D20062F72000600000001 /* DesktopEmojiLibrary.swift */; };
 		4D3D20072F72000700000002 /* DesktopEmojiPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D20072F72000700000001 /* DesktopEmojiPickerView.swift */; };
 		4D3D20082F72000800000002 /* ComposerKeyCommandPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D3D20082F72000800000001 /* ComposerKeyCommandPolicy.swift */; };
-		588DB562305C77E500D94B9B /* KaChatIntents.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 588DB559305C77E500D94B9B /* KaChatIntents.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A91062000000000000000001 /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91062000000000000000002 /* AppLog.swift */; };
 		AB0001B0000000000000001 /* AppTabBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0001A0000000000000001 /* AppTabBadge.swift */; };
 		ADAC00010001000100000001 /* AddressActivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADAC00010001000000000001 /* AddressActivityNotifier.swift */; };
@@ -43,15 +42,6 @@
 		BGTM00012E0100000002 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BGTM00012E0100000001 /* BackgroundTaskManager.swift */; };
 		KBOT001B000000000000001 /* KaChatBot.swift in Sources */ = {isa = PBXBuildFile; fileRef = KBOT001A000000000000001 /* KaChatBot.swift */; };
 		CACHEMGR00010001000100000001 /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACHEMGR00010001000000000001 /* CacheManager.swift */; };
-		CALL0001B000000000000001 /* NextcloudTalkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0001A000000000000001 /* NextcloudTalkClient.swift */; };
-		CALL0002B000000000000001 /* CallService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0002A000000000000001 /* CallService.swift */; };
-		CALL0003B000000000000001 /* WebRTCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0003A000000000000001 /* WebRTCClient.swift */; };
-		CALL0004B000000000000001 /* CallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0004A000000000000001 /* CallView.swift */; };
-		CALL0005B000000000000001 /* CallKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0005A000000000000001 /* CallKitManager.swift */; };
-		CALL0006B000000000000001 /* VoIPPushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0006A000000000000001 /* VoIPPushManager.swift */; };
-		CALL0007B000000000000001 /* CallRingback.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0007A000000000000001 /* CallRingback.swift */; };
-		CALL0008B000000000000001 /* CallCameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0008A000000000000001 /* CallCameraPreview.swift */; };
-		CALL0009B000000000000001 /* CallPictureInPicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = CALL0009A000000000000001 /* CallPictureInPicture.swift */; };
 		CAMV0000000000000001 /* CameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAMV0000000000000002 /* CameraCaptureView.swift */; };
 		CFMT00010001000000000002 /* CurrencyFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFMT00010001000000000001 /* CurrencyFormat.swift */; };
 		CH0001B0000000000000001 /* ChessEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CH0001A0000000000000001 /* ChessEngine.swift */; };
@@ -135,7 +125,6 @@
 		KFPOLICY000100010001 /* KaspaFeePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = KFPOLICY000100010002 /* KaspaFeePolicy.swift */; };
 		KNAV00010001000100000001 /* KNSAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = KNAV000100010000000001 /* KNSAvatarView.swift */; };
 		L10N000300000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = L10N000200000001 /* Localizable.strings */; };
-		SIRI000300000001 /* AppIntentVocabulary.plist in Resources */ = {isa = PBXBuildFile; fileRef = SIRI000200000001 /* AppIntentVocabulary.plist */; };
 		LPRVB0000000000000001 /* LinkPreviewService.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPRVA0000000000000001 /* LinkPreviewService.swift */; };
 		LPRVD0000000000000001 /* LinkPreviewCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPRVC0000000000000001 /* LinkPreviewCardView.swift */; };
 		MSGS00012F5C000100000002 /* MessageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = MSGS00012F5C000100000001 /* MessageStore.swift */; };
@@ -169,7 +158,6 @@
 		SPMP256K000100010001 /* P256K in Frameworks */ = {isa = PBXBuildFile; productRef = SPMP256K000100010003 /* P256K */; };
 		SPMP256K000100010002 /* P256K in Frameworks */ = {isa = PBXBuildFile; productRef = SPMP256K000100010003 /* P256K */; };
 		SPMPB000100010001 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = SPMPB000100010002 /* SwiftProtobuf */; };
-		SPMWEBRTC00010001001 /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = SPMWEBRTC00010001003 /* WebRTC */; };
 		WLCM0000000000000001 /* WelcomeGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WLCM0000000000000002 /* WelcomeGuideView.swift */; };
 		ABVW0000000000000001 /* AccountBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABVW0000000000000002 /* AccountBackupView.swift */; };
 		NFCT0000000000000005 /* NFCCardRestoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NFCT0000000000000006 /* NFCCardRestoreView.swift */; };
@@ -183,13 +171,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 43BBF3452F15A52900B42BDA;
 			remoteInfo = KaChatNotificationService;
-		};
-		588DB560305C77E500D94B9B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E80000062D4C000000000006 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 588DB558305C77E500D94B9B;
-			remoteInfo = KaChatIntents;
 		};
 		SHREXT000100010000000001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -208,7 +189,6 @@
 			dstSubfolderSpec = 13;
 			files = (
 				43BBF34D2F15A52900B42BDA /* KaChatNotificationService.appex in Embed Foundation Extensions */,
-				588DB562305C77E500D94B9B /* KaChatIntents.appex in Embed Foundation Extensions */,
 				SHREXT000100010001000001 /* KaChatShareExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -241,7 +221,6 @@
 		4D3D20062F72000600000001 /* DesktopEmojiLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopEmojiLibrary.swift; sourceTree = "<group>"; };
 		4D3D20072F72000700000001 /* DesktopEmojiPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopEmojiPickerView.swift; sourceTree = "<group>"; };
 		4D3D20082F72000800000001 /* ComposerKeyCommandPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerKeyCommandPolicy.swift; sourceTree = "<group>"; };
-		588DB559305C77E500D94B9B /* KaChatIntents.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KaChatIntents.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A61ACF41FEA483D9EF0924F /* KNSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KNSService.swift; sourceTree = "<group>"; };
 		A91062000000000000000002 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		A91062000000000000000010 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
@@ -254,15 +233,6 @@
 		CMRS00010001000000000001 /* ComposerMediaRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerMediaRoute.swift; sourceTree = "<group>"; };
 		BGTM00012E0100000001 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
 		CACHEMGR00010001000000000001 /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
-		CALL0001A000000000000001 /* NextcloudTalkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextcloudTalkClient.swift; sourceTree = "<group>"; };
-		CALL0002A000000000000001 /* CallService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallService.swift; sourceTree = "<group>"; };
-		CALL0003A000000000000001 /* WebRTCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebRTCClient.swift; sourceTree = "<group>"; };
-		CALL0004A000000000000001 /* CallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallView.swift; sourceTree = "<group>"; };
-		CALL0005A000000000000001 /* CallKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitManager.swift; sourceTree = "<group>"; };
-		CALL0006A000000000000001 /* VoIPPushManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoIPPushManager.swift; sourceTree = "<group>"; };
-		CALL0007A000000000000001 /* CallRingback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallRingback.swift; sourceTree = "<group>"; };
-		CALL0008A000000000000001 /* CallCameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallCameraPreview.swift; sourceTree = "<group>"; };
-		CALL0009A000000000000001 /* CallPictureInPicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallPictureInPicture.swift; sourceTree = "<group>"; };
 		CAMV0000000000000002 /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
 		CFMT00010001000000000001 /* CurrencyFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyFormat.swift; sourceTree = "<group>"; };
 		CH0001A0000000000000001 /* ChessEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChessEngine.swift; sourceTree = "<group>"; };
@@ -350,25 +320,6 @@
 		KFPOLICY000100010002 /* KaspaFeePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaspaFeePolicy.swift; sourceTree = "<group>"; };
 		KNAV000100010000000001 /* KNSAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KNSAvatarView.swift; sourceTree = "<group>"; };
 		L10N000100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		SIRI000100000001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = en; path = en.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000002 /* ar-EG */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "ar-EG"; path = "ar-EG.lproj/AppIntentVocabulary.plist"; sourceTree = "<group>"; };
-		SIRI000100000003 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = ar; path = ar.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000004 /* bn */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = bn; path = bn.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000005 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = de; path = de.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000006 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = es; path = es.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000007 /* fa */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = fa; path = fa.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000008 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = fr; path = fr.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000009 /* he */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = he; path = he.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI00010000000A /* hi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = hi; path = hi.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI00010000000B /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = id; path = id.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI00010000000C /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = it; path = it.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI00010000000D /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = ja; path = ja.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI00010000000E /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = ko; path = ko.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI00010000000F /* pt */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = pt; path = pt.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000010 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = ru; path = ru.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000011 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = tr; path = tr.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000012 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = vi; path = vi.lproj/AppIntentVocabulary.plist; sourceTree = "<group>"; };
-		SIRI000100000013 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "zh-Hans"; path = "zh-Hans.lproj/AppIntentVocabulary.plist"; sourceTree = "<group>"; };
 		L10N000100000002 /* ar-EG */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "ar-EG"; path = "ar-EG.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		L10N000100000003 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
 		L10N000100000004 /* bn */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = bn; path = bn.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -429,13 +380,6 @@
 			);
 			target = 43BBF3452F15A52900B42BDA /* KaChatNotificationService */;
 		};
-		588DB566305C77E500D94B9B /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 588DB558305C77E500D94B9B /* KaChatIntents */;
-		};
 		SHREXT000100010000000005 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -447,7 +391,6 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		43BBF3472F15A52900B42BDA /* KaChatNotificationService */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (43BBF3512F15A52900B42BDA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KaChatNotificationService; sourceTree = "<group>"; };
-		588DB55A305C77E500D94B9B /* KaChatIntents */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (588DB566305C77E500D94B9B /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KaChatIntents; sourceTree = "<group>"; };
 		SHREXT000100010000000004 /* KaChatShareExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (SHREXT000100010000000005 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = KaChatShareExtension; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -460,13 +403,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		588DB556305C77E500D94B9B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		E80000012D4C000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -474,7 +410,6 @@
 				SPMGRPC000100010001 /* GRPC in Frameworks */,
 				SPMPB000100010001 /* SwiftProtobuf in Frameworks */,
 				SPMP256K000100010001 /* P256K in Frameworks */,
-				SPMWEBRTC00010001001 /* WebRTC in Frameworks */,
 				E8F1A0062F4B000100000006 /* external/opus/Opus.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -517,7 +452,6 @@
 				43BBF3472F15A52900B42BDA /* KaChatNotificationService */,
 				SHREXT000100010000000004 /* KaChatShareExtension */,
 				E8F1A0052F4B000100000005 /* external/opus/Opus.xcframework */,
-				588DB55A305C77E500D94B9B /* KaChatIntents */,
 				588DACE03026E3D300D94B9B /* Frameworks */,
 				E80000022D4C000000000002 /* Products */,
 			);
@@ -529,7 +463,6 @@
 				E80000002D4C000000000000 /* KaChat.app */,
 				43BBF3462F15A52900B42BDA /* KaChatNotificationService.appex */,
 				SHREXT000100010000000002 /* KaChatShareExtension.appex */,
-				588DB559305C77E500D94B9B /* KaChatIntents.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -550,7 +483,6 @@
 				GRPC00010001000100000020 /* Generated */,
 				E83000042D4C000200000009 /* KaChat-Bridging-Header.h */,
 				L10N000200000001 /* Localizable.strings */,
-				SIRI000200000001 /* AppIntentVocabulary.plist */,
 			);
 			path = KaChat;
 			sourceTree = "<group>";
@@ -614,13 +546,6 @@
 				PF0003A0000000000000001 /* CoinGeckoService.swift */,
 				NSV0001A000000000000001 /* NameServices.swift */,
 				NC0001A0000000000000001 /* NextcloudService.swift */,
-				CALL0003A000000000000001 /* WebRTCClient.swift */,
-				CALL0002A000000000000001 /* CallService.swift */,
-				CALL0005A000000000000001 /* CallKitManager.swift */,
-				CALL0006A000000000000001 /* VoIPPushManager.swift */,
-				CALL0007A000000000000001 /* CallRingback.swift */,
-				CALL0009A000000000000001 /* CallPictureInPicture.swift */,
-				CALL0001A000000000000001 /* NextcloudTalkClient.swift */,
 				GN0001A0000000000000001 /* GlobalNotificationCenter.swift */,
 				ABST0000000000000002 /* AccountBackupStatus.swift */,
 				NFCT0000000000000004 /* NFCCard.swift */,
@@ -715,8 +640,6 @@
 				GRPCHATLV000100010000001 /* GroupChatListView.swift */,
 				E81000182D4C00010000000D /* ChatDetailView.swift */,
 				1C4C922EA822400194F497F9 /* ChatInfoView.swift */,
-				CALL0004A000000000000001 /* CallView.swift */,
-				CALL0008A000000000000001 /* CallCameraPreview.swift */,
 				4D3D20022F72000200000001 /* ChatTimelineLayout.swift */,
 				CPTV00010001000000000001 /* ComposerTextView.swift */,
 				4D3D20082F72000800000001 /* ComposerKeyCommandPolicy.swift */,
@@ -851,29 +774,6 @@
 			productReference = 43BBF3462F15A52900B42BDA /* KaChatNotificationService.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		588DB558305C77E500D94B9B /* KaChatIntents */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 588DB567305C77E500D94B9B /* Build configuration list for PBXNativeTarget "KaChatIntents" */;
-			buildPhases = (
-				588DB555305C77E500D94B9B /* Sources */,
-				588DB556305C77E500D94B9B /* Frameworks */,
-				588DB557305C77E500D94B9B /* Resources */,
-				LBNE00010001000000000002 /* Local Build Number */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				588DB55A305C77E500D94B9B /* KaChatIntents */,
-			);
-			name = KaChatIntents;
-			packageProductDependencies = (
-			);
-			productName = KaChatIntents;
-			productReference = 588DB559305C77E500D94B9B /* KaChatIntents.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		E80000032D4C000000000003 /* KaChat */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E80000082D4C000000000008 /* Build configuration list for PBXNativeTarget "KaChat" */;
@@ -889,14 +789,12 @@
 			dependencies = (
 				43BBF34C2F15A52900B42BDA /* PBXTargetDependency */,
 				SHREXT000100010000000003 /* PBXTargetDependency */,
-				588DB561305C77E500D94B9B /* PBXTargetDependency */,
 			);
 			name = KaChat;
 			packageProductDependencies = (
 				SPMGRPC000100010002 /* GRPC */,
 				SPMPB000100010002 /* SwiftProtobuf */,
 				SPMP256K000100010003 /* P256K */,
-				SPMWEBRTC00010001003 /* WebRTC */,
 			);
 			productName = KaChat;
 			productReference = E80000002D4C000000000000 /* KaChat.app */;
@@ -935,9 +833,6 @@
 				TargetAttributes = {
 					43BBF3452F15A52900B42BDA = {
 						CreatedOnToolsVersion = 26.2;
-					};
-					588DB558305C77E500D94B9B = {
-						CreatedOnToolsVersion = 26.6;
 					};
 					E80000032D4C000000000003 = {
 						CreatedOnToolsVersion = 15.0;
@@ -978,7 +873,6 @@
 				SPMGRPC000100010003 /* XCRemoteSwiftPackageReference "grpc-swift" */,
 				SPMPB000100010003 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 				SPMP256K000100010004 /* XCRemoteSwiftPackageReference "swift-secp256k1" */,
-				SPMWEBRTC00010001004 /* XCRemoteSwiftPackageReference "WebRTC" */,
 			);
 			productRefGroup = E80000022D4C000000000002 /* Products */;
 			projectDirPath = "";
@@ -987,20 +881,12 @@
 				E80000032D4C000000000003 /* KaChat */,
 				43BBF3452F15A52900B42BDA /* KaChatNotificationService */,
 				SHREXT000100010000000006 /* KaChatShareExtension */,
-				588DB558305C77E500D94B9B /* KaChatIntents */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		43BBF3442F15A52900B42BDA /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		588DB557305C77E500D94B9B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1018,7 +904,6 @@
 				KCNMRES00000000000000002 /* kachat-names-testnet-10.json in Resources */,
 				KCNMRES00000000000000004 /* kachat-names-mainnet.json in Resources */,
 				L10N000300000001 /* Localizable.strings in Resources */,
-				SIRI000300000001 /* AppIntentVocabulary.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1072,26 +957,6 @@
 			shellScript = "# Builds run from Xcode: the same build number the app's Local Build Number phase gives this build, so this extension matches its app (an app extension's CFBundleVersion must equal the app's). The extensions build before the app, so this works out the app's next number from the counter without writing it; the app's phase writes it. Xcode Cloud ($CI) and archives (ACTION=install) keep Version.xcconfig's number.\nif [ -n \"$CI\" ] || [ \"$ACTION\" = \"install\" ]; then exit 0; fi\nCOUNTER=\"$SRCROOT/KaChat/.local-build-number\"\nBASE=\"${CURRENT_PROJECT_VERSION:-0}\"\nLAST=$(cat \"$COUNTER\" 2>/dev/null)\ncase \"$LAST\" in ''|*[!0-9]*) LAST=0 ;; esac\ncase \"$BASE\" in ''|*[!0-9]*) BASE=0 ;; esac\nif [ \"$LAST\" -ge \"$BASE\" ]; then NEXT=$((LAST + 1)); else NEXT=$((BASE + 1)); fi\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $NEXT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Local build number (extension): $NEXT\"\n";
 			showEnvVarsInLog = 0;
 		};
-		LBNE00010001000000000002 /* Local Build Number */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Local Build Number";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Builds run from Xcode: the same build number the app's Local Build Number phase gives this build, so this extension matches its app (an app extension's CFBundleVersion must equal the app's). The extensions build before the app, so this works out the app's next number from the counter without writing it; the app's phase writes it. Xcode Cloud ($CI) and archives (ACTION=install) keep Version.xcconfig's number.\nif [ -n \"$CI\" ] || [ \"$ACTION\" = \"install\" ]; then exit 0; fi\nCOUNTER=\"$SRCROOT/KaChat/.local-build-number\"\nBASE=\"${CURRENT_PROJECT_VERSION:-0}\"\nLAST=$(cat \"$COUNTER\" 2>/dev/null)\ncase \"$LAST\" in ''|*[!0-9]*) LAST=0 ;; esac\ncase \"$BASE\" in ''|*[!0-9]*) BASE=0 ;; esac\nif [ \"$LAST\" -ge \"$BASE\" ]; then NEXT=$((LAST + 1)); else NEXT=$((BASE + 1)); fi\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $NEXT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Local build number (extension): $NEXT\"\n";
-			showEnvVarsInLog = 0;
-		};
 		LBNE00010001000000000003 /* Local Build Number */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -1116,13 +981,6 @@
 
 /* Begin PBXSourcesBuildPhase section */
 		43BBF3422F15A52900B42BDA /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		588DB555305C77E500D94B9B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1176,18 +1034,9 @@
 				4D3D20062F72000600000002 /* DesktopEmojiLibrary.swift in Sources */,
 				4D3D20072F72000700000002 /* DesktopEmojiPickerView.swift in Sources */,
 				3068057B0F9F4906B2600F39 /* ChatInfoView.swift in Sources */,
-				CALL0004B000000000000001 /* CallView.swift in Sources */,
 				SA0001B0000000000000001 /* ManageAddressesView.swift in Sources */,
 				WV0001B0000000000000001 /* WalletView.swift in Sources */,
 				NC0001B0000000000000001 /* NextcloudService.swift in Sources */,
-				CALL0003B000000000000001 /* WebRTCClient.swift in Sources */,
-				CALL0002B000000000000001 /* CallService.swift in Sources */,
-				CALL0005B000000000000001 /* CallKitManager.swift in Sources */,
-				CALL0006B000000000000001 /* VoIPPushManager.swift in Sources */,
-				CALL0007B000000000000001 /* CallRingback.swift in Sources */,
-				CALL0008B000000000000001 /* CallCameraPreview.swift in Sources */,
-				CALL0009B000000000000001 /* CallPictureInPicture.swift in Sources */,
-				CALL0001B000000000000001 /* NextcloudTalkClient.swift in Sources */,
 				GN0001B0000000000000001 /* GlobalNotificationCenter.swift in Sources */,
 				ABST0000000000000001 /* AccountBackupStatus.swift in Sources */,
 				NFCT0000000000000003 /* NFCCard.swift in Sources */,
@@ -1301,11 +1150,6 @@
 			target = 43BBF3452F15A52900B42BDA /* KaChatNotificationService */;
 			targetProxy = 43BBF34B2F15A52900B42BDA /* PBXContainerItemProxy */;
 		};
-		588DB561305C77E500D94B9B /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 588DB558305C77E500D94B9B /* KaChatIntents */;
-			targetProxy = 588DB560305C77E500D94B9B /* PBXContainerItemProxy */;
-		};
 		SHREXT000100010000000003 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = SHREXT000100010000000006 /* KaChatShareExtension */;
@@ -1314,32 +1158,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		SIRI000200000001 /* AppIntentVocabulary.plist */ = {
-			isa = PBXVariantGroup;
-			children = (
-				SIRI000100000001 /* en */,
-				SIRI000100000002 /* ar-EG */,
-				SIRI000100000003 /* ar */,
-				SIRI000100000004 /* bn */,
-				SIRI000100000005 /* de */,
-				SIRI000100000006 /* es */,
-				SIRI000100000007 /* fa */,
-				SIRI000100000008 /* fr */,
-				SIRI000100000009 /* he */,
-				SIRI00010000000A /* hi */,
-				SIRI00010000000B /* id */,
-				SIRI00010000000C /* it */,
-				SIRI00010000000D /* ja */,
-				SIRI00010000000E /* ko */,
-				SIRI00010000000F /* pt */,
-				SIRI000100000010 /* ru */,
-				SIRI000100000011 /* tr */,
-				SIRI000100000012 /* vi */,
-				SIRI000100000013 /* zh-Hans */,
-			);
-			name = AppIntentVocabulary.plist;
-			sourceTree = "<group>";
-		};
 		L10N000200000001 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1430,76 +1248,6 @@
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		588DB564305C77E500D94B9B /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = A91062000000000000000010 /* Version.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = KaChatIntents/KaChatIntents.entitlements;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "KaChatIntents/KaChatIntents-mac.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = RP4Z22SFSD;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = KaChatIntents/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = KaChatIntents;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 KaChat. All rights reserved.";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.kachat.app.KaChatIntents;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		588DB565305C77E500D94B9B /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = A91062000000000000000010 /* Version.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = KaChatIntents/KaChatIntents.entitlements;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "KaChatIntents/KaChatIntents-mac.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = RP4Z22SFSD;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = KaChatIntents/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = KaChatIntents;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 KaChat. All rights reserved.";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.kachat.app.KaChatIntents;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -1813,15 +1561,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		588DB567305C77E500D94B9B /* Build configuration list for PBXNativeTarget "KaChatIntents" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				588DB564305C77E500D94B9B /* Debug */,
-				588DB565305C77E500D94B9B /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		E80000072D4C000000000007 /* Build configuration list for PBXProject "KaChat" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1876,14 +1615,6 @@
 				version = 1.38.1;
 			};
 		};
-		SPMWEBRTC00010001004 /* XCRemoteSwiftPackageReference "WebRTC" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/stasel/WebRTC.git";
-			requirement = {
-				kind = exactVersion;
-				version = 153.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1901,11 +1632,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = SPMPB000100010003 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
 			productName = SwiftProtobuf;
-		};
-		SPMWEBRTC00010001003 /* WebRTC */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = SPMWEBRTC00010001004 /* XCRemoteSwiftPackageReference "WebRTC" */;
-			productName = WebRTC;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

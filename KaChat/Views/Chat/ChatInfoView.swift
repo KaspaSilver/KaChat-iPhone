@@ -46,7 +46,7 @@ struct ChatInfoView: View {
     @FocusState private var isEditing: Bool
     private let qrContext = CIContext()
 
-    /// A KaChat bot's User Info is only its name and its address: nobody to share, call or manage.
+    /// A KaChat bot's User Info is only its name and its address: nobody to share or manage.
     private var isBot: Bool { KaChatBot.isBot(contact.address) }
 
     /// Your own User Info - reached from your own profile link. Shows who you are (name, avatar,

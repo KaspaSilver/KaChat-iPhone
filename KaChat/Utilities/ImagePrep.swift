@@ -16,15 +16,11 @@ enum ImagePrep {
         case compressionFailed
     }
 
-    /// Longest edge cap in pixels before compression.
+    /// Longest edge cap in pixels before compression (small images: group and contact photos).
     static let chatMaxDimension: CGFloat = 1280
-    /// The on-chain photo budget. 20 KB since the binary media frame (ContextualMediaFrame) took
-    /// one base64 layer off: a 20 KB photo now costs what a 15 KB one did (~27 KB of payload).
+    /// The default budget of `prepareForChatMessage` (small images only; chat photos go by
+    /// `PhotoTier`).
     static let defaultChatTargetBytes = 20_000
-    /// Chats > Higher quality photos: the largest photo one transaction carries with margin -
-    /// ~43 KB of payload, ~43.3 KB of transaction, ~87,000 of the 100,000 mass a standard
-    /// transaction may have at 2 grams per byte (post-Toccata transient mass).
-    static let highQualityChatTargetBytes = 32_000
     private static let maxShrinkAttempts = 4
     private static let shrinkFactor: CGFloat = 0.7
 
@@ -83,12 +79,96 @@ enum ImagePrep {
         return data
     }
 
-    /// Rough estimate of the final wire payload size for a picked-but-not-yet-compressed photo,
-    /// used only for a live "fee so far" preview - the real send always measures actual bytes.
-    static func estimatedWirePayloadSize(targetBytes: Int = defaultChatTargetBytes) -> Int {
-        // The binary media frame carries the raw bytes; only the payload's own base64 remains
-        // (frame header + cipher overhead ~150 bytes, then 4/3).
-        Int(Double(targetBytes + 150) * 4.0 / 3.0) + 80
+    // MARK: - Quality tiers (on-chain chat photos)
+
+    /// Long edges tried for a tier, largest first: a big budget buys a big image at a decent
+    /// quality, not a small one at quality 1.
+    static let tierEdges: [CGFloat] = [3000, 2560, 2240, 2048, 1920, 1600, 1440, 1280, 1080, 960, 800, 640, 480, 360]
+    /// The JPEG quality range searched at each edge.
+    static let tierMaxQuality: CGFloat = 0.85
+    static let tierMinQuality: CGFloat = 0.5
+
+    /// The best-looking JPEG within each of `budgets` bytes, by budget: the LARGEST long edge
+    /// (never upscaled) at which quality `tierMinQuality` fits, then the highest quality up to
+    /// `tierMaxQuality` that still fits there. Only when nothing fits at `tierMinQuality` even at
+    /// the smallest edge does the quality go lower. The image is re-rendered into a fresh
+    /// standard-range bitmap, so orientation is applied and nothing of the original's metadata
+    /// (EXIF, GPS, camera) is carried, as before. Heavy: call it off the main thread.
+    ///
+    /// Renders are reused across budgets one at a time, and the quality-0.5 size measured at one
+    /// edge predicts the others (size ~ edge squared), so a small budget skips the big edges.
+    static func prepareJPEGForTiers(_ image: UIImage, budgets: [Int]) throws -> [Int: Data] {
+        guard image.size.width.isFinite, image.size.height.isFinite,
+              image.size.width > 0, image.size.height > 0 else {
+            throw PrepError.invalidImage
+        }
+        let originalEdge = max(image.size.width, image.size.height)
+        var edges = tierEdges.filter { $0 < originalEdge }
+        edges.insert(min(originalEdge, tierEdges[0]), at: 0)
+
+        var renderedEdge: CGFloat?
+        var rendered: UIImage?
+        func render(_ edge: CGFloat) -> UIImage {
+            if renderedEdge == edge, let rendered { return rendered }
+            let scale = edge / originalEdge
+            let scaled = resize(image, to: CGSize(width: image.size.width * scale, height: image.size.height * scale))
+            renderedEdge = edge
+            rendered = scaled
+            return scaled
+        }
+        var minQualitySize: [CGFloat: Int] = [:]
+        func sizeAtMinQuality(_ edge: CGFloat) -> (Int, Data)? {
+            guard let data = jpegData(from: render(edge), quality: tierMinQuality) else { return nil }
+            minQualitySize[edge] = data.count
+            return (data.count, data)
+        }
+        func predicted(_ edge: CGFloat) -> Int? {
+            guard let (known, size) = minQualitySize.max(by: { $0.key < $1.key }) else { return nil }
+            return Int(Double(size) * Double(edge * edge) / Double(known * known))
+        }
+
+        var results: [Int: Data] = [:]
+        for budget in budgets.sorted(by: >) {
+            var chosen: Data?
+            for edge in edges {
+                if let known = minQualitySize[edge], known > budget { continue }
+                if minQualitySize[edge] == nil, let guess = predicted(edge), guess > budget * 13 / 10 { continue }
+                guard let (size, floorData) = sizeAtMinQuality(edge), size <= budget else { continue }
+                // Fits at the floor: the best quality that still fits, at this edge.
+                var best = floorData
+                var low = tierMinQuality
+                var high = tierMaxQuality
+                for _ in 0..<6 {
+                    let mid = (low + high) / 2
+                    guard let data = jpegData(from: render(edge), quality: mid) else { break }
+                    if data.count <= budget {
+                        best = data
+                        low = mid
+                    } else {
+                        high = mid
+                    }
+                }
+                chosen = best
+                break
+            }
+            if chosen == nil, let smallest = edges.last {
+                // Nothing fits at the quality floor: the smallest edge, below the floor.
+                chosen = compressToQualityBudget(render(smallest), targetBytes: budget, encoder: jpegData)
+                    ?? jpegData(from: render(smallest), quality: 0.05)
+            }
+            guard let chosen else { throw PrepError.compressionFailed }
+            results[budget] = chosen
+        }
+        return results
+    }
+
+    /// The tier's photo on a path - one JPEG within its byte budget.
+    static func prepareForTier(_ image: UIImage, tier: PhotoTier, forGroup group: Bool) throws -> PreparedChatImage {
+        let budget = tier.maxBytes(forGroup: group)
+        guard let data = try prepareJPEGForTiers(image, budgets: [budget])[budget] else {
+            throw PrepError.compressionFailed
+        }
+        return PreparedChatImage(data: data, fileName: "photo.jpg", mimeType: "image/jpeg")
     }
 
     private static func normalizedAndDownscaled(

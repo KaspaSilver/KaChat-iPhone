@@ -448,7 +448,6 @@
 "Record On-Chain" = "链上录音";
 "Take a photo and send it on chain, compressed to fit." = "拍一张照片并链上发送，会压缩到合适大小。";
 "Pick an image and send it on chain, compressed to fit." = "选择一张图片并链上发送，会压缩到合适大小。";
-"Up to 10 seconds, sent on chain." = "最长 10 秒，链上发送。";
 "Take Photo via Nextcloud" = "通过 Nextcloud 拍照";
 "Record via Nextcloud" = "通过 Nextcloud 录音";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "原画质或视频。上传到你的 Nextcloud，聊天中发送链接。";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "显示 %lld / %lld";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "更高画质的照片";
-"Up to 25 seconds, sent on chain." = "最长 25 秒，在链上发送。";
+"Up to %@, sent on chain." = "最长 %@，在链上发送。";
+"Photo Quality" = "照片质量";
+"High" = "高";
+"Medium" = "中";
+"Low" = "低";
+"Receiving… %lld of %lld" = "正在接收… %lld/%lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "地址可见性";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "暂时无法推导出这些地址。请返回上一页，或重新打开此页面再试。";
 "Add, import or export" = "添加、导入或导出";
-"Call" = "通话";
 "KaChat Contact" = "KaChat 联系人";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat 使用这些开源库构建。它们的作者要求这些声明随 App 一同提供。";
 "24 words" = "24 个单词";
@@ -1137,13 +1139,6 @@
 "Chatting" = "聊天";
 "Spending" = "支出";
 "Request" = "请求";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "只有你或对方设置了 Nextcloud Talk，才能通话。如果双方都没有设置，就无法通话。";
-"Continue?" = "要继续吗？";
-"Enable calls and video calls with %@?" = "要与 %@ 启用通话和视频通话吗？";
-"They will be able to call you too." = "对方也将能给你打电话。";
-"Call %@" = "呼叫 %@";
-"%@ wants to switch to video" = "%@ 想切换到视频通话";
-"Tap to return" = "轻点返回";
 "What is a passphrase?" = "什么是密码短语？";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "如果你不确定，答案几乎肯定是没有。密码短语是你特意输入过的东西。";
 "No" = "否";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "地址已隐藏。可在“地址可见性”中重新启用。";
 "Address removed." = "地址已移除。";
 "Asks to open an encrypted conversation." = "请求开启加密会话。";
-"Calls stay off for this contact." = "与此联系人的通话保持关闭。";
 "Casual" = "休闲";
 "Changes the text. Everyone sees the new version." = "更改文本。所有人都会看到新版本。";
 "Check off every address you want on the list, in one sitting." = "一次勾选所有你想放进列表的地址。";
 "Clear %@?" = "清除%@？";
 "Clear All Cache?" = "清除全部缓存？";
 "Clears the unread badge on this group." = "清除此群组的未读标记。";
-"Close this and stay in the chat." = "关闭并留在聊天中。";
 "Connecting for live updates" = "正在连接实时更新";
 "Copies the address to your clipboard." = "将地址复制到剪贴板。";
 "Copies the name to your clipboard." = "将名称复制到剪贴板。";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "复制对方的 Kaspa 地址。";
 "Deletes this chat's messages from this device. The bot stays in the row." = "从此设备删除此聊天的消息。机器人仍保留在该行中。";
 "Downloading message history" = "正在下载消息记录";
-"Enable calls" = "启用通话";
 "Failed to open archive: %@" = "无法打开存档：%@";
 "Finding your conversations" = "正在查找你的会话";
 "Finished" = "已完成";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "重新接收对方消息的通知。";
 "Gives this account a name of your own." = "为此账户取一个你自己的名称。";
 "Gives this address a label of your own." = "为此地址添加一个你自己的标签。";
-"Go on to calling this person." = "继续呼叫此人。";
 "Hide Address" = "隐藏地址";
 "Invite this contact to a game on chain." = "邀请此联系人进行一局链上对弈。";
 "KaChat Link" = "KaChat 链接";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "不接收此群组的通知，包括提及。";
 "No timer." = "不计时。";
 "Node address copied." = "节点地址已复制。";
-"Not now" = "以后再说";
 "Notifications from this chat resume." = "恢复此聊天的通知。";
 "Notifications from this group resume, including mentions." = "恢复此群组的通知，包括提及。";
 "One minute each, plus one second a move." = "每方一分钟，每步加一秒。";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "从此设备移除此群组及其消息。";
 "Reply to this message instead." = "改为回复这条消息。";
 "Reveals the next unused address in this wallet." = "显示此钱包中下一个未使用的地址。";
-"Rings them in KaChat; your Nextcloud carries the call." = "在 KaChat 中呼叫对方；通话经由你的 Nextcloud。";
-"Same, with your camera on from the start." = "相同方式，但从一开始就打开摄像头。";
 "Saves or shares the recording as a file." = "将录音保存或分享为文件。";
 "Select Chats..." = "选择聊天...";
 "Sends this message again." = "再次发送此消息。";
@@ -1463,10 +1451,7 @@
 "Silence" = "静音";
 "Start a group with the people you choose." = "与你选择的人创建群组。";
 "Starting" = "正在启动";
-"Stay on voice" = "继续语音";
 "Stop seeing their messages in this group. Undo it in Group Info." = "不再查看对方在此群组中的消息。可在“群组信息”中撤销。";
-"Switch to video" = "切换到视频";
-"The call carries on as it is, and they are told." = "通话照常继续，并会告知对方。";
 "The key that spends this address. Never share it." = "用于从此地址支出的密钥。切勿分享。";
 "The passphrase shows too, if this account has one." = "如果此账户有密码短语，也会一并显示。";
 "The public half of this address, for anyone who asks for it." = "此地址的公开部分，可提供给任何索取的人。";
@@ -1480,18 +1465,13 @@
 "User muted." = "用户已静音。";
 "User unmuted." = "已取消用户静音。";
 "Validating backup..." = "正在验证备份...";
-"Video call" = "视频通话";
 "View 12 or 24 Words and Passphrase" = "查看 12 或 24 个单词和密码短语";
 "View Private Key" = "查看私钥";
 "View Public Key" = "查看公钥";
-"Voice call" = "语音通话";
 "Who reacted, and with what." = "谁做了回应，以及用了什么。";
 "Wiping incoming messages..." = "正在清除收到的消息...";
 "Write down your 12 or 24 words before you delete." = "删除前请写下你的 12 或 24 个单词。";
 "Yes, All Chats" = "是，所有聊天";
-"Your camera turns on and the call moves to the speaker." = "你的摄像头将打开，通话切换到扬声器。";
-"Saves this for %@ and lets you call now." = "为 %@ 保存此项，并允许你现在拨打。";
-"Camera off" = "摄像头已关闭";
 "Address #%d is ready." = "地址 #%d 已准备好。";
 "Conversation declined" = "会话已拒绝";
 "Recents" = "最近使用";

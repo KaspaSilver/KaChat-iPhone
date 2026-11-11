@@ -53,11 +53,7 @@ struct ChatDetailView: View {
 
     @State private var contact: Contact
     @State private var showChatInfo = false
-    /// The call button in the bar, and the "can't call" toast when a start fails.
-    @ObservedObject private var callService = CallService.shared
     @State private var photosUnlockTick = 0
-    /// The call button was tapped: `CallConfirmationSheets` takes it from there.
-    @State private var callRequested = false
     /// Local-only multi-select for deleting individual messages (never the whole conversation -
     /// see `deleteConversation` for that) - toggled from the toolbar's "Select" button.
     @State private var isSelectingMessages = false
@@ -215,6 +211,10 @@ struct ChatDetailView: View {
         var displayedMessages: [ChatMessage] = []
         var timelineItems: [ChatTimelineItem] = []
         var photosUnlockDate: Date?
+        /// Long voice notes' parts (MESSAGING.md, "Long voice notes (multi-part)"): each shows as
+        /// one row, its earliest part; the other parts are left out of `messages`.
+        var voiceGroups = VoicePartGrouping.Result<ChatMessage>()
+        var voiceGroupsVersion: Int?
     }
     @State private var derivedCache = DerivedMessagesCache()
     @State private var hasOutgoingHandshakeMessage = false
@@ -360,6 +360,10 @@ struct ChatDetailView: View {
     /// The fee being typed on the fee editor, in KAS.
     @State private var paymentFeeDraft = ""
     @State private var recordedAudioURL: URL?
+    /// Every part of the encoded on-chain recording, in order; `recordedAudioURL` is the first.
+    /// One part for a note of up to 14.5 s, up to 12 for a long note (MESSAGING.md, "Long voice
+    /// notes (multi-part)").
+    @State private var recordedAudioPartURLs: [URL] = []
     @State private var recordedAudioPreviewURL: URL?
     @State private var isRecording = false
     @State private var recorder: AVAudioRecorder?
@@ -397,6 +401,12 @@ struct ChatDetailView: View {
     /// resolution) instead of a re-encode of the decoded UIImage. Cleared with the pending photo.
     @State private var pendingPhotoOriginalData: Data?
     @State private var isCompressingPhoto = false
+    /// Send on an on-chain photo: High / Medium / Low (`PhotoQualitySheet`).
+    @State private var showPhotoQualitySheet = false
+    /// The pending photo compressed for each tier, as the sheet works it out; and for which image.
+    @State private var photoTierData: [PhotoTier: Data] = [:]
+    @State private var photoTierImageID: ObjectIdentifier?
+    @State private var photoTierTask: Task<Void, Never>?
     /// The pending photo or video's Nextcloud upload, running while it waits in the composer
     /// (see `startNextcloudUpload`). Nil for an on-chain photo.
     @State private var nextcloudStaged: NextcloudStagedMedia?
@@ -412,9 +422,11 @@ struct ChatDetailView: View {
     @State private var sentPayment: SentTransaction?
     @State private var activeChessGameId: String?
 
-    /// On-chain voice notes: as long as one transaction carries with margin (~31 KB of 6 kbps
-    /// Opus in the binary media frame). Size follows length, so a short note costs what it did.
-    private let maxRecordingDuration: TimeInterval = 25 // seconds (on-chain payload cap)
+    /// On-chain voice notes: 16 kbps, parts of at most 14.5 s, up to 170 s (2:50) - as long as
+    /// 1 KAS of fees allows (`VoiceNotePolicy.oneToOne`, MESSAGING.md "Long voice notes"). A note
+    /// of one part's length or less is one ordinary message.
+    private let voicePolicy = VoiceNotePolicy.oneToOne
+    private var maxRecordingDuration: TimeInterval { voicePolicy.maxSeconds }
 
     /// Nextcloud-uploaded voice notes aren't payload-bound - only the server carries them - so
     /// a "Record via Nextcloud" note runs to the app-wide Nextcloud ceiling.
@@ -426,15 +438,22 @@ struct ChatDetailView: View {
     /// is still connected.
     private var photoViaNextcloud: Bool { nextcloudPhotoRequested && nextcloudService.isConnected }
 
-    /// The on-chain photo budget for this send (Chats > Higher quality photos).
-    private var onChainPhotoTargetBytes: Int {
-        settingsViewModel.settings.higherQualityPhotos
-            ? ImagePrep.highQualityChatTargetBytes
-            : ImagePrep.defaultChatTargetBytes
+    /// The pending photo goes on chain: no Nextcloud upload for it, or the upload failed. Then
+    /// Send asks for a quality first (`PhotoQualitySheet`).
+    private var pendingPhotoGoesOnChain: Bool {
+        guard let staged = nextcloudStaged else { return true }
+        if case .failed = staged.phase { return true }
+        return false
     }
     private var voiceViaNextcloud: Bool { nextcloudVoiceRequested && nextcloudService.isConnected }
-    private let maxAudioBytes: Int = 31_000
-    private let opusBitrate: Int32 = 6_000
+    /// Hard ceiling for one part's WebM file: one transaction carries it with margin at
+    /// 2 grams of transient mass per payload byte.
+    private var maxAudioBytes: Int { voicePolicy.maxBytes }
+    /// 16 kbps CBR in 60 ms Opus frames (`VoiceNotePolicy`, where the part and fee math is).
+    /// Every decoder in use takes 60 ms packets: ours decodes into a 120 ms buffer, Android
+    /// plays through MediaPlayer and Desktop through the browser's <audio>/decodeAudioData.
+    private let opusBitrate: Int32 = VoiceNotePolicy.bitrate
+    private let opusFrameMs: Int = VoiceNotePolicy.frameMs
     private let opusSampleRate: Double = 48_000
 
     private var conversation: Conversation? {
@@ -485,7 +504,13 @@ struct ChatDetailView: View {
         )
         let cache = derivedCache
         if cache.key != key {
-            cache.messages = computeMessages()
+            let visible = computeMessages()
+            if cache.voiceGroupsVersion != normalizedMessagesVersion {
+                cache.voiceGroups = VoicePartGrouping.group(visible)
+                cache.voiceGroupsVersion = normalizedMessagesVersion
+            }
+            let hidden = cache.voiceGroups.hiddenIds
+            cache.messages = hidden.isEmpty ? visible : visible.filter { !hidden.contains($0.id) }
             cache.displayedMessages = computeDisplayedMessages(from: cache.messages)
             cache.timelineItems = ChatTimelineLayout.items(for: cache.displayedMessages)
             cache.photosUnlockDate = contactsManager.photosUnlockDate(for: contact.address, messages: cache.messages)
@@ -926,18 +951,6 @@ struct ChatDetailView: View {
                     // layout reported on iPhone Pro Max, where the keyboard is tallest and the
                     // misplacement is largest.
                     .scrollDismissesKeyboard(.immediately)
-                    // Why a tapped call notification did not ring (see CallService.chatNotice).
-                    .onChange(of: callService.chatNotice) { notice in
-                        guard let notice else { return }
-                        callService.chatNotice = nil
-                        showToast(notice, style: .error)
-                    }
-                    .onAppear {
-                        if let notice = callService.chatNotice {
-                            callService.chatNotice = nil
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { showToast(notice, style: .error) }
-                        }
-                    }
                     .onChange(of: pendingJumpToTxId) { txId in
                         guard let txId else { return }
                         jumpToReplyOriginal(txId: txId, using: proxy)
@@ -1059,27 +1072,6 @@ struct ChatDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Trailing, not leading: the left of the bar belongs to Back, and the dot reads as
-            // status rather than navigation. Hidden while selecting, where the bar is Cancel/Delete.
-            // The connection dot is gone from inside a chat (the chat list still has it) - the
-            // one thing in the trailing slot is the call button, always there (hidden only while
-            // a call is already up, on a Message Request until it's accepted, and in a bot's chat). Calls are off per contact by default, so the first tap asks
-            // "Enable calls with this person?"; once enabled it asks voice or video. A phone
-            // with no Nextcloud of its own asks the contact to host the call, so either side
-            // can start one as long as one of them has Talk, which the first sheet says when
-            // this account has no Nextcloud.
-            if !isSelectingMessages, callService.session == nil, !isRequest, !KaChatBot.isBot(contact.address) {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        callRequested = true
-                    } label: {
-                        Image(systemName: "phone.fill")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                    .accessibilityLabel(Text("Call"))
-                }
-            }
-
             if let activeChessGame, !isSelectingMessages {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
@@ -1119,7 +1111,8 @@ struct ChatDetailView: View {
             isPresented: $showDeleteMessagesConfirmation
         ) {
             Button("Delete", role: .destructive) {
-                chatService.deleteMessages(selectedMessageIDs, from: contact)
+                // A long voice note goes with every part.
+                chatService.deleteMessages(expandedForVoiceNotes(selectedMessageIDs), from: contact)
                 isSelectingMessages = false
                 selectedMessageIDs = []
             }
@@ -1135,6 +1128,18 @@ struct ChatDetailView: View {
         .sheet(item: $paymentDetailMessage) { message in
             paymentDetailSheet(for: message)
         }
+        .sheet(isPresented: $showPhotoQualitySheet) {
+            PhotoQualitySheet(
+                fees: photoTierFees,
+                onChoose: { tier in
+                    showPhotoQualitySheet = false
+                    sendPendingPhoto(tier: tier)
+                },
+                onCancel: { showPhotoQualitySheet = false }
+            )
+            .presentationDetents([.height(PhotoQualitySheet.height)])
+            .presentationDragIndicator(.visible)
+        }
         .sheet(item: $reactionsSheetTarget) { target in
             // In a 1:1 chat there are only ever two people, so the name is either yours or
             // theirs - no roster lookup needed.
@@ -1146,11 +1151,6 @@ struct ChatDetailView: View {
                 avatarURL: { knsService.profileCache[$0]?.avatarURL }
             )
         }
-        .modifier(CallConfirmationSheets(
-            isRequested: $callRequested,
-            contact: $contact,
-            name: replyDisplayName(for: contact.address)
-        ))
         .sheet(isPresented: $showChatInfo) {
             ChatInfoView(contact: $contact)
                 .environmentObject(contactsManager)
@@ -2794,8 +2794,19 @@ struct ChatDetailView: View {
             case .audio:
                 HStack {
                     if isRecording {
-                        ProgressView()
-                        Text("\(String(localized: "Recording...")) \(Int(recordingDuration))s")
+                        // A ring that fills toward the limit (2:50 on chain, 5:00 via Nextcloud).
+                        ZStack {
+                            Circle()
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 3)
+                            Circle()
+                                .trim(from: 0, to: min(1, recordingDuration / max(1, effectiveMaxRecordingDuration)))
+                                .stroke(Color.red, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                                .animation(.linear(duration: 1), value: recordingDuration)
+                        }
+                        .frame(width: 20, height: 20)
+                        Text(verbatim: "\(String(localized: "Recording...")) \(formatDuration(recordingDuration)) / \(formatDuration(effectiveMaxRecordingDuration))")
+                            .monospacedDigit()
                         Spacer()
                         Button {
                             // Back to texting: switching modes throws the recording away.
@@ -3602,7 +3613,14 @@ struct ChatDetailView: View {
         switch inputMode {
         case .message:
             if pendingPhotoImage != nil {
-                sendPendingPhoto()
+                if pendingPhotoGoesOnChain {
+                    // On chain: the quality first.
+                    guard !isSending, !isCompressingPhoto else { return }
+                    preparePhotoTiers()
+                    showPhotoQualitySheet = true
+                } else {
+                    sendPendingPhoto()
+                }
             } else {
                 sendMessage()
             }
@@ -3753,7 +3771,10 @@ struct ChatDetailView: View {
     /// Tap-a-reply-quote-to-jump-to-original. `displayedMessages` is a suffix window of `messages`
     /// (see `loadedMessageCount`) - if the target isn't currently windowed in, grow the window to
     /// include it before scrolling, rather than requiring the user to manually paginate up first.
-    private func jumpToReplyOriginal(txId: String, using proxy: ScrollViewProxy) {
+    private func jumpToReplyOriginal(txId originalTxId: String, using proxy: ScrollViewProxy) {
+        // A reply to a later part of a long voice note (another client shows the parts apart)
+        // lands on the note's one bubble.
+        let txId = derived().voiceGroups.anchorTxIdByTxId[originalTxId] ?? originalTxId
         if let target = displayedMessages.first(where: { $0.txId == txId }) {
             scrollAndHighlight(target.id, using: proxy)
             return
@@ -3908,8 +3929,16 @@ struct ChatDetailView: View {
         // triggered "unable to type-check in reasonable time" once the overlay was added. Further
         // split from its own trailing modifiers (a second statement below) for the same reason -
         // the combined call-plus-modifiers was still too much for the checker on its own.
+        // The row standing for a whole long voice note: every part present, and the note's
+        // combined status. Reply and react target this, its first part.
+        // A multi-part photo is grouped the same way (its `mediaPart` tag).
+        let voiceGroup = derived().voiceGroups.groupsByAnchorId[message.id]
+        let groupIsPhoto = voiceGroup.map { InlineFileSniff.isImage($0.anchor.content) } ?? false
+        let voiceParts = groupIsPhoto ? nil : voiceGroup.map(voicePartsInput(for:))
+        let photoParts = groupIsPhoto ? voiceGroup.map(photoPartsInput(for:)) : nil
+        let bubbleMessage = voiceGroup?.displayMessage ?? message
         let rawBubble = MessageBubbleView(
-            message: message,
+            message: bubbleMessage,
             onCopy: showToast,
             onRetry: retryOutgoingMessage,
             onRetryReaction: { reaction in
@@ -3954,7 +3983,9 @@ struct ChatDetailView: View {
                 ? { accepted in respondToChessInvite(gameId: chessEnvelope!.gameId, accepted: accepted) }
                 : nil,
             onOpenChessGame: chessEnvelope != nil ? { activeChessGameId = chessEnvelope!.gameId } : nil,
-            onOpenPayment: message.messageType == .payment ? { paymentDetailMessage = message } : nil
+            onOpenPayment: message.messageType == .payment ? { paymentDetailMessage = message } : nil,
+            voiceParts: voiceParts,
+            photoParts: photoParts
         )
         let bubble = rawBubble
             .allowsHitTesting(!isSelectingMessages)
@@ -3964,6 +3995,44 @@ struct ChatDetailView: View {
             bubble
             selectionOverlay(for: message.txId)
         }
+    }
+
+    /// The pieces of a long voice note's bubble: the parts present, in index order.
+    private func voicePartsInput(for group: VoicePartGroup) -> VoiceNotePartsInput {
+        var pieces: [VoiceNotePartsInput.Piece] = []
+        for part in group.parts {
+            guard let media = MediaFile.from(part.content, cacheKey: part.txId),
+                  media.isAudio,
+                  let tag = media.voicePart,
+                  let data = media.fileData(cacheKey: part.txId) else { continue }
+            pieces.append(VoiceNotePartsInput.Piece(index: tag.index, txId: part.txId, data: data, mimeType: media.mimeType))
+        }
+        return VoiceNotePartsInput(count: group.count, parts: pieces)
+    }
+
+    /// The chunks of a multi-part photo's bubble: the parts present, in index order.
+    private func photoPartsInput(for group: VoicePartGroup) -> PhotoPartsInput {
+        var pieces: [PhotoPartsInput.Piece] = []
+        var mimeType = "image/jpeg"
+        for part in group.parts {
+            guard let media = MediaFile.from(part.content, cacheKey: part.txId),
+                  media.isImage,
+                  let tag = media.mediaPart,
+                  let data = media.fileData(cacheKey: part.txId) else { continue }
+            mimeType = media.mimeType
+            pieces.append(PhotoPartsInput.Piece(index: tag.index, data: data))
+        }
+        return PhotoPartsInput(count: group.count, parts: pieces, mimeType: mimeType, anchorTxId: group.anchor.txId)
+    }
+
+    /// Every message a selection stands for: a long voice note's row brings all its parts.
+    private func expandedForVoiceNotes(_ txIds: Set<String>) -> Set<String> {
+        let groups = derived().voiceGroups.groupTxIdsByAnchorTxId
+        var expanded = txIds
+        for txId in txIds {
+            if let members = groups[txId] { expanded.formUnion(members) }
+        }
+        return expanded
     }
 
     /// Selection-mode tap catcher + indicator, split out of `messageRow` (see its own comment) -
@@ -4147,10 +4216,17 @@ struct ChatDetailView: View {
 
     private func retryOutgoingMessage(_ message: ChatMessage) {
         guard message.isOutgoing else { return }
+        // A long voice note's Retry resends only its failed parts, in order.
+        let failedParts = derived().voiceGroups.groupsByAnchorId[message.id]?.parts
+            .filter { $0.isOutgoing && $0.deliveryStatus == .failed }
         Task { @MainActor in
             isSending = true
             defer { isSending = false }
             do {
+                if let failedParts {
+                    try await chatService.retryVoiceNoteParts(failedParts, contact: contact)
+                    return
+                }
                 try await chatService.retryOutgoingMessage(message, contact: contact)
             } catch {
                 self.error = displayErrorMessage(error)
@@ -4164,7 +4240,8 @@ struct ChatDetailView: View {
         let setting = settingsViewModel.settings.showFeeEstimate
         switch inputMode {
         case .message:
-            if pendingPhotoImage != nil { return setting || !photoViaNextcloud }
+            // An on-chain photo's fee is chosen in the quality sheet at Send.
+            if pendingPhotoImage != nil { return setting && photoViaNextcloud }
             return setting && composerHasText
         case .audio:
             guard isRecording || isEncodingAudio || recordedAudioPreviewURL != nil else { return false }
@@ -4238,9 +4315,13 @@ struct ChatDetailView: View {
         }
         // Via Nextcloud, the chain only carries the ~80-byte share link — the photo bytes live
         // on the server — so the fee shown is the link-message fee, not the envelope fee.
-        let payloadSize = photoViaNextcloud
-            ? Self.nextcloudLinkPayloadSize
-            : ImagePrep.estimatedWirePayloadSize(targetBytes: onChainPhotoTargetBytes)
+        // On chain, the quality sheet shows each tier's fee at Send; there is none to show yet.
+        guard photoViaNextcloud else {
+            feeEstimateSompi = nil
+            isEstimatingFee = false
+            return
+        }
+        let payloadSize = Self.nextcloudLinkPayloadSize
         feeEstimateSompi = KasiaTransactionBuilder.estimateContextualMessageFee(
             payload: Data(count: payloadSize),
             inputCount: 1,
@@ -4366,9 +4447,7 @@ struct ChatDetailView: View {
                     if let previewURL = self.recordedAudioPreviewURL {
                         secureDeleteTempFile(previewURL)
                     }
-                    if let encodedURL = self.recordedAudioURL {
-                        secureDeleteTempFile(encodedURL)
-                    }
+                    self.discardEncodedAudio()
                     self.recordingFeeTask?.cancel()
                     self.recorder = recorder
                     self.isRecording = true
@@ -4413,9 +4492,7 @@ struct ChatDetailView: View {
         if let url = recordedAudioPreviewURL {
             secureDeleteTempFile(url)
         }
-        if let url = recordedAudioURL {
-            secureDeleteTempFile(url)
-        }
+        discardEncodedAudio()
         if let originalURL = nextcloudOriginalRecordingURL {
             secureDeleteTempFile(originalURL)
             nextcloudOriginalRecordingURL = nil
@@ -4436,6 +4513,10 @@ struct ChatDetailView: View {
     }
 
     private func cancelPendingPhoto() {
+        photoTierTask?.cancel()
+        photoTierTask = nil
+        photoTierData = [:]
+        photoTierImageID = nil
         nextcloudUploadTask?.cancel()
         nextcloudUploadTask = nil
         nextcloudStaged = nil
@@ -4506,11 +4587,37 @@ struct ChatDetailView: View {
         return true
     }
 
-    private func sendPendingPhoto() {
-        Task { await sendPendingPhotoAsync() }
+    private func sendPendingPhoto(tier: PhotoTier = .low) {
+        Task { await sendPendingPhotoAsync(tier: tier) }
     }
 
-    private func sendPendingPhotoAsync() async {
+    /// Compresses the pending photo for every tier off the main thread, so the quality sheet can
+    /// show each one's real fee. Kept for the send that follows; once per photo.
+    private func preparePhotoTiers() {
+        guard let image = pendingPhotoImage else { return }
+        let imageID = ObjectIdentifier(image)
+        guard photoTierImageID != imageID else { return }
+        photoTierTask?.cancel()
+        photoTierImageID = imageID
+        photoTierData = [:]
+        let budgets = Dictionary(uniqueKeysWithValues: PhotoTier.allCases.map { ($0, $0.maxBytes(forGroup: false)) })
+        photoTierTask = Task.detached(priority: .userInitiated) {
+            guard let results = try? ImagePrep.prepareJPEGForTiers(image, budgets: Array(budgets.values)) else { return }
+            await MainActor.run {
+                guard photoTierImageID == imageID, !Task.isCancelled else { return }
+                var byTier: [PhotoTier: Data] = [:]
+                for (tier, budget) in budgets { byTier[tier] = results[budget] }
+                photoTierData = byTier
+            }
+        }
+    }
+
+    /// The fee each tier's compressed photo will cost, for the quality sheet.
+    private var photoTierFees: [PhotoTier: UInt64] {
+        photoTierData.mapValues { PhotoPolicy.estimatedFeeSompi(bytes: $0.count, forGroup: false) }
+    }
+
+    private func sendPendingPhotoAsync(tier: PhotoTier = .low) async {
         // Guards against double-send: the button stays tappable during the compress+upload
         // window (see `canSend`), and `pendingPhotoImage` itself isn't cleared until the send
         // actually finishes, so without this a second tap mid-send would start a second,
@@ -4549,14 +4656,21 @@ struct ChatDetailView: View {
         }
 
         do {
-            // On chain, the photo budget: 20 KB, or the largest a transaction carries with
-            // Chats > Higher quality photos on.
-            let preparedImage = try ImagePrep.prepareForChatMessage(image, targetBytes: onChainPhotoTargetBytes)
+            // On chain, the chosen tier's photo: compressed already for the sheet, else now (off
+            // the main thread). Bigger than one transaction, it goes as a multi-part photo.
+            let imageData: Data
+            if photoTierImageID == ObjectIdentifier(image), let ready = photoTierData[tier] {
+                imageData = ready
+            } else {
+                imageData = try await Task.detached(priority: .userInitiated) {
+                    try ImagePrep.prepareForTier(image, tier: tier, forGroup: false).data
+                }.value
+            }
             try await chatService.sendImage(
                 to: contact,
-                imageData: preparedImage.data,
-                fileName: preparedImage.fileName,
-                mimeType: preparedImage.mimeType
+                imageData: imageData,
+                fileName: "photo.jpg",
+                mimeType: "image/jpeg"
             )
             await MainActor.run {
                 cancelPendingPhoto()
@@ -4599,8 +4713,17 @@ struct ChatDetailView: View {
 
         do {
             // Decode WebM/Opus to CAF for preview playback (same quality as recipient will hear)
-            let audioData = try Data(contentsOf: audioURL)
-            let decoded = try decodeWebMForPreview(data: audioData)
+            let decoded: (url: URL, duration: TimeInterval)
+            if recordedAudioPartURLs.count > 1 {
+                // A long note: every part, joined as the recipient's bubble plays it.
+                let parts = try WebMOpusDecoder.decodePartsToPCMFile(
+                    parts: recordedAudioPartURLs.map { try Data(contentsOf: $0) }
+                )
+                decoded = (parts.url, parts.duration)
+            } else {
+                let audioData = try Data(contentsOf: audioURL)
+                decoded = try decodeWebMForPreview(data: audioData)
+            }
 
             // Clean up old preview file (never the stashed Nextcloud original — the upload
             // path still needs it).
@@ -4778,20 +4901,19 @@ struct ChatDetailView: View {
         }
     }
 
-    private func estimateEncodedSize(forDuration duration: TimeInterval) -> Int {
-        // WebM Opus overhead estimation:
-        // - EBML + track headers: ~200 bytes
-        // - Container overhead ~400 bytes/sec
-        // - Audio bytes/sec derived from opus bitrate
-        // - Ensure estimates can reach maxAudioBytes at max duration
-        let headerSize = 200
-        let containerOverheadPerSecond = 320 // ~6 B per packet + a Cluster per second (measured layout)
-        let audioBytesPerSecond = Int(Double(opusBitrate) / 8.0)
-        let bitrateEstimate = audioBytesPerSecond + containerOverheadPerSecond
-        let targetBytesPerSecond = Int(Double(maxAudioBytes - headerSize) / maxRecordingDuration)
-        let bytesPerSecond = max(bitrateEstimate, targetBytesPerSecond)
-        let estimatedSize = headerSize + Int(duration * Double(bytesPerSecond))
-        return min(estimatedSize, maxAudioBytes)
+    /// The WebM size of each part a recording of `duration` makes, worked out from the layout
+    /// `WebMOpusEncoder` writes (see `opusBitrate`): CBR makes it exact to a few bytes. Capped
+    /// at `maxAudioBytes` per part, as the encoder is.
+    private func estimatedPartSizes(forDuration duration: TimeInterval) -> [Int] {
+        VoiceNoteLayout.partSizes(
+            duration: min(duration, maxRecordingDuration),
+            partSeconds: voicePolicy.partSeconds,
+            maxParts: voiceViaNextcloud ? 1 : VoicePartTag.maxParts,
+            bitrate: opusBitrate,
+            frameMs: opusFrameMs,
+            maxBytes: maxAudioBytes,
+            sampleRate: opusSampleRate
+        )
     }
 
     private func updateRecordingFee() {
@@ -4812,48 +4934,61 @@ struct ChatDetailView: View {
             return
         }
 
-        // During recording, estimate based on duration
-        // After encoding, use actual file data
-        let contentString: String
-        let fileName: String
-        let fileSize: Int
-        let mime: String
-
-        if let url = recordedAudioURL {
-            // Use actual encoded file with real base64 content
-            guard let data = try? Data(contentsOf: url) else {
-                isEstimatingFee = false
-                return
+        // During recording, estimate from the duration; after encoding, from the real parts.
+        // A long note is the sum over its parts (no reply envelope on them); full parts are
+        // the same size (CBR), so the first prices every full one and the last its own.
+        var contents: [String] = []
+        if !recordedAudioPartURLs.isEmpty || recordedAudioURL != nil {
+            let urls = recordedAudioPartURLs.isEmpty ? [recordedAudioURL].compactMap { $0 } : recordedAudioPartURLs
+            for (offset, url) in urls.enumerated() {
+                guard let data = try? Data(contentsOf: url) else {
+                    isEstimatingFee = false
+                    return
+                }
+                let mime = mimeType(for: url)
+                let tag = urls.count > 1 ? VoicePartTag(id: String(repeating: "0", count: 32), index: offset + 1, count: urls.count) : nil
+                contents.append(MediaFileEnvelope.json(
+                    name: tag?.fileName ?? url.lastPathComponent,
+                    size: data.count,
+                    mimeType: mime,
+                    dataUrlContent: "data:\(mime);base64,\(data.base64EncodedString())",
+                    voicePart: tag
+                ))
             }
-            let base64 = data.base64EncodedString()
-            fileName = url.lastPathComponent
-            fileSize = data.count
-            mime = mimeType(for: url)
-            contentString = "data:\(mime);base64,\(base64)"
         } else if isRecording || isEncodingAudio {
-            // Estimate based on current recording duration using dummy content
-            let estimatedSize = estimateEncodedSize(forDuration: recordingDuration)
-            let dummyContent = String(repeating: "x", count: estimatedSize)
-            fileName = "audio.webm"
-            fileSize = estimatedSize
-            mime = "audio/webm"
-            contentString = "data:\(mime);base64,\(dummyContent)"
+            let sizes = estimatedPartSizes(forDuration: recordingDuration)
+            for (offset, size) in sizes.enumerated() {
+                let tag = sizes.count > 1 ? VoicePartTag(id: String(repeating: "0", count: 32), index: offset + 1, count: sizes.count) : nil
+                // Real base64 of the right byte count, so the estimate takes the binary media
+                // frame exactly as the send will.
+                contents.append(MediaFileEnvelope.json(
+                    name: tag?.fileName ?? "audio.webm",
+                    size: size,
+                    mimeType: "audio/webm",
+                    dataUrlContent: "data:audio/webm;base64,\(Data(count: size).base64EncodedString())",
+                    voicePart: tag
+                ))
+            }
         } else {
             return
         }
+        guard let firstContent = contents.first else { return }
+        let lastContent = contents.count > 1 ? contents.last : nil
+        let fullParts = UInt64(max(0, contents.count - 1))
 
         isEstimatingFee = true
         recordingFeeTask = Task {
             do {
-                // Same deterministic envelope the real send uses, so the estimate sizes the
-                // exact bytes that will go on the wire - see MediaFileEnvelope.
-                let jsonString = MediaFileEnvelope.json(
-                    name: fileName,
-                    size: fileSize,
-                    mimeType: mime,
-                    dataUrlContent: contentString
-                )
-                let estimate = try await chatService.estimateMessageFee(to: contact, content: jsonString)
+                let estimate: UInt64
+                if let lastContent {
+                    let full = try await chatService.estimateMessageFee(to: contact, content: firstContent, wrapReply: false)
+                    let last = try await chatService.estimateMessageFee(to: contact, content: lastContent, wrapReply: false)
+                    estimate = full.multipliedReportingOverflow(by: fullParts).partialValue &+ last
+                } else {
+                    // Same deterministic envelope the real send uses, so the estimate sizes the
+                    // exact bytes that will go on the wire - see MediaFileEnvelope.
+                    estimate = try await chatService.estimateMessageFee(to: contact, content: firstContent)
+                }
                 await MainActor.run {
                     self.recordingFeeSompi = estimate
                     self.feeEstimateSompi = estimate
@@ -4900,28 +5035,31 @@ struct ChatDetailView: View {
                 }
             }
         }
-        let outputURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("kasia-audio-\(UUID().uuidString).webm")
+        // On chain: parts of at most 14.5 s, up to 12 (a note that short is one file, sent
+        // as before). Via Nextcloud only the fallback is encoded - one part, as before - since
+        // the upload is made from the full-length original.
+        let maxParts = voiceViaNextcloud ? 1 : VoicePartTag.maxParts
+        func encodeParts() async throws -> [URL] {
+            try await WebMOpusEncoder.encodeParts(
+                pcmURL: url,
+                outputDirectory: FileManager.default.temporaryDirectory,
+                bitrate: opusBitrate,
+                sampleRate: opusSampleRate,
+                frameMs: opusFrameMs,
+                partSeconds: voicePolicy.partSeconds,
+                maxParts: maxParts,
+                maxBytes: maxAudioBytes
+            )
+        }
         do {
+            let partURLs: [URL]
             do {
-                try await WebMOpusEncoder.encode(
-                    pcmURL: url,
-                    outputURL: outputURL,
-                    bitrate: opusBitrate,
-                    sampleRate: opusSampleRate,
-                    maxBytes: maxAudioBytes
-                )
+                partURLs = try await encodeParts()
             } catch let error as WebMOpusEncodingError {
                 #if canImport(YbridOpus) || OPUS_BRIDGE || OPUS_CATALYST
                 if case .audioReadFailed = error {
                     try await Task.sleep(nanoseconds: 200_000_000)
-                    try await WebMOpusEncoder.encode(
-                        pcmURL: url,
-                        outputURL: outputURL,
-                        bitrate: opusBitrate,
-                        sampleRate: opusSampleRate,
-                        maxBytes: maxAudioBytes
-                    )
+                    partURLs = try await encodeParts()
                 } else {
                     throw error
                 }
@@ -4930,19 +5068,34 @@ struct ChatDetailView: View {
                 #endif
             }
             await MainActor.run {
-                self.recordedAudioURL = outputURL
+                self.recordedAudioPartURLs = partURLs
+                self.recordedAudioURL = partURLs.first
                 self.isEstimatingFee = false
                 self.isEncodingAudio = false
             }
         } catch {
-            secureDeleteTempFile(outputURL)
             await MainActor.run {
-                self.recordedAudioURL = nil
+                self.discardEncodedAudio()
                 self.isEstimatingFee = false
                 self.isEncodingAudio = false
                 self.error = "Failed to encode audio: \(error.localizedDescription)"
             }
         }
+    }
+
+    /// The encoded parts of a long note, in order; empty for a note that is a single file.
+    private func readEncodedParts() throws -> [Data] {
+        guard recordedAudioPartURLs.count > 1 else { return [] }
+        return try recordedAudioPartURLs.map { try Data(contentsOf: $0) }
+    }
+
+    /// Deletes every encoded part of the current recording.
+    private func discardEncodedAudio() {
+        var urls = recordedAudioPartURLs
+        if let first = recordedAudioURL, !urls.contains(first) { urls.append(first) }
+        for url in urls { secureDeleteTempFile(url) }
+        recordedAudioURL = nil
+        recordedAudioPartURLs = []
     }
 
     private func waitForRecordingFile(_ url: URL) async {
@@ -5046,9 +5199,7 @@ struct ChatDetailView: View {
                         if let previewURL = recordedAudioPreviewURL {
                             secureDeleteTempFile(previewURL)
                         }
-                        if let encodedURL = recordedAudioURL {
-                            secureDeleteTempFile(encodedURL)
-                        }
+                        discardEncodedAudio()
                         recordedAudioURL = nil
                         recordedAudioPreviewURL = nil
                         recordingFeeSompi = nil
@@ -5070,23 +5221,28 @@ struct ChatDetailView: View {
                 // No share link — fall through to the on-chain envelope path.
             }
 
+            // A long note goes as its parts (MESSAGING.md, "Long voice notes (multi-part)"); one
+            // of one part's length or less is a single ordinary message.
+            let partDatas = try readEncodedParts()
             recordingFeeTask?.cancel()
             isSending = true
             Task {
                 do {
-                    try await chatService.sendAudio(
-                        to: contact,
-                        audioData: payloadData,
-                        fileName: url.lastPathComponent,
-                        mimeType: mime
-                    )
+                    if partDatas.count > 1 {
+                        try await chatService.sendVoiceNoteParts(to: contact, parts: partDatas, mimeType: mime)
+                    } else {
+                        try await chatService.sendAudio(
+                            to: contact,
+                            audioData: payloadData,
+                            fileName: url.lastPathComponent,
+                            mimeType: mime
+                        )
+                    }
                     await MainActor.run {
                         if let previewURL = recordedAudioPreviewURL {
                             secureDeleteTempFile(previewURL)
                         }
-                        if let encodedURL = recordedAudioURL {
-                            secureDeleteTempFile(encodedURL)
-                        }
+                        discardEncodedAudio()
                         recordedAudioURL = nil
                         recordedAudioPreviewURL = nil
                         recordingFeeSompi = nil
@@ -5285,11 +5441,94 @@ private enum WebMOpusEncodingError: LocalizedError {
 }
 
 struct WebMOpusEncoder {
-    static func encode(pcmURL: URL, outputURL: URL, bitrate: Int32, sampleRate: Double, maxBytes: Int? = nil) async throws {
+    /// One WebM-Opus file of the whole recording at 20 ms frames, trimmed to `maxBytes` - the
+    /// group voice note (`VoiceNoteRecorder`), unchanged.
+    static func encode(pcmURL: URL, outputURL: URL, bitrate: Int32, sampleRate: Double, maxBytes: Int? = nil, frameMs: Int = 20) async throws {
         let pcmSamples = try await readFloatSamples(from: pcmURL, sampleRate: sampleRate)
+        guard !pcmSamples.isEmpty else {
+            throw WebMOpusEncodingError.noSamples
+        }
+        let webmData = try encodeRange(
+            pcmSamples,
+            range: 0..<pcmSamples.count,
+            coverLookahead: false,
+            bitrate: bitrate,
+            sampleRate: sampleRate,
+            frameMs: frameMs,
+            maxBytes: maxBytes
+        )
+        try webmData.write(to: outputURL, options: .atomic)
+    }
 
-        let totalFrames = pcmSamples.count
-        guard totalFrames > 0 else {
+    /// A 1:1 on-chain recording as parts of at most `partSeconds` each (one file when it is that
+    /// short), every part a complete WebM-Opus file of its own (MESSAGING.md, "Long voice notes
+    /// (multi-part)"). Audio past `maxParts` parts is dropped, and so is a last scrap under
+    /// 0.2 s after a full part (the tap that stopped the recording), which would otherwise cost
+    /// a whole transaction.
+    ///
+    /// Each part's encoder is also fed the codec's look-ahead (312 samples at 48 kHz) from the
+    /// next part, and its Info Duration says the part's real length: a reader that cuts each
+    /// part's pre-skip and trims it to that duration joins the parts with no gap
+    /// (`WebMOpusDecoder.decodePartsToPCMFile`). One that doesn't hears ~7 ms of overlap.
+    static func encodeParts(
+        pcmURL: URL,
+        outputDirectory: URL,
+        bitrate: Int32,
+        sampleRate: Double,
+        frameMs: Int,
+        partSeconds: TimeInterval,
+        maxParts: Int,
+        maxBytes: Int
+    ) async throws -> [URL] {
+        let pcmSamples = try await readFloatSamples(from: pcmURL, sampleRate: sampleRate)
+        guard !pcmSamples.isEmpty else {
+            throw WebMOpusEncodingError.noSamples
+        }
+        let partSamples = max(1, Int(partSeconds * sampleRate))
+        var total = min(pcmSamples.count, partSamples * max(1, maxParts))
+        let remainder = total % partSamples
+        if total > partSamples, remainder > 0, remainder < Int(0.2 * sampleRate) {
+            total -= remainder
+        }
+        let token = UUID().uuidString
+        var urls: [URL] = []
+        do {
+            for (offset, partStart) in stride(from: 0, to: total, by: partSamples).enumerated() {
+                let range = partStart..<min(partStart + partSamples, total)
+                let data = try encodeRange(
+                    pcmSamples,
+                    range: range,
+                    coverLookahead: true,
+                    bitrate: bitrate,
+                    sampleRate: sampleRate,
+                    frameMs: frameMs,
+                    maxBytes: maxBytes
+                )
+                let name = offset == 0 ? "kasia-audio-\(token).webm" : "kasia-audio-\(token)-\(offset + 1).webm"
+                let url = outputDirectory.appendingPathComponent(name)
+                try data.write(to: url, options: .atomic)
+                urls.append(url)
+            }
+        } catch {
+            for url in urls { try? FileManager.default.removeItem(at: url) }
+            throw error
+        }
+        return urls
+    }
+
+    /// Encodes `samples[range]` as one WebM-Opus file. With `coverLookahead`, the encoder also
+    /// gets the codec's look-ahead past the range (the next samples, else silence), so the decoded
+    /// output, after pre-skip, holds the whole range; the Info Duration is the range's length.
+    private static func encodeRange(
+        _ samples: [Float],
+        range: Range<Int>,
+        coverLookahead: Bool,
+        bitrate: Int32,
+        sampleRate: Double,
+        frameMs: Int,
+        maxBytes: Int?
+    ) throws -> Data {
+        guard !range.isEmpty else {
             throw WebMOpusEncodingError.noSamples
         }
 
@@ -5317,21 +5556,29 @@ struct WebMOpusEncoder {
             outputGain: 0
         )
 
-        let frameSize = max(1, Int(sampleRate / 50.0))
+        // The samples handed to the encoder: the range, plus the look-ahead when asked.
+        let contentCount = range.count
+        let extra = coverLookahead ? max(0, Int(lookahead)) : 0
+        let available = min(samples.count, range.upperBound + extra) - range.lowerBound
+        let totalFrames = contentCount + extra
+
+        // 20 ms (groups, older notes) or 60 ms (1:1 on chain): both are Opus frame sizes.
+        let frameSize = max(1, Int(sampleRate * Double(frameMs) / 1000.0))
         var offset = 0
         var frameBuffer = [Float](repeating: 0, count: frameSize)
         var outputBuffer = [UInt8](repeating: 0, count: 1500)
         var packets: [Data] = []
 
         while offset < totalFrames {
-            let remaining = totalFrames - offset
-            let currentFrame = min(frameSize, remaining)
+            let currentInput = min(frameSize, max(0, available - offset))
             frameBuffer.withUnsafeMutableBufferPointer { bufferPointer in
                 if let base = bufferPointer.baseAddress {
                     memset(base, 0, frameSize * MemoryLayout<Float>.size)
-                    pcmSamples.withUnsafeBufferPointer { samples in
-                        if let source = samples.baseAddress?.advanced(by: offset) {
-                            memcpy(base, source, currentFrame * MemoryLayout<Float>.size)
+                    if currentInput > 0 {
+                        samples.withUnsafeBufferPointer { source in
+                            if let sourceBase = source.baseAddress?.advanced(by: range.lowerBound + offset) {
+                                memcpy(base, sourceBase, currentInput * MemoryLayout<Float>.size)
+                            }
                         }
                     }
                 }
@@ -5355,10 +5602,10 @@ struct WebMOpusEncoder {
 
             let packet = Data(outputBuffer[0..<Int(encodedSize)])
             packets.append(packet)
-            offset += currentFrame
+            offset += frameSize
         }
 
-        let durationSeconds = Double(totalFrames) / sampleRate
+        let durationSeconds = Double(contentCount) / sampleRate
         let frameDurationMs = Int64((Double(frameSize) / sampleRate) * 1000.0)
 
         // The Info duration is what the packets actually hold - if the byte ceiling below ever
@@ -5374,6 +5621,7 @@ struct WebMOpusEncoder {
             frameDurationMs: frameDurationMs
         )
 
+        // The hard guard: never a file over `maxBytes`, whatever the codec did.
         if let maxBytes = maxBytes {
             while webmData.count > maxBytes, packets.count > 1 {
                 packets.removeLast()
@@ -5386,8 +5634,7 @@ struct WebMOpusEncoder {
                 )
             }
         }
-
-        try webmData.write(to: outputURL, options: .atomic)
+        return webmData
     }
 
     private static func readFloatSamples(from url: URL, sampleRate: Double) async throws -> [Float] {
@@ -5686,7 +5933,20 @@ private enum WebMOpusEncodingError: LocalizedError {
 }
 
 struct WebMOpusEncoder {
-    static func encode(pcmURL: URL, outputURL: URL, bitrate: Int32, sampleRate: Double, maxBytes: Int? = nil) async throws {
+    static func encode(pcmURL: URL, outputURL: URL, bitrate: Int32, sampleRate: Double, maxBytes: Int? = nil, frameMs: Int = 20) async throws {
+        throw WebMOpusEncodingError.unsupportedPlatform
+    }
+
+    static func encodeParts(
+        pcmURL: URL,
+        outputDirectory: URL,
+        bitrate: Int32,
+        sampleRate: Double,
+        frameMs: Int,
+        partSeconds: TimeInterval,
+        maxParts: Int,
+        maxBytes: Int
+    ) async throws -> [URL] {
         throw WebMOpusEncodingError.unsupportedPlatform
     }
 }

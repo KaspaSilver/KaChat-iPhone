@@ -644,11 +644,12 @@ final class GroupChatService: ObservableObject {
     }
 
     private func computeUnreadCount(for group: GroupChat, messages: [GroupMessage], lastReadAt: Date?) -> Int {
+        // A long voice note's parts count once (MESSAGING.md, "Long voice notes").
         guard let lastReadAt else {
-            let count = messages.filter { !$0.isOutgoing }.count
+            let count = VoicePartGrouping.unreadUnits(messages.filter { !$0.isOutgoing })
             return group.isAdmin ? count : max(count, 1)
         }
-        return messages.filter { !$0.isOutgoing && $0.timestamp > lastReadAt }.count
+        return VoicePartGrouping.unreadUnits(messages.filter { !$0.isOutgoing && $0.timestamp > lastReadAt })
     }
 
     /// Everything `computeUnreadCount` actually reads, cheap to derive. A delivery-status change
@@ -1662,6 +1663,12 @@ final class GroupChatService: ObservableObject {
         guard !imageData.isEmpty else {
             throw KasiaError.networkError("Image is empty")
         }
+        // Bigger than one transaction carries (Medium, High): its chunks, as one multi-part photo.
+        let chunks = PhotoPolicy.chunks(imageData, forGroup: true)
+        if chunks.count > 1 {
+            try await sendGroupMediaParts(chunks, to: groupId, mimeType: mimeType)
+            return
+        }
         let base64 = imageData.base64EncodedString()
         // Deterministic field order (mimeType before content) - see MediaFileEnvelope.
         let jsonString = MediaFileEnvelope.json(
@@ -1673,7 +1680,8 @@ final class GroupChatService: ObservableObject {
         try await sendGroupMessage(jsonString, to: groupId)
     }
 
-    /// Sends a voice message to the group - same envelope/reuse rationale as `sendGroupImage`.
+    /// Sends a voice message to the group - same envelope/reuse rationale as `sendGroupImage`,
+    /// sealed as the binary media frame (`groupPlaintextData`).
     func sendGroupAudio(_ audioData: Data, to groupId: String, fileName: String = "voice.webm", mimeType: String = "audio/webm") async throws {
         guard !audioData.isEmpty else {
             throw KasiaError.networkError("Audio file is empty")
@@ -1695,7 +1703,9 @@ final class GroupChatService: ObservableObject {
     /// the broadcast-payload fee estimate. Read-only: doesn't touch
     /// `msgCounter` (a throwaway counter value is fine for sizing, since msg_id is a fixed 24
     /// bytes regardless of the counter's value).
-    func estimateGroupMessageFee(_ text: String, for groupId: String, feeOverride: UInt64? = nil) async throws -> UInt64 {
+    /// `wrapReply: false` sizes the text exactly as given: a long voice note's parts never carry
+    /// the reply envelope (`sendGroupVoiceNoteParts`).
+    func estimateGroupMessageFee(_ text: String, for groupId: String, feeOverride: UInt64? = nil, wrapReply: Bool = true) async throws -> UInt64 {
         if let feeOverride {
             return feeOverride
         }
@@ -1719,7 +1729,7 @@ final class GroupChatService: ObservableObject {
         let msgId = GroupCipher.buildMsgId(deviceId: deviceId, counter: bag.msgCounter + 1)
         // Account for the reply envelope's extra bytes, matching the wrapping `sendGroupMessage` does.
         let estimatedPlaintext: String
-        if let reply = replyingTo {
+        if wrapReply, let reply = replyingTo {
             estimatedPlaintext = MessageReplyCodec.encode(
                 replyToId: reply.txId, replyToSender: reply.senderAddress ?? "",
                 replyToPreview: MessageReplyCodec.previewText(for: reply.content), text: trimmed
@@ -1728,7 +1738,7 @@ final class GroupChatService: ObservableObject {
             estimatedPlaintext = trimmed
         }
         let ciphertext = try GroupCipher.encryptMessage(
-            plaintext: estimatedPlaintext, groupRootEpoch: groupRootEpoch, groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId
+            plaintextData: Self.groupPlaintextData(for: estimatedPlaintext), groupRootEpoch: groupRootEpoch, groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId
         )
         let aad = GroupCipher.buildMessageAAD(groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId)
         let signature = try GroupCipher.sign(
@@ -1744,9 +1754,9 @@ final class GroupChatService: ObservableObject {
         )
     }
 
-    /// Heuristic fee preview for a not-yet-sent photo/audio message (final bytes aren't known
-    /// until compression/encoding finishes) - same shape as `ImagePrep.estimatedWirePayloadSize`,
-    /// but sized for `gcomm`'s wire format: raw bytes -> base64 (1.33x) in the JSON envelope ->
+    /// Heuristic fee preview for a text-form media message (today only the Nextcloud link's
+    /// envelope; photos and voice are framed - `estimateGroupVoiceFee`, `PhotoPolicy`), sized
+    /// for `gcomm`'s wire format: raw bytes -> base64 (1.33x) in the JSON envelope ->
     /// ChaCha20-Poly1305 (+16 byte tag) -> hex (2x) for the ciphertext field, plus ~370 bytes of
     /// fixed hex-encoded overhead (blinded_group_id/sender_id/sender_pub/msg_id/signature) that
     /// 1:1's ECIES-only envelope doesn't carry.
@@ -1754,6 +1764,26 @@ final class GroupChatService: ObservableObject {
         let jsonEnvelopeBytes = Int(Double(rawBytes) * 1.33) + 150
         let ciphertextHexBytes = (jsonEnvelopeBytes + 16) * 2
         return ciphertextHexBytes + 370
+    }
+
+    /// The `gcomm` payload size of a voice note of `rawBytes` of WebM, sealed as the binary media
+    /// frame (`groupPlaintextData`): 9 bytes of magic and length + ~142 of header JSON (the
+    /// `voicePart` tag included) + the raw bytes, +16 tag, as hex, + ~391 of fixed fields.
+    func estimatedGroupVoiceWirePayloadSize(rawBytes: Int) -> Int {
+        (9 + 142 + rawBytes + 16) * 2 + 391
+    }
+
+    /// Fee preview for a group voice note of `rawBytes` of WebM (one part of a long note).
+    func estimateGroupVoiceFee(rawBytes: Int) -> UInt64? {
+        guard let wallet = WalletManager.shared.currentWallet,
+              let senderScriptPubKey = KaspaAddress.scriptPublicKey(from: wallet.publicAddress) else {
+            return nil
+        }
+        return KasiaTransactionBuilder.estimatePublicChatFee(
+            payload: Data(count: estimatedGroupVoiceWirePayloadSize(rawBytes: rawBytes)),
+            inputCount: 1,
+            senderScriptPubKey: senderScriptPubKey
+        )
     }
 
     /// Fee preview for a staged/in-progress photo or audio message, from an estimated raw byte
@@ -1771,6 +1801,50 @@ final class GroupChatService: ObservableObject {
     }
 
     func sendGroupMessage(_ text: String, to groupId: String, feeOverride: UInt64? = nil) async throws {
+        // If replying, wrap the content in the shared reply envelope (matches
+        // ChatService.sendMessage) so the quote survives even if
+        // the original message is later pruned.
+        let payload: String
+        if let reply = replyingTo {
+            payload = MessageReplyCodec.encode(
+                replyToId: reply.txId, replyToSender: reply.senderAddress ?? "",
+                replyToPreview: MessageReplyCodec.previewText(for: reply.content), text: text
+            )
+        } else {
+            payload = text
+        }
+        let prepared = try prepareGroupSend(payload, to: groupId)
+        try await submitPreparedGroupSend(prepared, feeOverride: feeOverride)
+        replyingTo = nil
+    }
+
+    /// The bytes a group message is sealed as. A voice note or photo (an `audio/*` or `image/*`
+    /// media-file JSON) is the binary media frame since 2026-11-11 (`ContextualMediaFrame`,
+    /// MESSAGING.md "In group chats" and "Photos: quality tiers"): raw bytes instead of base64,
+    /// about 2 payload bytes per file byte instead of 2.67. Older and other clients can't read it
+    /// until they're updated. Everything else stays UTF-8 text.
+    static func groupPlaintextData(for content: String) -> Data {
+        if VoiceMessageSniff.isVoiceMessage(content) || InlineFileSniff.isImage(content),
+           let frame = ContextualMediaFrame.frame(forEnvelope: content) {
+            return frame
+        }
+        return Data(content.utf8)
+    }
+
+    /// One group message sealed and on screen as pending, not yet sent.
+    private struct PreparedGroupSend {
+        let groupId: String
+        let pendingId: String
+        let pendingMessage: GroupMessage
+        let payload: String
+        let payloadString: String
+        let senderIdHex: String
+        let walletAddress: String
+        let privateKey: Data
+    }
+
+    /// Seals `payload` under a fresh msg_id and adds its pending row - the first half of a send.
+    private func prepareGroupSend(_ payload: String, to groupId: String, timestamp: Date = Date()) throws -> PreparedGroupSend {
         guard store.group(id: groupId) != nil else {
             throw KasiaError.networkError("Unknown group.")
         }
@@ -1787,19 +1861,6 @@ final class GroupChatService: ObservableObject {
         let senderXOnlyPub = try schnorrXOnlyPublicKey(from: privateKey)
         let senderId = GroupCipher.deriveSenderId(senderAddress: wallet.publicAddress)
 
-        // If replying, wrap the content in the shared reply envelope (matches
-        // ChatService.sendMessage) so the quote survives even if
-        // the original message is later pruned.
-        let payload: String
-        if let reply = replyingTo {
-            payload = MessageReplyCodec.encode(
-                replyToId: reply.txId, replyToSender: reply.senderAddress ?? "",
-                replyToPreview: MessageReplyCodec.previewText(for: reply.content), text: text
-            )
-        } else {
-            payload = text
-        }
-
         // Persist the incremented counter BEFORE building/sending - a msg_id must never be
         // reused even if the send itself later fails (spec: "Message ID reuse breaks
         // confidentiality/integrity").
@@ -1809,7 +1870,7 @@ final class GroupChatService: ObservableObject {
 
         let msgId = GroupCipher.buildMsgId(deviceId: deviceId, counter: counter)
         let ciphertext = try GroupCipher.encryptMessage(
-            plaintext: payload, groupRootEpoch: groupRootEpoch, groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId
+            plaintextData: Self.groupPlaintextData(for: payload), groupRootEpoch: groupRootEpoch, groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId
         )
         let aad = GroupCipher.buildMessageAAD(groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId)
         let signature = try GroupCipher.sign(
@@ -1822,7 +1883,7 @@ final class GroupChatService: ObservableObject {
         )
 
         let pendingId = "pending_\(UUID().uuidString)"
-        let pendingTimestamp = Date()
+        let pendingTimestamp = timestamp
         let pendingMessage = GroupMessage(
             id: UUID(), groupId: groupId, txId: pendingId, senderAddress: wallet.publicAddress,
             senderIdHex: senderId.hexString, content: payload, timestamp: pendingTimestamp,
@@ -1837,31 +1898,156 @@ final class GroupChatService: ObservableObject {
             epoch: bag.currentEpoch, msgIdHex: msgId.hexString, contentEncrypted: ciphertext,
             blockTime: pendingMessage.blockTime, isOutgoing: true, deliveryStatus: .pending
         )
+        return PreparedGroupSend(
+            groupId: groupId, pendingId: pendingId, pendingMessage: pendingMessage, payload: payload,
+            payloadString: payloadString, senderIdHex: senderId.hexString,
+            walletAddress: wallet.publicAddress, privateKey: privateKey
+        )
+    }
 
+    /// Sends a prepared message through the outgoing queue and settles its row - the second half.
+    private func submitPreparedGroupSend(_ prepared: PreparedGroupSend, feeOverride: UInt64? = nil) async throws {
+        let groupId = prepared.groupId
+        let pendingId = prepared.pendingId
+        let pendingMessage = prepared.pendingMessage
         do {
             let realTxId = try await ChatService.shared.enqueueOutgoingTxOperation { [weak self] in
-                try await self?.sendSelfStashPayload(payloadString, from: wallet.publicAddress, privateKey: privateKey, feeOverride: feeOverride) ?? ""
+                try await self?.sendSelfStashPayload(prepared.payloadString, from: prepared.walletAddress, privateKey: prepared.privateKey, feeOverride: feeOverride) ?? ""
             }
             store.resolvePendingMessage(pendingId: pendingId, realId: realTxId, blockTime: pendingMessage.blockTime)
             if let index = groupMessages[groupId]?.firstIndex(where: { $0.txId == pendingId }) {
                 groupMessages[groupId]?[index] = GroupMessage(
-                    id: pendingMessage.id, groupId: groupId, txId: realTxId, senderAddress: wallet.publicAddress,
-                    senderIdHex: senderId.hexString, content: payload, timestamp: pendingTimestamp,
+                    id: pendingMessage.id, groupId: groupId, txId: realTxId, senderAddress: prepared.walletAddress,
+                    senderIdHex: prepared.senderIdHex, content: prepared.payload, timestamp: pendingMessage.timestamp,
                     blockTime: pendingMessage.blockTime, isOutgoing: true, deliveryStatus: .sent
                 )
             }
             // The message just got its real txId - share it with the notification extension so a
             // reaction to it counts as personal under "Only Notify if I'm Mentioned".
             SharedDataManager.syncOwnGroupTxIdsForExtension()
-            replyingTo = nil
         } catch {
             // An unknown outcome may have landed: Not confirmed, no Retry, until its copy arrives.
             let status: ChatMessage.DeliveryStatus = error is SendOutcomeUnknownError ? .warning : .failed
-            store.markMessageFailed(pendingId: pendingId, status: status)
-            if let index = groupMessages[groupId]?.firstIndex(where: { $0.txId == pendingId }) {
-                groupMessages[groupId]?[index].deliveryStatus = status
-            }
+            markPreparedGroupSend(prepared, status: status)
             throw error
+        }
+    }
+
+    private func markPreparedGroupSend(_ prepared: PreparedGroupSend, status: ChatMessage.DeliveryStatus) {
+        store.markMessageFailed(pendingId: prepared.pendingId, status: status)
+        if let index = groupMessages[prepared.groupId]?.firstIndex(where: { $0.txId == prepared.pendingId }) {
+            groupMessages[prepared.groupId]?[index].deliveryStatus = status
+        }
+    }
+
+    /// A long on-chain voice note in a group (MESSAGING.md, "Long voice notes (multi-part)"):
+    /// each of `parts` is a complete WebM-Opus file of at most 9.8 s, sent as its own ordinary
+    /// group voice message whose media-file JSON carries the `voicePart` tag - so an old client
+    /// shows N notes in order and this app shows one.
+    ///
+    /// - The balance is checked for ALL parts before anything goes out.
+    /// - Every part is sealed and on screen as pending up front, then they go through the
+    ///   outgoing queue one after another, so each spends the previous one's change.
+    /// - A part that fails stops the rest: they are marked failed too, and Retry on the bubble
+    ///   resends only the failed parts (`retryGroupVoiceNoteParts`).
+    /// - No reply envelope on the parts (it would push a part past what one transaction holds);
+    ///   a reply being composed is dropped, as after any send.
+    func sendGroupVoiceNoteParts(_ parts: [Data], to groupId: String, mimeType: String = "audio/webm") async throws {
+        try await sendGroupMediaParts(parts, to: groupId, mimeType: mimeType)
+    }
+
+    /// The parts of one long voice note or one multi-part photo (`mediaPart` tag on JPEG
+    /// chunks; MESSAGING.md "Photos: quality tiers and multi-part photos"), sent as described on
+    /// `sendGroupVoiceNoteParts`.
+    func sendGroupMediaParts(_ parts: [Data], to groupId: String, mimeType: String) async throws {
+        guard parts.count >= 2, parts.count <= VoicePartTag.maxParts, !parts.contains(where: \.isEmpty) else {
+            throw KasiaError.networkError("Audio file is empty")
+        }
+        let isPhoto = mimeType.lowercased().hasPrefix("image/")
+        let noteId = VoicePartTag.newGroupId()
+        var contents: [String] = []
+        for (offset, data) in parts.enumerated() {
+            guard let tag = VoicePartTag(id: noteId, index: offset + 1, count: parts.count) else {
+                throw KasiaError.networkError("Audio file is empty")
+            }
+            contents.append(MediaFileEnvelope.json(
+                name: isPhoto ? "photo-\(tag.index)of\(tag.count).jpg" : tag.fileName,
+                size: data.count,
+                mimeType: mimeType,
+                dataUrlContent: "data:\(mimeType);base64,\(data.base64EncodedString())",
+                voicePart: isPhoto ? nil : tag,
+                mediaPart: isPhoto ? tag : nil
+            ))
+        }
+
+        // The whole note first, before a single part goes out.
+        do {
+            try await ensureSufficientBalanceForGroupParts(contents, groupId: groupId)
+        } catch {
+            let chatService = ChatService.shared
+            if chatService.isNoConfirmedInputsError(error) {
+                AppLog.log("[GroupChatService] Voice note precheck deferred: %@", error.localizedDescription)
+            } else if chatService.shouldBypassBalancePrecheck(error) {
+                AppLog.log("[GroupChatService] Voice note balance precheck unavailable, continuing send: %@", error.localizedDescription)
+            } else {
+                throw error
+            }
+        }
+
+        let start = Date()
+        var prepared: [PreparedGroupSend] = []
+        do {
+            for (offset, content) in contents.enumerated() {
+                prepared.append(try prepareGroupSend(content, to: groupId, timestamp: start.addingTimeInterval(Double(offset) / 1000)))
+            }
+        } catch {
+            for part in prepared { markPreparedGroupSend(part, status: .failed) }
+            throw error
+        }
+        replyingTo = nil
+
+        for (offset, part) in prepared.enumerated() {
+            do {
+                try await submitPreparedGroupSend(part)
+            } catch {
+                // The rest never went: failed too, so one Retry resends them in order.
+                for rest in prepared[(offset + 1)...] {
+                    markPreparedGroupSend(rest, status: .failed)
+                }
+                throw error
+            }
+        }
+    }
+
+    /// Retry on a long voice note's bubble: only its failed parts, in index order, one after
+    /// another. Stops at the first that fails again.
+    func retryGroupVoiceNoteParts(_ failedParts: [GroupMessage]) async throws {
+        for part in failedParts where part.isOutgoing && part.deliveryStatus == .failed {
+            try await retryGroupMessage(part)
+        }
+    }
+
+    /// What all of a long note's parts cost together, against the coins there are, leaving the
+    /// dust threshold over so the last part still has a change output to stand on.
+    private func ensureSufficientBalanceForGroupParts(_ contents: [String], groupId: String) async throws {
+        guard let wallet = WalletManager.shared.currentWallet else {
+            throw KasiaError.walletNotFound
+        }
+        let chatService = ChatService.shared
+        var totalFee: UInt64 = 0
+        for content in contents {
+            let fee = try await estimateGroupMessageFee(content, for: groupId, wrapReply: false)
+            totalFee = chatService.addSompiSafely(totalFee, fee)
+        }
+        let utxos = try await NodePoolService.shared.getUtxosByAddresses([wallet.publicAddress])
+        let available = chatService.prepareMessageUtxos(confirmed: utxos)
+            .reduce(UInt64(0)) { chatService.addSompiSafely($0, $1.amount) }
+        guard available > 0 else {
+            throw KasiaError.networkError(chatService.noSpendableFundsYetMessage())
+        }
+        let required = chatService.addSompiSafely(totalFee, KasiaTransactionBuilder.dustThreshold)
+        guard available >= required else {
+            throw chatService.formatInsufficientBalanceError(plannedSpendSompi: required, availableSompi: available)
         }
     }
 
@@ -1898,7 +2084,7 @@ final class GroupChatService: ObservableObject {
 
         let msgId = GroupCipher.buildMsgId(deviceId: deviceId, counter: counter)
         let ciphertext = try GroupCipher.encryptMessage(
-            plaintext: payload, groupRootEpoch: groupRootEpoch, groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId
+            plaintextData: Self.groupPlaintextData(for: payload), groupRootEpoch: groupRootEpoch, groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId
         )
         let aad = GroupCipher.buildMessageAAD(groupId: gid, epoch: bag.currentEpoch, senderId: senderId, msgId: msgId)
         let signature = try GroupCipher.sign(
@@ -2631,6 +2817,10 @@ final class GroupChatService: ObservableObject {
                 content: plaintext, timestamp: Date(timeIntervalSince1970: Double(blockTime) / 1000), blockTime: blockTime,
                 isOutgoing: senderAddress == WalletManager.shared.currentWallet?.publicAddress, deliveryStatus: .sent
             )
+            // A later-arriving part of a long voice note: the note is one message, so only its
+            // first part to arrive rings (MESSAGING.md, "Long voice notes").
+            let isLaterVoicePart = !message.isOutgoing
+                && VoicePartGrouping.isLaterPart(message, among: groupMessages[group.id] ?? [])
             groupMessages[group.id, default: []].append(message)
             // Own message echoed back (sent from another device of this wallet, or self-stash
             // catch-up): keep the extension's own-txId list fresh so reactions to it are
@@ -2661,7 +2851,12 @@ final class GroupChatService: ObservableObject {
                     // Deduped against any banner the notification-service extension already handled
                     // for this txId, and a push arriving after this local banner is dropped in
                     // willPresent via the group_local_posted_txids ledger.
-                    maybePostGroupLocalNotification(group: group, message: message)
+                    if isLaterVoicePart {
+                        // Claimed, so its own push is dropped in willPresent too.
+                        _ = claimGroupBannerSlot(txId: message.txId)
+                    } else {
+                        maybePostGroupLocalNotification(group: group, message: message)
+                    }
                 }
             }
             ChatService.shared.scheduleBadgeUpdate()

@@ -448,7 +448,6 @@
 "Record On-Chain" = "Zincir Üstü Kaydet";
 "Take a photo and send it on chain, compressed to fit." = "Bir fotoğraf çekip zincir üstü gönder, sığacak şekilde sıkıştırılır.";
 "Pick an image and send it on chain, compressed to fit." = "Bir görsel seçip zincir üstü gönder, sığacak şekilde sıkıştırılır.";
-"Up to 10 seconds, sent on chain." = "En fazla 10 saniye, zincir üstü gönderilir.";
 "Take Photo via Nextcloud" = "Nextcloud ile Fotoğraf Çek";
 "Record via Nextcloud" = "Nextcloud ile Kaydet";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "Tam kalite veya video. Nextcloud'unuza yüklenir; sohbette bağlantı yer alır.";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "%2$lld adresten %1$lld tanesi gösteriliyor";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "Daha yüksek kaliteli fotoğraflar";
-"Up to 25 seconds, sent on chain." = "25 saniyeye kadar, zincirde gönderilir.";
+"Up to %@, sent on chain." = "%@ süreye kadar, zincirde gönderilir.";
+"Photo Quality" = "Fotoğraf Kalitesi";
+"High" = "Yüksek";
+"Medium" = "Orta";
+"Low" = "Düşük";
+"Receiving… %lld of %lld" = "Alınıyor… %2$lld parçadan %1$lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "Adres Görünürlüğü";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "Bu adresler şu anda türetilemedi. Bir sayfa geri git veya tekrar denemek için bu ekranı yeniden aç.";
 "Add, import or export" = "Ekle, içe aktar veya dışa aktar";
-"Call" = "Ara";
 "KaChat Contact" = "KaChat Kişisi";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat bu açık kaynaklı kütüphanelerle geliştirildi. Yazarları, bu bildirimlerin uygulamayla birlikte bulunmasını istiyor.";
 "24 words" = "24 kelime";
@@ -1137,13 +1139,6 @@
 "Chatting" = "Sohbet";
 "Spending" = "Harcama";
 "Request" = "İste";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "Arama, yalnızca sen veya konuşmak istediğin kişi Nextcloud Talk'u kurduysa çalışır. İki tarafta da kurulu değilse arama yapamazsın.";
-"Continue?" = "Devam edilsin mi?";
-"Enable calls and video calls with %@?" = "%@ ile aramalar ve görüntülü aramalar etkinleştirilsin mi?";
-"They will be able to call you too." = "Onlar da seni arayabilecek.";
-"Call %@" = "%@ kişisini ara";
-"%@ wants to switch to video" = "%@ görüntülü görüşmeye geçmek istiyor";
-"Tap to return" = "Dönmek için dokun";
 "What is a passphrase?" = "Parola ifadesi nedir?";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "Emin değilsen cevap büyük ihtimalle hayırdır. Parola ifadesini bilerek kendin yazmış olurdun.";
 "No" = "Hayır";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "Adres gizlendi. Adres Görünürlüğü'nden yeniden etkinleştirebilirsiniz.";
 "Address removed." = "Adres kaldırıldı.";
 "Asks to open an encrypted conversation." = "Şifreli bir sohbet açmak için izin ister.";
-"Calls stay off for this contact." = "Bu kişi için aramalar kapalı kalır.";
 "Casual" = "Serbest";
 "Changes the text. Everyone sees the new version." = "Metni değiştirir. Herkes yeni sürümü görür.";
 "Check off every address you want on the list, in one sitting." = "Listede olmasını istediğiniz her adresi tek seferde işaretleyin.";
 "Clear %@?" = "%@ temizlensin mi?";
 "Clear All Cache?" = "Tüm önbellek temizlensin mi?";
 "Clears the unread badge on this group." = "Bu grubun okunmadı rozetini kaldırır.";
-"Close this and stay in the chat." = "Bunu kapat ve sohbette kal.";
 "Connecting for live updates" = "Canlı güncellemeler için bağlanılıyor";
 "Copies the address to your clipboard." = "Adresi panoya kopyalar.";
 "Copies the name to your clipboard." = "Adı panoya kopyalar.";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "Kaspa adresini kopyala.";
 "Deletes this chat's messages from this device. The bot stays in the row." = "Bu sohbetin mesajlarını bu cihazdan siler. Bot sırada kalır.";
 "Downloading message history" = "Mesaj geçmişi indiriliyor";
-"Enable calls" = "Aramaları etkinleştir";
 "Failed to open archive: %@" = "Arşiv açılamadı: %@";
 "Finding your conversations" = "Sohbetleriniz bulunuyor";
 "Finished" = "Bitti";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "Mesajları için yeniden bildirim al.";
 "Gives this account a name of your own." = "Bu hesaba kendi seçtiğiniz bir ad verir.";
 "Gives this address a label of your own." = "Bu adrese kendi seçtiğiniz bir etiket verir.";
-"Go on to calling this person." = "Bu kişiyi aramaya devam et.";
 "Hide Address" = "Adresi Gizle";
 "Invite this contact to a game on chain." = "Bu kişiyi zincir üzerinde bir oyuna davet eder.";
 "KaChat Link" = "KaChat Bağlantısı";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "Bahsetmeler dahil bu gruptan bildirim gelmez.";
 "No timer." = "Süresiz.";
 "Node address copied." = "Düğüm adresi kopyalandı.";
-"Not now" = "Şimdi değil";
 "Notifications from this chat resume." = "Bu sohbetin bildirimleri yeniden başlar.";
 "Notifications from this group resume, including mentions." = "Bahsetmeler dahil bu grubun bildirimleri yeniden başlar.";
 "One minute each, plus one second a move." = "Herkese bir dakika, hamle başına bir saniye.";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "Bu grubu ve mesajlarını bu cihazdan kaldırır.";
 "Reply to this message instead." = "Bunun yerine bu mesajı yanıtla.";
 "Reveals the next unused address in this wallet." = "Bu cüzdandaki bir sonraki kullanılmamış adresi gösterir.";
-"Rings them in KaChat; your Nextcloud carries the call." = "KaChat'te onu çaldırır; aramayı Nextcloud'unuz taşır.";
-"Same, with your camera on from the start." = "Aynısı, kameranız baştan açık olarak.";
 "Saves or shares the recording as a file." = "Kaydı dosya olarak kaydeder veya paylaşır.";
 "Select Chats..." = "Sohbetleri Seç...";
 "Sends this message again." = "Bu mesajı yeniden gönderir.";
@@ -1463,10 +1451,7 @@
 "Silence" = "Sessize Al";
 "Start a group with the people you choose." = "Seçtiğiniz kişilerle bir grup başlatın.";
 "Starting" = "Başlatılıyor";
-"Stay on voice" = "Sesli devam et";
 "Stop seeing their messages in this group. Undo it in Group Info." = "Bu gruptaki mesajlarını görmeyi bırakın. Grup Bilgisi'nden geri alabilirsiniz.";
-"Switch to video" = "Görüntülüye geç";
-"The call carries on as it is, and they are told." = "Arama olduğu gibi sürer ve karşı tarafa bildirilir.";
 "The key that spends this address. Never share it." = "Bu adresten harcama yapan anahtar. Asla paylaşmayın.";
 "The passphrase shows too, if this account has one." = "Bu hesabın parolası varsa o da gösterilir.";
 "The public half of this address, for anyone who asks for it." = "Bu adresin isteyen herkes için açık yarısı.";
@@ -1480,18 +1465,13 @@
 "User muted." = "Kullanıcı sessize alındı.";
 "User unmuted." = "Kullanıcının sesi açıldı.";
 "Validating backup..." = "Yedek doğrulanıyor...";
-"Video call" = "Görüntülü arama";
 "View 12 or 24 Words and Passphrase" = "12 veya 24 Kelimeyi ve Parolayı Görüntüle";
 "View Private Key" = "Özel Anahtarı Görüntüle";
 "View Public Key" = "Açık Anahtarı Görüntüle";
-"Voice call" = "Sesli arama";
 "Who reacted, and with what." = "Kim tepki verdi ve ne ile.";
 "Wiping incoming messages..." = "Gelen mesajlar siliniyor...";
 "Write down your 12 or 24 words before you delete." = "Silmeden önce 12 veya 24 kelimenizi yazın.";
 "Yes, All Chats" = "Evet, Tüm Sohbetler";
-"Your camera turns on and the call moves to the speaker." = "Kameranız açılır ve arama hoparlöre geçer.";
-"Saves this for %@ and lets you call now." = "Bunu %@ için kaydeder ve şimdi aramanıza izin verir.";
-"Camera off" = "Kamera kapalı";
 "Address #%d is ready." = "%d numaralı adres hazır.";
 "Conversation declined" = "Sohbet reddedildi";
 "Recents" = "Son kullanılanlar";

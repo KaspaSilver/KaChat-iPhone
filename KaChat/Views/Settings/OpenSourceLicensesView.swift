@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The notices the libraries KaChat ships ask to travel with it. Opus and WebRTC (BSD-3)
-/// require their notice in the binary's documentation; the Apache and MIT ones ask for
+/// The notices the libraries KaChat ships ask to travel with it. Opus (BSD-3) requires its
+/// notice in the binary's documentation; the Apache and MIT ones ask for
 /// attribution. Plain scrolling text, one card per library.
 struct OpenSourceLicensesView: View {
     @Environment(\.dismiss) private var dismiss
@@ -42,7 +42,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     private static let notices: [Notice] = [
         Notice(id: "opus", name: "Opus", license: "BSD 3-Clause", holder: "Copyright 2001-2011 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo", text: bsd3),
-        Notice(id: "webrtc", name: "WebRTC", license: "BSD 3-Clause", holder: "Copyright (c) 2011, The WebRTC project authors. All rights reserved.", text: bsd3),
         Notice(id: "grpc-swift", name: "grpc-swift", license: "Apache License 2.0", holder: "Copyright 2015-2024, gRPC Authors", text: apache2),
         Notice(id: "swift-protobuf", name: "SwiftProtobuf", license: "Apache License 2.0", holder: "Copyright 2014-2024 Apple Inc. and the SwiftProtobuf project authors", text: apache2),
         Notice(id: "swift-nio", name: "SwiftNIO, swift-crypto, swift-log and the Swift Server ecosystem packages", license: "Apache License 2.0", holder: "Copyright 2017-2024 Apple Inc. and the SwiftNIO project authors", text: apache2),

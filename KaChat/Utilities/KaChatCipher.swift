@@ -405,11 +405,18 @@ enum ContextualMediaFrame {
         let lowered = mimeType.lowercased()
         guard lowered.hasPrefix("image/") || lowered.hasPrefix("audio/"),
               let raw = Data(base64Encoded: String(content[content.index(after: comma)...])), !raw.isEmpty else { return nil }
-        let header: [String: Any] = [
+        var header: [String: Any] = [
             "name": (object["name"] as? String) ?? "file",
             "mimeType": mimeType,
             "size": raw.count
         ]
+        // A long voice note's part tag rides in the header (MESSAGING.md, "Long voice notes");
+        // only a valid one, on audio. Readers that predate it ignore the key.
+        // A multi-part photo's chunk carries the same tag as `mediaPart` (MESSAGING.md, "Photos:
+        // quality tiers and multi-part photos").
+        if let key = VoicePartTag.key(forMimeType: mimeType), let part = VoicePartTag(jsonObject: object[key]) {
+            header[key] = ["id": part.id, "index": part.index, "count": part.count]
+        }
         guard let headerData = try? JSONSerialization.data(withJSONObject: header, options: [.sortedKeys]),
               headerData.count <= Int(UInt32.max) else { return nil }
         var frame = Data(magic)
@@ -432,11 +439,16 @@ enum ContextualMediaFrame {
               let mimeType = header["mimeType"] as? String, !mimeType.isEmpty else { return nil }
         let raw = Data(bytes[(headerStart + headerLength)...])
         guard !raw.isEmpty else { return nil }
+        // A malformed part tag is dropped: the part is then a plain single voice note.
+        let key = VoicePartTag.key(forMimeType: mimeType)
+        let part = key.flatMap { VoicePartTag(jsonObject: header[$0]) }
         return MediaFileEnvelope.json(
             name: (header["name"] as? String) ?? "file",
             size: raw.count,
             mimeType: mimeType,
-            dataUrlContent: "data:\(mimeType);base64,\(raw.base64EncodedString())"
+            dataUrlContent: "data:\(mimeType);base64,\(raw.base64EncodedString())",
+            voicePart: key == "voicePart" ? part : nil,
+            mediaPart: key == "mediaPart" ? part : nil
         )
     }
 }

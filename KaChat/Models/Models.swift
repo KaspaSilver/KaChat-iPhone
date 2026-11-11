@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Security
 
 // MARK: - Dynamic Coding Key (for dual camelCase/snake_case decode)
 
@@ -185,10 +186,6 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
     /// phone's Contacts (2026-10-08). Read from old data only, never written back: the Address
     /// Book migration (`AddressBookManager.migrateLinkedNames`) moves it into the Address Book.
     var legacyLinkedName: String?
-    /// True once you have allowed calls with this contact - the prompt behind the call button
-    /// ("Enable calls and video calls with X?"). Off by default: nobody
-    /// can ring you, or ask your Nextcloud to host a call, until you say so for them.
-    var callsEnabled: Bool?
     /// A base64 JPEG photo carried in the cross-platform backup, shown as an avatar
     /// fallback when this device has no system-contact photo or KNS avatar. Lets a photo
     /// set on another device (e.g. desktop) appear here after a restore. Optional so
@@ -234,7 +231,6 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
         case systemContactId
         case systemDisplayNameSnapshot
         case backupPhoto
-        case callsEnabled
     }
 
     // Custom decoding to handle missing fields in existing data
@@ -260,7 +256,6 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
             legacyLinkedName = linked
         }
         backupPhoto = try container.decodeIfPresent(String.self, forKey: .backupPhoto)
-        callsEnabled = try container.decodeIfPresent(Bool.self, forKey: .callsEnabled)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -275,7 +270,6 @@ struct Contact: Codable, Identifiable, Equatable, Hashable {
         try container.encode(hasSentOutgoingMessage, forKey: .hasSentOutgoingMessage)
         try container.encodeIfPresent(photosUnlockDate, forKey: .photosUnlockDate)
         try container.encodeIfPresent(backupPhoto, forKey: .backupPhoto)
-        try container.encodeIfPresent(callsEnabled, forKey: .callsEnabled)
     }
 
     /// The name the user actually typed for this contact, or nil when there is none.
@@ -383,10 +377,11 @@ struct ChatMessage: Codable, Identifiable, Equatable {
     /// decrypt replaces it (the dedupe prefers real content) and it appears.
     static let unreadablePlaceholder = "[Encrypted message]"
 
-    /// Placeholders the app never shows: cross-device sends and undecryptable messages. Hidden
-    /// from the chat, the chat-list preview and search, and never counted as unread.
+    /// What the app never shows: cross-device sends, undecryptable messages and call messages
+    /// (`CallSignal`: other clients' calls, or ones an older build stored). Hidden from the chat,
+    /// the chat-list preview and search, and never counted as unread.
     static func isHiddenPlaceholder(_ content: String) -> Bool {
-        isSentPlaceholder(content) || content == unreadablePlaceholder
+        isSentPlaceholder(content) || content == unreadablePlaceholder || CallSignal.isCallSignal(content)
     }
 
     var isHiddenPlaceholder: Bool {
@@ -1391,122 +1386,33 @@ enum ChessCodec {
     }
 }
 
-// MARK: - Calls (Nextcloud Talk over the encrypted 1:1 channel)
+// MARK: - Call signaling (ignored)
 
-/// The caller has opened a Nextcloud Talk conversation for this call and invites the contact
-/// into it. `server` + `token` are everything the callee needs to join as a Talk guest - no
-/// account on that server required - so only one side of a call has to own a Nextcloud.
-struct CallInviteContent: Codable, Equatable {
-    var type: String = "call_invite"
-    let callId: String
-    let server: String
-    let token: String
-    let video: Bool
-    /// True when this invite answers the contact's `call_request` (they started the call, we
-    /// host it). The requester joins straight away instead of ringing, and both chats render
-    /// it as a neutral "Call started" line rather than a second "Incoming call".
-    var viaRequest: Bool? = nil
-}
-
-/// A phone WITHOUT Nextcloud starting a call: it asks the contact to host. If the contact's
-/// KaChat has a Nextcloud with Talk and their "Allow calls" switch is on for us, it opens the
-/// room and answers with a `call_invite` carrying this `callId`; the requester joins as a guest
-/// and the host's phone rings. No host on either side simply rings out to "no answer".
-struct CallRequestContent: Codable, Equatable {
-    var type: String = "call_request"
-    let callId: String
-    let video: Bool
-}
-
-/// The callee's answer. `accepted == false` is a decline; an accept is implied by the callee
-/// turning up in the Talk call, but is sent too so the caller's screen can say "Connecting"
-/// before the media lands.
-struct CallResponseContent: Codable, Equatable {
-    var type: String = "call_response"
-    let callId: String
-    let accepted: Bool
-    /// Why a decline happened, when it was not the person: "no_host" answers a `call_request`
-    /// the contact's phone cannot host (no Nextcloud Talk on their side either), so the
-    /// requester learns at once that someone in the chat needs Talk set up, instead of ringing
-    /// out to "no answer".
-    var reason: String? = nil
-}
-
-/// Either side hung up (or the caller gave up ringing). `reason` is free-form for the
-/// bubble: "hangup", "no_answer", "cancelled", "failed".
-struct CallEndContent: Codable, Equatable {
-    var type: String = "call_end"
-    let callId: String
-    var reason: String? = nil
-    /// Seconds the call was connected, when it was - shown in the chat as "Voice call · 4:12".
-    var durationSeconds: Int? = nil
-}
-
-enum CallEnvelope: Equatable {
-    case request(CallRequestContent)
-    case invite(CallInviteContent)
-    case response(CallResponseContent)
-    case end(CallEndContent)
-
-    var callId: String {
-        switch self {
-        case .request(let content): return content.callId
-        case .invite(let content): return content.callId
-        case .response(let content): return content.callId
-        case .end(let content): return content.callId
-        }
-    }
-}
-
-enum CallCodec {
-    static func encode(_ content: CallRequestContent) -> String { encodeAny(content) }
-    static func encode(_ content: CallInviteContent) -> String { encodeAny(content) }
-    static func encode(_ content: CallResponseContent) -> String { encodeAny(content) }
-    static func encode(_ content: CallEndContent) -> String { encodeAny(content) }
-
-    private static func encodeAny<T: Encodable>(_ content: T) -> String {
-        guard let data = try? JSONEncoder().encode(content),
-              let json = String(data: data, encoding: .utf8) else {
-            return ""
-        }
-        return json
-    }
-
-    private final class CallBox { let value: CallEnvelope?; init(_ v: CallEnvelope?) { value = v } }
-    private static let parseAnyCache: NSCache<NSString, CallBox> = {
-        let cache = NSCache<NSString, CallBox>(); cache.countLimit = 1024; return cache
+/// KaChat has no calls. Other clients (and older KaChat builds) may still send the call
+/// envelopes `{"type":"call_invite" | "call_request" | "call_response" | "call_end", ...}` as
+/// 1:1 messages; this only recognizes them so they are dropped on arrival and hidden if an
+/// older build stored them, never shown as raw JSON.
+enum CallSignal {
+    private static let cache: NSCache<NSString, NSNumber> = {
+        let cache = NSCache<NSString, NSNumber>(); cache.countLimit = 512; return cache
     }()
 
-    /// Same cached, `{`-prefixed fast path as `ChessCodec.parseAny` - this runs from bubble
-    /// bodies and previews on every render.
-    static func parseAny(_ text: String?) -> CallEnvelope? {
-        guard let text, text.utf8.count < 4_096 else { return nil }
+    /// Cheap for ordinary messages: anything long or not starting with `{` is out at once. The
+    /// answer for JSON is cached, since this runs from list filters on every render.
+    static func isCallSignal(_ text: String) -> Bool {
+        guard text.utf8.count < 4_096,
+              text.first(where: { !$0.isWhitespace }) == "{",
+              text.contains("\"call_") else { return false }
         let key = text as NSString
-        if let cached = parseAnyCache.object(forKey: key) { return cached.value }
-        let result = parseAnyUncached(text)
-        parseAnyCache.setObject(CallBox(result), forKey: key)
+        if let cached = cache.object(forKey: key) { return cached.boolValue }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let type = trimmed.data(using: .utf8).flatMap { try? JSONDecoder().decode(TypeOnly.self, from: $0) }?.type
+        let result = type?.hasPrefix("call_") == true
+        cache.setObject(NSNumber(value: result), forKey: key)
         return result
     }
 
-    private static func parseAnyUncached(_ text: String) -> CallEnvelope? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.hasPrefix("{"), trimmed.contains("\"call_"), let data = trimmed.data(using: .utf8) else { return nil }
-        guard let head = try? JSONDecoder().decode(CallTypeOnly.self, from: data) else { return nil }
-        switch head.type {
-        case "call_request":
-            return (try? JSONDecoder().decode(CallRequestContent.self, from: data)).map { .request($0) }
-        case "call_invite":
-            return (try? JSONDecoder().decode(CallInviteContent.self, from: data)).map { .invite($0) }
-        case "call_response":
-            return (try? JSONDecoder().decode(CallResponseContent.self, from: data)).map { .response($0) }
-        case "call_end":
-            return (try? JSONDecoder().decode(CallEndContent.self, from: data)).map { .end($0) }
-        default:
-            return nil
-        }
-    }
-
-    private struct CallTypeOnly: Decodable {
+    private struct TypeOnly: Decodable {
         let type: String
     }
 }
@@ -1585,14 +1491,466 @@ enum InlineMediaSniff {
 /// preview sniff (showing raw JSON in chat lists). Field order now matches Android's
 /// `VoiceMessage.encode` and desktop's `buildImageEnvelopeJson` exactly.
 enum MediaFileEnvelope {
-    static func json(name: String, size: Int, mimeType: String, dataUrlContent: String) -> String {
-        "{\"type\":\"file\",\"name\":\"\(escape(name))\",\"size\":\(size),\"mimeType\":\"\(escape(mimeType))\",\"content\":\"\(escape(dataUrlContent))\"}"
+    /// `voicePart` (a part of a long voice note, MESSAGING.md "Long voice notes") goes between
+    /// `mimeType` and `content`, so the head-window sniffs (`VoicePartTag.sniff`) see it without
+    /// reading the audio. Without one the string is byte for byte what it always was.
+    /// `mediaPart` is the same tag for a part of a multi-part photo (MESSAGING.md, "Photos:
+    /// quality tiers and multi-part photos").
+    static func json(name: String, size: Int, mimeType: String, dataUrlContent: String, voicePart: VoicePartTag? = nil, mediaPart: VoicePartTag? = nil) -> String {
+        let part = voicePart.map { ",\"voicePart\":\($0.json)" }
+            ?? mediaPart.map { ",\"mediaPart\":\($0.json)" }
+            ?? ""
+        return "{\"type\":\"file\",\"name\":\"\(escape(name))\",\"size\":\(size),\"mimeType\":\"\(escape(mimeType))\"\(part),\"content\":\"\(escape(dataUrlContent))\"}"
     }
 
     private static func escape(_ value: String) -> String {
         value
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
+    }
+}
+
+// MARK: - Long voice notes (multi-part)
+
+/// One part of a long on-chain voice note (MESSAGING.md, "Long voice notes (multi-part)"):
+/// `"voicePart":{"id":"<32 hex>","index":<1-based>,"count":<2...12>}` in the media frame header
+/// and in the rebuilt media-file JSON. Every part is a complete WebM-Opus file (14.5 s at most
+/// in 1:1, 9.8 s in groups, `VoiceNotePolicy`), so a client that ignores the tag shows the
+/// parts as separate voice notes, in order.
+///
+/// Read defensively: anything outside the rules below is no tag, and the part is then a plain
+/// single voice note.
+struct VoicePartTag: Equatable, Hashable {
+    let id: String
+    let index: Int
+    let count: Int
+
+    /// The most parts one note may have - a strict sanity bound for readers too. Both paths'
+    /// longest notes (`VoiceNotePolicy`) need exactly 12: 170 s / 14.5 s and 110 s / 9.8 s.
+    static let maxParts = 12
+    /// The longest one part may run when read (a crafted part can't decode past this). Real
+    /// parts are shorter (`VoiceNotePolicy`); 25 s was the old single-note cap.
+    static let maxPartSeconds: TimeInterval = 25
+
+    init?(id: String, index: Int, count: Int) {
+        let lowered = id.lowercased()
+        guard (16...64).contains(lowered.count),
+              lowered.allSatisfy({ $0.isASCII && $0.isHexDigit }),
+              (2...Self.maxParts).contains(count),
+              (1...count).contains(index) else { return nil }
+        self.id = lowered
+        self.index = index
+        self.count = count
+    }
+
+    /// A tag from a decoded JSON value (`JSONSerialization` output): nil unless it is an object
+    /// with a string `id` and integer `index` / `count` that pass the rules.
+    init?(jsonObject: Any?) {
+        guard let object = jsonObject as? [String: Any],
+              let id = object["id"] as? String,
+              let index = Self.integer(object["index"]),
+              let count = Self.integer(object["count"]) else { return nil }
+        self.init(id: id, index: index, count: count)
+    }
+
+    private static func integer(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        let double = number.doubleValue
+        guard double.isFinite, double == double.rounded(), abs(double) < 1_000 else { return nil }
+        return Int(double)
+    }
+
+    /// The JSON object as it goes on the wire, fixed key order.
+    var json: String {
+        "{\"id\":\"\(id)\",\"index\":\(index),\"count\":\(count)}"
+    }
+
+    /// The part file's name, e.g. "voice-2of12.webm".
+    var fileName: String { "voice-\(index)of\(count).webm" }
+
+    /// A fresh group id: 16 random bytes as lowercase hex.
+    static func newGroupId() -> String {
+        var bytes = [UInt8](repeating: 0, count: 16)
+        if SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) != errSecSuccess {
+            bytes = (0..<16).map { _ in UInt8.random(in: 0...255) }
+        }
+        return bytes.map { String(format: "%02x", $0) }.joined()
+    }
+
+    /// The JSON key the tag goes under: `voicePart` on audio, `mediaPart` on a photo.
+    static func key(forMimeType mimeType: String) -> String? {
+        let lowered = mimeType.lowercased()
+        if lowered.hasPrefix("audio/") { return "voicePart" }
+        if lowered.hasPrefix("image/") { return "mediaPart" }
+        return nil
+    }
+
+    /// The tag of a media-file JSON, read from its head only (`MediaFileEnvelope.json` writes it
+    /// before the file): `voicePart` on audio, `mediaPart` on a photo. Nil for everything else,
+    /// including replies, and for a tag under the other kind's key.
+    static func sniff(_ text: String) -> VoicePartTag? {
+        guard text.first == "{", text.utf8.count > 64 else { return nil }
+        let head = String(text.prefix(2048))
+        guard let mime = InlineMediaSniff.mimeType(of: head),
+              let tagKey = key(forMimeType: mime),
+              let keyRange = head.range(of: "\"\(tagKey)\"") else { return nil }
+        let rest = head[keyRange.upperBound...]
+        guard let open = rest.firstIndex(of: "{"),
+              rest[rest.startIndex..<open].allSatisfy({ $0 == ":" || $0.isWhitespace }),
+              let close = rest[open...].firstIndex(of: "}") else { return nil }
+        let objectText = String(rest[open...close])
+        guard let data = objectText.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data) else { return nil }
+        return VoicePartTag(jsonObject: object)
+    }
+}
+
+/// On-chain voice notes, 1:1 and groups (MESSAGING.md, "Long voice notes (multi-part)"):
+/// 16 kbps CBR Opus in 60 ms frames everywhere, parts as long as the path's per-transaction cap
+/// allows, and a note only as long as 1 KAS of fees allows. The Nextcloud route is separate.
+///
+/// Part layout at 16 kbps (`VoiceNoteLayout`): libopus 1.5.2 CBR gives
+/// (12 x 16000 / 8 + 100) / 200 = 120 bytes a packet; a SimpleBlock is 1 ID + 1 size + 4 header
+/// + 120 = 126 bytes; Clusters of 16 packets cost 10 bytes; headers 155. A part of T seconds is
+/// N = ceil((T x 48000 + 312 look-ahead) / 2880) packets and 155 + 126 N + 10 ceil(N / 16) bytes.
+///
+/// - 1:1 (cap 31,000 bytes): N <= 243 (244 is 31,059), so T <= 14.57 s -> **14.5 s**, 242
+///   packets, 30,807 bytes. The binary media frame + ECIES + base64 make it a ~41,386-byte
+///   payload, mass 2 x (payload + 272 of input and output) = 83,316, fee 0.0833 KAS. 12 full
+///   parts (174 s) are 0.9998 KAS and a 13th would pass 1 KAS, so the note is **170 s**
+///   (2:50, rounded down to 5 s): 12 parts, 0.977 KAS.
+/// - Groups (cap 21,000 bytes): N <= 164 (165 is 21,055), so T <= 9.83 s -> **9.8 s**, 164
+///   packets, 20,929 bytes. Frame + ChaCha20-Poly1305 + hex in `gcomm` make it ~42,583 bytes of
+///   payload, mass 85,710, fee 0.0857 KAS. 115 s would be 12 parts and 1.007 KAS, so the note
+///   is **110 s** (1:50): 12 parts, 0.964 KAS.
+/// - Both caps keep a part under ~86,000 of the 100,000 mass ceiling.
+enum VoiceNotePolicy {
+    static let bitrate: Int32 = 16_000
+    static let frameMs = 60
+
+    struct Path: Sendable {
+        /// The longest one part runs; a note this short is one untagged message.
+        let partSeconds: TimeInterval
+        /// The longest note: its parts' fees add up to 1 KAS at most.
+        let maxSeconds: TimeInterval
+        /// Hard ceiling of one part's WebM file.
+        let maxBytes: Int
+    }
+
+    static let oneToOne = Path(partSeconds: 14.5, maxSeconds: 170, maxBytes: 31_000)
+    static let group = Path(partSeconds: 9.8, maxSeconds: 110, maxBytes: 21_000)
+}
+
+/// On-chain photo quality, chosen at send time (MESSAGING.md, "Photos: quality tiers and
+/// multi-part photos"). Each tier is a fee budget; it buys the largest JPEG whose parts' summed
+/// fee stays within it. A photo bigger than one part goes as raw byte chunks, one transaction
+/// each, each a binary media frame tagged `mediaPart`; the receiver joins them in index order
+/// once every part is there.
+///
+/// Fee of a part of R bytes (2 grams of transient mass per transaction byte, 100 sompi a gram,
+/// 272 bytes of input and output; header ~142 bytes, ~100 untagged):
+/// - 1:1: payload = 26 + 4 ceil((9 + header + R + 61 ECIES) / 3) in `kchat:1:comm:`. A full
+///   31,000-byte part is 41,638 bytes of payload, mass 83,820 (16% under 100,000), 0.0838 KAS.
+/// - Groups (frame inside the unchanged `gcomm`): payload = 391 + 2 (9 + header + R + 16). A
+///   full 21,000-byte part is 42,719 bytes of payload, mass 85,982 (14% under), 0.0860 KAS.
+///
+/// The largest total that fits each budget (exact, then rounded down ~0.5% for header and
+/// extra-input slack):
+///
+/// | Tier | Budget | 1:1 exact -> used | parts | Groups exact -> used | parts |
+/// |---|---|---|---|---|---|
+/// | High | 1 KAS | 369,799 -> 368,000 | 12 | 244,047 -> 243,000 | 12 |
+/// | Medium | 0.5 KAS | 184,904 -> 184,000 | 6 | 122,038 -> 121,500 | 6 |
+/// | Low | 0.1 KAS | 36,635 -> 36,000 | 2 | 24,013 -> 23,500 | 2 |
+///
+/// At most 12 parts (`VoicePartTag.maxParts`), the same strict bound as voice.
+enum PhotoTier: String, CaseIterable, Identifiable, Sendable {
+    case high, medium, low
+
+    var id: String { rawValue }
+
+    /// The tier's fee budget, in sompi.
+    var budgetSompi: UInt64 {
+        switch self {
+        case .high: return 100_000_000
+        case .medium: return 50_000_000
+        case .low: return 10_000_000
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .high: return "High"
+        case .medium: return "Medium"
+        case .low: return "Low"
+        }
+    }
+
+    /// The largest JPEG the tier buys on a path.
+    func maxBytes(forGroup group: Bool) -> Int {
+        switch (self, group) {
+        case (.high, false): return 368_000
+        case (.medium, false): return 184_000
+        case (.low, false): return 36_000
+        case (.high, true): return 243_000
+        case (.medium, true): return 121_500
+        case (.low, true): return 23_500
+        }
+    }
+}
+
+enum PhotoPolicy {
+    /// One part's largest chunk of JPEG: what one transaction carries with margin.
+    static let oneToOnePartBytes = 31_000
+    static let groupPartBytes = 21_000
+
+    static func partBytes(forGroup group: Bool) -> Int {
+        group ? groupPartBytes : oneToOnePartBytes
+    }
+
+    /// A photo's bytes as the chunks it goes as, in order: one chunk when it fits one part.
+    static func chunks(_ data: Data, forGroup group: Bool) -> [Data] {
+        let size = partBytes(forGroup: group)
+        guard data.count > size else { return [data] }
+        var chunks: [Data] = []
+        var offset = data.startIndex
+        while offset < data.endIndex {
+            let end = min(offset + size, data.endIndex)
+            chunks.append(Data(data[offset..<end]))
+            offset = end
+        }
+        return chunks
+    }
+
+    /// The fee a photo of `bytes` costs on a path, from the formulas above - the quality sheet's
+    /// number. The send pays what its transactions actually need.
+    static func estimatedFeeSompi(bytes: Int, forGroup group: Bool) -> UInt64 {
+        let size = partBytes(forGroup: group)
+        let count = max(1, (bytes + size - 1) / size)
+        var total: UInt64 = 0
+        var remaining = bytes
+        for _ in 0..<count {
+            let chunk = min(size, remaining)
+            remaining -= chunk
+            let header = count > 1 ? 142 : 100
+            let plaintext = 9 + header + chunk
+            let payload = group
+                ? 391 + 2 * (plaintext + 16)
+                : 26 + 4 * ((plaintext + 61 + 2) / 3)
+            total += UInt64(2 * (payload + 272)) * 100 + 3
+        }
+        return total
+    }
+}
+
+/// The WebM-Opus layout `WebMOpusEncoder` writes, for working out a recording's part sizes
+/// before it is encoded (live fee estimates). CBR makes it exact to a few bytes.
+enum VoiceNoteLayout {
+    /// The size of each part a recording of `duration` makes: parts of `partSeconds`, at most
+    /// `maxParts`, each capped at `maxBytes` as the encoder caps it.
+    ///
+    /// - Packet bytes: libopus 1.5's CBR rounding, (12 x bitrate / 8 + fr12 / 2) / fr12 with
+    ///   fr12 = 12 x 48000 / frame samples.
+    /// - Packets: ceil((part samples + 312 look-ahead samples) / frame samples).
+    /// - Bytes: 155 of headers + (packet + 6 of SimpleBlock) per packet + 10 per Cluster of
+    ///   1000 / frameMs packets.
+    static func partSizes(
+        duration: TimeInterval,
+        partSeconds: TimeInterval,
+        maxParts: Int = VoicePartTag.maxParts,
+        bitrate: Int32,
+        frameMs: Int,
+        maxBytes: Int,
+        sampleRate: Double = 48_000
+    ) -> [Int] {
+        var remaining = min(max(duration, Double(frameMs) / 1000), partSeconds * Double(maxParts))
+        let frameSamples = max(1, Int(sampleRate) * frameMs / 1000)
+        let frameRate12 = max(1, 12 * Int(sampleRate) / frameSamples)
+        let packetBytes = (12 * Int(bitrate) / 8 + frameRate12 / 2) / frameRate12
+        let packetsPerCluster = max(1, 1000 / max(1, frameMs))
+        let lookahead = Int(sampleRate) * 312 / 48_000
+        var sizes: [Int] = []
+        while remaining > 0.0005, sizes.count < maxParts {
+            let part = min(remaining, partSeconds)
+            let samples = Int(part * sampleRate) + lookahead
+            let packets = (samples + frameSamples - 1) / frameSamples
+            let clusters = (packets + packetsPerCluster - 1) / packetsPerCluster
+            sizes.append(min(155 + packets * (packetBytes + 6) + clusters * 10, maxBytes))
+            remaining -= part
+        }
+        return sizes
+    }
+}
+
+/// A message that can be a part of a long voice note: 1:1 `ChatMessage` and `GroupMessage`.
+protocol VoicePartMessage {
+    var id: UUID { get }
+    var txId: String { get }
+    var content: String { get }
+    var deliveryStatus: ChatMessage.DeliveryStatus { get }
+    var isOutgoing: Bool { get }
+    /// Who a note belongs to, for the grouping key: the sender's address in 1:1; the group id
+    /// and the sender id in a group (`(group id, sender, voicePart.id)`).
+    var voicePartOwner: String { get }
+    /// Whether this kind of message can carry a part at all.
+    var canBeVoicePart: Bool { get }
+}
+
+extension ChatMessage: VoicePartMessage {
+    var voicePartOwner: String { senderAddress.lowercased() }
+    var canBeVoicePart: Bool { messageType != .handshake && messageType != .payment }
+}
+
+extension GroupMessage: VoicePartMessage {
+    /// `senderIdHex` (SHA-256 of the sender's address) is always there; the address can be
+    /// unresolved mid-rotation.
+    var voicePartOwner: String { "\(groupId.lowercased())|\(senderIdHex.lowercased())" }
+    var canBeVoicePart: Bool { true }
+}
+
+/// Parts of one long voice note found in a thread: same owner (sender, and the group in a
+/// group chat), same tag id and count.
+struct VoicePartCluster<Message: VoicePartMessage> {
+    let key: String
+    let count: Int
+    /// The parts present, by index (one message per index), in index order.
+    let parts: [Message]
+    /// The earliest part in thread order: where the one bubble sits, and whose time it shows.
+    let anchor: Message
+    /// Every message of the group, the hidden duplicates of an index included.
+    let allTxIds: Set<String>
+
+    var isComplete: Bool { parts.count == count }
+
+    /// Sending / Sent / Failed for the whole note: any failed part fails it, then any part still
+    /// pending keeps it sending, then any unconfirmed part shows that.
+    var deliveryStatus: ChatMessage.DeliveryStatus {
+        let statuses = parts.map(\.deliveryStatus)
+        if statuses.contains(.failed) { return .failed }
+        if statuses.contains(.pending) { return .pending }
+        if statuses.contains(.warning) { return .warning }
+        return .sent
+    }
+
+    /// The parts still to resend: failed, outgoing, in index order.
+    var failedOutgoingParts: [Message] {
+        parts.filter { $0.isOutgoing && $0.deliveryStatus == .failed }
+    }
+
+    static func key(owner: String, tag: VoicePartTag) -> String {
+        "\(owner)|\(tag.id)|\(tag.count)"
+    }
+}
+
+typealias VoicePartGroup = VoicePartCluster<ChatMessage>
+typealias GroupVoicePartGroup = VoicePartCluster<GroupMessage>
+
+extension VoicePartCluster where Message == ChatMessage {
+    static func key(sender: String, tag: VoicePartTag) -> String {
+        key(owner: sender.lowercased(), tag: tag)
+    }
+
+    /// The anchor as the bubble shows it: the note's combined delivery status.
+    var displayMessage: ChatMessage {
+        ChatMessage(id: anchor.id, txId: anchor.txId, senderAddress: anchor.senderAddress,
+                    receiverAddress: anchor.receiverAddress, content: anchor.content,
+                    timestamp: anchor.timestamp, blockTime: anchor.blockTime,
+                    acceptingBlock: anchor.acceptingBlock, isOutgoing: anchor.isOutgoing,
+                    messageType: anchor.messageType, deliveryStatus: deliveryStatus)
+    }
+}
+
+extension VoicePartCluster where Message == GroupMessage {
+    /// The anchor as the bubble shows it: the note's combined delivery status.
+    var displayMessage: GroupMessage {
+        var message = anchor
+        message.deliveryStatus = deliveryStatus
+        return message
+    }
+}
+
+enum VoicePartGrouping {
+    struct Result<Message: VoicePartMessage> {
+        /// Groups by the anchor's message id.
+        var groupsByAnchorId: [UUID: VoicePartCluster<Message>] = [:]
+        /// Messages that are a group's part but not its anchor: not drawn.
+        var hiddenIds: Set<UUID> = []
+        /// Each part's txId to its group's anchor txId.
+        var anchorTxIdByTxId: [String: String] = [:]
+        /// Each anchor's txId to every txId of its group.
+        var groupTxIdsByAnchorTxId: [String: Set<String>] = [:]
+    }
+
+    /// Groups the voice-note parts of `messages`, which must be in thread order. A group with
+    /// a single part present still becomes one (its bubble says it is receiving the rest).
+    static func group<Message: VoicePartMessage>(_ messages: [Message]) -> Result<Message> {
+        var tagged: [String: [(message: Message, tag: VoicePartTag)]] = [:]
+        var order: [String] = []
+        for message in messages where message.canBeVoicePart {
+            guard let tag = VoicePartTag.sniff(message.content) else { continue }
+            let key = VoicePartCluster<Message>.key(owner: message.voicePartOwner, tag: tag)
+            if tagged[key] == nil { order.append(key) }
+            tagged[key, default: []].append((message, tag))
+        }
+        var result = Result<Message>()
+        for key in order {
+            guard let members = tagged[key], let anchor = members.first?.message else { continue }
+            var byIndex: [Int: Message] = [:]
+            for member in members {
+                if let existing = byIndex[member.tag.index] {
+                    // Two messages for one index (a re-send that landed twice): the delivered one.
+                    if member.message.deliveryStatus.priority > existing.deliveryStatus.priority {
+                        byIndex[member.tag.index] = member.message
+                    }
+                } else {
+                    byIndex[member.tag.index] = member.message
+                }
+            }
+            let parts = byIndex.keys.sorted().compactMap { byIndex[$0] }
+            let txIds = Set(members.map(\.message.txId))
+            result.groupsByAnchorId[anchor.id] = VoicePartCluster(
+                key: key,
+                count: members[0].tag.count,
+                parts: parts,
+                anchor: anchor,
+                allTxIds: txIds
+            )
+            result.groupTxIdsByAnchorTxId[anchor.txId] = txIds
+            for member in members {
+                result.anchorTxIdByTxId[member.message.txId] = anchor.txId
+                if member.message.id != anchor.id { result.hiddenIds.insert(member.message.id) }
+            }
+        }
+        return result
+    }
+
+    /// How many unread units `messages` are: a long voice note's parts count once.
+    static func unreadUnits<S: Sequence>(_ messages: S) -> Int where S.Element: VoicePartMessage {
+        var count = 0
+        var seen = Set<String>()
+        for message in messages {
+            if message.canBeVoicePart, let tag = VoicePartTag.sniff(message.content) {
+                let key = VoicePartCluster<S.Element>.key(owner: message.voicePartOwner, tag: tag)
+                guard seen.insert(key).inserted else { continue }
+            }
+            count += 1
+        }
+        return count
+    }
+
+    /// True when `message` is a part of a long voice note and `others` already holds another
+    /// part of the same note (same owner and id): it is not news of its own - no unread bump,
+    /// no banner.
+    static func isLaterPart<Message: VoicePartMessage>(_ message: Message, among others: [Message]) -> Bool {
+        guard message.canBeVoicePart, let tag = VoicePartTag.sniff(message.content) else { return false }
+        let owner = message.voicePartOwner
+        let key = VoicePartCluster<Message>.key(owner: owner, tag: tag)
+        return others.contains { other in
+            other.txId != message.txId
+                && other.voicePartOwner == owner
+                && VoicePartTag.sniff(other.content).map { VoicePartCluster<Message>.key(owner: other.voicePartOwner, tag: $0) } == key
+        }
     }
 }
 
@@ -2147,9 +2505,6 @@ struct AppSettings: Codable {
     /// receives Kaspa from an external source. Gates both the live
     /// UTXO-subscription path and the foreground catch-up diff (see AddressActivityNotifier).
     var addressActivityNotificationsEnabled: Bool
-    /// Chats > Higher quality photos: on-chain photos use the largest size one transaction
-    /// carries (`ImagePrep.highQualityChatTargetBytes`) instead of the default, for a higher fee.
-    var higherQualityPhotos: Bool
     var showFeeEstimate: Bool
     /// Optional (unlike most fields here) - this struct has no custom `init(from:)`, so a newly
     /// added *required* field would fail this whole struct's decode for anyone with a
@@ -2371,7 +2726,6 @@ struct AppSettings: Codable {
         case incomingNotificationSoundEnabled
         case incomingNotificationVibrationEnabled
         case addressActivityNotificationsEnabled
-        case higherQualityPhotos
         case showFeeEstimate
         case quickReactionEmojis
         case appearance
@@ -2412,7 +2766,6 @@ struct AppSettings: Codable {
         incomingNotificationSoundEnabled: Bool = true,
         incomingNotificationVibrationEnabled: Bool = true,
         addressActivityNotificationsEnabled: Bool = true,
-        higherQualityPhotos: Bool = false,
         showFeeEstimate: Bool = true,
         quickReactionEmojis: [String]? = nil,
         appearance: AppAppearance = .system,
@@ -2441,7 +2794,6 @@ struct AppSettings: Codable {
         self.incomingNotificationSoundEnabled = incomingNotificationSoundEnabled
         self.incomingNotificationVibrationEnabled = incomingNotificationVibrationEnabled
         self.addressActivityNotificationsEnabled = addressActivityNotificationsEnabled
-        self.higherQualityPhotos = higherQualityPhotos
         self.showFeeEstimate = showFeeEstimate
         self.quickReactionEmojis = quickReactionEmojis
         self.appearance = appearance
@@ -2498,7 +2850,6 @@ struct AppSettings: Codable {
         // Defaults ON, and an older settings file with no such key decodes as ON - a switch
         // appearing for the first time must not silently mute anything.
         addressActivityNotificationsEnabled = try container.decodeIfPresent(Bool.self, forKey: .addressActivityNotificationsEnabled) ?? true
-        higherQualityPhotos = try container.decodeIfPresent(Bool.self, forKey: .higherQualityPhotos) ?? false
         showFeeEstimate = try container.decodeIfPresent(Bool.self, forKey: .showFeeEstimate) ?? true
         quickReactionEmojis = try container.decodeIfPresent([String].self, forKey: .quickReactionEmojis)
         appearance = try container.decodeIfPresent(AppAppearance.self, forKey: .appearance) ?? .system
@@ -2582,7 +2933,6 @@ struct AppSettings: Codable {
         try container.encode(incomingNotificationSoundEnabled, forKey: .incomingNotificationSoundEnabled)
         try container.encode(incomingNotificationVibrationEnabled, forKey: .incomingNotificationVibrationEnabled)
         try container.encode(addressActivityNotificationsEnabled, forKey: .addressActivityNotificationsEnabled)
-        try container.encode(higherQualityPhotos, forKey: .higherQualityPhotos)
         try container.encode(showFeeEstimate, forKey: .showFeeEstimate)
         try container.encodeIfPresent(quickReactionEmojis, forKey: .quickReactionEmojis)
         try container.encode(appearance, forKey: .appearance)

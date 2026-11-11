@@ -448,7 +448,6 @@
 "Record On-Chain" = "Записать в блокчейн";
 "Take a photo and send it on chain, compressed to fit." = "Сделайте фото и отправьте в блокчейн, сжатое до нужного размера.";
 "Pick an image and send it on chain, compressed to fit." = "Выберите изображение и отправьте в блокчейн, сжатое до нужного размера.";
-"Up to 10 seconds, sent on chain." = "До 10 секунд, отправка в блокчейн.";
 "Take Photo via Nextcloud" = "Снять фото через Nextcloud";
 "Record via Nextcloud" = "Записать через Nextcloud";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "Полное качество или видео. Загружается в ваш Nextcloud; в чате будет ссылка.";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "Показано %lld из %lld";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "Фото в более высоком качестве";
-"Up to 25 seconds, sent on chain." = "До 25 секунд, отправляется в блокчейн.";
+"Up to %@, sent on chain." = "До %@, отправляется в блокчейн.";
+"Photo Quality" = "Качество фото";
+"High" = "Высокое";
+"Medium" = "Среднее";
+"Low" = "Низкое";
+"Receiving… %lld of %lld" = "Получение… %lld из %lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "Видимость адреса";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "Сейчас не удалось получить эти адреса. Вернитесь на страницу назад или снова откройте этот экран, чтобы повторить.";
 "Add, import or export" = "Добавить, импортировать или экспортировать";
-"Call" = "Позвонить";
 "KaChat Contact" = "Контакт KaChat";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat создан с использованием этих библиотек с открытым кодом. Их авторы просят, чтобы эти уведомления распространялись вместе с приложением.";
 "24 words" = "24 слова";
@@ -1137,13 +1139,6 @@
 "Chatting" = "Чат";
 "Spending" = "Траты";
 "Request" = "Запросить";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "Звонки работают, только если Nextcloud Talk настроен у вас или у человека, которому вы звоните. Если он не настроен ни у одного из вас, звонить нельзя.";
-"Continue?" = "Продолжить?";
-"Enable calls and video calls with %@?" = "Включить звонки и видеозвонки с %@?";
-"They will be able to call you too." = "Они тоже смогут вам звонить.";
-"Call %@" = "Позвонить: %@";
-"%@ wants to switch to video" = "%@ хочет перейти на видео";
-"Tap to return" = "Нажмите, чтобы вернуться";
 "What is a passphrase?" = "Что такое парольная фраза?";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "Если вы не уверены, то ответ почти наверняка «нет». Парольную фразу вы бы ввели сами и намеренно.";
 "No" = "Нет";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "Адрес скрыт. Снова включить можно в разделе «Видимость адреса».";
 "Address removed." = "Адрес удалён.";
 "Asks to open an encrypted conversation." = "Предлагает открыть зашифрованную переписку.";
-"Calls stay off for this contact." = "Звонки с этим контактом остаются отключёнными.";
 "Casual" = "Без контроля";
 "Changes the text. Everyone sees the new version." = "Изменяет текст. Все увидят новую версию.";
 "Check off every address you want on the list, in one sitting." = "Отметьте за один раз все адреса, которые нужны в списке.";
 "Clear %@?" = "Очистить «%@»?";
 "Clear All Cache?" = "Очистить весь кэш?";
 "Clears the unread badge on this group." = "Убирает значок непрочитанного у этой группы.";
-"Close this and stay in the chat." = "Закрыть и остаться в чате.";
 "Connecting for live updates" = "Подключение к обновлениям в реальном времени";
 "Copies the address to your clipboard." = "Копирует адрес в буфер обмена.";
 "Copies the name to your clipboard." = "Копирует имя в буфер обмена.";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "Скопировать его адрес Kaspa.";
 "Deletes this chat's messages from this device. The bot stays in the row." = "Удаляет сообщения этого чата с этого устройства. Бот остаётся в ряду.";
 "Downloading message history" = "Загрузка истории сообщений";
-"Enable calls" = "Включить звонки";
 "Failed to open archive: %@" = "Не удалось открыть архив: %@";
 "Finding your conversations" = "Поиск ваших переписок";
 "Finished" = "Готово";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "Снова получать уведомления о его сообщениях.";
 "Gives this account a name of your own." = "Даёт этому аккаунту ваше собственное имя.";
 "Gives this address a label of your own." = "Даёт этому адресу вашу собственную метку.";
-"Go on to calling this person." = "Перейти к звонку этому человеку.";
 "Hide Address" = "Скрыть адрес";
 "Invite this contact to a game on chain." = "Пригласить этот контакт на партию в блокчейне.";
 "KaChat Link" = "Ссылка KaChat";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "Никаких уведомлений из этой группы, включая упоминания.";
 "No timer." = "Без часов.";
 "Node address copied." = "Адрес узла скопирован.";
-"Not now" = "Не сейчас";
 "Notifications from this chat resume." = "Уведомления из этого чата возобновятся.";
 "Notifications from this group resume, including mentions." = "Уведомления из этой группы возобновятся, включая упоминания.";
 "One minute each, plus one second a move." = "По одной минуте каждому, плюс одна секунда за ход.";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "Удаляет эту группу и её сообщения с этого устройства.";
 "Reply to this message instead." = "Ответить на это сообщение вместо этого.";
 "Reveals the next unused address in this wallet." = "Показывает следующий неиспользованный адрес этого кошелька.";
-"Rings them in KaChat; your Nextcloud carries the call." = "Звонок приходит в KaChat; связь идёт через ваш Nextcloud.";
-"Same, with your camera on from the start." = "То же самое, но с камерой с самого начала.";
 "Saves or shares the recording as a file." = "Сохраняет запись как файл или делится ею.";
 "Select Chats..." = "Выбрать чаты...";
 "Sends this message again." = "Отправляет это сообщение ещё раз.";
@@ -1463,10 +1451,7 @@
 "Silence" = "Без звука";
 "Start a group with the people you choose." = "Создать группу с выбранными вами людьми.";
 "Starting" = "Запуск";
-"Stay on voice" = "Остаться на голосовом";
 "Stop seeing their messages in this group. Undo it in Group Info." = "Перестать видеть его сообщения в этой группе. Отменить можно в разделе «Информация о группе».";
-"Switch to video" = "Перейти на видео";
-"The call carries on as it is, and they are told." = "Звонок продолжится как есть, а собеседник будет уведомлён.";
 "The key that spends this address. Never share it." = "Ключ для расходования с этого адреса. Никогда никому его не передавайте.";
 "The passphrase shows too, if this account has one." = "Также будет показана парольная фраза, если она есть у этого аккаунта.";
 "The public half of this address, for anyone who asks for it." = "Открытая часть этого адреса, для тех, кто её попросит.";
@@ -1480,18 +1465,13 @@
 "User muted." = "Уведомления от пользователя отключены.";
 "User unmuted." = "Уведомления от пользователя включены.";
 "Validating backup..." = "Проверка резервной копии...";
-"Video call" = "Видеозвонок";
 "View 12 or 24 Words and Passphrase" = "Показать 12 или 24 слова и парольную фразу";
 "View Private Key" = "Показать закрытый ключ";
 "View Public Key" = "Показать открытый ключ";
-"Voice call" = "Голосовой звонок";
 "Who reacted, and with what." = "Кто отреагировал и чем.";
 "Wiping incoming messages..." = "Очистка входящих сообщений...";
 "Write down your 12 or 24 words before you delete." = "Запишите ваши 12 или 24 слова перед удалением.";
 "Yes, All Chats" = "Да, все чаты";
-"Your camera turns on and the call moves to the speaker." = "Камера включится, а звонок перейдёт на динамик.";
-"Saves this for %@ and lets you call now." = "Сохраняет это для %@ и позволяет позвонить сейчас.";
-"Camera off" = "Камера выключена";
 "Address #%d is ready." = "Адрес №%d готов.";
 "Conversation declined" = "Разговор отклонён";
 "Recents" = "Недавние";

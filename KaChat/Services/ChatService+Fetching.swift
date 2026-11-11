@@ -3341,11 +3341,11 @@ extension ChatService {
             return
         }
 
-        // Call events (invite / answer / hang-up) ring through the chat itself. They DO stay as
-        // bubbles - the chat shows "Voice call · 4:12" the way a phone's history would - so this
-        // only hands the envelope to CallService and carries on.
-        if !message.isOutgoing, let callEnvelope = CallCodec.parseAny(MessageReplyCodec.unwrappedText(message.content)) {
-            CallService.shared.handleIncoming(callEnvelope, message: message, contactAddress: contactAddress)
+        // KaChat has no calls: another client's call messages (call_invite, call_request,
+        // call_response, call_end) are dropped here, before they can become a bubble, an unread
+        // or a notification.
+        if CallSignal.isCallSignal(message.content) {
+            return
         }
 
         let contact = contactsManager.getOrCreateContact(address: contactAddress)
@@ -3359,6 +3359,9 @@ extension ChatService {
         }
         var isNewMessage = false
         var isNewConversation = false
+        // A later-arriving part of a long voice note (MESSAGING.md, "Long voice notes"): the
+        // note is one message, so only its first part to arrive counts as unread and notifies.
+        var isLaterVoicePart = false
 
         if message.isOutgoing && message.deliveryStatus == .sent {
             if settleUnconfirmedSend(txId: message.txId, contactAddress: contactAddress) {
@@ -3402,6 +3405,9 @@ extension ChatService {
             // catch-up sync calls this once per fetched message, so scanning the whole thread
             // each time made a sync quadratic in the conversation's length.
             let alreadyPresent = ingestTxIds(for: conversations[index].messages).contains(message.txId)
+            if !alreadyPresent && !message.isOutgoing {
+                isLaterVoicePart = VoicePartGrouping.isLaterPart(message, among: conversations[index].messages)
+            }
             updateConversation(at: index) { conversation in
                 if !alreadyPresent {
                     conversation.messages.append(message)
@@ -3411,6 +3417,8 @@ extension ChatService {
                             conversation.unreadCount = 0
                         } else if message.isHiddenPlaceholder {
                             // never shown, so never unread: a badge nobody could clear
+                        } else if isLaterVoicePart {
+                            // the note's first part already counted it
                         } else if Int64(message.blockTime) > max(readCursorByAddress[contactAddress] ?? 0, importBaselineMs) {
                             // Only bump for messages newer than the persisted read cursor (floored
                             // at the wallet-import baseline) - a re-fetched already-read message
@@ -3476,7 +3484,7 @@ extension ChatService {
             UIApplication.shared.applicationState == .active
         // Backfilled pre-import history never notifies either - restoring is not receiving.
         let isBackfilledHistory = message.blockTime > 0 && Int64(message.blockTime) <= importBaselineMs
-        if isNewMessage && !message.isOutgoing && !isViewingConversation && !isBackfilledHistory {
+        if isNewMessage && !message.isOutgoing && !isViewingConversation && !isBackfilledHistory && !isLaterVoicePart {
             sendLocalNotification(for: message, from: contact)
         }
     }
@@ -3795,29 +3803,6 @@ extension ChatService {
         if MessageEditCodec.parse(unwrapped) != nil {
             return "Edited a message"
         }
-        // Call envelopes, matching the NSE's callPreviewText.
-        if let callEnvelope = CallCodec.parseAny(unwrapped) {
-            switch callEnvelope {
-            case .request(let request):
-                return request.video ? "📹 Incoming video call" : "📞 Incoming voice call"
-            case .invite(let invite):
-                if invite.viaRequest == true { return invite.video ? "📹 Video call ready" : "📞 Voice call ready" }
-                return invite.video ? "📹 Incoming video call" : "📞 Incoming voice call"
-            case .response(let response):
-                if response.reason == "no_host" { return "📞 Calls need Nextcloud Talk on one side" }
-                return response.accepted ? "📞 Answered your call" : "📞 Declined your call"
-            case .end(let end):
-                if let seconds = end.durationSeconds, seconds > 0 {
-                    return String(format: "📞 Call · %d:%02d", seconds / 60, seconds % 60)
-                }
-                switch end.reason {
-                case "no_answer", "cancelled": return "📞 Missed call"
-                case "declined": return "📞 Call declined"
-                default: return "📞 Call ended"
-                }
-            }
-        }
-
         // Check if content is a file JSON payload
         let trimmed = unwrapped.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.hasPrefix("{"), trimmed.hasSuffix("}") else {

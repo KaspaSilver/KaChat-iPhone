@@ -448,7 +448,6 @@
 "Record On-Chain" = "ضبط روی زنجیره";
 "Take a photo and send it on chain, compressed to fit." = "عکس بگیرید و روی زنجیره بفرستید، فشرده‌شده تا جا شود.";
 "Pick an image and send it on chain, compressed to fit." = "تصویری انتخاب کنید و روی زنجیره بفرستید، فشرده‌شده تا جا شود.";
-"Up to 10 seconds, sent on chain." = "تا ۱۰ ثانیه، روی زنجیره ارسال می‌شود.";
 "Take Photo via Nextcloud" = "گرفتن عکس از طریق Nextcloud";
 "Record via Nextcloud" = "ضبط از طریق Nextcloud";
 "Full quality, or a video. Uploads to your Nextcloud; the chat carries the link." = "کیفیت کامل یا ویدیو. در Nextcloud شما بارگذاری می‌شود و گفتگو پیوند را می‌برد.";
@@ -815,8 +814,12 @@
 "%lld of %lld shown" = "%lld از %lld نمایش داده شده";
 
 /* Chats: higher quality photos; longer on-chain voice notes */
-"Higher quality photos" = "عکس‌های با کیفیت بالاتر";
-"Up to 25 seconds, sent on chain." = "تا ۲۵ ثانیه، روی زنجیره ارسال می‌شود.";
+"Up to %@, sent on chain." = "تا %@، روی زنجیره ارسال می‌شود.";
+"Photo Quality" = "کیفیت عکس";
+"High" = "بالا";
+"Medium" = "متوسط";
+"Low" = "پایین";
+"Receiving… %lld of %lld" = "در حال دریافت… %lld از %lld";
 
 /* Chess leaderboard: this month / all time */
 
@@ -1098,7 +1101,6 @@
 "Address Visibility" = "نمایان بودن آدرس";
 "These addresses couldn't be derived right now. Go back a page or reopen this screen to retry." = "این آدرس‌ها فعلاً قابل استخراج نیستند. یک صفحه برگردید یا این صفحه را دوباره باز کنید تا دوباره امتحان شود.";
 "Add, import or export" = "افزودن، وارد کردن یا خروجی گرفتن";
-"Call" = "تماس";
 "KaChat Contact" = "مخاطب KaChat";
 "KaChat is built with these open source libraries. Their authors ask that these notices travel with the app." = "KaChat با این کتابخانه‌های متن‌باز ساخته شده است. نویسندگان آن‌ها می‌خواهند این اطلاعیه‌ها همراه برنامه باشند.";
 "24 words" = "۲۴ کلمه";
@@ -1137,13 +1139,6 @@
 "Chatting" = "گفتگو";
 "Spending" = "خرج کردن";
 "Request" = "درخواست";
-"Calling only works if you or the person you are trying to talk to has Nextcloud Talk set up. If neither side has it set up, you cannot make calls." = "تماس فقط وقتی کار می‌کند که شما یا فردی که می‌خواهید با او صحبت کنید Nextcloud Talk را راه‌اندازی کرده باشید. اگر هیچ‌کدام راه‌اندازی نکرده باشید، نمی‌توانید تماس بگیرید.";
-"Continue?" = "ادامه می‌دهید؟";
-"Enable calls and video calls with %@?" = "تماس و تماس تصویری با %@ فعال شود؟";
-"They will be able to call you too." = "آن‌ها هم می‌توانند با شما تماس بگیرند.";
-"Call %@" = "تماس با %@";
-"%@ wants to switch to video" = "%@ می‌خواهد به ویدیو تغییر دهد";
-"Tap to return" = "برای بازگشت ضربه بزنید";
 "What is a passphrase?" = "عبارت عبور چیست؟";
 "If you are not sure, the answer is almost certainly no. A passphrase is something you would have typed in on purpose." = "اگر مطمئن نیستید، تقریباً قطعاً جواب منفی است. عبارت عبور چیزی است که خودتان عمداً وارد کرده‌اید.";
 "No" = "خیر";
@@ -1375,14 +1370,12 @@
 "Address hidden. Re-enable it in Address Visibility." = "آدرس پنهان شد. از بخش نمایان بودن آدرس دوباره فعالش کنید.";
 "Address removed." = "آدرس حذف شد.";
 "Asks to open an encrypted conversation." = "درخواست باز کردن یک گفتگوی رمزگذاری‌شده را می‌دهد.";
-"Calls stay off for this contact." = "تماس‌ها برای این مخاطب خاموش می‌مانند.";
 "Casual" = "دوستانه";
 "Changes the text. Everyone sees the new version." = "متن را تغییر می‌دهد. همه نسخه جدید را می‌بینند.";
 "Check off every address you want on the list, in one sitting." = "هر آدرسی را که در فهرست می‌خواهید یک‌جا علامت بزنید.";
 "Clear %@?" = "%@ پاک شود؟";
 "Clear All Cache?" = "همه حافظه پنهان پاک شود؟";
 "Clears the unread badge on this group." = "نشان خوانده‌نشده این گروه را پاک می‌کند.";
-"Close this and stay in the chat." = "این را ببندید و در گفتگو بمانید.";
 "Connecting for live updates" = "در حال اتصال برای به‌روزرسانی زنده";
 "Copies the address to your clipboard." = "آدرس را در کلیپ‌بورد کپی می‌کند.";
 "Copies the name to your clipboard." = "نام را در کلیپ‌بورد کپی می‌کند.";
@@ -1390,7 +1383,6 @@
 "Copy their Kaspa address." = "آدرس Kaspa او را کپی کنید.";
 "Deletes this chat's messages from this device. The bot stays in the row." = "پیام‌های این گفتگو را از این دستگاه حذف می‌کند. ربات در ردیف می‌ماند.";
 "Downloading message history" = "در حال دانلود تاریخچه پیام‌ها";
-"Enable calls" = "فعال کردن تماس‌ها";
 "Failed to open archive: %@" = "باز کردن بایگانی ناموفق بود: %@";
 "Finding your conversations" = "در حال یافتن گفتگوهای شما";
 "Finished" = "تمام شد";
@@ -1400,7 +1392,6 @@
 "Get notified for their messages again." = "دوباره برای پیام‌های او اعلان بگیرید.";
 "Gives this account a name of your own." = "به این حساب نامی به انتخاب خودتان می‌دهد.";
 "Gives this address a label of your own." = "به این آدرس برچسبی به انتخاب خودتان می‌دهد.";
-"Go on to calling this person." = "ادامه و تماس با این شخص.";
 "Hide Address" = "پنهان کردن آدرس";
 "Invite this contact to a game on chain." = "این مخاطب را به یک بازی روی زنجیره دعوت کنید.";
 "KaChat Link" = "پیوند KaChat";
@@ -1416,7 +1407,6 @@
 "No notification from this group, mentions included." = "هیچ اعلانی از این گروه نمی‌آید، حتی برای اشاره‌ها.";
 "No timer." = "بدون زمان‌سنج.";
 "Node address copied." = "آدرس گره کپی شد.";
-"Not now" = "حالا نه";
 "Notifications from this chat resume." = "اعلان‌های این گفتگو از سر گرفته می‌شود.";
 "Notifications from this group resume, including mentions." = "اعلان‌های این گروه، از جمله اشاره‌ها، از سر گرفته می‌شود.";
 "One minute each, plus one second a move." = "هر نفر یک دقیقه، به‌علاوه یک ثانیه برای هر حرکت.";
@@ -1453,8 +1443,6 @@
 "Removes this group and its messages from this device." = "این گروه و پیام‌هایش را از این دستگاه حذف می‌کند.";
 "Reply to this message instead." = "به‌جای آن به این پیام پاسخ دهید.";
 "Reveals the next unused address in this wallet." = "آدرس استفاده‌نشده بعدی این کیف پول را نشان می‌دهد.";
-"Rings them in KaChat; your Nextcloud carries the call." = "در KaChat برای او زنگ می‌زند؛ Nextcloud شما تماس را منتقل می‌کند.";
-"Same, with your camera on from the start." = "همین، با دوربین روشن از ابتدا.";
 "Saves or shares the recording as a file." = "ضبط را به‌صورت فایل ذخیره یا هم‌رسانی می‌کند.";
 "Select Chats..." = "انتخاب گفتگوها...";
 "Sends this message again." = "این پیام را دوباره می‌فرستد.";
@@ -1463,10 +1451,7 @@
 "Silence" = "بی‌صدا کردن";
 "Start a group with the people you choose." = "با افرادی که انتخاب می‌کنید گروهی بسازید.";
 "Starting" = "در حال شروع";
-"Stay on voice" = "ماندن روی صدا";
 "Stop seeing their messages in this group. Undo it in Group Info." = "دیدن پیام‌های او در این گروه را متوقف کنید. در اطلاعات گروه می‌توانید برگردانید.";
-"Switch to video" = "رفتن به ویدیو";
-"The call carries on as it is, and they are told." = "تماس همان‌طور ادامه می‌یابد و به او اطلاع داده می‌شود.";
 "The key that spends this address. Never share it." = "کلیدی که از این آدرس خرج می‌کند. هرگز آن را هم‌رسانی نکنید.";
 "The passphrase shows too, if this account has one." = "اگر این حساب عبارت عبور داشته باشد، آن هم نشان داده می‌شود.";
 "The public half of this address, for anyone who asks for it." = "نیمه عمومی این آدرس، برای هر کسی که بخواهد.";
@@ -1480,18 +1465,13 @@
 "User muted." = "کاربر بی‌صدا شد.";
 "User unmuted." = "کاربر باصدا شد.";
 "Validating backup..." = "در حال بررسی نسخه پشتیبان...";
-"Video call" = "تماس تصویری";
 "View 12 or 24 Words and Passphrase" = "مشاهده ۱۲ یا ۲۴ کلمه و عبارت عبور";
 "View Private Key" = "مشاهده کلید خصوصی";
 "View Public Key" = "مشاهده کلید عمومی";
-"Voice call" = "تماس صوتی";
 "Who reacted, and with what." = "چه کسی و با چه چیزی واکنش نشان داده.";
 "Wiping incoming messages..." = "در حال پاک کردن پیام‌های ورودی...";
 "Write down your 12 or 24 words before you delete." = "پیش از حذف، ۱۲ یا ۲۴ کلمه خود را یادداشت کنید.";
 "Yes, All Chats" = "بله، همه گفتگوها";
-"Your camera turns on and the call moves to the speaker." = "دوربین شما روشن می‌شود و تماس به بلندگو می‌رود.";
-"Saves this for %@ and lets you call now." = "این را برای %@ ذخیره می‌کند و اجازه می‌دهد اکنون تماس بگیرید.";
-"Camera off" = "دوربین خاموش";
 "Address #%d is ready." = "آدرس شماره %d آماده است.";
 "Conversation declined" = "گفتگو رد شد";
 "Recents" = "اخیر";

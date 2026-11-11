@@ -329,10 +329,11 @@ extension ChatService {
             let lastReadBlockTime = max(convMeta?.lastReadBlockTime ?? 0, pendingReadBlockTime)
             let unreadCount: Int
             if lastReadBlockTime > 0 {
-                // Compute unread as messages with blockTime > lastReadBlockTime (incoming only)
-                unreadCount = dedupedFull.filter { msg in
+                // Compute unread as messages with blockTime > lastReadBlockTime (incoming only);
+                // a long voice note's parts count once.
+                unreadCount = VoicePartGrouping.unreadUnits(dedupedFull.filter { msg in
                     !msg.isOutgoing && Int64(msg.blockTime) > lastReadBlockTime
-                }.count
+                })
             } else {
                 // Fallback to stored unreadCount (backward compatibility)
                 unreadCount = convMeta?.unreadCount ?? 0
@@ -374,9 +375,9 @@ extension ChatService {
                 let unreadCount: Int
                 if storedLastReadBlockTime > 0 {
                     // Stored read cursor - recompute unread from combined messages
-                    unreadCount = combinedMessages.filter { msg in
+                    unreadCount = VoicePartGrouping.unreadUnits(combinedMessages.filter { msg in
                         !msg.isOutgoing && Int64(msg.blockTime) > storedLastReadBlockTime
-                    }.count
+                    })
                 } else {
                     // No stored read cursor - prefer in-memory value
                     unreadCount = existing.unreadCount

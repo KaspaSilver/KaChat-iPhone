@@ -219,7 +219,8 @@ struct GroupChatDetailView: View {
     /// a "Record via Nextcloud" note runs to the app-wide Nextcloud ceiling, mirroring
     /// `ChatDetailView.effectiveMaxRecordingDuration`.
     private var effectiveMaxRecordingDuration: TimeInterval {
-        voiceViaNextcloud ? ComposerMediaLimits.nextcloudVoiceSeconds : VoiceNoteRecorder.maxDuration
+        // On chain: up to 1:50, as parts of at most 9.8 s (`VoiceNotePolicy.group`).
+        voiceViaNextcloud ? ComposerMediaLimits.nextcloudVoiceSeconds : VoiceNoteRecorder.maxOnChainDuration
     }
 
     private var photoViaNextcloud: Bool { nextcloudPhotoRequested && nextcloudService.isConnected }
@@ -246,11 +247,12 @@ struct GroupChatDetailView: View {
     @State private var showFeeEditor = false
     @State private var feeEditorText = ""
 
-    /// Smaller than 1:1's `ImagePrep.defaultChatTargetBytes` (15,000) - group's `gcomm` payload
-    /// hex-encodes the whole ciphertext (vs. 1:1's base64) plus fixed per-message overhead
-    /// (blinded_group_id/sender_id/sender_pub/msg_id/signature, all hex), so the same raw photo
-    /// size lands as a noticeably larger on-chain payload/fee in a group message.
-    private static let groupPhotoTargetBytes = 10_000
+    /// Send on an on-chain photo: High / Medium / Low (`PhotoQualitySheet`, `PhotoTier` with the
+    /// group budgets - the `gcomm` payload carries the photo's frame as hex).
+    @State private var showPhotoQualitySheet = false
+    @State private var photoTierData: [PhotoTier: Data] = [:]
+    @State private var photoTierImageID: ObjectIdentifier?
+    @State private var photoTierTask: Task<Void, Never>?
 
     private var myAddress: String? { walletManager.currentWallet?.publicAddress }
 
@@ -311,6 +313,11 @@ struct GroupChatDetailView: View {
             hasher.combine(pending.txId)
             hasher.combine(pending.deliveryStatus)
         }
+        // A long voice note's parts settle one by one, not only at the tail.
+        for message in raw.suffix(VoicePartTag.maxParts * 2) where message.deliveryStatus != .sent {
+            hasher.combine(message.txId)
+            hasher.combine(message.deliveryStatus)
+        }
         hasher.combine(groupChatService.hiddenMemberAddresses(for: group.id).count)
         hasher.combine(systemLineClock)
         return hasher.finalize()
@@ -322,6 +329,10 @@ struct GroupChatDetailView: View {
     /// keystroke, any service publish) filtered and sorted the whole group history, several
     /// times over. Now that happens only when `timelineCacheKey` moves.
     @State private var cachedMessages: [GroupMessage] = []
+    /// Long voice notes' parts (MESSAGING.md, "Long voice notes (multi-part)"), keyed by
+    /// (group, sender, voicePart.id): each note shows as one row, its earliest part; the other
+    /// parts are left out of `cachedMessages`.
+    @State private var cachedVoiceGroups = VoicePartGrouping.Result<GroupMessage>()
 
     private var messages: [GroupMessage] { cachedMessages }
 
@@ -413,7 +424,10 @@ struct GroupChatDetailView: View {
         guard key != cachedTimelineKey else { return }
         cachedTimelineKey = key
         // Filtered and sorted once here, then read by everything else from the cache.
-        let all = computedMessages
+        let visible = computedMessages
+        let voiceGroups = VoicePartGrouping.group(visible)
+        cachedVoiceGroups = voiceGroups
+        let all = voiceGroups.hiddenIds.isEmpty ? visible : visible.filter { !voiceGroups.hiddenIds.contains($0.id) }
         cachedMessages = all
         cachedTimelineItems = buildTimelineItems(from: renderWindow(of: all))
     }
@@ -740,7 +754,12 @@ struct GroupChatDetailView: View {
             isPresented: $showDeleteMessagesConfirmation
         ) {
             Button("Delete", role: .destructive) {
-                groupChatService.deleteMessages(selectedMessageIDs, groupId: group.id)
+                // A long voice note goes with every part.
+                var txIds = selectedMessageIDs
+                for txId in selectedMessageIDs {
+                    if let members = cachedVoiceGroups.groupTxIdsByAnchorTxId[txId] { txIds.formUnion(members) }
+                }
+                groupChatService.deleteMessages(txIds, groupId: group.id)
                 isSelectingMessages = false
                 selectedMessageIDs = []
             }
@@ -751,6 +770,18 @@ struct GroupChatDetailView: View {
         // Body extracted to a method with an explicit return type: inline, the nested
         // optional-chained dictionary lookup inside a closure inside this already-long modifier
         // chain pushed the type checker past its budget and it failed the whole expression.
+        .sheet(isPresented: $showPhotoQualitySheet) {
+            PhotoQualitySheet(
+                fees: photoTierFees,
+                onChoose: { tier in
+                    showPhotoQualitySheet = false
+                    sendPendingPhoto(tier: tier)
+                },
+                onCancel: { showPhotoQualitySheet = false }
+            )
+            .presentationDetents([.height(PhotoQualitySheet.height)])
+            .presentationDragIndicator(.visible)
+        }
         .sheet(item: $emojiPickerTarget) { target in
             emojiPickerSheet(targetTxId: target.id)
         }
@@ -1108,6 +1139,10 @@ struct GroupChatDetailView: View {
 
     /// Drops the pending photo or video and cancels its upload if one is running.
     private func clearPendingPhoto() {
+        photoTierTask?.cancel()
+        photoTierTask = nil
+        photoTierData = [:]
+        photoTierImageID = nil
         nextcloudUploadTask?.cancel()
         nextcloudUploadTask = nil
         nextcloudStaged = nil
@@ -1142,7 +1177,8 @@ struct GroupChatDetailView: View {
     private var shouldShowFeeBubble: Bool {
         let setting = settingsViewModel.settings.showFeeEstimate
         if recorder.state == .recording || recorder.state == .encoding { return setting || !voiceViaNextcloud }
-        if pendingPhotoImage != nil { return setting || !photoViaNextcloud }
+        // An on-chain photo's fee is chosen in the quality sheet at Send.
+        if pendingPhotoImage != nil { return setting && photoViaNextcloud }
         return setting && composerHasText
     }
 
@@ -1239,10 +1275,12 @@ struct GroupChatDetailView: View {
         isEstimatingFee = false
         // Via Nextcloud, the chain only carries the ~80-byte share link - the photo bytes live
         // on the server - so the fee shown is the link-message fee, not the envelope fee.
-        let rawBytes = photoViaNextcloud
-            ? Self.nextcloudLinkPayloadSize
-            : Self.groupPhotoTargetBytes
-        feeEstimateSompi = groupChatService.estimateGroupMediaFee(rawBytes: rawBytes)
+        // On chain, the quality sheet shows each tier's fee at Send; there is none to show yet.
+        guard photoViaNextcloud else {
+            feeEstimateSompi = nil
+            return
+        }
+        feeEstimateSompi = groupChatService.estimateGroupMediaFee(rawBytes: Self.nextcloudLinkPayloadSize)
     }
 
     /// Raw encoded-Opus-bytes/sec estimate for `VoiceNoteRecorder`'s fixed 6kbps/48kHz
@@ -1257,9 +1295,17 @@ struct GroupChatDetailView: View {
             isEstimatingFee = false
             return
         }
-        let rawBytesPerSecond = 1_150.0
-        let estimatedRawBytes = min(Int(elapsedSeconds * rawBytesPerSecond), 13_000)
-        feeEstimateSompi = groupChatService.estimateGroupMediaFee(rawBytes: estimatedRawBytes)
+        // The sum over the parts the recording will go as, each in the binary media frame.
+        var total: UInt64 = 0
+        for rawBytes in VoiceNoteRecorder.estimatedPartSizes(forDuration: elapsedSeconds) {
+            guard let fee = groupChatService.estimateGroupVoiceFee(rawBytes: rawBytes) else {
+                feeEstimateSompi = nil
+                isEstimatingFee = false
+                return
+            }
+            total &+= fee
+        }
+        feeEstimateSompi = total
         isEstimatingFee = false
     }
 
@@ -1445,7 +1491,7 @@ struct GroupChatDetailView: View {
     @ViewBuilder
     private var plusSheet: some View {
         if let kind = plusSheetMediaStep {
-            ComposerMediaRouteStep(kind: kind, onChoose: { viaNextcloud in
+            ComposerMediaRouteStep(kind: kind, onChainVoiceSeconds: Int(VoiceNoteRecorder.maxOnChainDuration), onChoose: { viaNextcloud in
                 showPlusSheet = false
                 startMedia(kind, viaNextcloud: viaNextcloud)
             }, onBack: { plusSheetMediaStep = nil })
@@ -1735,7 +1781,14 @@ struct GroupChatDetailView: View {
             // Spins while the Nextcloud upload runs, not just while sending: the link has to be
             // back before there is anything to send.
             Button {
-                sendPendingPhoto()
+                if pendingPhotoGoesOnChain {
+                    // On chain: the quality first.
+                    guard !isSendingPhoto else { return }
+                    preparePhotoTiers()
+                    showPhotoQualitySheet = true
+                } else {
+                    sendPendingPhoto()
+                }
             } label: {
                 if isSendingPhoto || nextcloudStaged?.isUploading == true {
                     ProgressView()
@@ -1751,6 +1804,12 @@ struct GroupChatDetailView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(glassBackground(cornerRadius: 20))
+    }
+
+    /// "mm:ss".
+    private static func clock(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds.rounded())
+        return String(format: "%02d:%02d", total / 60, total % 60)
     }
 
     private var recordingRow: some View {
@@ -1769,8 +1828,25 @@ struct GroupChatDetailView: View {
                     .font(.caption)
                     .foregroundColor(.red)
 
-                Text(recorder.state == .encoding ? "Encoding…" : "Recording... \(Int(recorder.elapsedSeconds))s")
-                    .foregroundColor(.secondary)
+                if recorder.state == .encoding {
+                    Text("Encoding…")
+                        .foregroundColor(.secondary)
+                } else {
+                    // A ring that fills toward the limit (1:50 on chain, 5:00 via Nextcloud).
+                    ZStack {
+                        Circle()
+                            .stroke(Color.secondary.opacity(0.25), lineWidth: 3)
+                        Circle()
+                            .trim(from: 0, to: min(1, recorder.elapsedSeconds / max(1, effectiveMaxRecordingDuration)))
+                            .stroke(Color.red, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                            .animation(.linear(duration: 1), value: recorder.elapsedSeconds)
+                    }
+                    .frame(width: 18, height: 18)
+                    Text(verbatim: "\(String(localized: "Recording...")) \(Self.clock(recorder.elapsedSeconds)) / \(Self.clock(effectiveMaxRecordingDuration))")
+                        .monospacedDigit()
+                        .foregroundColor(.secondary)
+                }
 
                 Spacer()
             }
@@ -1843,7 +1919,39 @@ struct GroupChatDetailView: View {
         }
     }
 
-    private func sendPendingPhoto() {
+    /// The pending photo goes on chain: no Nextcloud upload for it, or the upload failed.
+    private var pendingPhotoGoesOnChain: Bool {
+        guard let staged = nextcloudStaged else { return true }
+        if case .failed = staged.phase { return true }
+        return false
+    }
+
+    /// Compresses the pending photo for every tier off the main thread, so the quality sheet can
+    /// show each one's real fee. Kept for the send that follows; once per photo.
+    private func preparePhotoTiers() {
+        guard let image = pendingPhotoImage else { return }
+        let imageID = ObjectIdentifier(image)
+        guard photoTierImageID != imageID else { return }
+        photoTierTask?.cancel()
+        photoTierImageID = imageID
+        photoTierData = [:]
+        let budgets = Dictionary(uniqueKeysWithValues: PhotoTier.allCases.map { ($0, $0.maxBytes(forGroup: true)) })
+        photoTierTask = Task.detached(priority: .userInitiated) {
+            guard let results = try? ImagePrep.prepareJPEGForTiers(image, budgets: Array(budgets.values)) else { return }
+            await MainActor.run {
+                guard photoTierImageID == imageID, !Task.isCancelled else { return }
+                var byTier: [PhotoTier: Data] = [:]
+                for (tier, budget) in budgets { byTier[tier] = results[budget] }
+                photoTierData = byTier
+            }
+        }
+    }
+
+    private var photoTierFees: [PhotoTier: UInt64] {
+        photoTierData.mapValues { PhotoPolicy.estimatedFeeSompi(bytes: $0.count, forGroup: true) }
+    }
+
+    private func sendPendingPhoto(tier: PhotoTier = .low) {
         guard let pendingPhotoImage, !isSendingPhoto, nextcloudStaged?.isUploading != true else { return }
         isSendingPhoto = true
         errorMessage = nil
@@ -1880,8 +1988,20 @@ struct GroupChatDetailView: View {
             }
 
             do {
-                let prepared = try ImagePrep.prepareForChatMessage(pendingPhotoImage, targetBytes: Self.groupPhotoTargetBytes)
-                try await groupChatService.sendGroupImage(prepared.data, to: group.id, fileName: prepared.fileName, mimeType: prepared.mimeType)
+                // The chosen tier's photo: compressed already for the sheet, else now (off the
+                // main thread). Bigger than one transaction, it goes as a multi-part photo.
+                let ready: Data? = await MainActor.run {
+                    photoTierImageID == ObjectIdentifier(pendingPhotoImage) ? photoTierData[tier] : nil
+                }
+                let imageData: Data
+                if let ready {
+                    imageData = ready
+                } else {
+                    imageData = try await Task.detached(priority: .userInitiated) {
+                        try ImagePrep.prepareForTier(pendingPhotoImage, tier: tier, forGroup: true).data
+                    }.value
+                }
+                try await groupChatService.sendGroupImage(imageData, to: group.id, fileName: "photo.jpg", mimeType: "image/jpeg")
                 await MainActor.run {
                     self.clearPendingPhoto()
                     self.isSendingPhoto = false
@@ -1916,6 +2036,17 @@ struct GroupChatDetailView: View {
                 }
             }
             do {
+                // On chain: parts of at most 9.8 s in the binary media frame (MESSAGING.md, "Long
+                // voice notes"); a note that short is one untagged message.
+                if !nextcloudActive {
+                    let recorded = try await recorder.stopAndEncodeParts()
+                    if recorded.parts.count > 1 {
+                        try await groupChatService.sendGroupVoiceNoteParts(recorded.parts, to: group.id, mimeType: recorded.mimeType)
+                    } else if let only = recorded.parts.first {
+                        try await groupChatService.sendGroupAudio(only, to: group.id, fileName: recorded.fileName, mimeType: recorded.mimeType)
+                    }
+                    return
+                }
                 let recorded = try await recorder.stopAndEncode(keepOriginalPCMAt: originalPCMURL)
 
                 // "Record via Nextcloud": upload an AAC .m4a of the recording and send the
@@ -2188,7 +2319,9 @@ struct GroupChatDetailView: View {
     /// Group chat has no pagination (the full history is already in `messages`, unlike 1:1's
     /// windowed `displayedMessages`), so a jump either finds the target right away or it's
     /// genuinely gone (pruned/undelivered).
-    private func jumpToReplyOriginal(txId: String, using proxy: ScrollViewProxy) {
+    private func jumpToReplyOriginal(txId originalTxId: String, using proxy: ScrollViewProxy) {
+        // A reply to a later part of a long voice note lands on the note's one bubble.
+        let txId = cachedVoiceGroups.anchorTxIdByTxId[originalTxId] ?? originalTxId
         let all = messages
         guard let targetIndex = all.firstIndex(where: { $0.txId == txId }) else {
             showToast("Original message not available.", style: .error)
@@ -2219,8 +2352,14 @@ struct GroupChatDetailView: View {
     /// as a fresh message rather than mutating the failed one, which stays in history marked failed.
     private func retry(_ message: GroupMessage) {
         errorMessage = nil
+        // A long voice note's Retry resends only its failed parts, in order.
+        let failedParts = cachedVoiceGroups.groupsByAnchorId[message.id]?.failedOutgoingParts
         Task {
             do {
+                if let failedParts {
+                    try await groupChatService.retryGroupVoiceNoteParts(failedParts)
+                    return
+                }
                 // In-place resend of the SAME failed message - does not create a new/duplicate one.
                 try await groupChatService.retryGroupMessage(message)
             } catch {
@@ -2345,8 +2484,11 @@ struct GroupChatDetailView: View {
         let edit = groupChatService.editsByGroupId[group.id]?[message.txId]
         let message = edit.map { message.replacingContent(MessageEditCodec.apply($0.text, to: message.content)) } ?? message
         let canEdit = message.isOutgoing && message.deliveryStatus == .sent && MessageEditCodec.isEditable(message.content)
+        // The row standing for a whole long voice note: every part present, and the note's
+        // combined status. Reply and react target this, its first part.
+        let voiceGroup = cachedVoiceGroups.groupsByAnchorId[message.id]
         let bubble = GroupMessageBubbleRow(
-            message: message,
+            message: voiceGroup?.displayMessage ?? message,
             group: group,
             avatarURLString: message.senderAddress.flatMap { knsService.profileCache[$0]?.avatarURL },
             senderDisplayName: message.senderAddress.map { $0 == myAddress ? "You" : displayName(for: $0) } ?? "Unknown",
@@ -2382,7 +2524,9 @@ struct GroupChatDetailView: View {
             activeQuickReactionMessageId: $activeQuickReactionMessageId,
             onJumpToReply: { pendingJumpToTxId = $0 },
             isEdited: edit != nil,
-            onEdit: canEdit ? { beginEdit(message) } : nil
+            onEdit: canEdit ? { beginEdit(message) } : nil,
+            voiceParts: voiceGroup.flatMap { InlineFileSniff.isImage($0.anchor.content) ? nil : groupVoicePartsInput(for: $0) },
+            photoParts: voiceGroup.flatMap { InlineFileSniff.isImage($0.anchor.content) ? groupPhotoPartsInput(for: $0) : nil }
         )
         .allowsHitTesting(!isSelectingMessages)
         .padding(.leading, isSelectingMessages ? 28 : 0)
@@ -2391,6 +2535,34 @@ struct GroupChatDetailView: View {
             bubble
             groupSelectionOverlay(for: message.txId)
         }
+    }
+
+    /// The pieces of a long voice note's bubble: the parts present, in index order.
+    private func groupVoicePartsInput(for group: GroupVoicePartGroup) -> VoiceNotePartsInput {
+        var pieces: [VoiceNotePartsInput.Piece] = []
+        for part in group.parts {
+            guard let media = MediaFile.from(part.content, cacheKey: part.txId),
+                  media.isAudio,
+                  let tag = media.voicePart,
+                  let data = media.fileData(cacheKey: part.txId) else { continue }
+            pieces.append(VoiceNotePartsInput.Piece(index: tag.index, txId: part.txId, data: data, mimeType: media.mimeType))
+        }
+        return VoiceNotePartsInput(count: group.count, parts: pieces)
+    }
+
+    /// The chunks of a multi-part photo's bubble: the parts present, in index order.
+    private func groupPhotoPartsInput(for group: GroupVoicePartGroup) -> PhotoPartsInput {
+        var pieces: [PhotoPartsInput.Piece] = []
+        var mimeType = "image/jpeg"
+        for part in group.parts {
+            guard let media = MediaFile.from(part.content, cacheKey: part.txId),
+                  media.isImage,
+                  let tag = media.mediaPart,
+                  let data = media.fileData(cacheKey: part.txId) else { continue }
+            mimeType = media.mimeType
+            pieces.append(PhotoPartsInput.Piece(index: tag.index, data: data))
+        }
+        return PhotoPartsInput(count: group.count, parts: pieces, mimeType: mimeType, anchorTxId: group.anchor.txId)
     }
 
     /// Entry point into select mode - triggered from a message's long-press "Select" menu item
@@ -2524,6 +2696,10 @@ private struct GroupMessageBubbleRow: View {
     /// "edited" sits under the bubble. `onEdit` is offered on the user's own text bubbles only.
     var isEdited: Bool = false
     var onEdit: (() -> Void)? = nil
+    /// Set on the row standing for a whole long voice note (its earliest part).
+    var voiceParts: VoiceNotePartsInput? = nil
+    /// Set on the row standing for a whole multi-part photo (its earliest part).
+    var photoParts: PhotoPartsInput? = nil
 
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     // No `groupChatService` here: nothing in the row reads it, and observing it redrew every
@@ -2711,7 +2887,34 @@ private struct GroupMessageBubbleRow: View {
                 // whichever sibling is widest, which for a reply is usually the quote banner, not
                 // the (often much narrower) bubble underneath it.
                 Group {
-                    if let media, media.isImage {
+                    if let photoParts {
+                        // A multi-part photo: the joined image once every part is here, else a
+                        // placeholder counting them in.
+                        if let joined = photoParts.joinedMedia {
+                            LazyImageBubble(
+                                media: joined,
+                                txId: message.txId,
+                                shouldShowRetry: shouldShowRetry,
+                                photosBlocked: false,
+                                senderDisplayName: senderName,
+                                onCopy: onCopy,
+                                onRetry: shouldShowRetry ? { onRetry() } : nil,
+                                onReply: onReply,
+                                onDoubleTap: onReact != nil ? { activeQuickReactionMessageId.wrappedValue = message.id } : nil,
+                                onSelect: onSelect,
+                                imageCacheKey: photoParts.imageCacheKey
+                            )
+                        } else {
+                            PhotoPartsPlaceholderBubble(
+                                input: photoParts,
+                                isOutgoing: message.isOutgoing,
+                                onRetry: shouldShowRetry ? { onRetry() } : nil,
+                                onReply: onReply,
+                                onSelect: onSelect
+                            )
+                            .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId.wrappedValue = message.id })
+                        }
+                    } else if let media, media.isImage {
                         LazyImageBubble(
                             media: media,
                             txId: message.txId,
@@ -2724,6 +2927,16 @@ private struct GroupMessageBubbleRow: View {
                             onDoubleTap: onReact != nil ? { activeQuickReactionMessageId.wrappedValue = message.id } : nil,
                             onSelect: onSelect
                         )
+                    } else if let voiceParts, !voiceParts.parts.isEmpty {
+                        LazyMultipartAudioBubble(
+                            input: voiceParts,
+                            isOutgoing: message.isOutgoing,
+                            txId: message.txId,
+                            onRetry: shouldShowRetry ? { onRetry() } : nil,
+                            onReply: onReply,
+                            onSelect: onSelect
+                        )
+                        .simultaneousGesture(TapGesture(count: 2).onEnded { activeQuickReactionMessageId.wrappedValue = message.id })
                     } else if let media, media.isAudio, let data = media.fileData(cacheKey: message.txId) {
                         LazyAudioBubble(
                             data: data,

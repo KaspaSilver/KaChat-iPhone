@@ -185,6 +185,8 @@ struct GroupChatDetailView: View {
     @State private var nextcloudVoiceRequested = false
     @State private var showPhotoPicker = false
     @State private var showCamera = false
+    /// Camera or microphone access is off: `mediaAccessAlert` explains it and opens Settings.
+    @State private var deniedMediaAccess: MediaAccess?
     @State private var pendingPhotoImage: UIImage?
     /// The exact bytes the pending photo was attached from (picker/camera/paste), kept so
     /// a photo sent via Nextcloud can upload the untouched original (HEIC/PNG/JPEG, full
@@ -879,6 +881,15 @@ struct GroupChatDetailView: View {
             if case .failed(let message) = state {
                 errorMessage = message
             }
+            // Stopped and encoded: the fee of the parts it will actually go as.
+            if state == .ready, let sizes = recorder.readyPartSizes {
+                var total: UInt64 = 0
+                for rawBytes in sizes {
+                    guard let fee = groupChatService.estimateGroupVoiceFee(rawBytes: rawBytes) else { return }
+                    total &+= fee
+                }
+                feeEstimateSompi = total
+            }
         }
         .toast(message: toastMessage, style: toastStyle)
         .alert("Adjust Network Fee", isPresented: $showFeeEditor) {
@@ -1004,7 +1015,7 @@ struct GroupChatDetailView: View {
             Group {
                 if let pendingPhotoImage {
                     photoPreviewRow(pendingPhotoImage)
-                } else if recorder.state == .recording || recorder.state == .encoding {
+                } else if isVoiceNoteActive {
                     recordingRow
                 } else {
                     textRow
@@ -1022,6 +1033,7 @@ struct GroupChatDetailView: View {
         .onChange(of: recorder.elapsedSeconds) { elapsed in
             updateRecordingFeeEstimate(elapsedSeconds: elapsed)
         }
+        .mediaAccessAlert($deniedMediaAccess)
         .fullScreenCover(isPresented: $showCamera) {
             CameraCaptureView(
                 onCapture: { data in
@@ -1162,11 +1174,19 @@ struct GroupChatDetailView: View {
     }
 
     private func takePhoto(viaNextcloud: Bool = false) {
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            errorMessage = "Camera not available on this device."
+            return
+        }
+        if MediaAccess.camera.isDenied {
+            deniedMediaAccess = .camera
+            return
+        }
+        Task { @MainActor in
+            // A fresh Don't Allow just closes: they've only now said no.
+            guard await MediaAccess.camera.request() else { return }
             nextcloudPhotoRequested = viaNextcloud
             showCamera = true
-        } else {
-            errorMessage = "Camera not available on this device."
         }
     }
 
@@ -1176,7 +1196,7 @@ struct GroupChatDetailView: View {
     /// its fee always shows.
     private var shouldShowFeeBubble: Bool {
         let setting = settingsViewModel.settings.showFeeEstimate
-        if recorder.state == .recording || recorder.state == .encoding { return setting || !voiceViaNextcloud }
+        if isVoiceNoteActive { return setting || !voiceViaNextcloud }
         // An on-chain photo's fee is chosen in the quality sheet at Send.
         if pendingPhotoImage != nil { return setting && photoViaNextcloud }
         return setting && composerHasText
@@ -1310,7 +1330,7 @@ struct GroupChatDetailView: View {
     }
 
     private var canAcceptImageAttachment: Bool {
-        pendingPhotoImage == nil && !isSendingPhoto && recorder.state != .recording && recorder.state != .encoding
+        pendingPhotoImage == nil && !isSendingPhoto && !isVoiceNoteActive
     }
 
     /// Wired into `ComposerTextView.onPasteImageData` - see its doc comment on `textRow` for why
@@ -1573,6 +1593,11 @@ struct GroupChatDetailView: View {
             nextcloudPhotoRequested = viaNextcloud
             afterPlusSheet = { showPhotoPicker = true }
         case .voice:
+            if MediaAccess.microphone.isDenied {
+                // After the sheet is gone, so the alert has somewhere to show.
+                afterPlusSheet = { deniedMediaAccess = .microphone }
+                return
+            }
             feeEstimateSompi = nil
             nextcloudVoiceRequested = viaNextcloud
             recorder.start()
@@ -1812,26 +1837,24 @@ struct GroupChatDetailView: View {
         return String(format: "%02d:%02d", total / 60, total % 60)
     }
 
+    /// A voice note is being recorded, encoded or waiting to be sent: the composer shows
+    /// `recordingRow` in place of the text field.
+    private var isVoiceNoteActive: Bool {
+        switch recorder.state {
+        case .recording, .encoding, .ready: return true
+        case .idle, .failed: return false
+        }
+    }
+
+    /// Built like 1:1's audio composer (`ChatDetailView`): the bar shows the ring and
+    /// "Recording... 00:06 / 01:50", then "Encoding…", then the preview's play / pause and
+    /// "Audio ready • 00:12", with the trash at its end; the button beside it stops the
+    /// recording, then sends it.
     private var recordingRow: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 8) {
-                Button {
-                    recorder.cancel()
-                    feeEstimateSompi = nil
-                } label: {
-                    Image(systemName: "trash.fill")
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(.plain)
-
-                Image(systemName: "mic.fill")
-                    .font(.caption)
-                    .foregroundColor(.red)
-
-                if recorder.state == .encoding {
-                    Text("Encoding…")
-                        .foregroundColor(.secondary)
-                } else {
+        HStack(spacing: 8) {
+            HStack {
+                switch recorder.state {
+                case .recording:
                     // A ring that fills toward the limit (1:50 on chain, 5:00 via Nextcloud).
                     ZStack {
                         Circle()
@@ -1842,33 +1865,63 @@ struct GroupChatDetailView: View {
                             .rotationEffect(.degrees(-90))
                             .animation(.linear(duration: 1), value: recorder.elapsedSeconds)
                     }
-                    .frame(width: 18, height: 18)
+                    .frame(width: 20, height: 20)
                     Text(verbatim: "\(String(localized: "Recording...")) \(Self.clock(recorder.elapsedSeconds)) / \(Self.clock(effectiveMaxRecordingDuration))")
                         .monospacedDigit()
-                        .foregroundColor(.secondary)
+                case .ready:
+                    Button {
+                        recorder.togglePreview()
+                    } label: {
+                        Image(systemName: recorder.previewIsPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    Text("\(String(localized: "Audio ready")) • \(recorder.previewLabel)")
+                        .monospacedDigit()
+                default:
+                    ProgressView()
+                    Text("Encoding…")
                 }
-
                 Spacer()
+                Button {
+                    // The trash throws the recording away, at any stage.
+                    recorder.cancel()
+                    feeEstimateSompi = nil
+                } label: {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(glassBackground(cornerRadius: 20))
 
             Button {
-                sendRecording()
+                switch recorder.state {
+                case .recording:
+                    recorder.stop(viaNextcloud: voiceViaNextcloud)
+                case .ready:
+                    sendRecording()
+                default:
+                    break
+                }
             } label: {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.title3)
+                // While recording its only job is "stop"; once there's a preview, it sends.
+                Image(systemName: recorder.state == .recording ? "stop.circle.fill" : "arrow.up.circle.fill")
+                    .font(.title)
                     .foregroundColor(recorder.state == .encoding ? .secondary : .accentColor)
-                    .frame(width: 36, height: 36)
-                    .background(glassBackground(cornerRadius: 12))
+                    .frame(width: 44, height: 44)
+                    .background(glassBackground(cornerRadius: 14))
             }
             .buttonStyle(.plain)
             .disabled(recorder.state == .encoding)
+            .opacity(recorder.state == .encoding ? 0.5 : 1.0)
         }
         .onChange(of: recorder.elapsedSeconds) { elapsed in
+            // At the limit the recording stops into its preview, as in 1:1; it isn't sent.
             guard elapsed >= effectiveMaxRecordingDuration, recorder.state == .recording else { return }
-            sendRecording()
+            recorder.stop(viaNextcloud: voiceViaNextcloud)
         }
     }
 
@@ -2015,50 +2068,38 @@ struct GroupChatDetailView: View {
         }
     }
 
+    /// Sends the `.ready` voice note: on chain as its parts (MESSAGING.md, "Long voice notes";
+    /// a note one part long is one untagged message), or via Nextcloud as a link with the
+    /// on-chain fallback when the upload fails.
     private func sendRecording() {
-        // Snapshot once, so a disconnect mid-send can't strand the stashed original. An on-chain
-        // voice note never goes through the server.
-        let nextcloudActive = voiceViaNextcloud
+        guard let recording = recorder.takeRecording() else { return }
         nextcloudVoiceRequested = false
+        feeEstimateSompi = nil
         Task {
-            // Nextcloud mode: stash the full-length original PCM BEFORE the payload-capped WebM
-            // encode - the encode truncates to ~13KB (≈9s), and exporting the M4A from that
-            // would silently re-cap a long recording. The copy lives only for this send; the
-            // defer below is its single cleanup site (success, upload failure, and send failure
-            // all pass through it). Mirrors `ChatDetailView.nextcloudOriginalRecordingURL`.
-            let originalPCMURL: URL? = nextcloudActive
-                ? FileManager.default.temporaryDirectory
-                    .appendingPathComponent("kachat-group-voice-original-\(UUID().uuidString).caf")
-                : nil
-            defer {
-                if let originalPCMURL {
-                    try? FileManager.default.removeItem(at: originalPCMURL)
-                }
-            }
-            do {
-                // On chain: parts of at most 9.8 s in the binary media frame (MESSAGING.md, "Long
-                // voice notes"); a note that short is one untagged message.
-                if !nextcloudActive {
-                    let recorded = try await recorder.stopAndEncodeParts()
-                    if recorded.parts.count > 1 {
-                        try await groupChatService.sendGroupVoiceNoteParts(recorded.parts, to: group.id, mimeType: recorded.mimeType)
-                    } else if let only = recorded.parts.first {
-                        try await groupChatService.sendGroupAudio(only, to: group.id, fileName: recorded.fileName, mimeType: recorded.mimeType)
+            switch recording {
+            case .onChain(let parts):
+                do {
+                    if parts.count > 1 {
+                        try await groupChatService.sendGroupVoiceNoteParts(parts, to: group.id, mimeType: "audio/webm")
+                    } else if let only = parts.first {
+                        try await groupChatService.sendGroupAudio(only, to: group.id, fileName: "voice.webm", mimeType: "audio/webm")
                     }
-                    return
+                } catch {
+                    await MainActor.run { errorMessage = "Failed to send voice message: \(UserFacingError.message(for: error))" }
                 }
-                let recorded = try await recorder.stopAndEncode(keepOriginalPCMAt: originalPCMURL)
-
-                // "Record via Nextcloud": upload an AAC .m4a of the recording and send the
-                // public share link instead of the on-chain WebM/Opus envelope. The .m4a
-                // re-export matters: the recipients' link-preview audio card streams through
-                // AVPlayer, which cannot decode WebM/Opus, so uploading the envelope bytes
-                // verbatim would produce an unplayable card. Any failure falls back to the
-                // on-chain path below, with a toast. Mirrors `ChatDetailView.sendAudioAsync`.
-                if nextcloudActive {
+            case .nextcloud(let originalPCMURL, let fallback):
+                // The original is this send's to delete (success, upload failure and send failure
+                // all pass through here).
+                defer { try? FileManager.default.removeItem(at: originalPCMURL) }
+                do {
+                    // "Record via Nextcloud": upload an AAC .m4a of the full-length recording and
+                    // send the public share link. The .m4a matters: the recipients' link-preview
+                    // audio card streams through AVPlayer, which can't decode WebM/Opus. Any
+                    // failure falls back to the on-chain note below, with a toast. Mirrors
+                    // `ChatDetailView.sendAudioAsync`.
                     var shareURL: URL?
                     do {
-                        let m4aURL = try await exportRecordingAsM4A(originalPCMURL: originalPCMURL, webmData: recorded.data)
+                        let m4aURL = try await exportRecordingAsM4A(originalPCMURL: originalPCMURL, webmData: fallback)
                         let m4aData = try Data(contentsOf: m4aURL)
                         try? FileManager.default.removeItem(at: m4aURL)
                         let stamp = Self.mediaTimestampFormatter.string(from: Date())
@@ -2078,14 +2119,12 @@ struct GroupChatDetailView: View {
                         try await groupChatService.sendGroupMessage(shareURL.absoluteString, to: group.id)
                         return
                     }
-                    // No share link - fall through to the on-chain envelope path (the WebM is
-                    // payload-capped, so a long Nextcloud-mode recording arrives truncated -
-                    // same trade-off as 1:1's fallback).
+                    // No share link: the on-chain fallback (payload-capped, so a long recording
+                    // arrives cut short - the same trade-off as 1:1's fallback).
+                    try await groupChatService.sendGroupAudio(fallback, to: group.id, fileName: "voice.webm", mimeType: "audio/webm")
+                } catch {
+                    await MainActor.run { errorMessage = "Failed to send voice message: \(UserFacingError.message(for: error))" }
                 }
-
-                try await groupChatService.sendGroupAudio(recorded.data, to: group.id, fileName: recorded.fileName, mimeType: recorded.mimeType)
-            } catch {
-                await MainActor.run { errorMessage = "Failed to send voice message: \(UserFacingError.message(for: error))" }
             }
         }
     }
@@ -2138,13 +2177,13 @@ struct GroupChatDetailView: View {
     /// Builds an AAC .m4a of the current recording for the Nextcloud upload. PCM source: the
     /// stashed full-length original (never truncated by the payload cap) when it exists, else
     /// the WebM payload is decoded on the spot. Mirrors `ChatDetailView.exportRecordingAsM4A`,
-    /// minus the preview-CAF branch (group's recorder has no preview step).
+    /// minus its preview-CAF branch (the group preview of a Nextcloud note is the original).
     private func exportRecordingAsM4A(originalPCMURL: URL?, webmData: Data) async throws -> URL {
         let pcmURL: URL
         let deletePCMAfter: Bool
         if let originalPCMURL, FileManager.default.fileExists(atPath: originalPCMURL.path) {
             pcmURL = originalPCMURL
-            deletePCMAfter = false // sendRecording's defer owns this copy, not here
+            deletePCMAfter = false // sendRecording's defer owns the original, not here
         } else {
             pcmURL = try WebMOpusDecoder.decodeToPCMFile(data: webmData).url
             deletePCMAfter = true

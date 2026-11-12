@@ -342,6 +342,14 @@ The input bubble is the text field only. Everything else is in the "+" sheet:
     at most 9.8 s / 21 KB (0.964 KAS). The chat shows them as one bubble with gapless playback,
     and they count as one unread and one notification ("Long voice notes (multi-part)" in
     MESSAGING.md). Older and other clients can't read group voice notes until they're updated.
+    Recording works the same in both composers: the button beside the bar stops the recording
+    (as does the length limit), it encodes ("Encoding…"), then "Audio ready" with a play / pause
+    preview of the note as it will be sent, and the button sends it; the trash throws it away
+    at any stage (`ChatDetailView` audio mode, `VoiceNoteRecorder` in groups).
+  - Camera and microphone access (`MediaAccess`, `Views/Shared/CameraCaptureView.swift`): the
+    composers ask the first time, and once access is off show `mediaAccessAlert` (Camera / Microphone
+    Access Required, Open Settings, Not Now) instead of a blank camera or a bare error. The
+    permission prompts' reasons are in Info.plist, translated in each `<lang>.lproj/InfoPlist.strings`.
   - Paste, drop and share-extension photos go on chain. Pasted, dropped and share-extension
     photos opened in the composer ask for a quality too. A photo the share extension sends
     straight away has no sheet to ask, so it goes at Low.

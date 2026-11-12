@@ -1501,3 +1501,8 @@
 /* Settings > Customization: .kachat name endings */
 "Show .kachat Endings" = "显示 .kachat 后缀";
 "Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "关闭后，名称会显示为 alice，而不是 alice.kachat。你自己给别人起的名字永远不会带这个后缀。";
+
+/* Chat composers: camera or microphone access is off (MediaAccess) */
+"Microphone Access Required" = "需要麦克风访问权限";
+"Allow camera access in Settings to take photos in chats." = "请在“设置”中允许访问相机，以便在聊天中拍照。";
+"Allow microphone access in Settings to record voice messages." = "请在“设置”中允许访问麦克风，以便录制语音消息。";

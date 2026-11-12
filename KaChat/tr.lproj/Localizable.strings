@@ -1501,3 +1501,8 @@
 /* Settings > Customization: .kachat name endings */
 "Show .kachat Endings" = ".kachat Uzantısını Göster";
 "Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "Kapatırsanız adlar alice.kachat yerine alice olarak görünür. Birine kendi verdiğiniz adda bu uzantı hiçbir zaman olmaz.";
+
+/* Chat composers: camera or microphone access is off (MediaAccess) */
+"Microphone Access Required" = "Mikrofon Erişimi Gerekli";
+"Allow camera access in Settings to take photos in chats." = "Sohbetlerde fotoğraf çekmek için Ayarlar’dan kamera erişimine izin verin.";
+"Allow microphone access in Settings to record voice messages." = "Sesli mesaj kaydetmek için Ayarlar’dan mikrofon erişimine izin verin.";

@@ -1501,3 +1501,8 @@
 /* Settings > Customization: .kachat name endings */
 "Show .kachat Endings" = "نمایش پسوند ‎.kachat";
 "Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "خاموشش کنید تا نام‌ها به‌صورت alice به‌جای alice.kachat نمایش داده شوند. نامی که خودتان به کسی داده‌اید هرگز این پسوند را ندارد.";
+
+/* Chat composers: camera or microphone access is off (MediaAccess) */
+"Microphone Access Required" = "دسترسی به میکروفون لازم است";
+"Allow camera access in Settings to take photos in chats." = "برای گرفتن عکس در گفتگوها، دسترسی به دوربین را در تنظیمات مجاز کنید.";
+"Allow microphone access in Settings to record voice messages." = "برای ضبط پیام صوتی، دسترسی به میکروفون را در تنظیمات مجاز کنید.";

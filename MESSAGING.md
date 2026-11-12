@@ -400,7 +400,14 @@ one message with no tag. Nextcloud voice notes are unchanged.
   no screen wake, no badge) in the same thread, and the quiet notification of the part before
   it is removed. That leaves at most the first banner and one quiet entry per note
   (`voice_part_banners` in the App Group). In the foreground the app lists such a push without
-  a banner (`kachat_quiet_voice_part`).
+  a banner (`kachat_quiet_voice_part`). Multi-part photos (`mediaPart`) work the same way.
+- **Parts arrive as bare txIds:** a part is too big for the push payload, so the extension reads
+  it from the Kaspa REST API to find its tag. The push often beats the API to the transaction,
+  so the read retries for up to 20 seconds (`fetchTransactionPayload`). A payload-less push that
+  still can't be read joins its sender's burst (`part_push_bursts`: by sender in 1:1, by
+  blinded group id in groups): one that follows another within 60 seconds is delivered quiet,
+  as a later part would be. Two separate large messages sent within a minute ring once; the
+  app still shows both.
 - iOS: `VoicePartTag` / `VoicePartGrouping` (Models.swift), `WebMOpusEncoder.encodeParts`
   (ChatDetailView.swift), `ChatService.sendVoiceNoteParts`, and
   `WebMOpusDecoder.decodePartsToPCMFile` with `LazyMultipartAudioBubble` (MessageBubbleView.swift).

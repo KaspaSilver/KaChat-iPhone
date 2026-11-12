@@ -1,0 +1,7 @@
+/* Permission prompts (Info.plist usage descriptions). Keep in step with KaChat/Resources/Info.plist. */
+"NSCameraUsageDescription" = "KaChat menggunakan kamera untuk memindai kode QR saat menambahkan kontak serta untuk mengambil foto dan video yang akan dikirim di chat.";
+"NSMicrophoneUsageDescription" = "KaChat menggunakan mikrofon untuk merekam pesan suara dan suara video yang Anda ambil untuk dikirim di chat.";
+"NSFaceIDUsageDescription" = "Face ID digunakan untuk membuka frasa pemulihan Anda dan masuk kembali, jika diaktifkan di Pengaturan.";
+"NSLocalNetworkUsageDescription" = "KaChat hanya terhubung ke node Kaspa atau server Nextcloud di jaringan lokal Anda jika Anda mengaturnya.";
+"NFCReaderUsageDescription" = "KaChat menggunakan NFC untuk menyimpan dan memulihkan cadangan terenkripsi frasa pemulihan Anda di kartu pintar Anda.";
+"NSPhotoLibraryAddUsageDescription" = "Simpan gambar yang diterima ke perpustakaan foto Anda.";

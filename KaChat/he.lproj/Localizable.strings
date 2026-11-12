@@ -1501,3 +1501,8 @@
 /* Settings > Customization: .kachat name endings */
 "Show .kachat Endings" = "הצגת הסיומת ‎.kachat";
 "Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "כבו כדי להציג שמות כמו alice במקום alice.kachat. לשם שנתתם בעצמכם למישהו אף פעם אין את הסיומת.";
+
+/* Chat composers: camera or microphone access is off (MediaAccess) */
+"Microphone Access Required" = "נדרשת גישה למיקרופון";
+"Allow camera access in Settings to take photos in chats." = "אפשרו גישה למצלמה בהגדרות כדי לצלם תמונות בצ׳אטים.";
+"Allow microphone access in Settings to record voice messages." = "אפשרו גישה למיקרופון בהגדרות כדי להקליט הודעות קוליות.";

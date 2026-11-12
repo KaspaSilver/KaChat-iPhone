@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import UIKit
 
@@ -5,10 +6,8 @@ import UIKit
 /// staging pipeline a library-picked photo already uses (`attachImageData(_:)` in
 /// `ChatDetailView.swift`, the equivalent inline block in `GroupChatDetailView.swift`) - this view
 /// only ever hands back raw JPEG `Data`, it has no opinion about what happens to it afterward.
-/// `UIImagePickerController` handles the camera permission prompt itself off the
-/// `NSCameraUsageDescription` Info.plist string, so no manual `AVCaptureDevice.requestAccess` call
-/// is needed here (unlike `QRScannerView.swift`'s live-preview scanner, a different, lower-level
-/// use case that reads frames directly rather than presenting a capture UI).
+/// The composers ask for camera access first (`MediaAccess.camera`), so this only opens once
+/// it's allowed: a picker opened without access shows a blank camera with no way to Settings.
 struct CameraCaptureView: UIViewControllerRepresentable {
     let onCapture: (Data) -> Void
     let onCancel: () -> Void
@@ -79,6 +78,97 @@ struct CameraCaptureView: UIViewControllerRepresentable {
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             onCancel()
+        }
+    }
+}
+
+/// Camera and microphone access for the chat composers (1:1 and group). The first use asks with
+/// the system prompt (the reasons are `NSCameraUsageDescription` / `NSMicrophoneUsageDescription`,
+/// translated in each language's InfoPlist.strings). Once access is off, the composers show
+/// `mediaAccessAlert`, which explains it and opens Settings, instead of a blank camera or a bare
+/// error. Someone who has just tapped Don't Allow isn't told again.
+enum MediaAccess: Identifiable {
+    case camera
+    case microphone
+
+    var id: Self { self }
+
+    /// Access was turned off (or is restricted): asking again shows nothing, only Settings helps.
+    var isDenied: Bool {
+        switch self {
+        case .camera:
+            let status = AVCaptureDevice.authorizationStatus(for: .video)
+            return status == .denied || status == .restricted
+        case .microphone:
+            if #available(iOS 17.0, *) {
+                return AVAudioApplication.shared.recordPermission == .denied
+            }
+            return AVAudioSession.sharedInstance().recordPermission == .denied
+        }
+    }
+
+    /// True when allowed; asks the first time.
+    func request() async -> Bool {
+        switch self {
+        case .camera:
+            switch AVCaptureDevice.authorizationStatus(for: .video) {
+            case .authorized:
+                return true
+            case .notDetermined:
+                return await AVCaptureDevice.requestAccess(for: .video)
+            default:
+                return false
+            }
+        case .microphone:
+            return await withCheckedContinuation { continuation in
+                if #available(iOS 17.0, *) {
+                    AVAudioApplication.requestRecordPermission { allowed in
+                        continuation.resume(returning: allowed)
+                    }
+                } else {
+                    AVAudioSession.sharedInstance().requestRecordPermission { allowed in
+                        continuation.resume(returning: allowed)
+                    }
+                }
+            }
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .camera: return "Camera Access Required"
+        case .microphone: return "Microphone Access Required"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .camera: return "Allow camera access in Settings to take photos in chats."
+        case .microphone: return "Allow microphone access in Settings to record voice messages."
+        }
+    }
+}
+
+extension View {
+    /// "Camera Access Required" / "Microphone Access Required" with Open Settings and Not Now,
+    /// while `denied` is set.
+    func mediaAccessAlert(_ denied: Binding<MediaAccess?>) -> some View {
+        alert(
+            Text(LocalizedStringKey(denied.wrappedValue?.title ?? "")),
+            isPresented: Binding(
+                get: { denied.wrappedValue != nil },
+                set: { if !$0 { denied.wrappedValue = nil } }
+            ),
+            presenting: denied.wrappedValue
+        ) { _ in
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Not Now", role: .cancel) {}
+        } message: { access in
+            Text(LocalizedStringKey(access.message))
         }
     }
 }

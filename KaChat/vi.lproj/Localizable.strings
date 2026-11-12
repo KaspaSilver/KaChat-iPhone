@@ -1501,3 +1501,8 @@
 /* Settings > Customization: .kachat name endings */
 "Show .kachat Endings" = "Hiện đuôi .kachat";
 "Turn off to show names like alice instead of alice.kachat. A name you gave someone yourself never has the ending." = "Tắt để hiện tên như alice thay vì alice.kachat. Tên bạn tự đặt cho ai đó không bao giờ có đuôi này.";
+
+/* Chat composers: camera or microphone access is off (MediaAccess) */
+"Microphone Access Required" = "Cần quyền truy cập micrô";
+"Allow camera access in Settings to take photos in chats." = "Cho phép truy cập camera trong Cài đặt để chụp ảnh trong cuộc trò chuyện.";
+"Allow microphone access in Settings to record voice messages." = "Cho phép truy cập micrô trong Cài đặt để ghi tin nhắn thoại.";

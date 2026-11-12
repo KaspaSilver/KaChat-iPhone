@@ -26,6 +26,25 @@ class NotificationService: UNNotificationServiceExtension {
     /// App Group ledger: long voice notes already announced, by "sender|id|count", each with the
     /// ids of the quiet notifications its later parts left.
     private let voicePartBannersKey = "voice_part_banners"
+    /// When this push arrived: the chain reads below retry until `chainReadDeadline` after it.
+    private var receivedAt = Date()
+    /// True once this push's message was read off chain (it came without a payload).
+    private var readOffChain = false
+    /// Set for a payload-less push (a photo or voice note part, or any message read off chain)
+    /// whose chain read failed or that turned out to be a part: who sent it, as "dm:<address>" or
+    /// "group:<blinded id>". Back-to-back ones from the same owner ring once
+    /// (`claimPartBurstBanner`), so a multi-part photo or voice note whose parts can't be read
+    /// in time still rings only once.
+    private var partBurstOwner: String?
+    /// App Group ledger for `claimPartBurstBanner`: owner -> ["t": last push time, "q": the
+    /// quiet notification ids its later pushes left].
+    private let partBurstsKey = "part_push_bursts"
+    /// How long after one payload-less push from an owner the next one still counts as the same
+    /// burst. Parts go out one after another, a few seconds apart.
+    private static let partBurstWindow: TimeInterval = 60
+    /// How long the chain reads keep trying, from the push's arrival. The extension has about 30
+    /// seconds in all.
+    private static let chainReadDeadline: TimeInterval = 20
 
     // App Group identifier for shared data
     private let appGroupIdentifier = "group.com.kachat.app"
@@ -67,6 +86,7 @@ class NotificationService: UNNotificationServiceExtension {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
         requestIdentifier = request.identifier
+        receivedAt = Date()
 
         guard let content = bestAttemptContent else {
             contentHandler(request.content)
@@ -326,6 +346,13 @@ class NotificationService: UNNotificationServiceExtension {
                     case .unreadable:
                         break
                     }
+                    // A message that couldn't be read in time, or a part of a photo or voice
+                    // note, joins its sender's burst: back-to-back ones ring once.
+                    if case .unreadable = read {
+                        self.partBurstOwner = Self.dmBurstOwner(senderAddress)
+                    } else if self.voicePartKey != nil {
+                        self.partBurstOwner = Self.dmBurstOwner(senderAddress)
+                    }
                     self.finishContextual(
                         content: content,
                         txId: txId,
@@ -373,13 +400,14 @@ class NotificationService: UNNotificationServiceExtension {
         // chat was opened.
         addPendingMessage(txId: txId, sender: senderAddress, type: messageType)
 
-        // A long voice note is ONE message: the first of its parts to arrive (part 1, or
-        // whichever comes first) rings and counts. A later part can't be withheld - that needs
-        // the com.apple.developer.usernotifications.filtering entitlement, which this extension
-        // doesn't have - so it is delivered passive (no sound, no screen wake, no badge) in the
-        // same thread, and the quiet one before it is removed, leaving at most the first banner
-        // and one quiet entry per note.
-        if let key = voicePartKey, !claimVoicePartBanner(key: key) {
+        // A long voice note or multi-part photo is ONE message: the first of its parts to
+        // arrive (part 1, or whichever comes first) rings and counts. A later part can't be
+        // withheld - that needs the com.apple.developer.usernotifications.filtering entitlement,
+        // which this extension doesn't have - so it is delivered passive (no sound, no screen
+        // wake, no badge) in the same thread, and the quiet one before it is removed, leaving at
+        // most the first banner and one quiet entry per note. Parts that couldn't be read off
+        // chain are matched by sender instead (`isLaterPartPush`).
+        if isLaterPartPush() {
             content.sound = nil
             content.interruptionLevel = .passive
             content.badge = nil
@@ -415,6 +443,47 @@ class NotificationService: UNNotificationServiceExtension {
         ledger[index] = [key] + (requestIdentifier.map { [$0] } ?? [])
         defaults.set(ledger, forKey: voicePartBannersKey)
         return false
+    }
+
+    /// True when this push is a later part of a note or burst that already rang: a tagged part
+    /// whose note was announced (`claimVoicePartBanner`), or a payload-less push that follows
+    /// another from the same owner within `partBurstWindow` (`claimPartBurstBanner`). Claims
+    /// both ledgers, so call it once per push.
+    private func isLaterPartPush() -> Bool {
+        let firstOfNote = voicePartKey.map { claimVoicePartBanner(key: $0) } ?? true
+        let firstOfBurst = partBurstOwner.map { claimPartBurstBanner(owner: $0) } ?? true
+        return !firstOfNote || !firstOfBurst
+    }
+
+    /// True for the first payload-less push from `owner` in a while, false for one that follows
+    /// another within `partBurstWindow`. A later one records this push's id and removes the quiet
+    /// notification the one before it left. Parts whose chain read failed carry no tag to match,
+    /// so this is what keeps them to one banner. Two separate photos sent within the window
+    /// also ring once, which is acceptable: the app shows both.
+    private func claimPartBurstBanner(owner: String) -> Bool {
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else { return true }
+        let now = Date().timeIntervalSince1970
+        var bursts = (defaults.dictionary(forKey: partBurstsKey) as? [String: [String: Any]]) ?? [:]
+        bursts = bursts.filter { now - (($0.value["t"] as? Double) ?? 0) < Self.partBurstWindow }
+        guard let earlier = bursts[owner] else {
+            bursts[owner] = ["t": now, "q": [String]()]
+            defaults.set(bursts, forKey: partBurstsKey)
+            return true
+        }
+        if let earlierQuiet = earlier["q"] as? [String], !earlierQuiet.isEmpty {
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: earlierQuiet)
+        }
+        bursts[owner] = ["t": now, "q": requestIdentifier.map { [$0] } ?? [String]()]
+        defaults.set(bursts, forKey: partBurstsKey)
+        return false
+    }
+
+    private static func dmBurstOwner(_ sender: String) -> String {
+        "dm:\(sender.lowercased())"
+    }
+
+    private static func groupBurstOwner(_ blindedGroupIdHex: String?) -> String {
+        "group:\((blindedGroupIdHex ?? "").lowercased())"
     }
 
     /// "sender|id|count" of a long voice note's part, read from the head of the decrypted
@@ -547,6 +616,7 @@ class NotificationService: UNNotificationServiceExtension {
                let blindedGroupIdHex = userInfo["blinded_group_id"] as? String {
                 fetchGroupChainPayload(txId: txId) { [weak self] chainPayloadHex in
                     guard let self else { return }
+                    self.readOffChain = true
                     var enriched = userInfo
                     if let chainPayloadHex { enriched["payload"] = chainPayloadHex }
                     _ = blindedGroupIdHex
@@ -578,6 +648,11 @@ class NotificationService: UNNotificationServiceExtension {
                     suppressGroupNotification(content)
                     addPendingMessage(txId: txId, sender: "group", type: messageType)
                     return
+                }
+                // Read off chain and still unreadable (most often: not on the API yet after
+                // every retry): back-to-back ones in this group ring once, as parts would.
+                if readOffChain {
+                    partBurstOwner = Self.groupBurstOwner(userInfo["blinded_group_id"] as? String)
                 }
                 deliverGroupFallback(content: content, senderAddress: userInfo["sender"] as? String,
                                      soundEnabled: defaultSoundEnabled,
@@ -636,6 +711,9 @@ class NotificationService: UNNotificationServiceExtension {
             content.threadIdentifier = "group:\(match.groupId)"
             // A long voice note in a group: keyed by (group, sender, voicePart.id), as the app.
             voicePartKey = Self.voicePartKey(in: match.plaintext, sender: "group:\(match.groupId.lowercased())|\(match.senderAddress)")
+            if readOffChain, voicePartKey != nil {
+                partBurstOwner = Self.groupBurstOwner(blindedGroupIdHex)
+            }
             content.categoryIdentifier = "KACHAT_MESSAGE"
             content.sound = defaultSoundEnabled ? .default : nil
         } else {
@@ -677,9 +755,9 @@ class NotificationService: UNNotificationServiceExtension {
             content.sound = defaultSoundEnabled ? .default : nil
         }
 
-        // A later part of a long voice note rings no second time: passive, no badge, and the
-        // quiet entry of the part before it removed (see `finishContextual`).
-        if let key = voicePartKey, !claimVoicePartBanner(key: key) {
+        // A later part of a long voice note or photo rings no second time: passive, no badge,
+        // and the quiet entry of the part before it removed (see `finishContextual`).
+        if isLaterPartPush() {
             content.sound = nil
             content.interruptionLevel = .passive
             content.badge = nil
@@ -833,6 +911,18 @@ class NotificationService: UNNotificationServiceExtension {
         let bodyKey = messageType == "group_control" ? "Group update" : "New group message"
         content.body = NSLocalizedString(bodyKey, comment: "Fallback body for an undecryptable group push")
         content.threadIdentifier = "group"
+        // An unreadable part of a photo or voice note after the first: quiet, as in
+        // `handleGroupPushResolved`.
+        if partBurstOwner != nil, isLaterPartPush() {
+            content.sound = nil
+            content.interruptionLevel = .passive
+            content.badge = nil
+            content.userInfo["kachat_quiet_voice_part"] = true
+            markGroupPushHandled(txId: txId)
+            addPendingMessage(txId: txId, sender: "group", type: messageType)
+            contentHandler?(content)
+            return
+        }
         content.sound = soundEnabled ? .default : nil
         if shouldIncrementUnread, let badge = incrementUnreadCountIfNeeded() {
             content.badge = NSNumber(value: badge)
@@ -1511,23 +1601,13 @@ class NotificationService: UNNotificationServiceExtension {
     /// extension already holds the key that opens it, so it fetches the transaction and runs the
     /// same preview chain the payload-carrying path uses.
     ///
-    /// Deliberately tight: a notification extension has about thirty seconds and it is sharing
-    /// them with everything else here, so a slow or unreachable API just leaves the generic body
-    /// rather than holding the banner. 10-50KB is a small read even on a poor connection.
+    /// The read retries for up to `chainReadDeadline` (`fetchTransactionPayload`), since the push
+    /// often beats the API to the transaction; past that, the generic body stays and the push
+    /// joins its sender's burst (`claimPartBurstBanner`). A notification extension has about
+    /// thirty seconds in all.
     private func fetchChainPreview(txId: String, sender: String, completion: @escaping (ContextualRead) -> Void) {
-        guard let url = kaspaTransactionURL(txId: txId) else {
-            completion(.unreadable)
-            return
-        }
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 8
-
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, _ in
-            guard let self,
-                  let data,
-                  let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let payloadHex = json["payload"] as? String, !payloadHex.isEmpty else {
+        fetchTransactionPayload(txId: txId) { [weak self] payloadHex in
+            guard let self, let payloadHex else {
                 completion(.unreadable)
                 return
             }
@@ -1548,28 +1628,53 @@ class NotificationService: UNNotificationServiceExtension {
                 ?? self.chessPreviewText(for: decrypted)
                 ?? self.unwrapReplyText(decrypted)
             completion(.message(preview))
-        }.resume()
+        }
     }
 
     /// The raw on-chain payload hex for a transaction, for the group path - which needs to run
     /// its own blinded-id match and decryption rather than the 1:1 preview chain.
     private func fetchGroupChainPayload(txId: String, completion: @escaping (String?) -> Void) {
-        guard let url = kaspaTransactionURL(txId: txId) else {
+        fetchTransactionPayload(txId: txId, completion: completion)
+    }
+
+    /// A transaction's payload hex from the configured REST API, retried until
+    /// `chainReadDeadline` after the push arrived. The push comes the moment the transaction is
+    /// sent, often before the API has it (a 404), and a multi-part photo or voice note sends its
+    /// parts back to back (a 429 or a slow answer). With one try, every part of a High photo or
+    /// long voice note could come back unreadable and ring as its own "New message". nil when it
+    /// still isn't there by the deadline, or the transaction has no payload.
+    private func fetchTransactionPayload(txId: String, attempt: Int = 0, completion: @escaping (String?) -> Void) {
+        let remaining = Self.chainReadDeadline - Date().timeIntervalSince(receivedAt)
+        guard let url = kaspaTransactionURL(txId: txId), remaining > 1 else {
             completion(nil)
             return
         }
         var request = URLRequest(url: url)
-        request.timeoutInterval = 8
+        request.timeoutInterval = min(8, remaining)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
 
-        URLSession.shared.dataTask(with: request) { data, response, _ in
-            guard let data,
-                  let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let payloadHex = json["payload"] as? String, !payloadHex.isEmpty else {
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, _ in
+            guard let self else {
                 completion(nil)
                 return
             }
-            completion(payloadHex)
+            if let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode),
+               let data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                let payloadHex = json["payload"] as? String
+                completion((payloadHex?.isEmpty == false) ? payloadHex : nil)
+                return
+            }
+            // Not on the API yet, busy, or no answer: try again shortly, while there's time.
+            let delay = min(1.0 + Double(attempt) * 0.75, 3.0)
+            let left = Self.chainReadDeadline - Date().timeIntervalSince(self.receivedAt)
+            guard left > delay + 1 else {
+                completion(nil)
+                return
+            }
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + delay) {
+                self.fetchTransactionPayload(txId: txId, attempt: attempt + 1, completion: completion)
+            }
         }.resume()
     }
 

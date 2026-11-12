@@ -395,6 +395,8 @@ struct ChatDetailView: View {
     /// on chain or via Nextcloud, and File appears.
     @ObservedObject private var nextcloudService = NextcloudService.shared
     @State private var showCamera = false
+    /// Camera or microphone access is off: `mediaAccessAlert` explains it and opens Settings.
+    @State private var deniedMediaAccess: MediaAccess?
     @State private var pendingPhotoImage: UIImage?
     /// The exact bytes the pending photo was attached from (picker/camera/paste/drop), kept so
     /// a photo sent via Nextcloud can upload the untouched original (HEIC/PNG/JPEG, full
@@ -1990,6 +1992,7 @@ struct ChatDetailView: View {
             }
         }
         .background(pendingPhotoReturnShortcutButton)
+        .mediaAccessAlert($deniedMediaAccess)
         .fullScreenCover(isPresented: $showCamera) {
             CameraCaptureView(
                 onCapture: { data in
@@ -2116,11 +2119,19 @@ struct ChatDetailView: View {
     }
 
     private func takePhoto(viaNextcloud: Bool = false) {
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            self.error = "Camera not available on this device."
+            return
+        }
+        if MediaAccess.camera.isDenied {
+            deniedMediaAccess = .camera
+            return
+        }
+        Task { @MainActor in
+            // A fresh Don't Allow just closes: they've only now said no.
+            guard await MediaAccess.camera.request() else { return }
             nextcloudPhotoRequested = viaNextcloud
             showCamera = true
-        } else {
-            self.error = "Camera not available on this device."
         }
     }
 
@@ -2351,6 +2362,11 @@ struct ChatDetailView: View {
             nextcloudPhotoRequested = viaNextcloud
             afterPlusSheet = { showPhotoPickerFromMenu = true }
         case .voice:
+            if MediaAccess.microphone.isDenied {
+                // After the sheet is gone, so the alert has somewhere to show.
+                afterPlusSheet = { deniedMediaAccess = .microphone }
+                return
+            }
             switchMode(.audio)
             startRecording(viaNextcloud: viaNextcloud)
         }
@@ -4388,14 +4404,13 @@ struct ChatDetailView: View {
 
     private func startRecording(viaNextcloud: Bool = false) {
         nextcloudVoiceRequested = viaNextcloud
+        if MediaAccess.microphone.isDenied {
+            deniedMediaAccess = .microphone
+            return
+        }
         Task {
-            let granted = await requestRecordPermission()
-            guard granted else {
-                await MainActor.run {
-                    self.error = "Microphone access denied."
-                }
-                return
-            }
+            // A fresh Don't Allow just stops: they've only now said no.
+            guard await MediaAccess.microphone.request() else { return }
 
             let session = AVAudioSession.sharedInstance()
             do {
@@ -4998,20 +5013,6 @@ struct ChatDetailView: View {
                 await MainActor.run {
                     self.recordingFeeSompi = nil
                     self.isEstimatingFee = false
-                }
-            }
-        }
-    }
-
-    private func requestRecordPermission() async -> Bool {
-        await withCheckedContinuation { continuation in
-            if #available(iOS 17.0, *) {
-                AVAudioApplication.requestRecordPermission { allowed in
-                    continuation.resume(returning: allowed)
-                }
-            } else {
-                AVAudioSession.sharedInstance().requestRecordPermission { allowed in
-                    continuation.resume(returning: allowed)
                 }
             }
         }
